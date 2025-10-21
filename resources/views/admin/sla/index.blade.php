@@ -1,256 +1,114 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>SLA Rules Management — CMS Admin</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/feather-icons"></script>
-  <style>
-    :root{
-      --glass-bg: rgba(255,255,255,0.08);
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --muted: #64748b;
-      --sidebar-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-      --topbar-bg: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
-    }
-    body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); color:#f1f5f9; min-height:100vh; }
-    .sidebar {
-      min-height:100vh;
-      width: 260px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid rgba(59, 130, 246, 0.2);
-      padding: 22px;
-      position: fixed;
-      left:0; top:0; bottom:0;
-      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
-    }
-    .brand { color: var(--accent); font-weight:700; font-size:18px; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-    .nav-link { color: #cbd5e1; border-radius:8px; transition: all 0.3s ease; }
-    .nav-link:hover, .nav-link.active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); color: #fff; transform: translateX(5px); }
-    .content { margin-left: 280px; padding: 28px; }
-    .topbar { 
-      display:flex; 
-      justify-content:space-between; 
-      align-items:center; 
-      gap:12px; 
-      margin-bottom:18px; 
-      background: var(--topbar-bg);
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
-      border: 1px solid rgba(59, 130, 246, 0.1);
-    }
-    .card-glass { 
-      background: var(--glass-bg); 
-      border:1px solid rgba(59, 130, 246, 0.1); 
-      border-radius:14px; 
-      padding:18px; 
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(10px);
-    }
-    .table thead th { 
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); 
-      color:#e2e8f0; 
-      border-bottom: 2px solid rgba(59, 130, 246, 0.2);
-    }
-    .btn-accent { 
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
-      border:none; 
-      color:#fff; 
-      font-weight:700; 
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-      transition: all 0.3s ease;
-    }
-    .btn-accent:hover { 
-      background: linear-gradient(135deg, #2563eb, #1e40af); 
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    }
-    .btn-sm { padding: 6px 12px; font-size: 12px; }
-    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .status-inactive { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-    .priority-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-    .priority-urgent { background: rgba(147, 51, 234, 0.2); color: #9333ea; }
-    .time-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-    @media (max-width: 991px){
-      .sidebar { position: relative; width:100%; min-height:auto; }
-      .content { margin-left:0; padding:12px; }
-    }
-  </style>
-</head>
-<body>
+@extends('layouts.sidebar')
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="brand mb-4">CMS Admin</div>
-    
-    <div class="section-title">Main Menu</div>
-    <a href="{{ route('admin.dashboard') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-      <i data-feather="home" class="me-2"></i> Dashboard
-    </a>
-    
-    <div class="section-title">Management</div>
-    <a href="{{ route('admin.users.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-      <i data-feather="users" class="me-2"></i> Users
-    </a>
-    <a href="{{ route('admin.roles.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-      <i data-feather="shield" class="me-2"></i> Roles
-    </a>
-    <a href="{{ route('admin.employees.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
-      <i data-feather="user-check" class="me-2"></i> Employees
-    </a>
-    <a href="{{ route('admin.clients.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
-      <i data-feather="briefcase" class="me-2"></i> Clients
-    </a>
-    <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}">
-      <i data-feather="alert-circle" class="me-2"></i> Complaints
-    </a>
-    <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}">
-      <i data-feather="package" class="me-2"></i> Spare Parts
-    </a>
-    <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') ? 'active' : '' }}">
-      <i data-feather="check-circle" class="me-2"></i> Approvals
-    </a>
-    <a href="{{ route('admin.reports.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-      <i data-feather="bar-chart-2" class="me-2"></i> Reports
-    </a>
-    <a href="{{ route('admin.sla.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.sla.*') ? 'active' : '' }}">
-      <i data-feather="clock" class="me-2"></i> SLA Rules
-    </a>
-  </aside>
+@section('title', 'SLA Rules Management — CMS Admin')
 
-  <!-- MAIN CONTENT -->
-  <div class="content">
-    <!-- TOPBAR -->
-    <div class="topbar">
+@section('content')
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
       <div>
-        <h4 class="mb-0 text-white">SLA Rules Management</h4>
-        <small class="text-blue-200">Manage Service Level Agreement rules and compliance</small>
+      <h2 class="text-white mb-2" >SLA Rules Management</h2>
+      <p class="text-light" >Manage Service Level Agreement rules and compliance</p>
       </div>
-      <div class="d-flex gap-2">
-        <a href="{{ route('admin.sla.create') }}" class="btn btn-accent btn-sm">
-          <i data-feather="plus" class="me-1"></i> Add SLA Rule
+    <a href="{{ route('admin.sla.create') }}" class="btn btn-accent">
+      <i data-feather="plus" class="me-2"></i>Add SLA Rule
         </a>
       </div>
     </div>
 
-    <!-- SLA RULES TABLE -->
-    <div class="card-glass">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">All SLA Rules</h5>
-        <div class="d-flex gap-2">
-          <input type="text" class="form-control form-control-sm" placeholder="Search SLA rules..." style="width: 200px;">
-          <select class="form-select form-select-sm" style="width: 120px;">
+<!-- FILTERS -->
+<div class="card-glass mb-4">
+  <div class="row g-3">
+    <div class="col-md-4">
+      <input type="text" class="form-control" placeholder="Search SLA rules..." 
+>
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" 
+>
             <option value="">All Priorities</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
             <option value="urgent">Urgent</option>
           </select>
-          <select class="form-select form-select-sm" style="width: 120px;">
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" 
+>
             <option value="">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-outline-light btn-sm w-100">
+        <i data-feather="filter" class="me-1"></i>Filter
+      </button>
+    </div>
         </div>
       </div>
 
+<!-- SLA RULES TABLE -->
+<div class="card-glass">
       <div class="table-responsive">
-        <table class="table table-dark table-hover">
+        <table class="table table-dark">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Rule Name</th>
-              <th>Priority</th>
-              <th>Response Time</th>
-              <th>Resolution Time</th>
-              <th>Escalation Time</th>
-              <th>Notify To</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Actions</th>
+          <th >ID</th>
+          <th >Rule Name</th>
+          <th >Priority</th>
+          <th >Response Time</th>
+          <th >Resolution Time</th>
+          <th >Escalation Time</th>
+          <th >Notify To</th>
+          <th >Status</th>
+          <th >Created</th>
+          <th >Actions</th>
             </tr>
           </thead>
           <tbody>
             @forelse($slaRules as $rule)
             <tr>
-              <td>{{ $rule->id }}</td>
-              <td>
-                <div class="d-flex align-items-center">
-                  <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                    <i data-feather="clock" class="text-white" style="width: 16px; height: 16px;"></i>
-                  </div>
-                  <div>
-                    <strong>{{ $rule->rule_name }}</strong>
-                    @if($rule->description)
-                    <br><small class="text-muted">{{ Str::limit($rule->description, 40) }}</small>
-                    @endif
-                  </div>
-                </div>
+          <td >{{ $rule->id }}</td>
+          <td>
+            <div style="color: #ffffff !important; font-weight: 600;">{{ $rule->rule_name }}</div>
+            <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $rule->description ?? 'No description' }}</div>
               </td>
               <td>
-                <span class="badge bg-info">
-                  Level {{ $rule->escalation_level }}
+            <span class="priority-badge priority-{{ strtolower($rule->priority) }}">
+              {{ ucfirst($rule->priority) }}
                 </span>
               </td>
-              <td>
-                <span class="time-badge">{{ $rule->max_response_time }}h</span>
-              </td>
-              <td>
-                <span class="time-badge">{{ $rule->max_resolution_time }}h</span>
-              </td>
-              <td>
-                <span class="time-badge">{{ $rule->escalation_level * 24 }}h</span>
-              </td>
-              <td>
-                @if($rule->notifyTo)
-                <div class="d-flex align-items-center">
-                  <div class="bg-info rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
-                    <i data-feather="user" class="text-white" style="width: 12px; height: 12px;"></i>
-                  </div>
-                  {{ $rule->notifyTo->username }}
-                </div>
-                @else
-                <span class="text-muted">No one</span>
-                @endif
-              </td>
-              <td>
-                <span class="status-badge status-{{ $rule->is_active ? 'active' : 'inactive' }}">
-                  {{ ucfirst($rule->status) }}
+          <td >{{ $rule->response_time }} hours</td>
+          <td >{{ $rule->resolution_time }} hours</td>
+          <td >{{ $rule->escalation_time }} hours</td>
+          <td >{{ $rule->notify_to ?? 'N/A' }}</td>
+          <td>
+            <span class="status-badge status-{{ $rule->status ?? 'active' }}">
+              {{ ucfirst($rule->status ?? 'active') }}
                 </span>
               </td>
-              <td>{{ $rule->created_at->format('M d, Y') }}</td>
+          <td >{{ $rule->created_at->format('M d, Y') }}</td>
               <td>
-                <div class="d-flex gap-1">
-                  <a href="{{ route('admin.sla.show', $rule) }}" class="btn btn-outline-info btn-sm">
+            <div class="btn-group" role="group">
+              <button class="btn btn-outline-info btn-sm" onclick="viewRule({{ $rule->id }})" title="View Details">
                     <i data-feather="eye"></i>
-                  </a>
-                  <a href="{{ route('admin.sla.edit', $rule) }}" class="btn btn-outline-warning btn-sm">
+              </button>
+              <button class="btn btn-outline-warning btn-sm" onclick="editRule({{ $rule->id }})" title="Edit">
                     <i data-feather="edit"></i>
-                  </a>
-                  <form action="{{ route('admin.sla.destroy', $rule) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
+              </button>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteRule({{ $rule->id }})" title="Delete">
                       <i data-feather="trash-2"></i>
                     </button>
-                  </form>
                 </div>
               </td>
             </tr>
             @empty
             <tr>
-              <td colspan="10" class="text-center py-4">
-                <div class="text-muted">
-                  <i data-feather="clock" class="mb-2" style="width: 48px; height: 48px; opacity: 0.5;"></i>
-                  <br>No SLA rules found
-                </div>
+          <td colspan="10" class="text-center py-4" >
+            <i data-feather="clock" class="feather-lg mb-2"></i>
+            <div>No SLA rules found</div>
               </td>
             </tr>
             @endforelse
@@ -258,22 +116,49 @@
         </table>
       </div>
 
-      @if($slaRules->hasPages())
+  <!-- PAGINATION -->
       <div class="d-flex justify-content-between align-items-center mt-3">
-        <div class="text-muted">
-          Showing {{ $slaRules->firstItem() }} to {{ $slaRules->lastItem() }} of {{ $slaRules->total() }} results
+    <div >
+      Showing {{ $slaRules->firstItem() ?? 0 }} to {{ $slaRules->lastItem() ?? 0 }} of {{ $slaRules->total() }} SLA rules
         </div>
         <div>
           {{ $slaRules->links() }}
         </div>
       </div>
-      @endif
     </div>
-  </div>
+@endsection
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@push('styles')
+<style>
+  .priority-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+  .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+  .priority-urgent { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+  
+  .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+  .status-inactive { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+</style>
+@endpush
+
+@push('scripts')
   <script>
     feather.replace();
+
+  // SLA Rule Functions
+  function viewRule(ruleId) {
+    alert('View SLA rule details functionality coming soon!');
+  }
+
+  function editRule(ruleId) {
+    alert('Edit SLA rule functionality coming soon!');
+  }
+
+  function deleteRule(ruleId) {
+    if (confirm('Are you sure you want to delete this SLA rule?')) {
+      alert('Delete SLA rule functionality coming soon!');
+    }
+  }
   </script>
-</body>
-</html>
+@endpush

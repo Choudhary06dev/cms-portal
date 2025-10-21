@@ -289,6 +289,32 @@
       color: #1e293b !important;
     }
     
+    .theme-light .table-dark {
+      background: #ffffff !important;
+    }
+    
+    .theme-light .table-dark tbody {
+      background: #ffffff !important;
+    }
+    
+    .theme-light .table-dark td {
+      background: #ffffff !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table-dark th {
+      background: rgba(0, 0, 0, 0.05) !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table-dark .text-center {
+      color: #64748b !important;
+    }
+    
+    .theme-light .table-dark .text-muted {
+      color: #64748b !important;
+    }
+    
     .theme-light .table-striped > tbody > tr:nth-of-type(odd) > td {
       background: rgba(0, 0, 0, 0.02) !important;
     }

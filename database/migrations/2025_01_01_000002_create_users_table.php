@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('phone', 20)->nullable();
             $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('theme', 10)->default('auto');
             $table->timestamps();
         });
     }

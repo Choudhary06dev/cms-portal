@@ -7,8 +7,8 @@
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h2 class="text-white mb-2" style="color: #ffffff !important;">Employee Management</h2>
-      <p class="text-light" style="color: #cbd5e1 !important;">Manage your team members and their information</p>
+      <h2 class="text-white mb-2" >Employee Management</h2>
+      <p class="text-light" >Manage your team members and their information</p>
     </div>
     <button class="btn btn-accent" id="addEmployeeBtn" data-bs-toggle="modal" data-bs-target="#employeeModal">
       <i data-feather="user-plus" class="me-2"></i>Add Employee
@@ -72,23 +72,23 @@
 <!-- EMPLOYEES TABLE -->
 <div class="card-glass">
   <div class="table-responsive">
-    <table class="table table-dark table-hover" id="employeesTable">
+    <table class="table table-dark" id="employeesTable">
                         <thead>
                             <tr>
-          <th style="color: #e2e8f0 !important;">#</th>
-          <th style="color: #e2e8f0 !important;">Employee</th>
-          <th style="color: #e2e8f0 !important;">Department</th>
-          <th style="color: #e2e8f0 !important;">Designation</th>
-          <th style="color: #e2e8f0 !important;">Biometric ID</th>
-          <th style="color: #e2e8f0 !important;">Leave Quota</th>
-          <th style="color: #e2e8f0 !important;">Status</th>
-          <th style="color: #e2e8f0 !important;">Actions</th>
+          <th>#</th>
+          <th>Employee</th>
+          <th>Department</th>
+          <th>Designation</th>
+          <th>Biometric ID</th>
+          <th>Leave Quota</th>
+          <th>Status</th>
+          <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($employees as $employee)
         <tr>
-          <td style="color: #cbd5e1 !important;">{{ $employee->id }}</td>
+          <td >{{ $employee->id }}</td>
           <td>
             <div class="d-flex align-items-center">
               <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
@@ -100,10 +100,10 @@
               </div>
             </div>
           </td>
-          <td style="color: #cbd5e1 !important;">{{ $employee->department }}</td>
-          <td style="color: #cbd5e1 !important;">{{ $employee->designation }}</td>
-          <td style="color: #cbd5e1 !important;">{{ $employee->biometric_id ?? 'N/A' }}</td>
-          <td style="color: #cbd5e1 !important;">{{ $employee->leave_quota }} days</td>
+          <td >{{ $employee->department }}</td>
+          <td >{{ $employee->designation }}</td>
+          <td >{{ $employee->biometric_id ?? 'N/A' }}</td>
+          <td >{{ $employee->leave_quota }} days</td>
           <td>
             <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }}" 
                   style="font-size: 0.75rem; padding: 4px 8px;">
@@ -126,7 +126,7 @@
                                 </tr>
                             @empty
         <tr>
-          <td colspan="8" class="text-center py-4" style="color: #94a3b8 !important;">
+          <td colspan="8" class="text-center py-4" >
             <i data-feather="users" class="feather-lg mb-2"></i>
             <div>No employees found</div>
           </td>
@@ -138,7 +138,7 @@
   
   <!-- PAGINATION -->
   <div class="d-flex justify-content-between align-items-center mt-3">
-    <div style="color: #94a3b8 !important;">
+    <div >
       Showing {{ $employees->firstItem() ?? 0 }} to {{ $employees->lastItem() ?? 0 }} of {{ $employees->total() }} employees
     </div>
     <div>
@@ -318,31 +318,31 @@
                 <div class="avatar-lg mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: bold;">
                   ${data.user.full_name.charAt(0)}
                 </div>
-                <h5 style="color: #ffffff !important;">${data.user.full_name}</h5>
-                <p style="color: #94a3b8 !important;">${data.designation}</p>
+                <h5 >${data.user.full_name}</h5>
+                <p >${data.designation}</p>
               </div>
             </div>
             <div class="col-md-8">
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label style="color: #94a3b8 !important; font-size: 0.8rem;">Email</label>
-                  <div style="color: #ffffff !important;">${data.user.email || 'N/A'}</div>
+                  <div >${data.user.email || 'N/A'}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label style="color: #94a3b8 !important; font-size: 0.8rem;">Phone</label>
-                  <div style="color: #ffffff !important;">${data.user.phone || 'N/A'}</div>
+                  <div >${data.user.phone || 'N/A'}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label style="color: #94a3b8 !important; font-size: 0.8rem;">Department</label>
-                  <div style="color: #ffffff !important;">${data.department}</div>
+                  <div >${data.department}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label style="color: #94a3b8 !important; font-size: 0.8rem;">Biometric ID</label>
-                  <div style="color: #ffffff !important;">${data.biometric_id || 'N/A'}</div>
+                  <div >${data.biometric_id || 'N/A'}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label style="color: #94a3b8 !important; font-size: 0.8rem;">Leave Quota</label>
-                  <div style="color: #ffffff !important;">${data.leave_quota} days</div>
+                  <div >${data.leave_quota} days</div>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label style="color: #94a3b8 !important; font-size: 0.8rem;">Status</label>
