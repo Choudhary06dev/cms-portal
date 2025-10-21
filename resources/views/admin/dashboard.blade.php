@@ -1,187 +1,646 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Dashboard — CMS Admin</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/feather-icons"></script>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+@extends('layouts.sidebar')
+
+@section('title', 'Dashboard — CMS Admin')
+
+@section('content')
   <style>
-    :root{
-      --glass-bg: rgba(255,255,255,0.08);
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --muted: #64748b;
-      --sidebar-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-      --topbar-bg: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
-    }
-    body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); color:#f1f5f9; min-height:100vh; }
-    .sidebar {
-      min-height:100vh;
-      width: 260px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid rgba(59, 130, 246, 0.2);
-      padding: 22px;
-      position: fixed;
-      left:0; top:0; bottom:0;
-      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
-    }
-    .brand { color: var(--accent); font-weight:700; font-size:18px; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-    .nav-link { color: #cbd5e1; border-radius:8px; transition: all 0.3s ease; }
-    .nav-link:hover, .nav-link.active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); color: #fff; transform: translateX(5px); }
-    .content { margin-left: 280px; padding: 28px; }
-    .topbar { 
-      display:flex; 
-      justify-content:space-between; 
-      align-items:center; 
-      gap:12px; 
-      margin-bottom:18px; 
-      background: var(--topbar-bg);
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
-      border: 1px solid rgba(59, 130, 246, 0.1);
-    }
-    .card-glass { 
-      background: var(--glass-bg); 
-      border:1px solid rgba(59, 130, 246, 0.1); 
-      border-radius:14px; 
-      padding:18px; 
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(10px);
-    }
-    .stat-card {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-    }
-    .stat-number {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-    .stat-label {
-      color: #94a3b8;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    .chart-container {
-      background: var(--glass-bg);
-      border: 1px solid rgba(59, 130, 246, 0.1);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .table thead th { 
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); 
-      color:#e2e8f0; 
-      border-bottom: 2px solid rgba(59, 130, 246, 0.2);
-    }
-    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .status-new { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-    .status-assigned { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .status-in_progress { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
-    .status-resolved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .status-closed { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
-    .priority-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-    .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    @media (max-width: 991px){
-      .sidebar { position: relative; width:100%; min-height:auto; }
-      .content { margin-left:0; padding:12px; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="brand mb-4">CMS Admin</div>
-    
-    <div class="section-title">Main Menu</div>
-    <a href="{{ route('admin.dashboard') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-      <i data-feather="home" class="me-2"></i> Dashboard
-    </a>
-    
-    <div class="section-title">Management</div>
-    <a href="{{ route('admin.users.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-      <i data-feather="users" class="me-2"></i> Users
-    </a>
-    <a href="{{ route('admin.roles.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-      <i data-feather="shield" class="me-2"></i> Roles
-    </a>
-    <a href="{{ route('admin.employees.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
-      <i data-feather="user-check" class="me-2"></i> Employees
-    </a>
-    <a href="{{ route('admin.clients.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
-      <i data-feather="briefcase" class="me-2"></i> Clients
-    </a>
-    <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}">
-      <i data-feather="alert-circle" class="me-2"></i> Complaints
-    </a>
-    <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}">
-      <i data-feather="package" class="me-2"></i> Spare Parts
-    </a>
-    <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') ? 'active' : '' }}">
-      <i data-feather="check-circle" class="me-2"></i> Approvals
-    </a>
-    <a href="{{ route('admin.reports.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-      <i data-feather="bar-chart-2" class="me-2"></i> Reports
-    </a>
-    <a href="{{ route('admin.sla.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.sla.*') ? 'active' : '' }}">
-      <i data-feather="clock" class="me-2"></i> SLA Rules
-    </a>
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <div class="content">
-    <!-- TOPBAR -->
-    <div class="topbar">
-      <div>
-        <h4 class="mb-0 text-white">Dashboard Overview</h4>
-        <small class="text-blue-200">Real-time complaint management system</small>
-      </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-light btn-sm" onclick="refreshDashboard()">
-          <i data-feather="refresh-cw" class="me-1"></i> Refresh
-        </button>
-      </div>
+  /* Simple and effective light theme for dashboard */
+  .theme-light {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .content {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light h1, .theme-light h2, .theme-light h3, 
+  .theme-light h4, .theme-light h5, .theme-light h6 {
+    color: #000000 !important;
+  }
+  
+  .theme-light p, .theme-light span, .theme-light div {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-white {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-light {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-muted {
+    color: #6b7280 !important;
+  }
+  
+  .theme-light .text-secondary {
+    color: #6b7280 !important;
+  }
+  
+  .theme-light .table {
+    color: #000000 !important;
+  }
+  
+  .theme-light .table th {
+    color: #000000 !important;
+    background: #f9fafb !important;
+  }
+  
+  .theme-light .table td {
+    color: #000000 !important;
+  }
+  
+  .theme-light .btn {
+    color: #000000 !important;
+  }
+  
+  .theme-light .btn-primary {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
+  }
+  
+  .theme-light .btn-outline-primary {
+    color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .theme-light .btn-outline-primary:hover {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+  }
+  
+  .theme-light .text-primary {
+    color: #3b82f6 !important;
+  }
+  
+  .theme-light .text-success {
+    color: #22c55e !important;
+  }
+  
+  .theme-light .text-warning {
+    color: #f59e0b !important;
+  }
+  
+  .theme-light .text-danger {
+    color: #ef4444 !important;
+  }
+  
+  .theme-light .text-info {
+    color: #06b6d4 !important;
+  }
+  
+  .theme-light .badge {
+    color: #ffffff !important;
+  }
+  
+  .theme-light .form-control {
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .form-control:focus {
+    background: #ffffff !important;
+    border-color: #3b82f6 !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .form-label {
+    color: #000000 !important;
+  }
+  
+  .theme-light .alert {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .alert-success {
+    background: #f0fdf4 !important;
+    border-color: #22c55e !important;
+    color: #166534 !important;
+  }
+  
+  .theme-light .alert-warning {
+    background: #fffbeb !important;
+    border-color: #f59e0b !important;
+    color: #92400e !important;
+  }
+  
+  .theme-light .alert-danger {
+    background: #fef2f2 !important;
+    border-color: #ef4444 !important;
+    color: #991b1b !important;
+  }
+  
+  .theme-light .alert-info {
+    background: #f0f9ff !important;
+    border-color: #06b6d4 !important;
+    color: #155e75 !important;
+  }
+  
+  .theme-light .progress {
+    background: #f3f4f6 !important;
+  }
+  
+  .theme-light .progress-bar {
+    background: #3b82f6 !important;
+  }
+  
+  .theme-light .list-group-item {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .list-group-item:hover {
+    background: #f9fafb !important;
+  }
+  
+  /* Override all inline styles */
+  .theme-light [style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #cbd5e1"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #94a3b8"] {
+    color: #6b7280 !important;
+  }
+  
+  .theme-light [style*="color: #1e293b"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #f1f5f9"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #64748b"] {
+    color: #6b7280 !important;
+  }
+  
+  /* Force ALL headings to be black in light theme */
+  .theme-light h1, .theme-light h2, .theme-light h3, 
+  .theme-light h4, .theme-light h5, .theme-light h6 {
+    color: #000000 !important;
+  }
+  
+  .theme-light .dashboard-header h2 {
+    color: #000000 !important;
+  }
+  
+  .theme-light .dashboard-header p {
+    color: #000000 !important;
+  }
+  
+  .theme-light .mb-4 h2 {
+    color: #000000 !important;
+  }
+  
+  .theme-light .mb-4 p {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass h1,
+  .theme-light .card-glass h2,
+  .theme-light .card-glass h3,
+  .theme-light .card-glass h4,
+  .theme-light .card-glass h5,
+  .theme-light .card-glass h6 {
+    color: #000000 !important;
+  }
+  
+  .theme-light .content h1,
+  .theme-light .content h2,
+  .theme-light .content h3,
+  .theme-light .content h4,
+  .theme-light .content h5,
+  .theme-light .content h6 {
+    color: #000000 !important;
+  }
+  
+  /* Override any remaining white text */
+  .theme-light * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-muted {
+    color: #6b7280 !important;
+  }
+  
+  .theme-light .text-secondary {
+    color: #6b7280 !important;
+  }
+  
+  /* Force all text in light theme to be black */
+  .theme-light .text-white {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-light {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-dark {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-body {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-reset {
+    color: #000000 !important;
+  }
+  
+  /* Force override of ALL inline styles in light theme */
+  .theme-light [style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #cbd5e1"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #94a3b8"] {
+    color: #6b7280 !important;
+  }
+  
+  .theme-light [style*="color: #1e293b"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #f1f5f9"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light [style*="color: #64748b"] {
+    color: #6b7280 !important;
+  }
+  
+  /* Force all dashboard content to be black */
+  .theme-light .dashboard-header * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .content * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .mb-4 * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .row * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .col-md-3 * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .col-md-6 * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .col-md-4 * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .col-md-8 * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .col-md-12 * {
+    color: #000000 !important;
+  }
+  
+  /* Override specific dashboard elements */
+  .theme-light .dashboard-header h2[style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .dashboard-header p[style*="color: #cbd5e1"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass div[style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass div[style*="color: #94a3b8"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass div[style*="color: #cbd5e1"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass .h4[style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass .h4[style*="color: #f59e0b"] {
+    color: #f59e0b !important;
+  }
+  
+  .theme-light .card-glass .h4[style*="color: #22c55e"] {
+    color: #22c55e !important;
+  }
+  
+  .theme-light .card-glass .h4[style*="color: #ef4444"] {
+    color: #ef4444 !important;
+  }
+  
+  .theme-light .card-glass .h4[style*="color: #3b82f6"] {
+    color: #3b82f6 !important;
+  }
+  
+  .theme-light .card-glass .h4[style*="color: #06b6d4"] {
+    color: #06b6d4 !important;
+  }
+  
+  /* Force all text in light theme to be black except colored numbers */
+  .theme-light .card-glass div[style*="color: #94a3b8"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass div[style*="color: #cbd5e1"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .card-glass div[style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  /* Night theme styles */
+  .theme-night body {
+    background: linear-gradient(135deg, #000000 0%, #111111 100%);
+    color: #e5e5e5;
+  }
+  
+  .theme-night .content {
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night .card-glass {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night h1, .theme-night h2, .theme-night h3, 
+  .theme-night h4, .theme-night h5, .theme-night h6 {
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night p, .theme-night span, .theme-night div {
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night .text-white {
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night .text-muted {
+    color: #9ca3af !important;
+  }
+  
+  .theme-night .text-secondary {
+    color: #9ca3af !important;
+  }
+  
+  .theme-night .table {
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night .table th {
+    color: #e5e5e5 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .theme-night .table td {
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night .btn {
+    color: #e5e5e5 !important;
+  }
+  
+  .theme-night .btn-primary {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    color: #ffffff !important;
+  }
+  
+  .theme-night .btn-outline-primary {
+    color: #60a5fa !important;
+    border-color: #60a5fa !important;
+  }
+  
+  .theme-night .btn-outline-primary:hover {
+    background: #60a5fa !important;
+    color: #000000 !important;
+  }
+  
+  .theme-night .text-primary {
+    color: #60a5fa !important;
+  }
+  
+  .theme-night .text-success {
+    color: #34d399 !important;
+  }
+  
+  .theme-night .text-warning {
+    color: #fbbf24 !important;
+  }
+  
+  .theme-night .text-danger {
+    color: #f87171 !important;
+  }
+  
+  .theme-night .text-info {
+    color: #22d3ee !important;
+  }
+  
+  .theme-night .badge {
+    color: #ffffff !important;
+  }
+  
+  /* NUCLEAR OPTION - Force ALL text to be black in light theme */
+  .theme-light * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-muted {
+    color: #6b7280 !important;
+  }
+  
+  .theme-light .text-secondary {
+    color: #6b7280 !important;
+  }
+  
+  /* Override ALL inline styles with maximum specificity */
+  .theme-light h1[style*="color"],
+  .theme-light h2[style*="color"],
+  .theme-light h3[style*="color"],
+  .theme-light h4[style*="color"],
+  .theme-light h5[style*="color"],
+  .theme-light h6[style*="color"],
+  .theme-light p[style*="color"],
+  .theme-light span[style*="color"],
+  .theme-light div[style*="color"] {
+    color: #000000 !important;
+  }
+  
+  /* Force dashboard header to be black */
+  .theme-light .dashboard-header h2[style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  .theme-light .dashboard-header p[style*="color: #cbd5e1"] {
+    color: #000000 !important;
+  }
+  
+  /* Force all card content to be black */
+  .theme-light .card-glass h1[style*="color"],
+  .theme-light .card-glass h2[style*="color"],
+  .theme-light .card-glass h3[style*="color"],
+  .theme-light .card-glass h4[style*="color"],
+  .theme-light .card-glass h5[style*="color"],
+  .theme-light .card-glass h6[style*="color"],
+  .theme-light .card-glass p[style*="color"],
+  .theme-light .card-glass span[style*="color"],
+  .theme-light .card-glass div[style*="color"] {
+    color: #000000 !important;
+  }
+  
+  /* Override Bootstrap classes with maximum specificity */
+  .theme-light .text-white {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-light {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-dark {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-body {
+    color: #000000 !important;
+  }
+  
+  .theme-light .text-reset {
+    color: #000000 !important;
+  }
+  
+  /* Force all headings to be black */
+  .theme-light h1,
+  .theme-light h2,
+  .theme-light h3,
+  .theme-light h4,
+  .theme-light h5,
+  .theme-light h6 {
+    color: #000000 !important;
+  }
+  
+  /* Force all paragraphs to be black */
+  .theme-light p {
+    color: #000000 !important;
+  }
+  
+  /* Force all spans to be black */
+  .theme-light span {
+    color: #000000 !important;
+  }
+  
+  /* Force all divs to be black */
+  .theme-light div {
+    color: #000000 !important;
+  }
+</style>
+<!-- DASHBOARD HEADER -->
+<div class="mb-4 dashboard-header">
+  <h2 class="text-white mb-2">Dashboard Overview</h2>
+  <p class="text-light">Real-time complaint management system</p>
     </div>
 
     <!-- STATISTICS CARDS -->
     <div class="row mb-4">
       <div class="col-md-3 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['total_complaints'] }}</div>
-          <div class="stat-label">Total Complaints</div>
+    <div class="card-glass">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1 text-white" style="font-size: 2rem; font-weight: bold;">{{ $stats['total_complaints'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Total Complaints</div>
+        </div>
+        <div class="text-primary">
+          <i data-feather="alert-circle" class="feather-lg"></i>
+        </div>
+      </div>
         </div>
       </div>
       <div class="col-md-3 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['pending_complaints'] }}</div>
-          <div class="stat-label">Pending</div>
+    <div class="card-glass">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1 text-warning" style="font-size: 2rem; font-weight: bold;">{{ $stats['pending_complaints'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Pending</div>
+        </div>
+        <div class="text-warning">
+          <i data-feather="clock" class="feather-lg"></i>
+        </div>
+      </div>
         </div>
       </div>
       <div class="col-md-3 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['resolved_complaints'] }}</div>
-          <div class="stat-label">Resolved</div>
+    <div class="card-glass">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1 text-success" style="font-size: 2rem; font-weight: bold;">{{ $stats['resolved_complaints'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Resolved</div>
+        </div>
+        <div class="text-success">
+          <i data-feather="check-circle" class="feather-lg"></i>
+        </div>
+      </div>
         </div>
             </div>
       <div class="col-md-3 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['overdue_complaints'] }}</div>
-          <div class="stat-label">Overdue</div>
+    <div class="card-glass">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1 text-danger" style="font-size: 2rem; font-weight: bold;">{{ $stats['overdue_complaints'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Overdue</div>
+        </div>
+        <div class="text-danger">
+          <i data-feather="alert-triangle" class="feather-lg"></i>
+        </div>
+      </div>
         </div>
       </div>
     </div>
@@ -189,39 +648,39 @@
     <!-- ADDITIONAL STATS -->
     <div class="row mb-4">
       <div class="col-md-2 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['total_users'] }}</div>
-          <div class="stat-label">Users</div>
+    <div class="card-glass text-center">
+      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_users'] ?? 0 }}</div>
+      <div class="text-muted" style="font-size: 0.8rem;">Users</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['total_employees'] }}</div>
-          <div class="stat-label">Employees</div>
+    <div class="card-glass text-center">
+      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_employees'] ?? 0 }}</div>
+      <div class="text-muted" style="font-size: 0.8rem;">Employees</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['total_clients'] }}</div>
-          <div class="stat-label">Clients</div>
+    <div class="card-glass text-center">
+      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_clients'] ?? 0 }}</div>
+      <div class="text-muted" style="font-size: 0.8rem;">Clients</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['low_stock_items'] }}</div>
-          <div class="stat-label">Low Stock</div>
+    <div class="card-glass text-center">
+      <div class="h5 mb-1 text-warning" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['low_stock_items'] ?? 0 }}</div>
+      <div class="text-muted" style="font-size: 0.8rem;">Low Stock</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $stats['pending_approvals'] }}</div>
-          <div class="stat-label">Pending Approvals</div>
+    <div class="card-glass text-center">
+      <div class="h5 mb-1 text-primary" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['pending_approvals'] ?? 0 }}</div>
+      <div class="text-muted" style="font-size: 0.8rem;">Pending Approvals</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
-        <div class="stat-card">
-          <div class="stat-number">{{ $slaPerformance['sla_percentage'] }}%</div>
-          <div class="stat-label">SLA Performance</div>
+    <div class="card-glass text-center">
+      <div class="h5 mb-1 text-success" style="font-size: 1.5rem; font-weight: bold;">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
+      <div class="text-muted" style="font-size: 0.8rem;">SLA Performance</div>
         </div>
       </div>
     </div>
@@ -229,15 +688,15 @@
     <!-- CHARTS ROW -->
     <div class="row mb-4">
       <div class="col-md-6">
-        <div class="chart-container">
-          <h5 class="mb-3">Complaints by Status</h5>
-          <div id="complaintsStatusChart"></div>
+    <div class="card-glass">
+      <h5 class="mb-3 text-white" style="font-weight: bold;">Complaints by Status</h5>
+      <div id="complaintsStatusChart" style="height: 300px;"></div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="chart-container">
-          <h5 class="mb-3">Complaints by Type</h5>
-          <div id="complaintsTypeChart"></div>
+    <div class="card-glass">
+      <h5 class="mb-3 text-white" style="font-weight: bold;">Complaints by Type</h5>
+      <div id="complaintsTypeChart" style="height: 300px;"></div>
         </div>
       </div>
         </div>
@@ -245,9 +704,9 @@
     <!-- MONTHLY TRENDS CHART -->
     <div class="row mb-4">
       <div class="col-12">
-        <div class="chart-container">
-          <h5 class="mb-3">Monthly Trends</h5>
-          <div id="monthlyTrendsChart"></div>
+    <div class="card-glass">
+      <h5 class="mb-3 text-white" style="font-weight: bold;">Monthly Trends</h5>
+      <div id="monthlyTrendsChart" style="height: 350px;"></div>
         </div>
       </div>
             </div>
@@ -257,8 +716,8 @@
       <div class="col-md-6">
         <div class="card-glass">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Recent Complaints</h5>
-            <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-primary btn-sm">View All</a>
+        <h5 class="mb-0 text-white" style="font-weight: bold;">Recent Complaints</h5>
+        <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">View All</a>
           </div>
           <div class="table-responsive">
             <table class="table table-dark table-hover">
@@ -272,7 +731,7 @@
                 </tr>
                 </thead>
               <tbody>
-                @forelse($recentComplaints as $complaint)
+            @forelse($recentComplaints ?? [] as $complaint)
                 <tr>
                   <td>{{ $complaint->getTicketNumberAttribute() }}</td>
                   <td>{{ $complaint->client->client_name }}</td>
@@ -294,8 +753,8 @@
       <div class="col-md-6">
         <div class="card-glass">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Pending Approvals</h5>
-            <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-primary btn-sm">View All</a>
+        <h5 class="mb-0 text-white" style="font-weight: bold;">Pending Approvals</h5>
+        <a href="{{ route('admin.approvals.index') }}" class="btn btn-accent btn-sm">View All</a>
           </div>
           <div class="table-responsive">
             <table class="table table-dark table-hover">
@@ -309,7 +768,7 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse($pendingApprovals as $approval)
+            @forelse($pendingApprovals ?? [] as $approval)
                 <tr>
                   <td>{{ $approval->id }}</td>
                   <td>{{ $approval->complaint->getTicketNumberAttribute() }}</td>
@@ -330,7 +789,7 @@
       </div>
 
     <!-- LOW STOCK ALERTS -->
-    @if($lowStockItems->count() > 0)
+@if(isset($lowStockItems) && $lowStockItems->count() > 0)
     <div class="row mt-4">
       <div class="col-12">
         <div class="card-glass">
@@ -374,29 +833,35 @@
       </div>
         </div>
     @endif
-      </div>
+@endsection
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@push('scripts')
 <script>
   feather.replace();
 
+  // Define chart data
+  @php
+    $defaultComplaints = [0,0,0,0,0,0,0,0,0,0,0,0];
+    $defaultResolutions = [0,0,0,0,0,0,0,0,0,0,0,0];
+    $defaultMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  @endphp
+  var complaintsData = @json($monthlyTrends['complaints'] ?? $defaultComplaints);
+  var resolutionsData = @json($monthlyTrends['resolutions'] ?? $defaultResolutions);
+  var monthsData = @json($monthlyTrends['months'] ?? $defaultMonths);
+
     // Complaints by Status Chart
+  @php
+    $statusData = isset($complaintsByStatus) ? array_values($complaintsByStatus) : [0, 0, 0, 0, 0];
+    $statusLabels = isset($complaintsByStatus) ? array_map(function($status) { return ucfirst(str_replace('_', ' ', $status)); }, array_keys($complaintsByStatus)) : ['New', 'Assigned', 'In Progress', 'Resolved', 'Closed'];
+  @endphp
     var complaintsStatusOptions = {
-      series: [
-        @foreach($complaintsByStatus as $status => $count)
-        {{ $count }},
-        @endforeach
-      ],
+    series: @json($statusData),
       chart: {
         type: 'donut',
         height: 300,
         background: 'transparent'
       },
-      labels: [
-        @foreach($complaintsByStatus as $status => $count)
-        '{{ ucfirst(str_replace('_', ' ', $status)) }}',
-        @endforeach
-      ],
+    labels: @json($statusLabels),
       colors: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e', '#6b7280'],
       legend: {
         position: 'bottom',
@@ -416,22 +881,18 @@
     complaintsStatusChart.render();
 
     // Complaints by Type Chart
+  @php
+    $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [0, 0, 0, 0];
+    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return ucfirst($type); }, array_keys($complaintsByType)) : ['Electric', 'Sanitary', 'Kitchen', 'General'];
+  @endphp
     var complaintsTypeOptions = {
-      series: [
-        @foreach($complaintsByType as $type => $count)
-        {{ $count }},
-        @endforeach
-      ],
+    series: @json($typeData),
       chart: {
         type: 'pie',
         height: 300,
         background: 'transparent'
       },
-      labels: [
-        @foreach($complaintsByType as $type => $count)
-        '{{ ucfirst($type) }}',
-        @endforeach
-      ],
+    labels: @json($typeLabels),
       colors: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'],
       legend: {
         position: 'bottom',
@@ -454,10 +915,10 @@
     var monthlyTrendsOptions = {
       series: [{
         name: 'Complaints',
-        data: @json($monthlyTrends['complaints'])
+      data: complaintsData
       }, {
         name: 'Resolutions',
-        data: @json($monthlyTrends['resolutions'])
+      data: resolutionsData
       }],
       chart: {
         type: 'line',
@@ -466,7 +927,7 @@
       },
       colors: ['#3b82f6', '#22c55e'],
       xaxis: {
-        categories: @json($monthlyTrends['months']),
+      categories: monthsData,
         labels: {
           style: {
             colors: '#e2e8f0'
@@ -515,5 +976,4 @@
         .catch(error => console.error('Error updating dashboard:', error));
     }, 300000); // 5 minutes
 </script>
-</body>
-</html>
+@endpush

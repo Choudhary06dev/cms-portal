@@ -1,29 +1,65 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('layouts.sidebar')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
+@section('title', 'Profile')
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
-        </div>
+@section('content')
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white mb-0">Profile</h2>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item active text-white">Profile</li>
+          </ol>
+        </nav>
+      </div>
     </div>
-</x-app-layout>
+  </div>
+
+  <div class="row">
+    <!-- Profile Information -->
+    <div class="col-lg-8 mb-4">
+      <div class="card-glass">
+        <div class="d-flex align-items-center mb-3">
+          <i data-feather="user" class="me-2 text-primary"></i>
+          <h5 class="mb-0 text-white">Profile Information</h5>
+        </div>
+        
+        @include('profile.partials.update-profile-information-form')
+      </div>
+    </div>
+
+    <!-- Password Update -->
+    <div class="col-lg-8 mb-4">
+      <div class="card-glass">
+        <div class="d-flex align-items-center mb-3">
+          <i data-feather="lock" class="me-2 text-primary"></i>
+          <h5 class="mb-0 text-white">Update Password</h5>
+        </div>
+        
+        @include('profile.partials.update-password-form')
+      </div>
+    </div>
+
+    <!-- Account Actions -->
+    <div class="col-lg-8 mb-4">
+      <div class="card-glass">
+        <div class="d-flex align-items-center mb-3">
+          <i data-feather="trash-2" class="me-2 text-danger"></i>
+          <h5 class="mb-0 text-white">Delete Account</h5>
+        </div>
+        
+        @include('profile.partials.delete-user-form')
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+  feather.replace();
+</script>
+@endpush

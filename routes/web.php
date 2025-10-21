@@ -41,6 +41,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Theme management
+    Route::post('/theme', [App\Http\Controllers\ThemeController::class, 'update'])->name('theme.update');
+    Route::get('/theme', [App\Http\Controllers\ThemeController::class, 'get'])->name('theme.get');
 });
 
 require __DIR__.'/auth.php';
@@ -73,7 +77,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('roles/export', [AdminRoleController::class, 'export'])->name('roles.export');
     
     // Employee Management
-    Route::resource('employees', AdminEmployeeController::class)->except(['show']);
+    Route::resource('employees', AdminEmployeeController::class);
+    Route::get('employees/{employee}/edit-data', [AdminEmployeeController::class, 'getEditData'])->name('employees.edit-data');
     Route::post('employees/{employee}/toggle-status', [AdminEmployeeController::class, 'toggleStatus'])->name('employees.toggle-status');
     Route::get('employees/{employee}/leaves', [AdminEmployeeController::class, 'getLeaves'])->name('employees.leaves');
     Route::post('employees/{employee}/leaves', [AdminEmployeeController::class, 'createLeave'])->name('employees.create-leave');
@@ -156,4 +161,17 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('reports/financial', [AdminReportController::class, 'financial'])->name('reports.financial');
     Route::get('reports/performance', [AdminReportController::class, 'performance'])->name('reports.performance');
     Route::get('reports/export/{type}', [AdminReportController::class, 'export'])->name('reports.export');
+    
+    // Settings
+    Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general');
+    Route::post('settings/notifications', [App\Http\Controllers\Admin\SettingsController::class, 'updateNotifications'])->name('settings.notifications');
+    Route::post('settings/security', [App\Http\Controllers\Admin\SettingsController::class, 'updateSecurity'])->name('settings.security');
+    
+    // Help & Support
+    Route::get('help', [App\Http\Controllers\Admin\HelpController::class, 'index'])->name('help.index');
+    Route::get('help/faq', [App\Http\Controllers\Admin\HelpController::class, 'faq'])->name('help.faq');
+    Route::get('help/documentation', [App\Http\Controllers\Admin\HelpController::class, 'documentation'])->name('help.documentation');
+    Route::get('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'contact'])->name('help.contact');
+    Route::post('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'submitTicket'])->name('help.submit-ticket');
 });

@@ -91,6 +91,12 @@ class EmployeeController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -116,29 +122,18 @@ class EmployeeController extends Controller
             'leave_quota' => $request->leave_quota,
         ]);
 
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee created successfully.',
+                'employee' => $employee->load('user')
+            ]);
+        }
+
         return redirect()->route('admin.employees.index')
             ->with('success', 'Employee created successfully.');
     }
 
-    /**
-     * Display the specified employee
-     */
-    public function show(Employee $employee)
-    {
-        $employee->load(['user.role', 'leaves', 'assignedComplaints.client', 'usedSpares.spare']);
-        
-        // Get performance metrics
-        $performance = $employee->getPerformanceMetrics();
-        
-        // Get recent activities
-        $recentActivities = $employee->assignedComplaints()
-            ->with('client')
-            ->orderBy('updated_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        return view('admin.employees.show', compact('employee', 'performance', 'recentActivities'));
-    }
 
     /**
      * Show the form for editing the employee
@@ -150,6 +145,56 @@ class EmployeeController extends Controller
         $roles = Role::whereIn('role_name', ['employee', 'manager'])->get();
         
         return view('admin.employees.edit', compact('employee', 'departments', 'designations', 'roles'));
+    }
+
+    /**
+     * Get employee data for AJAX requests
+     */
+    public function show(Employee $employee)
+    {
+        $employee->load(['user.role']);
+        
+        return response()->json([
+            'id' => $employee->id,
+            'user' => [
+                'id' => $employee->user->id,
+                'username' => $employee->user->username,
+                'full_name' => $employee->user->full_name,
+                'email' => $employee->user->email,
+                'phone' => $employee->user->phone,
+                'status' => $employee->user->status,
+                'role_id' => $employee->user->role_id,
+            ],
+            'department' => $employee->department,
+            'designation' => $employee->designation,
+            'biometric_id' => $employee->biometric_id,
+            'leave_quota' => $employee->leave_quota,
+        ]);
+    }
+
+    /**
+     * Get employee data for editing via AJAX
+     */
+    public function getEditData(Employee $employee)
+    {
+        $employee->load(['user.role']);
+        
+        return response()->json([
+            'id' => $employee->id,
+            'user' => [
+                'id' => $employee->user->id,
+                'username' => $employee->user->username,
+                'full_name' => $employee->user->full_name,
+                'email' => $employee->user->email,
+                'phone' => $employee->user->phone,
+                'status' => $employee->user->status,
+                'role_id' => $employee->user->role_id,
+            ],
+            'department' => $employee->department,
+            'designation' => $employee->designation,
+            'biometric_id' => $employee->biometric_id,
+            'leave_quota' => $employee->leave_quota,
+        ]);
     }
 
     /**
@@ -172,6 +217,12 @@ class EmployeeController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -201,6 +252,14 @@ class EmployeeController extends Controller
             'leave_quota' => $request->leave_quota,
         ]);
 
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee updated successfully.',
+                'employee' => $employee->load('user')
+            ]);
+        }
+
         return redirect()->route('admin.employees.index')
             ->with('success', 'Employee updated successfully.');
     }
@@ -208,18 +267,33 @@ class EmployeeController extends Controller
     /**
      * Remove the specified employee
      */
-    public function destroy(Employee $employee)
+    public function destroy(Request $request, Employee $employee)
     {
         // Check if employee has any related records
         if ($employee->assignedComplaints()->count() > 0 || 
             $employee->usedSpares()->count() > 0 || 
             $employee->requestedApprovals()->count() > 0) {
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete employee with existing records.'
+                ], 422);
+            }
+            
             return redirect()->back()
                 ->with('error', 'Cannot delete employee with existing records.');
         }
 
         // Delete user (which will cascade to employee due to foreign key)
         $employee->user->delete();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee deleted successfully.'
+            ]);
+        }
 
         return redirect()->route('admin.employees.index')
             ->with('success', 'Employee deleted successfully.');
