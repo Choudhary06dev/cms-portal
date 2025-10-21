@@ -13,7 +13,7 @@
         <div class="card-body">
           <form action="{{ route('admin.users.update', $user) }}" method="POST">
             @csrf
-            @method('PUT')
+            @method('PATCH')
             
             <div class="row">
               <div class="col-md-6">
@@ -29,6 +29,19 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
+                  <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control @error('full_name') is-invalid @enderror" 
+                         id="full_name" name="full_name" value="{{ old('full_name', $user->full_name) }}" required>
+                  @error('full_name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
                   <label for="email" class="form-label">Email</label>
                   <input type="email" class="form-control @error('email') is-invalid @enderror" 
                          id="email" name="email" value="{{ old('email', $user->email) }}">
@@ -37,9 +50,7 @@
                   @enderror
                 </div>
               </div>
-            </div>
-
-            <div class="row">
+              
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="phone" class="form-label">Phone</label>
@@ -50,7 +61,9 @@
                   @enderror
                 </div>
               </div>
-              
+            </div>
+
+            <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
@@ -65,6 +78,20 @@
                     @endforeach
                   </select>
                   @error('role_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="status" class="form-label">Status</label>
+                  <select class="form-select @error('status') is-invalid @enderror" 
+                          id="status" name="status">
+                    <option value="active" {{ old('status', $user->status) == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ old('status', $user->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                  </select>
+                  @error('status')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -93,21 +120,6 @@
               </div>
             </div>
 
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="status" class="form-label">Status</label>
-                  <select class="form-select @error('status') is-invalid @enderror" 
-                          id="status" name="status">
-                    <option value="active" {{ old('status', $user->status) == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ old('status', $user->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                  </select>
-                  @error('status')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-            </div>
 
             <div class="d-flex justify-content-end gap-2">
               <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>

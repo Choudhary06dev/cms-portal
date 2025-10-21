@@ -7,16 +7,8 @@
   <div class="row">
     <div class="col-12">
       <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header">
           <h5 class="card-title mb-0">Role Details: {{ $role->role_name }}</h5>
-          <div class="btn-group">
-            <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-warning btn-sm">
-              <i data-feather="edit"></i> Edit
-            </a>
-            <a href="{{ route('admin.roles.permissions', $role) }}" class="btn btn-info btn-sm">
-              <i data-feather="shield"></i> Permissions
-            </a>
-          </div>
         </div>
         <div class="card-body">
           <div class="row">
@@ -78,78 +70,84 @@
 
           <div class="row">
             <div class="col-12">
-              <h6 class="text-muted">Role Permissions</h6>
-              <div class="table-responsive">
-                <table class="table table-sm table-striped">
-                  <thead>
-                    <tr>
-                      <th>Module</th>
-                      <th>View</th>
-                      <th>Add</th>
-                      <th>Edit</th>
-                      <th>Delete</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @php
-                    $modules = ['users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
-                    @endphp
-                    
-                    @foreach($modules as $module)
-                    @php
-                    $permission = $role->rolePermissions->where('module_name', $module)->first();
-                    @endphp
-                    <tr>
-                      <td><strong>{{ ucfirst($module) }}</strong></td>
-                      <td>
-                        <span class="badge bg-{{ $permission && $permission->can_view ? 'success' : 'secondary' }}">
-                          {{ $permission && $permission->can_view ? 'Yes' : 'No' }}
-                        </span>
-                      </td>
-                      <td>
-                        <span class="badge bg-{{ $permission && $permission->can_add ? 'success' : 'secondary' }}">
-                          {{ $permission && $permission->can_add ? 'Yes' : 'No' }}
-                        </span>
-                      </td>
-                      <td>
-                        <span class="badge bg-{{ $permission && $permission->can_edit ? 'success' : 'secondary' }}">
-                          {{ $permission && $permission->can_edit ? 'Yes' : 'No' }}
-                        </span>
-                      </td>
-                      <td>
-                        <span class="badge bg-{{ $permission && $permission->can_delete ? 'success' : 'secondary' }}">
-                          {{ $permission && $permission->can_delete ? 'Yes' : 'No' }}
-                        </span>
-                      </td>
-                    </tr>
-                    @endforeach
-                  </tbody>
-                </table>
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="card-title mb-0">
+                    <i data-feather="shield" class="me-2"></i>Role Permissions
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                      <thead class="table-dark">
+                        <tr>
+                          <th class="text-white">Module</th>
+                          <th class="text-white text-center">View</th>
+                          <th class="text-white text-center">Add</th>
+                          <th class="text-white text-center">Edit</th>
+                          <th class="text-white text-center">Delete</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @php
+                        $modules = ['users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
+                        @endphp
+                        
+                        @foreach($modules as $module)
+                        @php
+                        $permission = $role->rolePermissions->where('module_name', $module)->first();
+                        @endphp
+                        <tr>
+                          <td>
+                            <strong>{{ ucfirst($module) }}</strong>
+                          </td>
+                          <td class="text-center">
+                            <span class="badge bg-{{ $permission && $permission->can_view ? 'success' : 'secondary' }}">
+                              <i data-feather="{{ $permission && $permission->can_view ? 'check' : 'x' }}" class="me-1"></i>
+                              {{ $permission && $permission->can_view ? 'Yes' : 'No' }}
+                            </span>
+                          </td>
+                          <td class="text-center">
+                            <span class="badge bg-{{ $permission && $permission->can_add ? 'success' : 'secondary' }}">
+                              <i data-feather="{{ $permission && $permission->can_add ? 'check' : 'x' }}" class="me-1"></i>
+                              {{ $permission && $permission->can_add ? 'Yes' : 'No' }}
+                            </span>
+                          </td>
+                          <td class="text-center">
+                            <span class="badge bg-{{ $permission && $permission->can_edit ? 'success' : 'secondary' }}">
+                              <i data-feather="{{ $permission && $permission->can_edit ? 'check' : 'x' }}" class="me-1"></i>
+                              {{ $permission && $permission->can_edit ? 'Yes' : 'No' }}
+                            </span>
+                          </td>
+                          <td class="text-center">
+                            <span class="badge bg-{{ $permission && $permission->can_delete ? 'success' : 'secondary' }}">
+                              <i data-feather="{{ $permission && $permission->can_delete ? 'check' : 'x' }}" class="me-1"></i>
+                              {{ $permission && $permission->can_delete ? 'Yes' : 'No' }}
+                            </span>
+                          </td>
+                        </tr>
+                        @endforeach
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  @if($role->rolePermissions->count() == 0)
+                    <div class="alert alert-warning mt-3">
+                      <i data-feather="alert-triangle" class="me-2"></i>
+                      <strong>No permissions assigned to this role.</strong> This role currently has no specific permissions configured.
+                    </div>
+                  @endif
+                </div>
               </div>
             </div>
           </div>
 
           <div class="row mt-4">
             <div class="col-12">
-              <div class="d-flex justify-content-between">
+              <div class="d-flex justify-content-start">
                 <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary">
                   <i data-feather="arrow-left"></i> Back to Roles
                 </a>
-                <div class="btn-group">
-                  <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-warning">
-                    <i data-feather="edit"></i> Edit Role
-                  </a>
-                  <a href="{{ route('admin.roles.permissions', $role) }}" class="btn btn-info">
-                    <i data-feather="shield"></i> Manage Permissions
-                  </a>
-                  <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this role? This will affect all users with this role.')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                      <i data-feather="trash-2"></i> Delete
-                    </button>
-                  </form>
-                </div>
               </div>
             </div>
           </div>

@@ -686,6 +686,31 @@
   </style>
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  
+  <!-- Error handling for missing scripts -->
+  <script>
+    // Prevent errors from missing scripts
+    window.addEventListener('error', function(e) {
+      if (e.filename && (e.filename.includes('share-modal.js') || e.filename.includes('share-modal'))) {
+        console.warn('share-modal.js not found - ignoring error');
+        e.preventDefault();
+        return true;
+      }
+    });
+    
+    // Handle null element errors
+    document.addEventListener('DOMContentLoaded', function() {
+      // Override addEventListener to handle null elements gracefully
+      const originalAddEventListener = Element.prototype.addEventListener;
+      Element.prototype.addEventListener = function(type, listener, options) {
+        if (this === null || this === undefined) {
+          console.warn('Attempted to add event listener to null element');
+          return;
+        }
+        return originalAddEventListener.call(this, type, listener, options);
+      };
+    });
+  </script>
   <style>
     :root{
       --glass-bg: rgba(255,255,255,0.08);

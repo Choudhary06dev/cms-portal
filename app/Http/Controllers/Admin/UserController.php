@@ -100,7 +100,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['role', 'employee', 'complaintLogs', 'slaRules']);
+        $user->load(['role.rolePermissions', 'employee', 'complaintLogs', 'slaRules']);
         return view('admin.users.show', compact('user'));
     }
 
@@ -134,23 +134,29 @@ class UserController extends Controller
                 ->withInput();
         }
 
-        $updateData = [
-            'username' => $request->username,
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'role_id' => $request->role_id,
-            'status' => $request->status,
-        ];
+        try {
+            $updateData = [
+                'username' => $request->username,
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'role_id' => $request->role_id,
+                'status' => $request->status,
+            ];
 
-        if ($request->filled('password')) {
-            $updateData['password_hash'] = Hash::make($request->password);
+            if ($request->filled('password')) {
+                $updateData['password_hash'] = Hash::make($request->password);
+            }
+
+            $user->update($updateData);
+
+            return redirect()->route('admin.users.index')
+                ->with('success', 'User updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error updating user: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $user->update($updateData);
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully.');
     }
 
     /**

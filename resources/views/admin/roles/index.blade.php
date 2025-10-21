@@ -11,7 +11,7 @@
       <p class="text-light">Manage user roles and permissions</p>
     </div>
     <a href="{{ route('admin.roles.create') }}" class="btn btn-accent">
-      <i data-feather="shield-plus" class="me-2"></i>Add New Role
+      <i data-feather="plus-circle" class="me-2"></i>Add New Role
     </a>
   </div>
 </div>
@@ -49,15 +49,15 @@
 <div class="card-glass">
   <div class="table-responsive">
     <table class="table table-dark">
-      <thead>
+      <thead class="table-dark">
         <tr>
-          <th>ID</th>
-          <th>Role Name</th>
-          <th>Description</th>
-          <th>Users Count</th>
-          <th>Permissions</th>
-          <th>Created</th>
-          <th>Actions</th>
+          <th class="text-white">ID</th>
+          <th class="text-white">Role Name</th>
+          <th class="text-white">Description</th>
+          <th class="text-white">Users Count</th>
+          <th class="text-white">Permissions</th>
+          <th class="text-white">Created</th>
+          <th class="text-white">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -80,7 +80,7 @@
             <span class="badge bg-info">{{ $role->users_count ?? 0 }} users</span>
           </td>
           <td>
-            <span class="badge bg-warning">{{ $role->permissions_count ?? 0 }} permissions</span>
+            <span class="badge bg-warning">{{ $role->role_permissions_count ?? 0 }} permissions</span>
           </td>
           <td>{{ $role->created_at->format('M d, Y') }}</td>
           <td>
@@ -104,7 +104,8 @@
         <tr>
           <td colspan="7" class="text-center py-4">
             <i data-feather="shield" class="feather-lg mb-2"></i>
-            <div>No roles found</div>
+            <div class="text-muted">No roles found</div>
+            <small class="text-muted">Create your first role to get started</small>
           </td>
         </tr>
         @endforelse
@@ -159,11 +160,19 @@
         headers: {
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.success) {
+          // Show success message
+          alert('Role deleted successfully!');
           location.reload();
         } else {
           alert('Error deleting role: ' + (data.message || 'Unknown error'));
@@ -171,7 +180,7 @@
       })
       .catch(error => {
         console.error('Error deleting role:', error);
-        alert('Error deleting role');
+        alert('Error deleting role: ' + error.message);
       });
     }
   }

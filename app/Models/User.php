@@ -15,6 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'username',
+        'full_name',
         'password_hash',
         'email',
         'phone',
@@ -148,5 +149,18 @@ class User extends Authenticatable
     public function isClient(): bool
     {
         return $this->hasRole('client');
+    }
+
+    /**
+     * Check if user has any admin permissions
+     */
+    public function hasAnyAdminPermission(): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+
+        // Check if user has any permissions in any module
+        return $this->role->rolePermissions()->exists();
     }
 }

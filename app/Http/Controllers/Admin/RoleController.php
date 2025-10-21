@@ -20,7 +20,7 @@ class RoleController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Role::with('rolePermissions');
+        $query = Role::with(['rolePermissions', 'users'])->withCount(['users', 'rolePermissions']);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -125,7 +125,6 @@ class RoleController extends Controller
         $validator = Validator::make($request->all(), [
             'role_name' => 'required|string|max:100|unique:roles,role_name,' . $role->id,
             'description' => 'nullable|string|max:255',
-            'status' => 'required|in:active,inactive',
             'permissions' => 'nullable|array',
         ]);
 
@@ -135,29 +134,37 @@ class RoleController extends Controller
                 ->withInput();
         }
 
-        $role->update([
-            'role_name' => $request->role_name,
-            'description' => $request->description,
-            'status' => $request->status,
-        ]);
+        try {
+            // Update role basic information
+            $role->update([
+                'role_name' => $request->role_name,
+                'description' => $request->description,
+            ]);
 
-        // Update permissions
-        $role->rolePermissions()->delete();
-        
-        if ($request->has('permissions')) {
-            foreach ($request->permissions as $module => $actions) {
-                $role->rolePermissions()->create([
-                    'module_name' => $module,
-                    'can_view' => in_array('view', $actions),
-                    'can_add' => in_array('add', $actions),
-                    'can_edit' => in_array('edit', $actions),
-                    'can_delete' => in_array('delete', $actions),
-                ]);
+            // Update permissions
+            $role->rolePermissions()->delete();
+            
+            if ($request->has('permissions')) {
+                foreach ($request->permissions as $module => $actions) {
+                    if (is_array($actions)) {
+                        $role->rolePermissions()->create([
+                            'module_name' => $module,
+                            'can_view' => in_array('view', $actions),
+                            'can_add' => in_array('add', $actions),
+                            'can_edit' => in_array('edit', $actions),
+                            'can_delete' => in_array('delete', $actions),
+                        ]);
+                    }
+                }
             }
-        }
 
-        return redirect()->route('admin.roles.index')
-            ->with('success', 'Role updated successfully.');
+            return redirect()->route('admin.roles.index')
+                ->with('success', 'Role updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error updating role: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**
@@ -165,16 +172,41 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        // Check if role has users
-        if ($role->users()->count() > 0) {
+        try {
+            // Check if role has users
+            if ($role->users()->count() > 0) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot delete role with assigned users.'
+                    ], 400);
+                }
+                return redirect()->back()
+                    ->with('error', 'Cannot delete role with assigned users.');
+            }
+
+            $role->delete();
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Role deleted successfully.'
+                ]);
+            }
+
+            return redirect()->route('admin.roles.index')
+                ->with('success', 'Role deleted successfully.');
+        } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting role: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return redirect()->back()
-                ->with('error', 'Cannot delete role with assigned users.');
+                ->with('error', 'Error deleting role: ' . $e->getMessage());
         }
-
-        $role->delete();
-
-        return redirect()->route('admin.roles.index')
-            ->with('success', 'Role deleted successfully.');
     }
 
     /**
@@ -193,7 +225,7 @@ class RoleController extends Controller
     }
 
     /**
-     * Get role permissions
+     * Get role permissions (JSON API)
      */
     public function getPermissions(Role $role)
     {
@@ -209,6 +241,18 @@ class RoleController extends Controller
     }
 
     /**
+     * Show role permissions management page
+     */
+    public function showPermissions(Role $role)
+    {
+        $role->load('rolePermissions');
+        $availableModules = RolePermission::getAvailableModules();
+        $availableActions = RolePermission::getAvailableActions();
+
+        return view('admin.roles.permissions', compact('role', 'availableModules', 'availableActions'));
+    }
+
+    /**
      * Update role permissions
      */
     public function updatePermissions(Request $request, Role $role)
@@ -219,27 +263,36 @@ class RoleController extends Controller
 
         if ($validator->fails()) {
             return redirect()->back()
-                ->withErrors($validator);
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        // Clear existing permissions
-        $role->rolePermissions()->delete();
+        try {
+            // Clear existing permissions
+            $role->rolePermissions()->delete();
 
-        // Add new permissions
-        if ($request->has('permissions')) {
-            foreach ($request->permissions as $module => $actions) {
-                $role->rolePermissions()->create([
-                    'module_name' => $module,
-                    'can_view' => in_array('view', $actions),
-                    'can_add' => in_array('add', $actions),
-                    'can_edit' => in_array('edit', $actions),
-                    'can_delete' => in_array('delete', $actions),
-                ]);
+            // Add new permissions
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                foreach ($request->permissions as $module => $actions) {
+                    if (is_array($actions)) {
+                        $role->rolePermissions()->create([
+                            'module_name' => $module,
+                            'can_view' => isset($actions['view']) && $actions['view'] == '1',
+                            'can_add' => isset($actions['add']) && $actions['add'] == '1',
+                            'can_edit' => isset($actions['edit']) && $actions['edit'] == '1',
+                            'can_delete' => isset($actions['delete']) && $actions['delete'] == '1',
+                        ]);
+                    }
+                }
             }
-        }
 
-        return redirect()->back()
-            ->with('success', 'Permissions updated successfully.');
+            return redirect()->back()
+                ->with('success', 'Permissions updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error updating permissions: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**

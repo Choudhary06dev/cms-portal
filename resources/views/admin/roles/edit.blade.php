@@ -13,7 +13,7 @@
         <div class="card-body">
           <form action="{{ route('admin.roles.update', $role) }}" method="POST">
             @csrf
-            @method('PUT')
+            @method('PATCH')
             
             <div class="row">
               <div class="col-md-6">
@@ -63,8 +63,8 @@
                       <div class="form-check">
                         <input class="form-check-input" type="checkbox" 
                                id="{{ $module }}_{{ $action }}" 
-                               name="permissions[{{ $module }}][{{ $action }}]"
-                               value="1" {{ $isChecked ? 'checked' : '' }}>
+                               name="permissions[{{ $module }}][]"
+                               value="{{ $action }}" {{ $isChecked ? 'checked' : '' }}>
                         <label class="form-check-label" for="{{ $module }}_{{ $action }}">
                           {{ ucfirst($action) }}
                         </label>
