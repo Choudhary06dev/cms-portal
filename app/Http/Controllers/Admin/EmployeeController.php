@@ -7,91 +7,60 @@ use App\Models\Employee;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Exception;
 
 class EmployeeController extends Controller
 {
     public function __construct()
     {
-        // Middleware is applied in routes
+        // Middleware is handled in routes/web.php
     }
 
     /**
-     * Display a listing of employees
+     * Display a listing of the employees.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Employee::with(['user.role']);
-
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->whereHas('user', function($q) use ($search) {
-                $q->where('username', 'like', "%{$search}%")
-                  ->orWhere('full_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            })->orWhere('department', 'like', "%{$search}%")
-              ->orWhere('designation', 'like', "%{$search}%")
-              ->orWhere('biometric_id', 'like', "%{$search}%");
-        }
-
-        // Filter by department
-        if ($request->has('department') && $request->department) {
-            $query->where('department', $request->department);
-        }
-
-        // Filter by designation
-        if ($request->has('designation') && $request->designation) {
-            $query->where('designation', $request->designation);
-        }
-
-        // Filter by status
-        if ($request->has('status') && $request->status) {
-            $query->whereHas('user', function($q) use ($request) {
-                $q->where('status', $request->status);
-            });
-        }
-
-        $employees = $query->orderBy('created_at', 'desc')->paginate(15);
-        $departments = Employee::getAvailableDepartments();
-        $designations = Employee::getAvailableDesignations();
-
-        return view('admin.employees.index', compact('employees', 'departments', 'designations'));
+        $employees = Employee::with('user.role')->latest()->paginate(10);
+        $roles = Role::all();
+        
+        return view('admin.employees.index', compact('employees', 'roles'));
     }
 
     /**
-     * Show the form for creating a new employee
+     * Show the form for creating a new employee.
      */
     public function create()
     {
-        $departments = Employee::getAvailableDepartments();
-        $designations = Employee::getAvailableDesignations();
-        $roles = Role::whereIn('role_name', ['employee', 'manager'])->get();
+        $users = User::whereDoesntHave('employee')->get();
+        $roles = Role::all();
         
-        return view('admin.employees.create', compact('departments', 'designations', 'roles'));
+        return view('admin.employees.create', compact('users', 'roles'));
     }
 
     /**
-     * Store a newly created employee
+     * Store a newly created employee in storage.
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:100|unique:users',
-            'full_name' => 'required|string|max:150',
-            'email' => 'nullable|email|max:150|unique:users',
+            'username' => 'required|string|max:100|unique:users,username',
+            'email' => 'nullable|email|max:150|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'department' => 'required|string|max:100',
             'designation' => 'required|string|max:100',
-            'biometric_id' => 'nullable|string|max:50|unique:employees',
+            'biometric_id' => 'nullable|string|max:50|unique:employees,biometric_id',
             'leave_quota' => 'required|integer|min:0|max:365',
         ]);
 
         if ($validator->fails()) {
-            if ($request->ajax()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'errors' => $validator->errors()
@@ -102,109 +71,93 @@ class EmployeeController extends Controller
                 ->withInput();
         }
 
-        // Create user first
-        $user = User::create([
-            'username' => $request->username,
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password_hash' => Hash::make($request->password),
-            'role_id' => $request->role_id,
-            'status' => 'active',
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Create employee record
-        $employee = Employee::create([
-            'user_id' => $user->id,
-            'department' => $request->department,
-            'designation' => $request->designation,
-            'biometric_id' => $request->biometric_id,
-            'leave_quota' => $request->leave_quota,
-        ]);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Employee created successfully.',
-                'employee' => $employee->load('user')
+            // Create user first
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password_hash' => Hash::make($request->password),
+                'role_id' => $request->role_id,
+                'status' => 'active',
+                'theme' => $request->theme ?? 'light',
             ]);
+
+            // Create employee record
+            $employee = Employee::create([
+                'user_id' => $user->id,
+                'department' => $request->department,
+                'designation' => $request->designation,
+                'biometric_id' => $request->biometric_id,
+                'leave_quota' => $request->leave_quota,
+            ]);
+
+            DB::commit();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Employee created successfully.',
+                    'employee' => $employee->load('user')
+                ]);
+            }
+
+            return redirect()->route('admin.employees.index')
+                ->with('success', 'Employee created successfully.');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error creating employee: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Error creating employee: ' . $e->getMessage())
+                ->withInput();
         }
-
-        return redirect()->route('admin.employees.index')
-            ->with('success', 'Employee created successfully.');
-    }
-
-
-    /**
-     * Show the form for editing the employee
-     */
-    public function edit(Employee $employee)
-    {
-        $departments = Employee::getAvailableDepartments();
-        $designations = Employee::getAvailableDesignations();
-        $roles = Role::whereIn('role_name', ['employee', 'manager'])->get();
-        
-        return view('admin.employees.edit', compact('employee', 'departments', 'designations', 'roles'));
     }
 
     /**
-     * Get employee data for AJAX requests
+     * Display the specified employee.
      */
     public function show(Employee $employee)
     {
-        $employee->load(['user.role']);
+        $employee->load('user.role');
         
-        return response()->json([
-            'id' => $employee->id,
-            'user' => [
-                'id' => $employee->user->id,
-                'username' => $employee->user->username,
-                'full_name' => $employee->user->full_name,
-                'email' => $employee->user->email,
-                'phone' => $employee->user->phone,
-                'status' => $employee->user->status,
-                'role_id' => $employee->user->role_id,
-            ],
-            'department' => $employee->department,
-            'designation' => $employee->designation,
-            'biometric_id' => $employee->biometric_id,
-            'leave_quota' => $employee->leave_quota,
-        ]);
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'employee' => $employee
+            ]);
+        }
+        
+        return view('admin.employees.show', compact('employee'));
     }
 
     /**
-     * Get employee data for editing via AJAX
+     * Show the form for editing the specified employee.
      */
-    public function getEditData(Employee $employee)
+    public function edit(Employee $employee)
     {
-        $employee->load(['user.role']);
+        $employee->load('user.role');
+        $roles = Role::all();
         
-        return response()->json([
-            'id' => $employee->id,
-            'user' => [
-                'id' => $employee->user->id,
-                'username' => $employee->user->username,
-                'full_name' => $employee->user->full_name,
-                'email' => $employee->user->email,
-                'phone' => $employee->user->phone,
-                'status' => $employee->user->status,
-                'role_id' => $employee->user->role_id,
-            ],
-            'department' => $employee->department,
-            'designation' => $employee->designation,
-            'biometric_id' => $employee->biometric_id,
-            'leave_quota' => $employee->leave_quota,
-        ]);
+        return view('admin.employees.edit', compact('employee', 'roles'));
     }
 
     /**
-     * Update the specified employee
+     * Update the specified employee in storage.
      */
     public function update(Request $request, Employee $employee)
     {
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username,' . $employee->user_id,
-            'full_name' => 'required|string|max:150',
             'email' => 'nullable|email|max:150|unique:users,email,' . $employee->user_id,
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:6|confirmed',
@@ -213,11 +166,11 @@ class EmployeeController extends Controller
             'designation' => 'required|string|max:100',
             'biometric_id' => 'nullable|string|max:50|unique:employees,biometric_id,' . $employee->id,
             'leave_quota' => 'required|integer|min:0|max:365',
-            'status' => 'required|in:active,inactive',
+            'status' => 'nullable|in:active,inactive',
         ]);
 
         if ($validator->fails()) {
-            if ($request->ajax()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'errors' => $validator->errors()
@@ -228,75 +181,125 @@ class EmployeeController extends Controller
                 ->withInput();
         }
 
-        // Update user
-        $updateUserData = [
-            'username' => $request->username,
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'role_id' => $request->role_id,
-            'status' => $request->status,
-        ];
+        try {
+            DB::beginTransaction();
 
-        if ($request->filled('password')) {
-            $updateUserData['password_hash'] = Hash::make($request->password);
-        }
-
-        $employee->user->update($updateUserData);
-
-        // Update employee
-        $employee->update([
-            'department' => $request->department,
-            'designation' => $request->designation,
-            'biometric_id' => $request->biometric_id,
-            'leave_quota' => $request->leave_quota,
-        ]);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Employee updated successfully.',
-                'employee' => $employee->load('user')
-            ]);
-        }
-
-        return redirect()->route('admin.employees.index')
-            ->with('success', 'Employee updated successfully.');
-    }
-
-    /**
-     * Remove the specified employee
-     */
-    public function destroy(Request $request, Employee $employee)
-    {
-        // Check if employee has any related records
-        if ($employee->assignedComplaints()->count() > 0 || 
-            $employee->usedSpares()->count() > 0 || 
-            $employee->requestedApprovals()->count() > 0) {
+            // Update user
+            $updateUserData = [
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'role_id' => $request->role_id,
+                'theme' => $request->theme ?? $employee->user->theme,
+            ];
             
-            if ($request->ajax()) {
+            // Only update status if provided
+            if ($request->has('status') && $request->status) {
+                $updateUserData['status'] = $request->status;
+            }
+
+            if ($request->filled('password')) {
+                $updateUserData['password_hash'] = Hash::make($request->password);
+            }
+
+            $employee->user->update($updateUserData);
+
+            // Update employee
+            $employee->update([
+                'department' => $request->department,
+                'designation' => $request->designation,
+                'biometric_id' => $request->biometric_id,
+                'leave_quota' => $request->leave_quota,
+            ]);
+
+            DB::commit();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Employee updated successfully.',
+                    'employee' => $employee->load('user')
+                ]);
+            }
+
+            return redirect()->route('admin.employees.index')
+                ->with('success', 'Employee updated successfully.');
+                
+        } catch (Exception $e) {
+            DB::rollBack();
+            
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete employee with existing records.'
-                ], 422);
+                    'message' => 'Error updating employee: ' . $e->getMessage()
+                ], 500);
             }
             
             return redirect()->back()
-                ->with('error', 'Cannot delete employee with existing records.');
+                ->with('error', 'Error updating employee: ' . $e->getMessage())
+                ->withInput();
         }
+    }
 
-        // Delete user (which will cascade to employee due to foreign key)
-        $employee->user->delete();
+    /**
+     * Remove the specified employee from storage.
+     */
+    public function destroy(Employee $employee)
+    {
+        try {
+            // Check if employee has any related records
+            if ($employee->assignedComplaints()->count() > 0 || 
+                $employee->usedSpares()->count() > 0 || 
+                $employee->requestedApprovals()->count() > 0) {
+                
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot delete employee with existing records.'
+                    ], 422);
+                }
+                
+                return redirect()->back()
+                    ->with('error', 'Cannot delete employee with existing records.');
+            }
 
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Employee deleted successfully.'
-            ]);
+            // Delete user (which will cascade to employee due to foreign key)
+            $employee->user->delete();
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Employee deleted successfully.'
+                ]);
+            }
+
+            return redirect()->route('admin.employees.index')
+                ->with('success', 'Employee deleted successfully.');
+
+        } catch (Exception $e) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting employee: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Error deleting employee: ' . $e->getMessage());
         }
+    }
 
-        return redirect()->route('admin.employees.index')
-            ->with('success', 'Employee deleted successfully.');
+    /**
+     * Get employee data for editing (AJAX)
+     */
+    public function getEditData(Employee $employee)
+    {
+        $employee->load('user.role');
+        
+        return response()->json([
+            'success' => true,
+            'employee' => $employee
+        ]);
     }
 
     /**
@@ -304,176 +307,194 @@ class EmployeeController extends Controller
      */
     public function toggleStatus(Employee $employee)
     {
-        $employee->user->update([
-            'status' => $employee->user->status === 'active' ? 'inactive' : 'active'
-        ]);
+        try {
+            $newStatus = $employee->user->status === 'active' ? 'inactive' : 'active';
+            $employee->user->update(['status' => $newStatus]);
 
-        $status = $employee->user->status === 'active' ? 'activated' : 'deactivated';
-        
-        return redirect()->back()
-            ->with('success', "Employee {$status} successfully.");
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee status updated successfully.',
+                'new_status' => $newStatus
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating employee status: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Get employee performance data
+     * Get employee leaves
+     */
+    public function getLeaves(Employee $employee)
+    {
+        $leaves = $employee->leaves()->latest()->paginate(10);
+        
+        return response()->json([
+            'success' => true,
+            'leaves' => $leaves
+        ]);
+    }
+
+    /**
+     * Create leave for employee
+     */
+    public function createLeave(Request $request, Employee $employee)
+    {
+        $validator = Validator::make($request->all(), [
+            'leave_type' => 'required|string|max:50',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $leave = $employee->leaves()->create([
+                'leave_type' => $request->leave_type,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'reason' => $request->reason,
+                'status' => 'pending',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request created successfully.',
+                'leave' => $leave
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating leave request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Approve leave
+     */
+    public function approveLeave(Employee $employee, $leaveId)
+    {
+        try {
+            $leave = $employee->leaves()->findOrFail($leaveId);
+            $leave->update(['status' => 'approved']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave approved successfully.'
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error approving leave: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject leave
+     */
+    public function rejectLeave(Employee $employee, $leaveId)
+    {
+        try {
+            $leave = $employee->leaves()->findOrFail($leaveId);
+            $leave->update(['status' => 'rejected']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave rejected successfully.'
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error rejecting leave: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get employee performance
      */
     public function getPerformance(Employee $employee)
     {
-        $performance = $employee->getPerformanceMetrics();
+        $metrics = $employee->getPerformanceMetrics();
         
-        // Get monthly performance data
-        $monthlyData = $employee->assignedComplaints()
-            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as total, SUM(CASE WHEN status IN ("resolved", "closed") THEN 1 ELSE 0 END) as completed')
-            ->where('created_at', '>=', now()->subMonths(12))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-
         return response()->json([
-            'performance' => $performance,
-            'monthly_data' => $monthlyData
+            'success' => true,
+            'metrics' => $metrics
         ]);
     }
 
     /**
-     * Get employee leave summary
-     */
-    public function getLeaveSummary(Employee $employee)
-    {
-        $leaves = $employee->leaves()
-            ->selectRaw('leave_type, status, COUNT(*) as count, SUM(leave_days) as total_days')
-            ->groupBy('leave_type', 'status')
-            ->get();
-
-        $summary = [
-            'total_quota' => $employee->leave_quota,
-            'used_leaves' => $employee->getTotalLeavesTaken(),
-            'remaining_leaves' => $employee->getRemainingLeaves(),
-            'pending_leaves' => $employee->getPendingLeaves(),
-            'leaves_by_type' => $leaves->groupBy('leave_type'),
-        ];
-
-        return response()->json($summary);
-    }
-
-    /**
-     * Get employee workload
-     */
-    public function getWorkload(Employee $employee)
-    {
-        $workload = [
-            'assigned_complaints' => $employee->assignedComplaints()->count(),
-            'pending_complaints' => $employee->assignedComplaints()->pending()->count(),
-            'completed_this_month' => $employee->assignedComplaints()
-                ->completed()
-                ->whereMonth('updated_at', now()->month)
-                ->count(),
-            'avg_resolution_time' => $employee->assignedComplaints()
-                ->completed()
-                ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')
-                ->value('avg_hours') ?? 0,
-        ];
-
-        return response()->json($workload);
-    }
-
-    /**
-     * Bulk actions on employees
+     * Bulk action for employees
      */
     public function bulkAction(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'action' => 'required|in:activate,deactivate,change_department,change_designation',
+            'action' => 'required|string|in:delete,activate,deactivate',
             'employee_ids' => 'required|array|min:1',
             'employee_ids.*' => 'exists:employees,id',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator);
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $employeeIds = $request->employee_ids;
-        $action = $request->action;
+        try {
+            $employees = Employee::whereIn('id', $request->employee_ids);
+            
+            switch ($request->action) {
+                case 'delete':
+                    $employees->delete();
+                    $message = 'Selected employees deleted successfully.';
+                    break;
+                case 'activate':
+                    $employees->update(['status' => 'active']);
+                    $message = 'Selected employees activated successfully.';
+                    break;
+                case 'deactivate':
+                    $employees->update(['status' => 'inactive']);
+                    $message = 'Selected employees deactivated successfully.';
+                    break;
+            }
 
-        switch ($action) {
-            case 'activate':
-                Employee::whereIn('id', $employeeIds)
-                    ->whereHas('user')
-                    ->get()
-                    ->each(function($employee) {
-                        $employee->user->update(['status' => 'active']);
-                    });
-                $message = 'Selected employees activated successfully.';
-                break;
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
 
-            case 'deactivate':
-                Employee::whereIn('id', $employeeIds)
-                    ->whereHas('user')
-                    ->get()
-                    ->each(function($employee) {
-                        $employee->user->update(['status' => 'inactive']);
-                    });
-                $message = 'Selected employees deactivated successfully.';
-                break;
-
-            case 'change_department':
-                $validator = Validator::make($request->all(), [
-                    'department' => 'required|string|max:100',
-                ]);
-                
-                if ($validator->fails()) {
-                    return redirect()->back()->withErrors($validator);
-                }
-                
-                Employee::whereIn('id', $employeeIds)->update(['department' => $request->department]);
-                $message = 'Selected employees department changed successfully.';
-                break;
-
-            case 'change_designation':
-                $validator = Validator::make($request->all(), [
-                    'designation' => 'required|string|max:100',
-                ]);
-                
-                if ($validator->fails()) {
-                    return redirect()->back()->withErrors($validator);
-                }
-                
-                Employee::whereIn('id', $employeeIds)->update(['designation' => $request->designation]);
-                $message = 'Selected employees designation changed successfully.';
-                break;
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error performing bulk action: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()->back()->with('success', $message);
     }
 
     /**
-     * Export employees data
+     * Export employees
      */
-    public function export(Request $request)
+    public function export()
     {
-        $query = Employee::with(['user.role']);
-
-        // Apply same filters as index
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->whereHas('user', function($q) use ($search) {
-                $q->where('username', 'like', "%{$search}%")
-                  ->orWhere('full_name', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->has('department') && $request->department) {
-            $query->where('department', $request->department);
-        }
-
-        if ($request->has('designation') && $request->designation) {
-            $query->where('designation', $request->designation);
-        }
-
-        $employees = $query->get();
-
-        // Implementation for export
-        return response()->json(['message' => 'Export functionality not implemented yet']);
+        // Implementation for exporting employees
+        return response()->json([
+            'success' => true,
+            'message' => 'Export functionality will be implemented.'
+        ]);
     }
 }

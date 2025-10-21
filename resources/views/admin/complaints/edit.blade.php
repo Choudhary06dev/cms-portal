@@ -1,53 +1,106 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Edit Complaint</h2>
-    </x-slot>
+@extends('layouts.sidebar')
 
-    <div class="py-6">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <form method="POST" action="{{ route('admin.complaints.update', $complaint) }}" class="space-y-4">
-                        @csrf
-                        @method('PUT')
-                        <div>
-                            <label class="block text-sm mb-1">Type</label>
-                            <input type="text" name="type" value="{{ old('type', $complaint->type) }}" class="w-full border-gray-300 rounded" />
-                        </div>
-                        <div>
-                            <label class="block text-sm mb-1">Description</label>
-                            <textarea name="description" class="w-full border-gray-300 rounded" rows="4">{{ old('description', $complaint->description) }}</textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm mb-1">Location</label>
-                            <input type="text" name="location" value="{{ old('location', $complaint->location) }}" class="w-full border-gray-300 rounded" />
-                        </div>
-                        <div>
-                            <label class="block text-sm mb-1">Assign Employee</label>
-                            <select name="assigned_employee_id" class="w-full border-gray-300 rounded">
-                                <option value="">— None —</option>
-                                @foreach($employees as $emp)
-                                    <option value="{{ $emp->id }}" @selected($complaint->assigned_employee_id == $emp->id)>#{{ $emp->id }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm mb-1">Status</label>
-                            <select name="status" class="w-full border-gray-300 rounded">
-                                @foreach(['NEW','IN_PROGRESS','RESOLVED','CLOSED','REOPENED'] as $st)
-                                    <option value="{{ $st }}" @selected($complaint->status === $st)>{{ $st }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <button class="px-4 py-2 bg-gray-800 text-white rounded">Update</button>
-                            <a href="{{ route('admin.complaints.index') }}" class="ml-2 text-gray-500">Cancel</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+@section('title', 'Edit Complaint')
+
+@section('content')
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Edit Complaint: #{{ $complaint->id }}</h5>
         </div>
+        <div class="card-body">
+          <form action="{{ route('admin.complaints.update', $complaint) }}" method="POST">
+            @csrf
+            @method('PUT')
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="type" class="form-label">Type <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control @error('type') is-invalid @enderror" 
+                         id="type" name="type" value="{{ old('type', $complaint->type) }}" required>
+                  @error('type')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="location" class="form-label">Location</label>
+                  <input type="text" class="form-control @error('location') is-invalid @enderror" 
+                         id="location" name="location" value="{{ old('location', $complaint->location) }}">
+                  @error('location')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                  <textarea class="form-control @error('description') is-invalid @enderror" 
+                            id="description" name="description" rows="4" required>{{ old('description', $complaint->description) }}</textarea>
+                  @error('description')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="assigned_employee_id" class="form-label">Assign Employee</label>
+                  <select class="form-select @error('assigned_employee_id') is-invalid @enderror" 
+                          id="assigned_employee_id" name="assigned_employee_id">
+                    <option value="">Select Employee</option>
+                    @foreach($employees as $emp)
+                    <option value="{{ $emp->id }}" 
+                            {{ old('assigned_employee_id', $complaint->assigned_employee_id) == $emp->id ? 'selected' : '' }}>
+                      {{ $emp->user->username ?? 'Employee #' . $emp->id }}
+                    </option>
+                    @endforeach
+                  </select>
+                  @error('assigned_employee_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                  <select class="form-select @error('status') is-invalid @enderror" 
+                          id="status" name="status" required>
+                    @foreach(['NEW','IN_PROGRESS','RESOLVED','CLOSED','REOPENED'] as $st)
+                    <option value="{{ $st }}" 
+                            {{ old('status', $complaint->status) == $st ? 'selected' : '' }}>
+                      {{ $st }}
+                    </option>
+                    @endforeach
+                  </select>
+                  @error('status')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ route('admin.complaints.index') }}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">Update Complaint</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-</x-app-layout>
+  </div>
+</div>
+@endsection
 
 

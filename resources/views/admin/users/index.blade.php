@@ -77,6 +77,10 @@
               <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
                 {{ substr($user->username, 0, 1) }}
               </div>
+              <div>
+                <div class="fw-bold">{{ $user->username }}</div>
+                <small class="text-muted">ID: {{ $user->id }}</small>
+              </div>
             </div>
           </td>
           <td>{{ $user->email ?? 'N/A' }}</td>
@@ -131,6 +135,21 @@
 <script>
   feather.replace();
 
+  // Restore filter values from URL parameters
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('search')) {
+      document.getElementById('searchInput').value = urlParams.get('search');
+    }
+    if (urlParams.get('role_id')) {
+      document.getElementById('roleFilter').value = urlParams.get('role_id');
+    }
+    if (urlParams.get('status')) {
+      document.getElementById('statusFilter').value = urlParams.get('status');
+    }
+  });
+
   // Filter functionality
   document.getElementById('applyFilters')?.addEventListener('click', function() {
     const search = document.getElementById('searchInput').value;
@@ -139,7 +158,7 @@
     
     const params = new URLSearchParams();
     if (search) params.append('search', search);
-    if (role) params.append('role', role);
+    if (role) params.append('role_id', role);
     if (status) params.append('status', status);
     
     window.location.href = '{{ route("admin.users.index") }}?' + params.toString();

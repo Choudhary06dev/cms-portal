@@ -72,11 +72,11 @@ class Employee extends Model
     }
 
     /**
-     * Get employee's full name
+     * Get employee's username
      */
-    public function getFullNameAttribute(): string
+    public function getUsernameAttribute(): string
     {
-        return $this->user ? $this->user->getDisplayNameAttribute() : 'Unknown';
+        return $this->user ? $this->user->username : 'Unknown';
     }
 
     /**

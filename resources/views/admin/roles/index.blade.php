@@ -154,7 +154,13 @@
 
   // Delete role function
   function deleteRole(roleId) {
-    if (confirm('Are you sure you want to delete this role?')) {
+    if (confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
+      // Show loading state
+      const deleteBtn = event.target.closest('button');
+      const originalContent = deleteBtn.innerHTML;
+      deleteBtn.innerHTML = '<i data-feather="loader" class="spinner"></i>';
+      deleteBtn.disabled = true;
+      
       fetch(`/admin/roles/${roleId}`, {
         method: 'DELETE',
         headers: {
@@ -165,7 +171,9 @@
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          return response.json().then(data => {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
+          });
         }
         return response.json();
       })
@@ -176,11 +184,19 @@
           location.reload();
         } else {
           alert('Error deleting role: ' + (data.message || 'Unknown error'));
+          // Restore button
+          deleteBtn.innerHTML = originalContent;
+          deleteBtn.disabled = false;
+          feather.replace();
         }
       })
       .catch(error => {
         console.error('Error deleting role:', error);
         alert('Error deleting role: ' + error.message);
+        // Restore button
+        deleteBtn.innerHTML = originalContent;
+        deleteBtn.disabled = false;
+        feather.replace();
       });
     }
   }
