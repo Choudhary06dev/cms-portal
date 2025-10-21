@@ -1,153 +1,179 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Role Management')
+@section('title', 'Role Management — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Role Management</h5>
-          <a href="{{ route('admin.roles.create') }}" class="btn btn-primary btn-sm">
-            <i data-feather="plus"></i> Add New Role
-          </a>
-        </div>
-        <div class="card-body">
-          <!-- Filters -->
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <input type="text" class="form-control" placeholder="Search roles..." id="searchInput">
-            </div>
-            <div class="col-md-3">
-              <select class="form-select" id="statusFilter">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <button class="btn btn-outline-info" onclick="exportRoles()">
-                <i data-feather="download"></i> Export
-              </button>
-            </div>
-            <div class="col-md-2">
-              <button class="btn btn-outline-secondary" onclick="clearFilters()">Clear</button>
-            </div>
-          </div>
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Role Management</h2>
+      <p class="text-light">Manage user roles and permissions</p>
+    </div>
+    <a href="{{ route('admin.roles.create') }}" class="btn btn-accent">
+      <i data-feather="shield-plus" class="me-2"></i>Add New Role
+    </a>
+  </div>
+</div>
 
-          <!-- Roles Table -->
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead class="table-dark">
-                <tr>
-                  <th>ID</th>
-                  <th>Role Name</th>
-                  <th>Description</th>
-                  <th>Users Count</th>
-                  <th>Permissions</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                @forelse($roles as $role)
-                <tr>
-                  <td>{{ $role->id }}</td>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <div class="avatar avatar-sm me-2">
-                        <div class="avatar-content bg-info text-white">
-                          {{ substr($role->role_name, 0, 1) }}
-                        </div>
-                      </div>
-                      <strong>{{ $role->role_name }}</strong>
-                    </div>
-                  </td>
-                  <td>{{ $role->description ?? 'No description' }}</td>
-                  <td>
-                    <span class="badge bg-primary">{{ $role->users_count ?? 0 }} users</span>
-                  </td>
-                  <td>
-                    <span class="badge bg-success">{{ $role->rolePermissions->count() }} permissions</span>
-                  </td>
-                  <td>{{ $role->created_at->format('M d, Y') }}</td>
-                  <td>
-                    <div class="btn-group" role="group">
-                      <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-outline-info btn-sm">
-                        <i data-feather="eye"></i>
-                      </a>
-                      <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-outline-warning btn-sm">
-                        <i data-feather="edit"></i>
-                      </a>
-                      <a href="{{ route('admin.roles.permissions', $role) }}" class="btn btn-outline-secondary btn-sm">
-                        <i data-feather="shield"></i>
-                      </a>
-                      <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure? This will affect all users with this role.')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                          <i data-feather="trash-2"></i>
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="7" class="text-center">No roles found</td>
-                </tr>
-                @endforelse
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination -->
-          <div class="d-flex justify-content-center mt-3">
-            {{ $roles->links() }}
-          </div>
-        </div>
+<!-- FILTERS -->
+<div class="card-glass mb-4">
+  <div class="row g-3">
+    <div class="col-md-4">
+      <input type="text" class="form-control" placeholder="Search roles..." id="searchInput">
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" id="statusFilter">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-light btn-sm" id="applyFilters">
+          <i data-feather="filter" class="me-1"></i>Apply
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
+          <i data-feather="x" class="me-1"></i>Clear
+        </button>
+        <button class="btn btn-outline-primary btn-sm" id="exportBtn">
+          <i data-feather="download" class="me-1"></i>Export
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Search functionality
-  const searchInput = document.getElementById('searchInput');
-  const statusFilter = document.getElementById('statusFilter');
-
-  function filterTable() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const statusValue = statusFilter.value;
-    
-    const rows = document.querySelectorAll('tbody tr');
-    
-    rows.forEach(row => {
-      const roleName = row.cells[1].textContent.toLowerCase();
-      const description = row.cells[2].textContent.toLowerCase();
-      
-      const matchesSearch = roleName.includes(searchTerm) || description.includes(searchTerm);
-      const matchesStatus = !statusValue; // Add status logic if needed
-      
-      row.style.display = matchesSearch && matchesStatus ? '' : 'none';
-    });
-  }
-
-  searchInput.addEventListener('input', filterTable);
-  statusFilter.addEventListener('change', filterTable);
-});
-
-function clearFilters() {
-  document.getElementById('searchInput').value = '';
-  document.getElementById('statusFilter').value = '';
-  filterTable();
-}
-
-function exportRoles() {
-  // Implement export functionality
-  alert('Export functionality will be implemented');
-}
-</script>
+<!-- ROLES TABLE -->
+<div class="card-glass">
+  <div class="table-responsive">
+    <table class="table table-dark">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Role Name</th>
+          <th>Description</th>
+          <th>Users Count</th>
+          <th>Permissions</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($roles as $role)
+        <tr>
+          <td>{{ $role->id }}</td>
+          <td>
+            <div class="d-flex align-items-center">
+              <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
+                {{ substr($role->role_name, 0, 1) }}
+              </div>
+              <div>
+                <div class="fw-bold">{{ $role->role_name }}</div>
+                <div class="text-muted small">{{ $role->description ?? 'No description' }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ $role->description ?? 'N/A' }}</td>
+          <td>
+            <span class="badge bg-info">{{ $role->users_count ?? 0 }} users</span>
+          </td>
+          <td>
+            <span class="badge bg-warning">{{ $role->permissions_count ?? 0 }} permissions</span>
+          </td>
+          <td>{{ $role->created_at->format('M d, Y') }}</td>
+          <td>
+            <div class="btn-group" role="group">
+              <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-outline-info btn-sm" title="View Details">
+                <i data-feather="eye"></i>
+              </a>
+              <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-outline-warning btn-sm" title="Edit">
+                <i data-feather="edit"></i>
+              </a>
+              <a href="{{ route('admin.roles.permissions', $role) }}" class="btn btn-outline-primary btn-sm" title="Permissions">
+                <i data-feather="shield"></i>
+              </a>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteRole({{ $role->id }})" title="Delete">
+                <i data-feather="trash-2"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        @empty
+        <tr>
+          <td colspan="7" class="text-center py-4">
+            <i data-feather="shield" class="feather-lg mb-2"></i>
+            <div>No roles found</div>
+          </td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- PAGINATION -->
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted">
+      Showing {{ $roles->firstItem() ?? 0 }} to {{ $roles->lastItem() ?? 0 }} of {{ $roles->total() }} roles
+    </div>
+    <div>
+      {{ $roles->links() }}
+    </div>
+  </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+  feather.replace();
+
+  // Filter functionality
+  document.getElementById('applyFilters')?.addEventListener('click', function() {
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    
+    window.location.href = '{{ route("admin.roles.index") }}?' + params.toString();
+  });
+
+  document.getElementById('clearFilters')?.addEventListener('click', function() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    window.location.href = '{{ route("admin.roles.index") }}';
+  });
+
+  // Export functionality
+  document.getElementById('exportBtn')?.addEventListener('click', function() {
+    window.location.href = '{{ route("admin.roles.export") }}';
+  });
+
+  // Delete role function
+  function deleteRole(roleId) {
+    if (confirm('Are you sure you want to delete this role?')) {
+      fetch(`/admin/roles/${roleId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Error deleting role: ' + (data.message || 'Unknown error'));
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting role:', error);
+        alert('Error deleting role');
+      });
+    }
+  }
+</script>
+@endpush
