@@ -1,0 +1,159 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ComplaintController as AdminComplaintController;
+use App\Http\Controllers\Admin\ComplaintCrudController as AdminComplaintCrudController;
+use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\RoleController as AdminRoleController;
+use App\Http\Controllers\Admin\ClientController as AdminClientController;
+use App\Http\Controllers\Admin\SpareController as AdminSpareController;
+use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
+use App\Http\Controllers\Admin\SlaController as AdminSlaController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return auth()->check()
+        ? redirect()->route('admin.dashboard')
+        : redirect()->route('login');
+});
+
+Route::get('/admin', function () {
+    return auth()->check()
+        ? redirect()->route('admin.dashboard')
+        : redirect()->route('login');
+});
+
+// Legacy redirects from root auth to admin auth
+Route::redirect('/login', '/admin/login');
+Route::redirect('/register', '/admin/register');
+
+// Typo/alias redirect for dashboard
+Route::redirect('/admin/rdashboard', '/admin/dashboard');
+
+Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
+
+// Admin routes
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/chart-data', [AdminDashboardController::class, 'getChartData'])->name('dashboard.chart-data');
+    Route::get('/dashboard/real-time-updates', [AdminDashboardController::class, 'getRealTimeUpdates'])->name('dashboard.real-time-updates');
+    
+    // User Management
+    Route::resource('users', AdminUserController::class);
+    Route::post('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::post('users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
+    Route::get('users/{user}/permissions', [AdminUserController::class, 'getPermissions'])->name('users.permissions');
+    Route::post('users/{user}/permissions', [AdminUserController::class, 'updatePermissions'])->name('users.update-permissions');
+    Route::get('users/{user}/activity', [AdminUserController::class, 'getActivityLog'])->name('users.activity');
+    Route::post('users/bulk-action', [AdminUserController::class, 'bulkAction'])->name('users.bulk-action');
+    Route::get('users/export', [AdminUserController::class, 'export'])->name('users.export');
+    
+    // Role Management
+    Route::resource('roles', AdminRoleController::class);
+    Route::post('roles/{role}/toggle-status', [AdminRoleController::class, 'toggleStatus'])->name('roles.toggle-status');
+    Route::get('roles/{role}/permissions', [AdminRoleController::class, 'getPermissions'])->name('roles.permissions');
+    Route::post('roles/{role}/permissions', [AdminRoleController::class, 'updatePermissions'])->name('roles.update-permissions');
+    Route::get('roles/statistics', [AdminRoleController::class, 'getStatistics'])->name('roles.statistics');
+    Route::get('roles/usage-statistics', [AdminRoleController::class, 'getUsageStatistics'])->name('roles.usage-statistics');
+    Route::post('roles/bulk-action', [AdminRoleController::class, 'bulkAction'])->name('roles.bulk-action');
+    Route::get('roles/export', [AdminRoleController::class, 'export'])->name('roles.export');
+    
+    // Employee Management
+    Route::resource('employees', AdminEmployeeController::class)->except(['show']);
+    Route::post('employees/{employee}/toggle-status', [AdminEmployeeController::class, 'toggleStatus'])->name('employees.toggle-status');
+    Route::get('employees/{employee}/leaves', [AdminEmployeeController::class, 'getLeaves'])->name('employees.leaves');
+    Route::post('employees/{employee}/leaves', [AdminEmployeeController::class, 'createLeave'])->name('employees.create-leave');
+    Route::post('employees/{employee}/leaves/{leave}/approve', [AdminEmployeeController::class, 'approveLeave'])->name('employees.approve-leave');
+    Route::post('employees/{employee}/leaves/{leave}/reject', [AdminEmployeeController::class, 'rejectLeave'])->name('employees.reject-leave');
+    Route::get('employees/{employee}/performance', [AdminEmployeeController::class, 'getPerformance'])->name('employees.performance');
+    Route::post('employees/bulk-action', [AdminEmployeeController::class, 'bulkAction'])->name('employees.bulk-action');
+    Route::get('employees/export', [AdminEmployeeController::class, 'export'])->name('employees.export');
+    
+    // Client Management
+    Route::resource('clients', AdminClientController::class);
+    Route::post('clients/{client}/toggle-status', [AdminClientController::class, 'toggleStatus'])->name('clients.toggle-status');
+    Route::get('clients/{client}/complaints', [AdminClientController::class, 'getComplaints'])->name('clients.complaints');
+    Route::get('clients/{client}/performance', [AdminClientController::class, 'getPerformanceMetrics'])->name('clients.performance');
+    Route::get('clients/statistics', [AdminClientController::class, 'getStatistics'])->name('clients.statistics');
+    Route::get('clients/chart-data', [AdminClientController::class, 'getChartData'])->name('clients.chart-data');
+    Route::get('clients/top-clients', [AdminClientController::class, 'getTopClients'])->name('clients.top-clients');
+    Route::post('clients/bulk-action', [AdminClientController::class, 'bulkAction'])->name('clients.bulk-action');
+    Route::get('clients/export', [AdminClientController::class, 'export'])->name('clients.export');
+    
+    // Complaint Management
+    Route::resource('complaints', AdminComplaintController::class);
+    Route::post('complaints/{complaint}/assign', [AdminComplaintController::class, 'assign'])->name('complaints.assign');
+    Route::post('complaints/{complaint}/update-status', [AdminComplaintController::class, 'updateStatus'])->name('complaints.update-status');
+    Route::post('complaints/{complaint}/add-notes', [AdminComplaintController::class, 'addNotes'])->name('complaints.add-notes');
+    Route::get('complaints/{complaint}/print-slip', [AdminComplaintController::class, 'printSlip'])->name('complaints.print-slip');
+    Route::get('complaints/statistics', [AdminComplaintController::class, 'getStatistics'])->name('complaints.statistics');
+    Route::get('complaints/chart-data', [AdminComplaintController::class, 'getChartData'])->name('complaints.chart-data');
+    Route::get('complaints/by-type', [AdminComplaintController::class, 'getByType'])->name('complaints.by-type');
+    Route::get('complaints/overdue', [AdminComplaintController::class, 'getOverdue'])->name('complaints.overdue');
+    Route::get('complaints/employee-performance', [AdminComplaintController::class, 'getEmployeePerformance'])->name('complaints.employee-performance');
+    Route::post('complaints/bulk-action', [AdminComplaintController::class, 'bulkAction'])->name('complaints.bulk-action');
+    Route::get('complaints/export', [AdminComplaintController::class, 'export'])->name('complaints.export');
+    
+    // Spare Parts Management
+    Route::resource('spares', AdminSpareController::class);
+    Route::post('spares/{spare}/add-stock', [AdminSpareController::class, 'addStock'])->name('spares.add-stock');
+    Route::post('spares/{spare}/remove-stock', [AdminSpareController::class, 'removeStock'])->name('spares.remove-stock');
+    Route::get('spares/low-stock', [AdminSpareController::class, 'getLowStock'])->name('spares.low-stock');
+    Route::get('spares/out-of-stock', [AdminSpareController::class, 'getOutOfStock'])->name('spares.out-of-stock');
+    Route::get('spares/stock-alerts', [AdminSpareController::class, 'getStockAlerts'])->name('spares.stock-alerts');
+    Route::get('spares/{spare}/stock-movement-chart', [AdminSpareController::class, 'getStockMovementChart'])->name('spares.stock-movement-chart');
+    Route::get('spares/{spare}/usage-statistics', [AdminSpareController::class, 'getUsageStatistics'])->name('spares.usage-statistics');
+    Route::get('spares/top-used', [AdminSpareController::class, 'getTopUsedSpares'])->name('spares.top-used');
+    Route::get('spares/category-statistics', [AdminSpareController::class, 'getCategoryStatistics'])->name('spares.category-statistics');
+    Route::post('spares/bulk-action', [AdminSpareController::class, 'bulkAction'])->name('spares.bulk-action');
+    Route::get('spares/export', [AdminSpareController::class, 'export'])->name('spares.export');
+    
+    // Approval Management
+    Route::resource('approvals', AdminApprovalController::class)->except(['edit', 'store', 'update', 'destroy']);
+    Route::post('approvals/{approval}/approve', [AdminApprovalController::class, 'approve'])->name('approvals.approve');
+    Route::post('approvals/{approval}/reject', [AdminApprovalController::class, 'reject'])->name('approvals.reject');
+    Route::get('approvals/statistics', [AdminApprovalController::class, 'getStatistics'])->name('approvals.statistics');
+    Route::get('approvals/chart-data', [AdminApprovalController::class, 'getChartData'])->name('approvals.chart-data');
+    Route::get('approvals/monthly-trends', [AdminApprovalController::class, 'getMonthlyTrends'])->name('approvals.monthly-trends');
+    Route::get('approvals/overdue', [AdminApprovalController::class, 'getOverdueApprovals'])->name('approvals.overdue');
+    Route::get('approvals/employee-performance', [AdminApprovalController::class, 'getEmployeePerformance'])->name('approvals.employee-performance');
+    Route::get('approvals/cost-analysis', [AdminApprovalController::class, 'getCostAnalysis'])->name('approvals.cost-analysis');
+    Route::post('approvals/bulk-action', [AdminApprovalController::class, 'bulkAction'])->name('approvals.bulk-action');
+    Route::get('approvals/export', [AdminApprovalController::class, 'export'])->name('approvals.export');
+    
+    // SLA Management
+    Route::resource('sla', AdminSlaController::class)->parameters(['sla' => 'slaRule']);
+    Route::post('sla/{slaRule}/toggle-status', [AdminSlaController::class, 'toggleStatus'])->name('sla.toggle-status');
+    Route::get('sla/statistics', [AdminSlaController::class, 'getStatistics'])->name('sla.statistics');
+    Route::get('sla/chart-data', [AdminSlaController::class, 'getChartData'])->name('sla.chart-data');
+    Route::get('sla/breach-analysis', [AdminSlaController::class, 'getBreachAnalysis'])->name('sla.breach-analysis');
+    Route::get('sla/performance-by-type', [AdminSlaController::class, 'getPerformanceByType'])->name('sla.performance-by-type');
+    Route::get('sla/escalation-alerts', [AdminSlaController::class, 'getEscalationAlerts'])->name('sla.escalation-alerts');
+    Route::post('sla/{slaRule}/test', [AdminSlaController::class, 'testSlaRule'])->name('sla.test');
+    Route::post('sla/bulk-action', [AdminSlaController::class, 'bulkAction'])->name('sla.bulk-action');
+    Route::get('sla/export', [AdminSlaController::class, 'export'])->name('sla.export');
+    
+    // Reports
+    Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/complaints', [AdminReportController::class, 'complaints'])->name('reports.complaints');
+    Route::get('reports/employees', [AdminReportController::class, 'employees'])->name('reports.employees');
+    Route::get('reports/spares', [AdminReportController::class, 'spares'])->name('reports.spares');
+    Route::get('reports/sla', [AdminReportController::class, 'sla'])->name('reports.sla');
+    Route::get('reports/financial', [AdminReportController::class, 'financial'])->name('reports.financial');
+    Route::get('reports/performance', [AdminReportController::class, 'performance'])->name('reports.performance');
+    Route::get('reports/export/{type}', [AdminReportController::class, 'export'])->name('reports.export');
+});

@@ -1,0 +1,298 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Spare extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'item_name',
+        'category',
+        'unit',
+        'unit_price',
+        'stock_quantity',
+        'threshold_level',
+        'last_updated',
+    ];
+
+    protected $casts = [
+        'unit_price' => 'decimal:2',
+        'stock_quantity' => 'integer',
+        'threshold_level' => 'integer',
+        'last_updated' => 'datetime',
+    ];
+
+    /**
+     * Get the stock logs for the spare.
+     */
+    public function stockLogs(): HasMany
+    {
+        return $this->hasMany(SpareStockLog::class);
+    }
+
+    /**
+     * Get the complaint spares for the spare.
+     */
+    public function complaintSpares(): HasMany
+    {
+        return $this->hasMany(ComplaintSpare::class);
+    }
+
+    /**
+     * Get the spare approval items for the spare.
+     */
+    public function approvalItems(): HasMany
+    {
+        return $this->hasMany(SpareApprovalItem::class);
+    }
+
+    /**
+     * Get available categories
+     */
+    public static function getCategories(): array
+    {
+        return [
+            'electric' => 'Electrical',
+            'sanitary' => 'Sanitary',
+            'kitchen' => 'Kitchen Appliances',
+            'general' => 'General',
+        ];
+    }
+
+    /**
+     * Get available units
+     */
+    public static function getUnits(): array
+    {
+        return [
+            'pcs' => 'Pieces',
+            'kg' => 'Kilograms',
+            'm' => 'Meters',
+            'ft' => 'Feet',
+            'box' => 'Box',
+            'roll' => 'Roll',
+            'set' => 'Set',
+        ];
+    }
+
+    /**
+     * Get category display name
+     */
+    public function getCategoryDisplayAttribute(): string
+    {
+        return self::getCategories()[$this->category] ?? $this->category;
+    }
+
+    /**
+     * Get unit display name
+     */
+    public function getUnitDisplayAttribute(): string
+    {
+        return self::getUnits()[$this->unit] ?? $this->unit;
+    }
+
+    /**
+     * Check if stock is low
+     */
+    public function isLowStock(): bool
+    {
+        return $this->stock_quantity <= $this->threshold_level;
+    }
+
+    /**
+     * Check if stock is out
+     */
+    public function isOutOfStock(): bool
+    {
+        return $this->stock_quantity <= 0;
+    }
+
+    /**
+     * Check if stock is sufficient
+     */
+    public function isStockSufficient(int $requiredQuantity): bool
+    {
+        return $this->stock_quantity >= $requiredQuantity;
+    }
+
+    /**
+     * Get stock status
+     */
+    public function getStockStatusAttribute(): string
+    {
+        if ($this->isOutOfStock()) {
+            return 'out_of_stock';
+        } elseif ($this->isLowStock()) {
+            return 'low_stock';
+        } else {
+            return 'in_stock';
+        }
+    }
+
+    /**
+     * Get stock status display
+     */
+    public function getStockStatusDisplayAttribute(): string
+    {
+        $statuses = [
+            'out_of_stock' => 'Out of Stock',
+            'low_stock' => 'Low Stock',
+            'in_stock' => 'In Stock',
+        ];
+
+        return $statuses[$this->getStockStatusAttribute()] ?? 'Unknown';
+    }
+
+    /**
+     * Get stock status color
+     */
+    public function getStockStatusColorAttribute(): string
+    {
+        $colors = [
+            'out_of_stock' => 'danger',
+            'low_stock' => 'warning',
+            'in_stock' => 'success',
+        ];
+
+        return $colors[$this->getStockStatusAttribute()] ?? 'muted';
+    }
+
+    /**
+     * Get total value of current stock
+     */
+    public function getTotalValueAttribute(): float
+    {
+        return $this->stock_quantity * $this->unit_price;
+    }
+
+    /**
+     * Get formatted unit price
+     */
+    public function getFormattedUnitPriceAttribute(): string
+    {
+        return '₹' . number_format($this->unit_price, 2);
+    }
+
+    /**
+     * Get formatted total value
+     */
+    public function getFormattedTotalValueAttribute(): string
+    {
+        return '₹' . number_format($this->getTotalValueAttribute(), 2);
+    }
+
+    /**
+     * Add stock
+     */
+    public function addStock(int $quantity, string $remarks = null, int $referenceId = null): void
+    {
+        $this->stock_quantity += $quantity;
+        $this->last_updated = now();
+        $this->save();
+
+        // Log the stock change
+        $this->stockLogs()->create([
+            'change_type' => 'in',
+            'quantity' => $quantity,
+            'reference_id' => $referenceId,
+            'remarks' => $remarks,
+        ]);
+    }
+
+    /**
+     * Remove stock
+     */
+    public function removeStock(int $quantity, string $remarks = null, int $referenceId = null): bool
+    {
+        if (!$this->isStockSufficient($quantity)) {
+            return false;
+        }
+
+        $this->stock_quantity -= $quantity;
+        $this->last_updated = now();
+        $this->save();
+
+        // Log the stock change
+        $this->stockLogs()->create([
+            'change_type' => 'out',
+            'quantity' => $quantity,
+            'reference_id' => $referenceId,
+            'remarks' => $remarks,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Get stock movement summary
+     */
+    public function getStockMovementSummary(int $days = 30): array
+    {
+        $logs = $this->stockLogs()
+            ->where('created_at', '>=', now()->subDays($days))
+            ->get();
+
+        $inStock = $logs->where('change_type', 'in')->sum('quantity');
+        $outStock = $logs->where('change_type', 'out')->sum('quantity');
+
+        return [
+            'in_stock' => $inStock,
+            'out_stock' => $outStock,
+            'net_movement' => $inStock - $outStock,
+            'movement_count' => $logs->count(),
+        ];
+    }
+
+    /**
+     * Scope for low stock items
+     */
+    public function scopeLowStock($query)
+    {
+        return $query->whereRaw('stock_quantity <= threshold_level');
+    }
+
+    /**
+     * Scope for out of stock items
+     */
+    public function scopeOutOfStock($query)
+    {
+        return $query->where('stock_quantity', '<=', 0);
+    }
+
+    /**
+     * Scope for in stock items
+     */
+    public function scopeInStock($query)
+    {
+        return $query->whereRaw('stock_quantity > threshold_level');
+    }
+
+    /**
+     * Scope by category
+     */
+    public function scopeByCategory($query, $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    /**
+     * Scope for items with stock above threshold
+     */
+    public function scopeAboveThreshold($query)
+    {
+        return $query->whereRaw('stock_quantity > threshold_level');
+    }
+
+    /**
+     * Scope for recently updated items
+     */
+    public function scopeRecentlyUpdated($query, $days = 7)
+    {
+        return $query->where('last_updated', '>=', now()->subDays($days));
+    }
+}
