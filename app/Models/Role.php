@@ -36,6 +36,11 @@ class Role extends Model
      */
     public function hasPermission(string $permission): bool
     {
+        // Admin role (role_id 1 or role_name 'admin') has access to everything
+        if ($this->id === 1 || $this->role_name === 'admin') {
+            return true;
+        }
+
         // Parse permission string (e.g., "complaints.view", "users.edit")
         $parts = explode('.', $permission);
         if (count($parts) !== 2) {

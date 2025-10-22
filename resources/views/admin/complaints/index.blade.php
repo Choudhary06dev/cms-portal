@@ -6,75 +6,76 @@
 <!-- PAGE HEADER -->
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
-    <div>
+      <div>
       <h2 class="text-white mb-2" >Complaints Management</h2>
       <p class="text-light" >Track and manage customer complaints</p>
-    </div>
+      </div>
     <a href="{{ route('admin.complaints.create') }}" class="btn btn-accent">
       <i data-feather="plus" class="me-2"></i>Add Complaint
-    </a>
-  </div>
-</div>
+        </a>
+      </div>
+    </div>
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <form method="GET" action="{{ route('admin.complaints.index') }}">
-    <div class="row g-3">
-      <div class="col-md-3">
-        <input type="text" class="form-control" name="search" placeholder="Search complaints..." 
-               value="{{ request('search') }}">
-      </div>
-      <div class="col-md-2">
-        <select class="form-select" name="status">
-          <option value="">All Status</option>
-          <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
-          <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
-          <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-          <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
-          <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <select class="form-select" name="priority">
-          <option value="">All Priority</option>
-          <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
-          <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
-          <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
-          <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <select class="form-select" name="category">
-          <option value="">All Categories</option>
-          <option value="technical" {{ request('category') == 'technical' ? 'selected' : '' }}>Technical</option>
-          <option value="service" {{ request('category') == 'service' ? 'selected' : '' }}>Service</option>
-          <option value="billing" {{ request('category') == 'billing' ? 'selected' : '' }}>Billing</option>
-          <option value="other" {{ request('category') == 'other' ? 'selected' : '' }}>Other</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-outline-light btn-sm">
-            <i class="fas fa-filter me-1"></i>Apply
-          </button>
-          <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-times me-1"></i>Clear
-          </a>
-          <button type="button" class="btn btn-outline-primary btn-sm">
-            <i class="fas fa-download me-1"></i>Export
-          </button>
-        </div>
+  <div class="row g-3">
+    <div class="col-md-3">
+      <input type="text" class="form-control" placeholder="Search complaints..." 
+>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" 
+>
+        <option value="">All Status</option>
+        <option value="new">New</option>
+        <option value="assigned">Assigned</option>
+        <option value="in_progress">In Progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" 
+>
+        <option value="">All Priority</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="urgent">Urgent</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" 
+>
+        <option value="">All Categories</option>
+        <option value="technical">Technical</option>
+        <option value="service">Service</option>
+        <option value="billing">Billing</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-light btn-sm">
+          <i data-feather="filter" class="me-1"></i>Apply
+        </button>
+        <button class="btn btn-outline-secondary btn-sm">
+          <i data-feather="x" class="me-1"></i>Clear
+        </button>
+        <button class="btn btn-outline-primary btn-sm">
+          <i data-feather="download" class="me-1"></i>Export
+        </button>
       </div>
     </div>
-  </form>
+  </div>
 </div>
 
 <!-- COMPLAINTS TABLE -->
 <div class="card-glass">
-  <div class="table-responsive">
+      <div class="table-responsive">
         <table class="table table-dark">
-      <thead>
-        <tr>
+          <thead>
+            <tr>
           <th >#</th>
           <th >Complaint</th>
           <th >Client</th>
@@ -84,53 +85,44 @@
           <th >Assigned To</th>
           <th >Created</th>
           <th >Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($complaints as $complaint)
-        <tr>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($complaints as $complaint)
+            <tr>
           <td >{{ $complaint->id }}</td>
           <td>
             <div style="color: #ffffff !important; font-weight: 600;">{{ $complaint->title }}</div>
             <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ Str::limit($complaint->description, 50) }}</div>
           </td>
-          <td >{{ $complaint->client->client_name ?? 'N/A' }}</td>
+          <td >{{ $complaint->client->name ?? 'N/A' }}</td>
           <td>
             <span class="category-badge category-{{ strtolower($complaint->category) }}">
               {{ ucfirst($complaint->category) }}
             </span>
-          </td>
-          <td>
+              </td>
+              <td>
             <span class="priority-badge priority-{{ strtolower($complaint->priority) }}">
-              {{ ucfirst($complaint->priority) }}
-            </span>
-          </td>
-          <td>
+                  {{ ucfirst($complaint->priority) }}
+                </span>
+              </td>
+              <td>
             <span class="status-badge status-{{ strtolower($complaint->status) }}">
               {{ ucfirst($complaint->status) }}
-            </span>
-          </td>
+                </span>
+              </td>
           <td >{{ $complaint->assigned_to ?? 'Unassigned' }}</td>
           <td >{{ $complaint->created_at->format('M d, Y') }}</td>
           <td>
-            <div class="btn-group" role="group" style="display:inline-flex; border-radius:6px; overflow:hidden;">
-              <button title="View Details" onclick="viewComplaint({{ $complaint->id }})"
-                  style="border:2px solid #17a2b8; background:none; padding:8px 14px; font-size:16px; cursor:pointer; border-right:1px solid #ddd; transition:all 0.2s ease-in-out;"
-                  onmouseover="this.style.backgroundColor='#17a2b8'; this.querySelector('i').style.color='white';"
-                  onmouseout="this.style.backgroundColor='transparent'; this.querySelector('i').style.color='#17a2b8';">
-                  <i class="fas fa-eye" style="color:#17a2b8; font-size:14px;"></i>
+            <div class="btn-group" role="group">
+              <button class="btn btn-outline-info btn-sm" onclick="viewComplaint({{ $complaint->id }})" title="View Details">
+                <i data-feather="eye"></i>
               </button>
-              <button title="Edit" onclick="editComplaint({{ $complaint->id }})"
-                  style="border:2px solid #ffc107; background:none; padding:8px 14px; font-size:16px; cursor:pointer; border-right:1px solid #ddd; transition:all 0.2s ease-in-out;"
-                  onmouseover="this.style.backgroundColor='#ffc107'; this.querySelector('i').style.color='white';"
-                  onmouseout="this.style.backgroundColor='transparent'; this.querySelector('i').style.color='#ffc107';">
-                  <i class="fas fa-edit" style="color:#ffc107; font-size:14px;"></i>
+              <button class="btn btn-outline-warning btn-sm" onclick="editComplaint({{ $complaint->id }})" title="Edit">
+                <i data-feather="edit"></i>
               </button>
-              <button title="Delete" onclick="deleteComplaint({{ $complaint->id }})"
-                  style="border:2px solid #dc3545; background:none; padding:8px 14px; font-size:16px; cursor:pointer; transition:all 0.2s ease-in-out;"
-                  onmouseover="this.style.backgroundColor='#dc3545'; this.querySelector('i').style.color='white';"
-                  onmouseout="this.style.backgroundColor='transparent'; this.querySelector('i').style.color='#dc3545';">
-                  <i class="fas fa-trash" style="color:#dc3545; font-size:14px;"></i>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteComplaint({{ $complaint->id }})" title="Delete">
+                <i data-feather="trash-2"></i>
               </button>
             </div>
           </td>
@@ -140,23 +132,23 @@
           <td colspan="9" class="text-center py-4" >
             <i data-feather="alert-circle" class="feather-lg mb-2"></i>
             <div>No complaints found</div>
-          </td>
-        </tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
-  
+              </td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-between align-items-center mt-3">
+      <div class="d-flex justify-content-between align-items-center mt-3">
     <div >
       Showing {{ $complaints->firstItem() ?? 0 }} to {{ $complaints->lastItem() ?? 0 }} of {{ $complaints->total() }} complaints
+        </div>
+        <div>
+          {{ $complaints->links() }}
+        </div>
+      </div>
     </div>
-    <div>
-      {{ $complaints->links() }}
-    </div>
-  </div>
-</div>
 @endsection
 
 @push('styles')
@@ -231,7 +223,7 @@
 
 @push('scripts')
 <script>
-  let currentComplaintId = null;
+  feather.replace();
 
   // Complaint Functions
   function viewComplaint(complaintId) {
@@ -322,42 +314,9 @@
   }
 
   function deleteComplaint(complaintId) {
-    currentComplaintId = complaintId;
-    
-    // Set up the delete form action
-    const deleteForm = document.getElementById('deleteForm');
-    deleteForm.action = `/admin/complaints/${complaintId}`;
-    
-    // Show delete confirmation modal
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-  }
-
-  // Auto-submit filters on change
-  document.addEventListener('DOMContentLoaded', function() {
-    const filterForm = document.querySelector('form[method="GET"]');
-    const filterSelects = document.querySelectorAll('select[name="status"], select[name="priority"], select[name="category"]');
-    
-    filterSelects.forEach(select => {
-      select.addEventListener('change', function() {
-        // Add a small delay to prevent multiple rapid requests
-        setTimeout(() => {
-          filterForm.submit();
-        }, 100);
-      });
-    });
-    
-    // Add search functionality with debounce
-    const searchInput = document.querySelector('input[name="search"]');
-    let searchTimeout;
-    
-    if (searchInput) {
-      searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          filterForm.submit();
-        }, 500); // Wait 500ms after user stops typing
-      });
+    if (confirm('Are you sure you want to delete this complaint?')) {
+      alert('Delete complaint functionality coming soon!');
     }
-  });
+  }
 </script>
 @endpush

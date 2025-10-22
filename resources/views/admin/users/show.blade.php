@@ -1,153 +1,111 @@
 @extends('layouts.sidebar')
 
-@section('title', 'User Details')
+@section('title', 'User Details — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">User Details: {{ $user->username }}</h5>
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">User Details</h2>
+      <p class="text-light">View user information and details</p>
+    </div>
+    <div class="d-flex gap-1">
+      <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-primary">
+        <i data-feather="edit" class="me-2"></i>Edit User
+      </a>
+      <form action="{{ route('admin.users.toggle-status', $user) }}" method="POST" class="d-inline">
+        @csrf
+        <button type="submit" class="btn btn-{{ $user->status === 'active' ? 'danger' : 'success' }}">
+          <i data-feather="{{ $user->status === 'active' ? 'user-x' : 'user-check' }}" class="me-2"></i>
+          {{ $user->status === 'active' ? 'Deactivate' : 'Activate' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- USER DETAILS -->
+<div class="card-glass">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-4">
+          <h6 class="text-muted fw-bold">Basic Information</h6>
+          <div class="mb-2">
+            <span class="text-muted">Username:</span>
+            <span class="text-white">{{ $user->username }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="text-muted">Full Name:</span>
+            <span class="text-white">{{ $user->full_name ?? 'Not provided' }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="text-muted">Email:</span>
+            <span class="text-white">{{ $user->email ?? 'Not provided' }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="text-muted">Phone:</span>
+            <span class="text-white">{{ $user->phone ?? 'Not provided' }}</span>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-4">
-                <h6 class="text-muted">Basic Information</h6>
-                <table class="table table-borderless">
-                  <tr>
-                    <td><strong>Username:</strong></td>
-                    <td>{{ $user->username }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Email:</strong></td>
-                    <td>{{ $user->email ?? 'N/A' }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Phone:</strong></td>
-                    <td>{{ $user->phone ?? 'N/A' }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Status:</strong></td>
-                    <td>
-                      <span class="badge bg-{{ $user->status === 'active' ? 'success' : 'danger' }}">
-                        {{ ucfirst($user->status) }}
-                      </span>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-            </div>
-            
-            <div class="col-md-6">
-              <div class="mb-4">
-                <h6 class="text-muted">Role & Permissions</h6>
-                <table class="table table-borderless">
-                  <tr>
-                    <td><strong>Role:</strong></td>
-                    <td>
-                      <span class="badge bg-info">{{ $user->role->role_name ?? 'No Role' }}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Role Description:</strong></td>
-                    <td>{{ $user->role->description ?? 'N/A' }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Created:</strong></td>
-                    <td>{{ $user->created_at->format('M d, Y H:i') }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Last Updated:</strong></td>
-                    <td>{{ $user->updated_at->format('M d, Y H:i') }}</td>
-                  </tr>
-                </table>
-              </div>
-            </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="mb-4">
+          <h6 class="text-muted fw-bold">Account Information</h6>
+          <div class="mb-2">
+            <span class="text-muted">Role:</span>
+            <span class="badge bg-primary">{{ $user->role->role_name ?? 'No Role' }}</span>
           </div>
-
-          @if($user->role)
-          <div class="row">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h6 class="card-title mb-0">
-                    <i data-feather="shield" class="me-2"></i>Role Permissions
-                  </h6>
-                </div>
-                <div class="card-body">
-                  @if($user->role->rolePermissions->count() > 0)
-                    <div class="table-responsive">
-                      <table class="table table-sm table-striped">
-                        <thead class="table-dark">
-                          <tr>
-                            <th class="text-white">Module</th>
-                            <th class="text-white text-center">View</th>
-                            <th class="text-white text-center">Add</th>
-                            <th class="text-white text-center">Edit</th>
-                            <th class="text-white text-center">Delete</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @foreach($user->role->rolePermissions as $permission)
-                          <tr>
-                            <td>
-                              <strong>{{ ucfirst($permission->module_name) }}</strong>
-                            </td>
-                            <td class="text-center">
-                              <span class="badge bg-{{ $permission->can_view ? 'success' : 'secondary' }}">
-                                <i data-feather="{{ $permission->can_view ? 'check' : 'x' }}" class="me-1"></i>
-                                {{ $permission->can_view ? 'Yes' : 'No' }}
-                              </span>
-                            </td>
-                            <td class="text-center">
-                              <span class="badge bg-{{ $permission->can_add ? 'success' : 'secondary' }}">
-                                <i data-feather="{{ $permission->can_add ? 'check' : 'x' }}" class="me-1"></i>
-                                {{ $permission->can_add ? 'Yes' : 'No' }}
-                              </span>
-                            </td>
-                            <td class="text-center">
-                              <span class="badge bg-{{ $permission->can_edit ? 'success' : 'secondary' }}">
-                                <i data-feather="{{ $permission->can_edit ? 'check' : 'x' }}" class="me-1"></i>
-                                {{ $permission->can_edit ? 'Yes' : 'No' }}
-                              </span>
-                            </td>
-                            <td class="text-center">
-                              <span class="badge bg-{{ $permission->can_delete ? 'success' : 'secondary' }}">
-                                <i data-feather="{{ $permission->can_delete ? 'check' : 'x' }}" class="me-1"></i>
-                                {{ $permission->can_delete ? 'Yes' : 'No' }}
-                              </span>
-                            </td>
-                          </tr>
-                          @endforeach
-                        </tbody>
-                      </table>
-                    </div>
-                  @else
-                    <div class="alert alert-info">
-                      <i data-feather="info" class="me-2"></i>
-                      No specific permissions assigned to this role.
-                    </div>
-                  @endif
-                </div>
-              </div>
-            </div>
+          <div class="mb-2">
+            <span class="text-muted">Status:</span>
+            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}">{{ ucfirst($user->status) }}</span>
           </div>
-          @endif
-
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="d-flex justify-content-start">
-                <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
-                  <i data-feather="arrow-left"></i> Back to Users
-                </a>
-              </div>
-            </div>
+          <div class="mb-2">
+            <span class="text-muted">Created:</span>
+            <span class="text-white">{{ $user->created_at->format('M d, Y') }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="text-muted">Last Login:</span>
+            <span class="text-white">{{ $user->last_login_at ? $user->last_login_at->format('M d, Y H:i') : 'Never' }}</span>
           </div>
         </div>
       </div>
     </div>
+    
+    <!-- Additional Information -->
+    @if($user->address || $user->city || $user->country)
+    <div class="row">
+      <div class="col-12">
+        <h6 class="text-muted fw-bold">Address Information</h6>
+        @if($user->address)
+        <div class="mb-2">
+          <span class="text-muted">Address:</span>
+          <span class="text-white">{{ $user->address }}</span>
+        </div>
+        @endif
+        @if($user->city)
+        <div class="mb-2">
+          <span class="text-muted">City:</span>
+          <span class="text-white">{{ $user->city }}</span>
+        </div>
+        @endif
+        @if($user->country)
+        <div class="mb-2">
+          <span class="text-muted">Country:</span>
+          <span class="text-white">{{ $user->country }}</span>
+        </div>
+        @endif
+      </div>
+    </div>
+    @endif
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  feather.replace();
+</script>
+@endpush

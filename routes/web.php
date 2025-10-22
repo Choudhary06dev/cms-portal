@@ -155,9 +155,20 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::resource('approvals', AdminApprovalController::class)->middleware(['permission:approvals.view']);
     Route::resource('sla', AdminSlaController::class)->middleware(['permission:sla.view']);
     Route::get('reports', [AdminReportController::class, 'index'])->middleware(['permission:reports.view'])->name('reports.index');
+    Route::get('reports/complaints', [AdminReportController::class, 'complaints'])->middleware(['permission:reports.view'])->name('reports.complaints');
+    Route::get('reports/spares', [AdminReportController::class, 'spares'])->middleware(['permission:reports.view'])->name('reports.spares');
+    Route::get('reports/employees', [AdminReportController::class, 'employees'])->middleware(['permission:reports.view'])->name('reports.employees');
+    Route::get('reports/financial', [AdminReportController::class, 'financial'])->middleware(['permission:reports.view'])->name('reports.financial');
+    Route::get('reports/sla', [AdminReportController::class, 'sla'])->middleware(['permission:reports.view'])->name('reports.sla');
 
     // Settings & Help
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::post('settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general');
+    Route::post('settings/notifications', [App\Http\Controllers\Admin\SettingsController::class, 'updateNotifications'])->name('settings.notifications');
+    Route::post('settings/security', [App\Http\Controllers\Admin\SettingsController::class, 'updateSecurity'])->name('settings.security');
     Route::get('help', [App\Http\Controllers\Admin\HelpController::class, 'index'])->name('help.index');
+    Route::get('help/documentation', [App\Http\Controllers\Admin\HelpController::class, 'documentation'])->name('help.documentation');
+    Route::get('help/faq', [App\Http\Controllers\Admin\HelpController::class, 'faq'])->name('help.faq');
+    Route::get('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'contact'])->name('help.contact');
+    Route::post('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'submitTicket'])->name('help.submit-ticket');
 });

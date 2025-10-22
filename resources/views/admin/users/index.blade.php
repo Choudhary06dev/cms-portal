@@ -39,7 +39,7 @@
     </div>
     <div class="col-md-3">
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-light btn-sm" id="applyFilters">
+        <button class="btn btn-outline-secondary btn-sm" id="applyFilters">
           <i data-feather="filter" class="me-1"></i>Apply
         </button>
         <button class="btn btn-outline-secondary btn-sm" id="clearFilters">

@@ -1,49 +1,62 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Spare Part Details')
+@section('title', 'Spare Part Details — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Spare Part Details: {{ $spare->part_name }}</h5>
-          <div class="btn-group">
-            <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-warning btn-sm">
-              <i data-feather="edit"></i> Edit
-            </a>
-            <button class="btn btn-info btn-sm" onclick="addStock()">
-              <i data-feather="plus"></i> Add Stock
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Spare Part Details</h2>
+      <p class="text-light">View and manage spare part information</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.spares.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Back to Spares
+      </a>
+      <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-accent">
+        <i data-feather="edit" class="me-2"></i>Edit Spare Part
+      </a>
+      <button class="btn btn-outline-info" onclick="addStock()">
+        <i data-feather="plus" class="me-2"></i>Add Stock
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SPARE PART INFORMATION -->
+<div class="card-glass">
+  <div class="card-header">
+    <h5 class="card-title mb-0 text-white">
+      <i data-feather="package" class="me-2"></i>Spare Part Details: {{ $spare->part_name }}
+    </h5>
+  </div>
+  <div class="card-body">
           <div class="row">
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Basic Information</h6>
+                <h6 class="text-white fw-bold">Basic Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Part Name:</strong></td>
-                    <td>{{ $spare->part_name }}</td>
+                    <td class="text-white"><strong>Part Name:</strong></td>
+                    <td class="text-white">{{ $spare->part_name }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Part Number:</strong></td>
-                    <td>{{ $spare->part_number ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>Part Number:</strong></td>
+                    <td class="text-white">{{ $spare->part_number ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Category:</strong></td>
+                    <td class="text-white"><strong>Category:</strong></td>
                     <td>
                       <span class="badge bg-info">{{ ucfirst($spare->category) }}</span>
                     </td>
                   </tr>
                   <tr>
-                    <td><strong>Unit Price:</strong></td>
-                    <td>₹{{ number_format($spare->unit_price, 2) }}</td>
+                    <td class="text-white"><strong>Unit Price:</strong></td>
+                    <td class="text-white">₹{{ number_format($spare->unit_price, 2) }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Status:</strong></td>
+                    <td class="text-white"><strong>Status:</strong></td>
                     <td>
                       <span class="badge bg-{{ $spare->status === 'active' ? 'success' : 'danger' }}">
                         {{ ucfirst($spare->status) }}
@@ -56,10 +69,10 @@
             
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Stock Information</h6>
+                <h6 class="text-white fw-bold">Stock Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Current Stock:</strong></td>
+                    <td class="text-white"><strong>Current Stock:</strong></td>
                     <td>
                       <span class="badge bg-{{ $spare->stock_quantity <= $spare->min_stock_level ? 'danger' : ($spare->stock_quantity <= ($spare->min_stock_level * 2) ? 'warning' : 'success') }}">
                         {{ $spare->stock_quantity }} units

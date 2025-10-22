@@ -59,14 +59,13 @@ class EmployeeController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username',
-            'email' => 'nullable|email|max:150|unique:users,email',
+            'email' => 'required|email|max:150|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:6|confirmed',
-            'role_id' => 'required|exists:roles,id',
             'department' => 'required|string|max:100',
             'designation' => 'required|string|max:100',
-            'biometric_id' => 'nullable|string|max:50|unique:employees,biometric_id',
-            'leave_quota' => 'required|integer|min:0|max:365',
+            'address' => 'nullable|string|max:500',
+            'status' => 'nullable|in:active,inactive',
         ]);
 
         if ($validator->fails()) {
@@ -89,10 +88,10 @@ class EmployeeController extends Controller
                 'username' => $request->username,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'password_hash' => Hash::make($request->password),
-                'role_id' => $request->role_id,
-                'status' => 'active',
-                'theme' => $request->theme ?? 'light',
+                'password' => Hash::make($request->password),
+                'role_id' => 2, // Default employee role
+                'status' => $request->status ?? 'active',
+                'theme' => 'light',
             ]);
 
             // Create employee record
@@ -100,8 +99,8 @@ class EmployeeController extends Controller
                 'user_id' => $user->id,
                 'department' => $request->department,
                 'designation' => $request->designation,
-                'biometric_id' => $request->biometric_id,
-                'leave_quota' => $request->leave_quota,
+                'phone' => $request->phone,
+                'address' => $request->address,
             ]);
 
             DB::commit();

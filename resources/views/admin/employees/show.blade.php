@@ -1,162 +1,108 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Employee Details')
+@section('title', 'Employee Details — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Employee Details</h5>
-                    <div>
-                        <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-warning">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <a href="{{ route('admin.employees.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if(!isset($employee))
-                        <div class="alert alert-danger">
-                            <strong>Error:</strong> Employee data not found. Please check the URL or try again.
-                        </div>
-                    @else
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-muted">Personal Information</h6>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Username:</strong></td>
-                                    <td>{{ $employee->user->username ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Email:</strong></td>
-                                    <td>{{ $employee->user->email ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Phone:</strong></td>
-                                    <td>{{ $employee->user->phone ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Role:</strong></td>
-                                    <td>{{ $employee->user->role->name ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Status:</strong></td>
-                                    <td>
-                                        <span class="badge bg-{{ $employee->user->status === 'active' ? 'success' : 'danger' }}">
-                                            {{ ucfirst($employee->user->status ?? 'inactive') }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Theme:</strong></td>
-                                    <td>
-                                        <span class="badge bg-info">
-                                            {{ ucfirst($employee->user->theme ?? 'light') }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <h6 class="text-muted">Employee Information</h6>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Department:</strong></td>
-                                    <td>{{ $employee->department }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Designation:</strong></td>
-                                    <td>{{ $employee->designation }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Biometric ID:</strong></td>
-                                    <td>{{ $employee->biometric_id ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Leave Quota:</strong></td>
-                                    <td>{{ $employee->leave_quota }} days</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Created:</strong></td>
-                                    <td>{{ $employee->created_at->format('M d, Y H:i') }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h6 class="text-muted">Performance Metrics</h6>
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="card bg-primary text-white">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">
-                                                @try
-                                                    {{ $employee->assignedComplaints()->count() }}
-                                                @catch
-                                                    0
-                                                @endtry
-                                            </h5>
-                                            <p class="card-text">Total Complaints</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-success text-white">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">
-                                                @try
-                                                    {{ $employee->assignedComplaints()->where('status', 'resolved')->count() }}
-                                                @catch
-                                                    0
-                                                @endtry
-                                            </h5>
-                                            <p class="card-text">Resolved</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-info text-white">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">
-                                                @try
-                                                    {{ $employee->leaves()->count() }}
-                                                @catch
-                                                    0
-                                                @endtry
-                                            </h5>
-                                            <p class="card-text">Leave Requests</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-warning text-white">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">
-                                                @try
-                                                    {{ $employee->getRemainingLeaves() }}
-                                                @catch
-                                                    {{ $employee->leave_quota }}
-                                                @endtry
-                                            </h5>
-                                            <p class="card-text">Remaining Leaves</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-        </div>
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Employee Details</h2>
+      <p class="text-light">View employee information and records</p>
     </div>
+    <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
+      <i data-feather="arrow-left" class="me-2"></i>Back to Employees
+    </a>
+  </div>
+</div>
+
+<!-- EMPLOYEE DETAILS -->
+<div class="card-glass">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="text-center mb-4">
+        <div class="avatar-lg mx-auto mb-3" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 48px;">
+          {{ substr($employee->user->username ?? 'E', 0, 1) }}
+        </div>
+        <h4 class="text-white">{{ $employee->user->username ?? 'N/A' }}</h4>
+        <p class="text-light">{{ $employee->designation ?? 'N/A' }}</p>
+        <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }}">
+          {{ ucfirst($employee->user->status ?? 'inactive') }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Basic Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Employee ID:</span>
+            <span class="text-white ms-2">{{ $employee->id }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Username:</span>
+            <span class="text-white ms-2">{{ $employee->user->username ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Email:</span>
+            <span class="text-white ms-2">{{ $employee->user->email ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Phone:</span>
+            <span class="text-white ms-2">{{ $employee->phone ?? 'N/A' }}</span>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Work Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Department:</span>
+            <span class="text-white ms-2">{{ $employee->department ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Designation:</span>
+            <span class="text-white ms-2">{{ $employee->designation ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Status:</span>
+            <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2">
+              {{ ucfirst($employee->user->status ?? 'inactive') }}
+            </span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Hire Date:</span>
+            <span class="text-white ms-2">{{ $employee->created_at ? $employee->created_at->format('M d, Y') : 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      @if($employee->address)
+      <div class="row mt-4">
+        <div class="col-12">
+          <h6 class="text-white fw-bold mb-3">Address</h6>
+          <p class="text-light">{{ $employee->address }}</p>
+        </div>
+      </div>
+      @endif
+    </div>
+  </div>
+  
+  <hr class="my-4">
+  
+  <div class="d-flex gap-2">
+    <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-accent">
+      <i data-feather="edit" class="me-2"></i>Edit Employee
+    </a>
+    <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
+      <i data-feather="arrow-left" class="me-2"></i>Back to Employees
+    </a>
+  </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  feather.replace();
+</script>
+@endpush

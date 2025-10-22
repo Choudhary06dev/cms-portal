@@ -1,41 +1,54 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Complaint Details')
+@section('title', 'Complaint Details — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Complaint Details: {{ $complaint->ticket_number }}</h5>
-          <div class="btn-group">
-            <a href="{{ route('admin.complaints.edit', $complaint) }}" class="btn btn-warning btn-sm">
-              <i data-feather="edit"></i> Edit
-            </a>
-            <a href="{{ route('admin.complaints.print-slip', $complaint) }}" class="btn btn-info btn-sm" target="_blank">
-              <i data-feather="printer"></i> Print Slip
-            </a>
-          </div>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Complaint Details</h2>
+      <p class="text-light">View and manage complaint information</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Back to Complaints
+      </a>
+      <a href="{{ route('admin.complaints.edit', $complaint) }}" class="btn btn-accent">
+        <i data-feather="edit" class="me-2"></i>Edit Complaint
+      </a>
+      <a href="{{ route('admin.complaints.print-slip', $complaint) }}" class="btn btn-outline-info" target="_blank">
+        <i data-feather="printer" class="me-2"></i>Print Slip
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLAINT INFORMATION -->
+<div class="card-glass">
+  <div class="card-header">
+    <h5 class="card-title mb-0 text-white">
+      <i data-feather="alert-triangle" class="me-2"></i>Complaint Details: {{ $complaint->ticket_number }}
+    </h5>
+  </div>
+  <div class="card-body">
           <div class="row">
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Complaint Information</h6>
+                <h6 class="text-white fw-bold">Complaint Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Ticket Number:</strong></td>
-                    <td>{{ $complaint->ticket_number }}</td>
+                    <td class="text-white"><strong>Ticket Number:</strong></td>
+                    <td class="text-white">{{ $complaint->ticket_number }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Type:</strong></td>
+                    <td class="text-white"><strong>Type:</strong></td>
                     <td>
                       <span class="badge bg-info">{{ ucfirst($complaint->category) }}</span>
                     </td>
                   </tr>
                   <tr>
-                    <td><strong>Status:</strong></td>
+                    <td class="text-white"><strong>Status:</strong></td>
                     <td>
                       <span class="badge bg-{{ $complaint->status === 'resolved' ? 'success' : ($complaint->status === 'closed' ? 'info' : 'warning') }}">
                         {{ ucfirst($complaint->status) }}
@@ -43,7 +56,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td><strong>Priority:</strong></td>
+                    <td class="text-white"><strong>Priority:</strong></td>
                     <td>
                       <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }}">
                         {{ ucfirst($complaint->priority) }}
@@ -51,8 +64,8 @@
                     </td>
                   </tr>
                   <tr>
-                    <td><strong>Location:</strong></td>
-                    <td>{{ $complaint->location ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>Location:</strong></td>
+                    <td class="text-white">{{ $complaint->location ?? 'N/A' }}</td>
                   </tr>
                 </table>
               </div>
@@ -60,11 +73,11 @@
             
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Client & Assignment</h6>
+                <h6 class="text-white fw-bold">Client & Assignment</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Client:</strong></td>
-                    <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>Client:</strong></td>
+                    <td class="text-white">{{ $complaint->client->client_name ?? 'N/A' }}</td>
                   </tr>
                   <tr>
                     <td><strong>Assigned To:</strong></td>

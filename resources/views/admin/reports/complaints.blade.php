@@ -1,27 +1,37 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Complaints Report')
+@section('title', 'Complaints Report — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Complaints Report</h5>
-          <div class="btn-group">
-            <a href="{{ route('admin.reports.index') }}" class="btn btn-secondary btn-sm">
-              <i data-feather="arrow-left"></i> Back to Reports
-            </a>
-            <button class="btn btn-success btn-sm" onclick="exportReport('pdf')">
-              <i data-feather="download"></i> Export PDF
-            </button>
-            <button class="btn btn-info btn-sm" onclick="exportReport('excel')">
-              <i data-feather="file-text"></i> Export Excel
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Complaints Report</h2>
+      <p class="text-light">View complaint statistics and trends</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Back to Reports
+      </a>
+      <button class="btn btn-accent" onclick="exportReport('pdf')">
+        <i data-feather="download" class="me-2"></i>Export PDF
+      </button>
+      <button class="btn btn-outline-info" onclick="exportReport('excel')">
+        <i data-feather="file-text" class="me-2"></i>Export Excel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT CONTENT -->
+<div class="card-glass">
+  <div class="card-header">
+    <h5 class="card-title mb-0 text-white">
+      <i data-feather="alert-circle" class="me-2"></i>Complaints Report
+    </h5>
+  </div>
+  <div class="card-body">
           <!-- Report Summary -->
           <div class="row mb-4">
             <div class="col-md-3">
