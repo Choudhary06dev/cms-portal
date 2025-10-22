@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('category', ['technical', 'service', 'billing', 'other']);
             $table->text('description')->nullable();
             $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed'])->default('new');
-            $table->foreignId('assigned_employee_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('assigned_employee_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->timestamp('closed_at')->nullable();
             $table->timestamps();

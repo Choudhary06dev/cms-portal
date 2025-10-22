@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('complaint_id')->constrained('complaints');
             $table->foreignId('spare_id')->constrained('spares');
             $table->integer('quantity');
-            $table->foreignId('used_by')->constrained('users');
+            $table->foreignId('used_by')->constrained('employees');
             $table->timestamp('used_at')->useCurrent();
             $table->timestamps();
         });

@@ -67,14 +67,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the complaint logs created by this user.
-     */
-    public function complaintLogs(): HasMany
-    {
-        return $this->hasMany(ComplaintLog::class, 'action_by');
-    }
-
-    /**
      * Get the SLA rules where this user is notified.
      */
     public function slaRules(): HasMany

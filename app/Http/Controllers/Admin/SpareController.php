@@ -270,29 +270,41 @@ class SpareController extends Controller
      */
     public function destroy(Spare $spare)
     {
-        // Check if spare has any related records
-        if ($spare->complaintSpares()->count() > 0 || $spare->approvalItems()->count() > 0) {
+        // Perform cascading delete of related records to allow removal
+        try {
+            \DB::beginTransaction();
+
+            // Delete dependent records first
+            $spare->stockLogs()->delete();
+            $spare->approvalItems()->delete();
+            $spare->complaintSpares()->delete();
+
+            // Finally delete the spare
+            $spare->delete();
+
+            \DB::commit();
+
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Spare part deleted successfully.'
+                ]);
+            }
+
+            return redirect()->route('admin.spares.index')
+                ->with('success', 'Spare part deleted successfully.');
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+
             if (request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete spare part with existing usage records.'
-                ]);
+                    'message' => 'Failed to delete spare part. Please try again.',
+                ], 500);
             }
-            return redirect()->back()
-                ->with('error', 'Cannot delete spare part with existing usage records.');
+
+            return redirect()->back()->with('error', 'Failed to delete spare part. Please try again.');
         }
-
-        $spare->delete();
-
-        if (request()->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Spare part deleted successfully.'
-            ]);
-        }
-
-        return redirect()->route('admin.spares.index')
-            ->with('success', 'Spare part deleted successfully.');
     }
 
     /**
