@@ -158,5 +158,11 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // Settings & Help
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::post('settings/general', [App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('settings.general');
+    Route::post('settings/notifications', [App\Http\Controllers\Admin\SettingsController::class, 'updateNotifications'])->name('settings.notifications');
+    Route::post('settings/security', [App\Http\Controllers\Admin\SettingsController::class, 'updateSecurity'])->name('settings.security');
     Route::get('help', [App\Http\Controllers\Admin\HelpController::class, 'index'])->name('help.index');
+    Route::get('help/documentation', [App\Http\Controllers\Admin\HelpController::class, 'documentation'])->name('help.documentation');
+    Route::get('help/faq', [App\Http\Controllers\Admin\HelpController::class, 'faq'])->name('help.faq');
+    Route::get('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'contact'])->name('help.contact');
+    Route::post('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'submitTicket'])->name('help.submit-ticket');
 });

@@ -340,6 +340,68 @@
       color: #ffffff !important;
     }
     
+    /* Form styling for all themes - Light Theme */
+    .theme-light .form-control {
+      background-color: #ffffff !important;
+      border: 1px solid #d1d5db !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .form-control::placeholder {
+      color: rgba(30, 41, 59, 0.6) !important;
+    }
+    
+    .theme-light .form-control:focus {
+      background-color: #ffffff !important;
+      border-color: #3b82f6 !important;
+      color: #1e293b !important;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    }
+    
+    .theme-light .form-select {
+      background-color: #ffffff !important;
+      border: 1px solid #d1d5db !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .form-select:focus {
+      background-color: #ffffff !important;
+      border-color: #3b82f6 !important;
+      color: #1e293b !important;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    }
+    
+    .theme-light .form-select option {
+      background-color: #ffffff !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .form-select option:hover {
+      background-color: #f8fafc !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .form-select option:checked {
+      background-color: #3b82f6 !important;
+      color: #ffffff !important;
+    }
+    
+    .theme-light .form-label {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .form-text {
+      color: #6b7280 !important;
+    }
+    
+    .theme-light .invalid-feedback {
+      color: #ef4444 !important;
+    }
+    
+    .theme-light .is-invalid {
+      border-color: #ef4444 !important;
+    }
+    
     .theme-light .badge {
       color: #ffffff !important;
     }
@@ -486,6 +548,140 @@
       color: #f1f5f9;
     }
     
+    /* Dark theme table styling with blue rows */
+    .theme-dark .table {
+      color: #f1f5f9 !important;
+    }
+    
+    .theme-dark .table th {
+      color: #f1f5f9 !important;
+      background: rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .theme-dark .table td {
+      color: #f1f5f9 !important;
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table tbody tr {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table tbody tr:hover {
+      background: #334155 !important;
+    }
+    
+    .theme-dark .table-dark {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table-dark tbody tr {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table-dark tbody tr:hover {
+      background: #334155 !important;
+    }
+    
+    .theme-dark .table-dark td {
+      background: #1e293b !important;
+      color: #f1f5f9 !important;
+    }
+    
+    .theme-dark .table-striped > tbody > tr:nth-of-type(odd) > td {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table-striped > tbody > tr:nth-of-type(even) > td {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table-hover tbody tr:hover {
+      background: #334155 !important;
+    }
+    
+    .theme-dark .table-hover tbody tr:hover td {
+      background: #334155 !important;
+    }
+    
+    .theme-dark .table tbody tr:nth-child(odd) {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table tbody tr:nth-child(even) {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table tbody tr:nth-child(odd) td {
+      background: #1e293b !important;
+    }
+    
+    .theme-dark .table tbody tr:nth-child(even) td {
+      background: #1e293b !important;
+    }
+    
+    /* Form styling for all themes - Dark Theme */
+    .theme-dark .form-control {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3) !important;
+      color: #f1f5f9 !important;
+    }
+    
+    .theme-dark .form-control::placeholder {
+      color: rgba(241, 245, 249, 0.6) !important;
+    }
+    
+    .theme-dark .form-control:focus {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border-color: #3b82f6 !important;
+      color: #f1f5f9 !important;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    }
+    
+    .theme-dark .form-select {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3) !important;
+      color: #f1f5f9 !important;
+    }
+    
+    .theme-dark .form-select:focus {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border-color: #3b82f6 !important;
+      color: #f1f5f9 !important;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    }
+    
+    .theme-dark .form-select option {
+      background-color: #1e293b !important;
+      color: #f1f5f9 !important;
+    }
+    
+    .theme-dark .form-select option:hover {
+      background-color: #334155 !important;
+      color: #f1f5f9 !important;
+    }
+    
+    .theme-dark .form-select option:checked {
+      background-color: #3b82f6 !important;
+      color: #ffffff !important;
+    }
+    
+    .theme-dark .form-label {
+      color: #f1f5f9 !important;
+    }
+    
+    .theme-dark .form-text {
+      color: #9ca3af !important;
+    }
+    
+    .theme-dark .invalid-feedback {
+      color: #f87171 !important;
+    }
+    
+    .theme-dark .is-invalid {
+      border-color: #f87171 !important;
+    }
+    
     .theme-night body {
       background: linear-gradient(135deg, #000000 0%, #111111 100%);
       color: #e5e5e5;
@@ -575,6 +771,94 @@
     
     .theme-night .table td {
       color: #e5e5e5 !important;
+      background: #000000 !important;
+    }
+    
+    .theme-night .table tbody tr {
+      background: #000000 !important;
+    }
+    
+    .theme-night .table tbody tr:hover {
+      background: #111111 !important;
+    }
+    
+    .theme-night .table-dark {
+      background: #000000 !important;
+    }
+    
+    .theme-night .table-dark tbody tr {
+      background: #000000 !important;
+    }
+    
+    .theme-night .table-dark tbody tr:hover {
+      background: #111111 !important;
+    }
+    
+    .theme-night .table-dark td {
+      background: #000000 !important;
+      color: #e5e5e5 !important;
+    }
+    
+    /* Form styling for all themes - Night Theme */
+    .theme-night .form-control {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3) !important;
+      color: #e5e5e5 !important;
+    }
+    
+    .theme-night .form-control::placeholder {
+      color: rgba(229, 229, 229, 0.6) !important;
+    }
+    
+    .theme-night .form-control:focus {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border-color: #60a5fa !important;
+      color: #e5e5e5 !important;
+      box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25) !important;
+    }
+    
+    .theme-night .form-select {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3) !important;
+      color: #e5e5e5 !important;
+    }
+    
+    .theme-night .form-select:focus {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border-color: #60a5fa !important;
+      color: #e5e5e5 !important;
+      box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25) !important;
+    }
+    
+    .theme-night .form-select option {
+      background-color: #000000 !important;
+      color: #e5e5e5 !important;
+    }
+    
+    .theme-night .form-select option:hover {
+      background-color: #111111 !important;
+      color: #e5e5e5 !important;
+    }
+    
+    .theme-night .form-select option:checked {
+      background-color: #60a5fa !important;
+      color: #000000 !important;
+    }
+    
+    .theme-night .form-label {
+      color: #e5e5e5 !important;
+    }
+    
+    .theme-night .form-text {
+      color: #9ca3af !important;
+    }
+    
+    .theme-night .invalid-feedback {
+      color: #f87171 !important;
+    }
+    
+    .theme-night .is-invalid {
+      border-color: #f87171 !important;
     }
     
     .theme-night .btn {

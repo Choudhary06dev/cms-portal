@@ -54,7 +54,7 @@ class RoleSeeder extends Seeder
             'username' => 'admin',
             'email' => 'admin@company.com',
             'phone' => '+1234567890',
-            'password_hash' => Hash::make('password'),
+            'password' => Hash::make('password'),
             'role_id' => $adminRole->id,
             'status' => 'active',
         ]);
@@ -64,7 +64,7 @@ class RoleSeeder extends Seeder
             'username' => 'manager',
             'email' => 'manager@company.com',
             'phone' => '+1234567891',
-            'password_hash' => Hash::make('password'),
+            'password' => Hash::make('password'),
             'role_id' => $managerRole->id,
             'status' => 'active',
         ]);
@@ -74,7 +74,7 @@ class RoleSeeder extends Seeder
             'username' => 'employee',
             'email' => 'employee@company.com',
             'phone' => '+1234567892',
-            'password_hash' => Hash::make('password'),
+            'password' => Hash::make('password'),
             'role_id' => $employeeRole->id,
             'status' => 'active',
         ]);
@@ -84,13 +84,12 @@ class RoleSeeder extends Seeder
             'username' => 'client',
             'email' => 'client@company.com',
             'phone' => '+1234567893',
-            'password_hash' => Hash::make('password'),
+            'password' => Hash::make('password'),
             'role_id' => $clientRole->id,
             'status' => 'active',
         ]);
 
-        // Set up admin permissions
-        $this->setupAdminPermissions($adminRole);
+        // Set up permissions (admin permissions are hardcoded in Role model)
         $this->setupManagerPermissions($managerRole);
         $this->setupEmployeePermissions($employeeRole);
         $this->setupClientPermissions($clientRole);
@@ -102,21 +101,6 @@ class RoleSeeder extends Seeder
         $this->command->info('Client login: client / password');
     }
 
-    private function setupAdminPermissions(Role $role)
-    {
-        $modules = ['users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
-        $actions = ['view', 'add', 'edit', 'delete'];
-
-        foreach ($modules as $module) {
-            $role->rolePermissions()->create([
-                'module_name' => $module,
-                'can_view' => true,
-                'can_add' => true,
-                'can_edit' => true,
-                'can_delete' => true,
-            ]);
-        }
-    }
 
     private function setupManagerPermissions(Role $role)
     {

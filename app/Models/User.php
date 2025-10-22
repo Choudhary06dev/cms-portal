@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'username',
-        'password_hash',
+        'password',
         'email',
         'phone',
         'role_id',
@@ -24,7 +24,6 @@ class User extends Authenticatable
     ];
 
     protected $hidden = [
-        'password_hash',
         'password',
         'remember_token',
     ];
@@ -34,7 +33,7 @@ class User extends Authenticatable
      */
     public function getAuthPassword()
     {
-        return $this->password_hash;
+        return $this->password;
     }
 
     protected $casts = [
@@ -157,6 +156,11 @@ class User extends Authenticatable
     {
         if (!$this->role) {
             return false;
+        }
+
+        // Admin role (role_id 1 or role_name 'admin') always has admin permissions
+        if ($this->role->id === 1 || $this->role->role_name === 'admin') {
+            return true;
         }
 
         // Check if user has any permissions in any module
