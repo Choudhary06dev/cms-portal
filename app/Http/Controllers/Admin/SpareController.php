@@ -84,21 +84,38 @@ class SpareController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'item_name' => 'required|string|max:150',
-            'category' => 'required|in:electric,sanitary,kitchen,general',
+            'name' => 'required|string|max:150',
+            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
             'unit' => 'nullable|string|max:50',
-            'unit_price' => 'nullable|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'threshold_level' => 'required|integer|min:0',
+            'supplier' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
-        $spare = Spare::create($request->all());
+        $spare = Spare::create([
+            'item_name' => $request->name,
+            'category' => $request->category,
+            'unit' => $request->unit,
+            'unit_price' => $request->price,
+            'stock_quantity' => $request->stock_quantity,
+            'threshold_level' => $request->threshold_level,
+            'supplier' => $request->supplier,
+            'description' => $request->description,
+        ]);
 
         // Log initial stock
         if ($request->stock_quantity > 0) {
@@ -107,6 +124,14 @@ class SpareController extends Controller
                 'change_type' => 'in',
                 'quantity' => $request->stock_quantity,
                 'remarks' => 'Initial stock',
+            ]);
+        }
+
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Spare part created successfully.',
+                'spare' => $spare
             ]);
         }
 
@@ -119,6 +144,24 @@ class SpareController extends Controller
      */
     public function show(Spare $spare)
     {
+        if (request()->ajax()) {
+            // Return JSON for modal
+            return response()->json([
+                'id' => $spare->id,
+                'item_name' => $spare->item_name,
+                'category' => $spare->category,
+                'unit' => $spare->unit,
+                'unit_price' => $spare->unit_price,
+                'stock_quantity' => $spare->stock_quantity,
+                'threshold_level' => $spare->threshold_level,
+                'supplier' => $spare->supplier,
+                'description' => $spare->description,
+                'last_updated' => $spare->updated_at ? $spare->updated_at->format('Y-m-d H:i:s') : 'N/A',
+                'status' => $spare->stock_quantity > 0 ? 'in_stock' : 'out_of_stock',
+                'stock_status' => $spare->stock_quantity <= $spare->threshold_level ? 'low_stock' : 'normal',
+            ]);
+        }
+
         $spare->load(['stockLogs', 'complaintSpares.complaint.client', 'approvalItems.performa']);
         
         // Get stock movement summary
@@ -153,27 +196,70 @@ class SpareController extends Controller
     }
 
     /**
+     * Get spare data for editing (AJAX)
+     */
+    public function editData(Spare $spare)
+    {
+        return response()->json([
+            'id' => $spare->id,
+            'name' => $spare->item_name,
+            'category' => $spare->category,
+            'unit' => $spare->unit,
+            'price' => $spare->unit_price,
+            'stock_quantity' => $spare->stock_quantity,
+            'threshold_level' => $spare->threshold_level,
+            'supplier' => $spare->supplier ?? '',
+            'description' => $spare->description ?? '',
+            'status' => $spare->stock_quantity > 0 ? 'active' : 'inactive',
+        ]);
+    }
+
+    /**
      * Update the specified spare part
      */
     public function update(Request $request, Spare $spare)
     {
         $validator = Validator::make($request->all(), [
-            'item_name' => 'required|string|max:150',
-            'category' => 'required|in:electric,sanitary,kitchen,general',
+            'name' => 'required|string|max:150',
+            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
             'unit' => 'nullable|string|max:50',
-            'unit_price' => 'nullable|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'stock_quantity' => 'required|integer|min:0',
             'threshold_level' => 'required|integer|min:0',
+            'supplier' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
-        $spare->update($request->only([
-            'item_name', 'category', 'unit', 'unit_price', 'threshold_level'
-        ]));
+        $spare->update([
+            'item_name' => $request->name,
+            'category' => $request->category,
+            'unit' => $request->unit,
+            'unit_price' => $request->price,
+            'stock_quantity' => $request->stock_quantity,
+            'threshold_level' => $request->threshold_level,
+            'supplier' => $request->supplier,
+            'description' => $request->description,
+        ]);
+
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Spare part updated successfully.',
+                'spare' => $spare
+            ]);
+        }
 
         return redirect()->route('admin.spares.index')
             ->with('success', 'Spare part updated successfully.');
@@ -186,11 +272,24 @@ class SpareController extends Controller
     {
         // Check if spare has any related records
         if ($spare->complaintSpares()->count() > 0 || $spare->approvalItems()->count() > 0) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete spare part with existing usage records.'
+                ]);
+            }
             return redirect()->back()
                 ->with('error', 'Cannot delete spare part with existing usage records.');
         }
 
         $spare->delete();
+
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Spare part deleted successfully.'
+            ]);
+        }
 
         return redirect()->route('admin.spares.index')
             ->with('success', 'Spare part deleted successfully.');

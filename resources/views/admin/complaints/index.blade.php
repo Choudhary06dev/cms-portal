@@ -18,56 +18,55 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <div class="row g-3">
-    <div class="col-md-3">
-      <input type="text" class="form-control" placeholder="Search complaints..." 
->
-    </div>
-    <div class="col-md-2">
-      <select class="form-select" 
->
-        <option value="">All Status</option>
-        <option value="new">New</option>
-        <option value="assigned">Assigned</option>
-        <option value="in_progress">In Progress</option>
-        <option value="resolved">Resolved</option>
-        <option value="closed">Closed</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <select class="form-select" 
->
-        <option value="">All Priority</option>
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-        <option value="urgent">Urgent</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <select class="form-select" 
->
-        <option value="">All Categories</option>
-        <option value="technical">Technical</option>
-        <option value="service">Service</option>
-        <option value="billing">Billing</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-light btn-sm">
-          <i data-feather="filter" class="me-1"></i>Apply
-        </button>
-        <button class="btn btn-outline-secondary btn-sm">
-          <i data-feather="x" class="me-1"></i>Clear
-        </button>
-        <button class="btn btn-outline-primary btn-sm">
-          <i data-feather="download" class="me-1"></i>Export
-        </button>
+  <form method="GET" action="{{ route('admin.complaints.index') }}">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <input type="text" class="form-control" name="search" placeholder="Search complaints..." 
+               value="{{ request('search') }}">
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" name="status">
+          <option value="">All Status</option>
+          <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
+          <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
+          <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+          <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+          <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" name="priority">
+          <option value="">All Priority</option>
+          <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
+          <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
+          <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
+          <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" name="category">
+          <option value="">All Categories</option>
+          <option value="technical" {{ request('category') == 'technical' ? 'selected' : '' }}>Technical</option>
+          <option value="service" {{ request('category') == 'service' ? 'selected' : '' }}>Service</option>
+          <option value="billing" {{ request('category') == 'billing' ? 'selected' : '' }}>Billing</option>
+          <option value="other" {{ request('category') == 'other' ? 'selected' : '' }}>Other</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-filter me-1"></i>Apply
+          </button>
+          <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-times me-1"></i>Clear
+          </a>
+          <button type="button" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-download me-1"></i>Export
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </form>
 </div>
 
 <!-- COMPLAINTS TABLE -->
@@ -95,7 +94,7 @@
             <div style="color: #ffffff !important; font-weight: 600;">{{ $complaint->title }}</div>
             <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ Str::limit($complaint->description, 50) }}</div>
           </td>
-          <td >{{ $complaint->client->name ?? 'N/A' }}</td>
+          <td >{{ $complaint->client->client_name ?? 'N/A' }}</td>
           <td>
             <span class="category-badge category-{{ strtolower($complaint->category) }}">
               {{ ucfirst($complaint->category) }}
@@ -114,15 +113,24 @@
           <td >{{ $complaint->assigned_to ?? 'Unassigned' }}</td>
           <td >{{ $complaint->created_at->format('M d, Y') }}</td>
           <td>
-            <div class="btn-group" role="group">
-              <button class="btn btn-outline-info btn-sm" onclick="viewComplaint({{ $complaint->id }})" title="View Details">
-                <i data-feather="eye"></i>
+            <div class="btn-group" role="group" style="display:inline-flex; border-radius:6px; overflow:hidden;">
+              <button title="View Details" onclick="viewComplaint({{ $complaint->id }})"
+                  style="border:2px solid #17a2b8; background:none; padding:8px 14px; font-size:16px; cursor:pointer; border-right:1px solid #ddd; transition:all 0.2s ease-in-out;"
+                  onmouseover="this.style.backgroundColor='#17a2b8'; this.querySelector('i').style.color='white';"
+                  onmouseout="this.style.backgroundColor='transparent'; this.querySelector('i').style.color='#17a2b8';">
+                  <i class="fas fa-eye" style="color:#17a2b8; font-size:14px;"></i>
               </button>
-              <button class="btn btn-outline-warning btn-sm" onclick="editComplaint({{ $complaint->id }})" title="Edit">
-                <i data-feather="edit"></i>
+              <button title="Edit" onclick="editComplaint({{ $complaint->id }})"
+                  style="border:2px solid #ffc107; background:none; padding:8px 14px; font-size:16px; cursor:pointer; border-right:1px solid #ddd; transition:all 0.2s ease-in-out;"
+                  onmouseover="this.style.backgroundColor='#ffc107'; this.querySelector('i').style.color='white';"
+                  onmouseout="this.style.backgroundColor='transparent'; this.querySelector('i').style.color='#ffc107';">
+                  <i class="fas fa-edit" style="color:#ffc107; font-size:14px;"></i>
               </button>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteComplaint({{ $complaint->id }})" title="Delete">
-                <i data-feather="trash-2"></i>
+              <button title="Delete" onclick="deleteComplaint({{ $complaint->id }})"
+                  style="border:2px solid #dc3545; background:none; padding:8px 14px; font-size:16px; cursor:pointer; transition:all 0.2s ease-in-out;"
+                  onmouseover="this.style.backgroundColor='#dc3545'; this.querySelector('i').style.color='white';"
+                  onmouseout="this.style.backgroundColor='transparent'; this.querySelector('i').style.color='#dc3545';">
+                  <i class="fas fa-trash" style="color:#dc3545; font-size:14px;"></i>
               </button>
             </div>
           </td>
@@ -174,23 +182,182 @@
 </style>
 @endpush
 
+<!-- Complaint Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="complaintModalLabel">Complaint Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="complaintModalBody">
+                <!-- Complaint details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" id="editComplaintBtn" style="display: none;">
+                    <i class="fas fa-edit"></i> Edit Complaint
+                </button>
+                <button type="button" class="btn btn-danger" id="deleteComplaintBtn" style="display: none;">
+                    <i class="fas fa-trash"></i> Delete Complaint
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this complaint? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Delete Complaint</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
-  feather.replace();
+  let currentComplaintId = null;
 
   // Complaint Functions
   function viewComplaint(complaintId) {
-    alert('View complaint details functionality coming soon!');
+    currentComplaintId = complaintId;
+    
+    // Show only view button
+    document.getElementById('editComplaintBtn').style.display = 'none';
+    document.getElementById('deleteComplaintBtn').style.display = 'none';
+    
+    // Show loading state
+    const modalBody = document.getElementById('complaintModalBody');
+    modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Fetch complaint data
+    fetch(`/admin/complaints/${complaintId}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        credentials: 'same-origin'
+    })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                const complaint = data.complaint;
+                
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Complaint Information</h6>
+                            <p><strong>Title:</strong> ${complaint.title || 'N/A'}</p>
+                            <p><strong>Description:</strong> ${complaint.description || 'N/A'}</p>
+                            <p><strong>Category:</strong> 
+                                <span class="badge bg-${complaint.category === 'technical' ? 'primary' : complaint.category === 'service' ? 'success' : complaint.category === 'billing' ? 'warning' : 'secondary'}">
+                                    ${complaint.category ? complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1) : 'N/A'}
+                                </span>
+                            </p>
+                            <p><strong>Priority:</strong> 
+                                <span class="badge bg-${complaint.priority === 'low' ? 'success' : complaint.priority === 'medium' ? 'warning' : complaint.priority === 'high' ? 'danger' : 'purple'}">
+                                    ${complaint.priority ? complaint.priority.charAt(0).toUpperCase() + complaint.priority.slice(1) : 'N/A'}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Client & Assignment</h6>
+                            <p><strong>Client:</strong> ${complaint.client ? complaint.client.client_name : 'N/A'}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge bg-${complaint.status === 'new' ? 'primary' : complaint.status === 'assigned' ? 'warning' : complaint.status === 'in_progress' ? 'info' : complaint.status === 'resolved' ? 'success' : 'secondary'}">
+                                    ${complaint.status ? complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1) : 'N/A'}
+                                </span>
+                            </p>
+                            <p><strong>Assigned To:</strong> ${complaint.assigned_to || 'Unassigned'}</p>
+                            <p><strong>Created:</strong> ${complaint.created_at || 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('complaintModalLabel').textContent = 'Complaint Details';
+                new bootstrap.Modal(document.getElementById('complaintModal')).show();
+            } else {
+                modalBody.innerHTML = '<div class="alert alert-danger">Error: ' + (data.message || 'Unknown error occurred') + '</div>';
+                new bootstrap.Modal(document.getElementById('complaintModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalBody.innerHTML = '<div class="alert alert-danger">Error loading complaint details: ' + error.message + '</div>';
+            new bootstrap.Modal(document.getElementById('complaintModal')).show();
+        });
   }
 
   function editComplaint(complaintId) {
-    alert('Edit complaint functionality coming soon!');
+    // Redirect to edit page
+    window.location.href = `/admin/complaints/${complaintId}/edit`;
   }
 
   function deleteComplaint(complaintId) {
-    if (confirm('Are you sure you want to delete this complaint?')) {
-      alert('Delete complaint functionality coming soon!');
-    }
+    currentComplaintId = complaintId;
+    
+    // Set up the delete form action
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = `/admin/complaints/${complaintId}`;
+    
+    // Show delete confirmation modal
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
   }
+
+  // Auto-submit filters on change
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.querySelector('form[method="GET"]');
+    const filterSelects = document.querySelectorAll('select[name="status"], select[name="priority"], select[name="category"]');
+    
+    filterSelects.forEach(select => {
+      select.addEventListener('change', function() {
+        // Add a small delay to prevent multiple rapid requests
+        setTimeout(() => {
+          filterForm.submit();
+        }, 100);
+      });
+    });
+    
+    // Add search functionality with debounce
+    const searchInput = document.querySelector('input[name="search"]');
+    let searchTimeout;
+    
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          filterForm.submit();
+        }, 500); // Wait 500ms after user stops typing
+      });
+    }
+  });
 </script>
 @endpush

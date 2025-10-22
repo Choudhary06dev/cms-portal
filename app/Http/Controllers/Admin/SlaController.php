@@ -235,7 +235,7 @@ class SlaController extends Controller
                 return [
                     'id' => $complaint->id,
                     'client_name' => $complaint->client->client_name,
-                    'complaint_type' => $complaint->complaint_type,
+                    'category' => $complaint->category,
                     'status' => $complaint->status,
                     'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->user->username : 'Unassigned',
                     'created_at' => $complaint->created_at,
@@ -301,7 +301,7 @@ class SlaController extends Controller
                 return [
                     'complaint_id' => $complaint->id,
                     'client_name' => $complaint->client->client_name,
-                    'complaint_type' => $complaint->complaint_type,
+                    'category' => $complaint->category,
                     'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->user->username : 'Unassigned',
                     'hours_overdue' => $complaint->getHoursOverdue(),
                     'escalation_level' => $complaint->slaRule ? $complaint->slaRule->escalation_level : 1,

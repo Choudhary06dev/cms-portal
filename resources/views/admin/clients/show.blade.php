@@ -149,7 +149,7 @@
                     @foreach($recentComplaints as $complaint)
                     <tr>
                       <td>{{ $complaint->ticket_number }}</td>
-                      <td>{{ ucfirst($complaint->complaint_type) }}</td>
+                      <td>{{ ucfirst($complaint->category) }}</td>
                       <td>
                         <span class="badge bg-{{ $complaint->status === 'resolved' ? 'success' : ($complaint->status === 'closed' ? 'info' : 'warning') }}">
                           {{ ucfirst($complaint->status) }}

@@ -36,10 +36,20 @@ class EmployeeController extends Controller
      */
     public function create()
     {
+        // Clear any old input data to ensure clean form
+        request()->session()->forget('_old_input');
+        
         $users = User::whereDoesntHave('employee')->get();
         $roles = Role::all();
         
-        return view('admin.employees.create', compact('users', 'roles'));
+        $response = response()->view('admin.employees.create', compact('users', 'roles'));
+        
+        // Add cache-busting headers
+        $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
+        
+        return $response;
     }
 
     /**
@@ -456,19 +466,26 @@ class EmployeeController extends Controller
         }
 
         try {
-            $employees = Employee::whereIn('id', $request->employee_ids);
+            $employees = Employee::whereIn('id', $request->employee_ids)->with('user');
             
             switch ($request->action) {
                 case 'delete':
-                    $employees->delete();
+                    // Delete users (which will cascade to employees due to foreign key)
+                    foreach ($employees->get() as $employee) {
+                        $employee->user->delete();
+                    }
                     $message = 'Selected employees deleted successfully.';
                     break;
                 case 'activate':
-                    $employees->update(['status' => 'active']);
+                    $employees->get()->each(function ($employee) {
+                        $employee->user->update(['status' => 'active']);
+                    });
                     $message = 'Selected employees activated successfully.';
                     break;
                 case 'deactivate':
-                    $employees->update(['status' => 'inactive']);
+                    $employees->get()->each(function ($employee) {
+                        $employee->user->update(['status' => 'inactive']);
+                    });
                     $message = 'Selected employees deactivated successfully.';
                     break;
             }

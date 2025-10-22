@@ -151,6 +151,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ⚙️ Spares, Approvals, SLA, Reports, Settings, Help
     // ===============================
     Route::resource('spares', AdminSpareController::class)->middleware(['permission:spares.view']);
+    Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::resource('approvals', AdminApprovalController::class)->middleware(['permission:approvals.view']);
     Route::resource('sla', AdminSlaController::class)->middleware(['permission:sla.view']);
     Route::get('reports', [AdminReportController::class, 'index'])->middleware(['permission:reports.view'])->name('reports.index');

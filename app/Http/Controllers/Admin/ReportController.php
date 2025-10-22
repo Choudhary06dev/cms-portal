@@ -71,9 +71,9 @@ class ReportController extends Controller
                 break;
 
             case 'employee':
-                $data = $query->selectRaw('assigned_to, COUNT(*) as count')
-                    ->whereNotNull('assigned_to')
-                    ->groupBy('assigned_to')
+                $data = $query->selectRaw('assigned_employee_id, COUNT(*) as count')
+                    ->whereNotNull('assigned_employee_id')
+                    ->groupBy('assigned_employee_id')
                     ->with('assignedEmployee.user')
                     ->get();
                 break;

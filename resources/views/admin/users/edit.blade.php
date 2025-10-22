@@ -108,20 +108,7 @@
                                 </div>
                             </div>
                             
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="theme" class="form-label">Theme</label>
-                                    <select class="form-select @error('theme') is-invalid @enderror" 
-                                            id="theme" name="theme">
-                                        <option value="light" {{ old('theme', $user->theme) == 'light' ? 'selected' : '' }}>Light</option>
-                                        <option value="dark" {{ old('theme', $user->theme) == 'dark' ? 'selected' : '' }}>Dark</option>
-                                        <option value="night" {{ old('theme', $user->theme) == 'night' ? 'selected' : '' }}>Night</option>
-                                    </select>
-                                    @error('theme')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
+                          
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">

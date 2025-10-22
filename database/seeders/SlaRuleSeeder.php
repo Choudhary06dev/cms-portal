@@ -26,6 +26,7 @@ class SlaRuleSeeder extends Seeder
             [
                 'complaint_type' => 'electric',
                 'max_response_time' => 2, // 2 hours
+                'max_resolution_time' => 24, // 24 hours
                 'escalation_level' => 1,
                 'notify_to' => $adminUser->id,
                 'status' => 'active',
@@ -33,6 +34,7 @@ class SlaRuleSeeder extends Seeder
             [
                 'complaint_type' => 'sanitary',
                 'max_response_time' => 4, // 4 hours
+                'max_resolution_time' => 48, // 48 hours
                 'escalation_level' => 1,
                 'notify_to' => $adminUser->id,
                 'status' => 'active',
@@ -40,6 +42,7 @@ class SlaRuleSeeder extends Seeder
             [
                 'complaint_type' => 'kitchen',
                 'max_response_time' => 6, // 6 hours
+                'max_resolution_time' => 72, // 72 hours
                 'escalation_level' => 1,
                 'notify_to' => $adminUser->id,
                 'status' => 'active',
@@ -47,6 +50,7 @@ class SlaRuleSeeder extends Seeder
             [
                 'complaint_type' => 'general',
                 'max_response_time' => 8, // 8 hours
+                'max_resolution_time' => 96, // 96 hours
                 'escalation_level' => 1,
                 'notify_to' => $adminUser->id,
                 'status' => 'active',
