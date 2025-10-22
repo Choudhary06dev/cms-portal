@@ -430,17 +430,32 @@
 
   function deleteSpare(spareId) {
     if (confirm('Are you sure you want to delete this spare part?')) {
+      // Use POST + _method=DELETE so Laravel receives form data and CSRF properly
+      const fd = new FormData();
+      fd.append('_method', 'DELETE');
+      fd.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
       fetch(`/admin/spares/${spareId}`, {
-        method: 'DELETE',
+        method: 'POST',
+        credentials: 'same-origin',
+        body: fd,
         headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
           'Accept': 'application/json'
-        },
+        }
       })
-      .then(response => response.json())
-      .then(data => {
+      .then(async response => {
+        const text = await response.text();
+        let data = null;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.error('Non-JSON response:', text);
+          throw new Error('Unexpected response from server (not JSON). Status: ' + response.status);
+        }
+        return { response, data };
+      })
+      .then(({ response, data }) => {
         if (data.success) {
           location.reload();
         } else {
@@ -449,7 +464,7 @@
       })
       .catch(error => {
         console.error('Error deleting spare part:', error);
-        alert('Error deleting spare part');
+        alert('Error deleting spare part: ' + (error.message || 'Unknown error'));
       });
     }
   }
@@ -550,13 +565,20 @@
   document.addEventListener('submit', function(e) {
     if (e.target.id === 'spareForm') {
       e.preventDefault();
-      
-      const formData = new FormData(e.target);
+      // Show spinner / disable submit
+      setSubmitting(true);
+
+  // Clear previous validation errors
+  clearValidationErrors(e.target);
+  const formData = new FormData(e.target);
       const url = e.target.action;
-      const method = e.target.querySelector('input[name="_method"]')?.value || 'POST';
-    
+      const overrideMethod = e.target.querySelector('input[name="_method"]')?.value;
+      // If there's a method override (PUT/DELETE), send as POST so PHP parses form data correctly
+      const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
+      console.log('Submitting form to', url, 'with fetch method', fetchMethod, 'and override', overrideMethod);
+
     fetch(url, {
-      method: method,
+      method: fetchMethod,
       body: formData,
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -568,19 +590,23 @@
       console.log('Response status:', response.status);
       return response.json();
     })
-    .then(data => {
+      .then(data => {
       console.log('Response data:', data);
       if (data.success) {
         location.reload();
       } else {
+        setSubmitting(false);
         alert('Error: ' + (data.message || 'Unknown error'));
         if (data.errors) {
           console.error('Validation errors:', data.errors);
+          // show inline validation messages
+          showValidationErrors(e.target, data.errors);
         }
       }
     })
     .catch(error => {
       console.error('Error submitting form:', error);
+      setSubmitting(false);
       alert('Error submitting form');
     });
     }
@@ -595,9 +621,15 @@
         console.log('Submit button clicked via event listener');
         
         const form = document.getElementById('spareForm');
-        if (form) {
+          if (form) {
           console.log('Form found, submitting...');
-          form.dispatchEvent(new Event('submit'));
+          // Prefer requestSubmit when available (submits and triggers submit event listeners).
+          if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+          } else {
+            // Dispatch a bubbling, cancelable submit event so the document-level listener catches it
+            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+          }
         } else {
           console.log('Form not found, using direct submission');
           handleFormSubmission();
@@ -617,16 +649,19 @@
     }
     
     console.log('Handling form submission directly');
-    const formData = new FormData(form);
-    const url = form.action;
-    const method = form.querySelector('input[name="_method"]')?.value || 'POST';
+    setSubmitting(true);
+  const formData = new FormData(form);
+  const url = form.action;
+  const overrideMethod = form.querySelector('input[name="_method"]')?.value;
+  const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
+  console.log('Direct submit to', url, 'using fetch method', fetchMethod, 'override', overrideMethod);
     
     console.log('URL:', url);
     console.log('Method:', method);
     console.log('Form data:', Object.fromEntries(formData));
     
     fetch(url, {
-      method: method,
+      method: fetchMethod,
       body: formData,
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -643,6 +678,7 @@
       if (data.success) {
         location.reload();
       } else {
+        setSubmitting(false);
         alert('Error: ' + (data.message || 'Unknown error'));
         if (data.errors) {
           console.error('Validation errors:', data.errors);
@@ -651,22 +687,46 @@
     })
     .catch(error => {
       console.error('Error submitting form:', error);
+      setSubmitting(false);
       alert('Error submitting form');
     });
   }
 
-  // Submit button click handler - using event delegation (backup)
-  document.addEventListener('click', function(e) {
-    const submitBtn = e.target.closest('#submitBtn');
-    if (submitBtn) {
-      e.preventDefault();
-      const form = document.getElementById('spareForm');
-      if (form) {
-        form.dispatchEvent(new Event('submit'));
-      } else {
-        handleFormSubmission();
-      }
+  // Toggle submit button and spinner
+  function setSubmitting(isSubmitting) {
+    const btn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('loadingSpinner');
+    if (!btn) return;
+    btn.disabled = !!isSubmitting;
+    if (spinner) {
+      spinner.style.display = isSubmitting ? 'inline-block' : 'none';
     }
-  });
+  }
+
+  // Clear previous validation errors inside a form
+  function clearValidationErrors(form) {
+    const inputs = form.querySelectorAll('.is-invalid');
+    inputs.forEach(i => i.classList.remove('is-invalid'));
+    const feedbacks = form.querySelectorAll('.invalid-feedback');
+    feedbacks.forEach(f => f.textContent = '');
+  }
+
+  // Show validation errors returned from server: { fieldName: [messages] }
+  function showValidationErrors(form, errors) {
+    Object.keys(errors).forEach(field => {
+      const input = form.querySelector(`[name="${field}"]`);
+      const messages = errors[field];
+      if (input) {
+        input.classList.add('is-invalid');
+        const fb = input.closest('.mb-3')?.querySelector('.invalid-feedback') || form.querySelector('.invalid-feedback');
+        if (fb) fb.textContent = messages.join(' ');
+      } else {
+        // fallback: log
+        console.warn('No input found for validation field:', field, messages);
+      }
+    });
+  }
+
+  
   </script>
 @endpush

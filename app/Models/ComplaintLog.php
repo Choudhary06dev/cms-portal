@@ -30,7 +30,7 @@ class ComplaintLog extends Model
      */
     public function actionBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'action_by');
+        return $this->belongsTo(Employee::class, 'action_by');
     }
 
     /**

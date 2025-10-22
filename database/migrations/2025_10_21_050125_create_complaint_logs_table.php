@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('complaint_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('complaint_id')->constrained('complaints');
-            $table->foreignId('action_by')->constrained('users');
+            $table->foreignId('action_by')->constrained('employees');
             $table->string('action', 100);
             $table->text('remarks')->nullable();
             $table->timestamps();

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('employee_leaves', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained('users');
+            $table->foreignId('employee_id')->constrained('employees');
             $table->enum('leave_type', ['sick', 'annual', 'casual'])->default('annual');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
