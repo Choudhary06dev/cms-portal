@@ -167,10 +167,20 @@ class SpareApprovalPerforma extends Model
      */
     public function getTotalEstimatedCostAttribute(): float
     {
-        return $this->items()
+        $total = $this->items()
             ->join('spares', 'spare_approval_items.spare_id', '=', 'spares.id')
             ->selectRaw('SUM(spare_approval_items.quantity_requested * spares.unit_price) as total')
-            ->value('total') ?? 0;
+            ->value('total');
+        
+        return $total ? (float) $total : 0.0;
+    }
+
+    /**
+     * Get total value requested (alias for total estimated cost)
+     */
+    public function getTotalValueRequestedAttribute(): float
+    {
+        return $this->getTotalEstimatedCostAttribute();
     }
 
     /**

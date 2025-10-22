@@ -114,10 +114,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-between align-items-center mt-3">
-    <div class="text-muted">
-      Showing {{ $roles->firstItem() ?? 0 }} to {{ $roles->lastItem() ?? 0 }} of {{ $roles->total() }} roles
-    </div>
+  <div class="d-flex justify-content-center mt-3">
     <div>
       {{ $roles->links() }}
     </div>

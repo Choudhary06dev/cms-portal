@@ -140,10 +140,7 @@
       </div>
 
   <!-- PAGINATION -->
-      <div class="d-flex justify-content-between align-items-center mt-3">
-    <div >
-      Showing {{ $complaints->firstItem() ?? 0 }} to {{ $complaints->lastItem() ?? 0 }} of {{ $complaints->total() }} complaints
-        </div>
+      <div class="d-flex justify-content-center mt-3">
         <div>
           {{ $complaints->links() }}
         </div>
@@ -171,6 +168,8 @@
   .status-in-progress { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
   .status-resolved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
   .status-closed { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+  
+  /* Pagination styles are now centralized in components/pagination.blade.php */
 </style>
 @endpush
 

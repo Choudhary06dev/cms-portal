@@ -120,10 +120,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-between align-items-center mt-3">
-    <div class="text-muted">
-      Showing {{ $users->firstItem() ?? 0 }} to {{ $users->lastItem() ?? 0 }} of {{ $users->total() }} users
-    </div>
+  <div class="d-flex justify-content-center mt-3">
     <div>
       {{ $users->links() }}
     </div>

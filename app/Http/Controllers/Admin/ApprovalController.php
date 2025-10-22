@@ -68,7 +68,7 @@ class ApprovalController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $approvals = $query->orderBy('created_at', 'desc')->paginate(15);
+        $approvals = $query->orderBy('id', 'desc')->paginate(15);
         
         $complaints = Complaint::pending()->with('client')->get();
         $employees = Employee::whereHas('user', function($q) {
