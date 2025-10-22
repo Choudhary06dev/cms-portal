@@ -1,53 +1,66 @@
 @extends('layouts.sidebar')
 
-@section('title', 'SLA Rule Details')
+@section('title', 'SLA Rule Details — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">SLA Rule Details: {{ ucfirst($slaRule->complaint_type) }}</h5>
-          <div class="btn-group">
-            <a href="{{ route('admin.sla.edit', $slaRule) }}" class="btn btn-warning btn-sm">
-              <i data-feather="edit"></i> Edit
-            </a>
-            <form action="{{ route('admin.sla.toggle-status', $slaRule) }}" method="POST" class="d-inline">
-              @csrf
-              <button type="submit" class="btn btn-{{ $slaRule->status === 'active' ? 'warning' : 'success' }} btn-sm">
-                <i data-feather="{{ $slaRule->status === 'active' ? 'pause' : 'play' }}"></i>
-                {{ $slaRule->status === 'active' ? 'Deactivate' : 'Activate' }}
-              </button>
-            </form>
-          </div>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">SLA Rule Details</h2>
+      <p class="text-light">View SLA rule: {{ ucfirst($slaRule->complaint_type) }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Back to SLA Rules
+      </a>
+      <a href="{{ route('admin.sla.edit', $slaRule) }}" class="btn btn-outline-info">
+        <i data-feather="edit" class="me-2"></i>Edit
+      </a>
+      <form action="{{ route('admin.sla.toggle-status', $slaRule) }}" method="POST" class="d-inline">
+        @csrf
+        <button type="submit" class="btn btn-{{ $slaRule->status === 'active' ? 'outline-warning' : 'outline-success' }}">
+          <i data-feather="{{ $slaRule->status === 'active' ? 'pause' : 'play' }}" class="me-2"></i>
+          {{ $slaRule->status === 'active' ? 'Deactivate' : 'Activate' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- SLA RULE INFORMATION -->
+<div class="card-glass">
+  <div class="card-header">
+    <h5 class="card-title mb-0 text-white">
+      <i data-feather="clock" class="me-2"></i>SLA Rule Information
+    </h5>
+  </div>
+  <div class="card-body">
           <div class="row">
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">SLA Configuration</h6>
+                <h6 class="text-white fw-bold">SLA Configuration</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Complaint Type:</strong></td>
+                    <td class="text-white"><strong>Complaint Type:</strong></td>
                     <td>
                       <span class="badge bg-info">{{ ucfirst($slaRule->complaint_type) }}</span>
                     </td>
                   </tr>
                   <tr>
-                    <td><strong>Max Response Time:</strong></td>
-                    <td>{{ $slaRule->max_response_time }} hours</td>
+                    <td class="text-white"><strong>Max Response Time:</strong></td>
+                    <td class="text-white">{{ $slaRule->max_response_time }} hours</td>
                   </tr>
                   <tr>
-                    <td><strong>Max Resolution Time:</strong></td>
-                    <td>{{ $slaRule->max_resolution_time }} hours</td>
+                    <td class="text-white"><strong>Max Resolution Time:</strong></td>
+                    <td class="text-white">{{ $slaRule->max_resolution_time }} hours</td>
                   </tr>
                   <tr>
-                    <td><strong>Escalation Level:</strong></td>
-                    <td>Level {{ $slaRule->escalation_level }}</td>
+                    <td class="text-white"><strong>Escalation Level:</strong></td>
+                    <td class="text-white">Level {{ $slaRule->escalation_level }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Status:</strong></td>
+                    <td class="text-white"><strong>Status:</strong></td>
                     <td>
                       <span class="badge bg-{{ $slaRule->status === 'active' ? 'success' : 'danger' }}">
                         {{ ucfirst($slaRule->status) }}
@@ -60,22 +73,22 @@
             
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Notification & Timeline</h6>
+                <h6 class="text-white fw-bold">Notification & Timeline</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Notify To:</strong></td>
-                    <td>{{ $slaRule->notifyTo->username ?? 'Not Set' }}</td>
+                    <td class="text-white"><strong>Notify To:</strong></td>
+                    <td class="text-white">{{ $slaRule->notifyTo->username ?? 'Not Set' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Created:</strong></td>
-                    <td>{{ $slaRule->created_at->format('M d, Y H:i') }}</td>
+                    <td class="text-white"><strong>Created:</strong></td>
+                    <td class="text-white">{{ $slaRule->created_at->format('M d, Y H:i') }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Last Updated:</strong></td>
-                    <td>{{ $slaRule->updated_at->format('M d, Y H:i') }}</td>
+                    <td class="text-white"><strong>Last Updated:</strong></td>
+                    <td class="text-white">{{ $slaRule->updated_at->format('M d, Y H:i') }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Total Complaints:</strong></td>
+                    <td class="text-white"><strong>Total Complaints:</strong></td>
                     <td>
                       <span class="badge bg-primary">{{ $slaRule->complaints->count() }} complaints</span>
                     </td>
@@ -88,10 +101,10 @@
           @if($slaRule->description)
           <div class="row">
             <div class="col-12">
-              <h6 class="text-muted">Description</h6>
+              <h6 class="text-white fw-bold">Description</h6>
               <div class="card">
                 <div class="card-body">
-                  <p>{{ $slaRule->description }}</p>
+                  <p class="text-white">{{ $slaRule->description }}</p>
                 </div>
               </div>
             </div>
@@ -102,7 +115,7 @@
           @if(isset($metrics))
           <div class="row mt-4">
             <div class="col-12">
-              <h6 class="text-muted">Performance Metrics</h6>
+              <h6 class="text-white fw-bold">Performance Metrics</h6>
               <div class="row">
                 <div class="col-md-3">
                   <div class="card bg-primary text-white">
@@ -145,7 +158,7 @@
           @if(isset($recentComplaints) && $recentComplaints->count() > 0)
           <div class="row mt-4">
             <div class="col-12">
-              <h6 class="text-muted">Recent Complaints</h6>
+              <h6 class="text-white fw-bold">Recent Complaints</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-striped">
                   <thead>

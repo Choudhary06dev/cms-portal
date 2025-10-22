@@ -1,20 +1,27 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Role Details')
+@section('title', 'Role Details — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">Role Details: {{ $role->role_name }}</h5>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Role Details: {{ $role->role_name }}</h2>
+      <p class="text-light">View role information and permissions</p>
+    </div>
+    <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary">
+      <i data-feather="arrow-left" class="me-2"></i>Back to Roles
+    </a>
+  </div>
+</div>
+
+<!-- ROLE DETAILS -->
+<div class="card-glass">
           <div class="row">
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Basic Information</h6>
+                <h6 class="text-white fw-bold">Basic Information</h6>
                 <table class="table table-borderless">
                   <tr>
                     <td><strong>Role Name:</strong></td>
@@ -44,7 +51,7 @@
             
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Users with this Role</h6>
+                <h6 class="text-white fw-bold">Users with this Role</h6>
                 @if($role->users->count() > 0)
                 <div class="list-group">
                   @foreach($role->users as $user)
@@ -70,15 +77,15 @@
 
           <div class="row">
             <div class="col-12">
-              <div class="card">
+              <div class="card-glass" style="border: 1px solid white;">
                 <div class="card-header">
-                  <h6 class="card-title mb-0">
+                  <h6 class="card-title mb-0 text-white">
                     <i data-feather="shield" class="me-2"></i>Role Permissions
                   </h6>
                 </div>
                 <div class="card-body">
                   <div class="table-responsive">
-                    <table class="table table-sm table-striped">
+                    <table class="table table-sm table-dark">
                       <thead class="table-dark">
                         <tr>
                           <th class="text-white">Module</th>
@@ -98,7 +105,7 @@
                         $permission = $role->rolePermissions->where('module_name', $module)->first();
                         @endphp
                         <tr>
-                          <td>
+                          <td class="text-white">
                             <strong>{{ ucfirst($module) }}</strong>
                           </td>
                           <td class="text-center">

@@ -7,7 +7,7 @@
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
       <div>
-      <h2 class="text-white mb-2">Spare Parts Management</h2>
+      <h2 class=" mb-2">Spare Parts Management</h2>
       <p class="text-light">Manage inventory and spare parts</p>
       </div>
     <button id="addSpareBtn" class="btn btn-accent">
@@ -41,7 +41,7 @@
             <option value="low_stock" {{ request('stock_status') == 'low_stock' ? 'selected' : '' }}>Low Stock</option>
             <option value="out_of_stock" {{ request('stock_status') == 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
           </select>
-      </div>
+        </div>
       <div class="col-md-2">
         <button type="submit" class="btn btn-outline-light btn-sm w-100">
           <i class="fas fa-filter me-1"></i>Filter
@@ -49,7 +49,7 @@
       </div>
     </div>
   </form>
-</div>
+      </div>
 
 <!-- SPARES TABLE -->
 <div class="card-glass">
@@ -133,10 +133,10 @@
 <!-- Spare Part Modal -->
 <div class="modal fade" id="spareModal" tabindex="-1" aria-labelledby="spareModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.2);">
-            <div class="modal-header" style="border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
-                <h5 class="modal-title text-white" id="spareModalLabel">Add Spare Part</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+        <div class="modal-content card-glass">
+            <div class="modal-header">
+                <h5 class="modal-title " id="spareModalLabel">Add Spare Part</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="modalBody">
                 <form id="spareForm" method="POST" autocomplete="off" novalidate>
@@ -144,13 +144,13 @@
                     <div id="methodField"></div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label text-white">Name <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
+                            <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
                             <select class="form-select" id="category" name="category" required>
                                 <option value="">Select Category</option>
                                 <option value="electrical">Electrical</option>
@@ -164,48 +164,46 @@
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="unit" class="form-label text-white">Unit</label>
+                            <label for="unit" class="form-label">Unit</label>
                             <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="price" class="form-label text-white">Price</label>
+                            <label for="price" class="form-label">Price</label>
                             <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="stock_quantity" class="form-label text-white">Stock Quantity <span class="text-danger">*</span></label>
+                            <label for="stock_quantity" class="form-label">Stock Quantity <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="threshold_level" class="form-label text-white">Threshold Level <span class="text-danger">*</span></label>
+                            <label for="threshold_level" class="form-label">Threshold Level <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="threshold_level" name="threshold_level" min="0" required autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="supplier" class="form-label text-white">Supplier</label>
+                            <label for="supplier" class="form-label">Supplier</label>
                             <input type="text" class="form-control" id="supplier" name="supplier" autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                         
                         <div class="col-12 mb-3">
-                            <label for="description" class="form-label text-white">Description</label>
+                            <label for="description" class="form-label">Description</label>
                             <textarea class="form-control" id="description" name="description" rows="3" autocomplete="off"></textarea>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer" style="border-top: 1px solid rgba(59, 130, 246, 0.2);">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" 
-                        style="background: rgba(107, 114, 128, 0.8); border: 1px solid rgba(107, 114, 128, 0.3); color: #fff;">Cancel</button>
-                <button type="button" class="btn btn-primary" id="submitBtn"
-                        style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; color: #fff; font-weight: 600;">
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-accent" id="submitBtn">
                     <span id="submitText">Add Spare Part</span>
                     <span id="loadingSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
                 </button>
@@ -218,6 +216,55 @@
 @push('styles')
 <style>
   .category-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  
+  /* Modal theme styling */
+  .modal-content.card-glass {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  
+  .theme-dark .modal-content.card-glass,
+  .theme-night .modal-content.card-glass {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2) !important;
+  }
+  
+  .theme-dark .modal-header,
+  .theme-night .modal-header {
+    border-bottom: 1px solid rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid rgba(59, 130, 246, 0.2) !important;
+  }
+  
+  .theme-dark .modal-footer,
+  .theme-night .modal-footer {
+    border-top: 1px solid rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .modal-title {
+    color: #1e293b !important;
+  }
+  
+  .theme-dark .modal-title,
+  .theme-night .modal-title {
+    color: #fff !important;
+  }
+  
+  .modal-body .form-label {
+    color: #1e293b !important;
+  }
+  
+  .theme-dark .modal-body .form-label,
+  .theme-night .modal-body .form-label {
+    color: #fff !important;
+  }
   .category-electrical { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
   .category-plumbing { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
   .category-kitchen { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
@@ -345,13 +392,13 @@
             <div id="methodField"></div>
             <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="name" class="form-label text-white">Name <span class="text-danger">*</span></label>
+              <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
               <div class="invalid-feedback"></div>
             </div>
             
             <div class="col-md-6 mb-3">
-              <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
+              <label for="category" class="form-label ">Category <span class="text-danger">*</span></label>
               <select class="form-select" id="category" name="category" required>
                 <option value="">Select Category</option>
                 <option value="electrical">Electrical</option>
@@ -365,37 +412,37 @@
             </div>
             
             <div class="col-md-6 mb-3">
-              <label for="unit" class="form-label text-white">Unit</label>
+              <label for="unit" class="form-label ">Unit</label>
               <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
               <div class="invalid-feedback"></div>
             </div>
             
             <div class="col-md-6 mb-3">
-              <label for="price" class="form-label text-white">Price</label>
+              <label for="price" class="form-label ">Price</label>
               <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" autocomplete="off">
               <div class="invalid-feedback"></div>
             </div>
             
             <div class="col-md-6 mb-3">
-              <label for="stock_quantity" class="form-label text-white">Stock Quantity <span class="text-danger">*</span></label>
+              <label for="stock_quantity" class="form-label ">Stock Quantity <span class="text-danger">*</span></label>
               <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required autocomplete="off">
               <div class="invalid-feedback"></div>
             </div>
             
             <div class="col-md-6 mb-3">
-              <label for="threshold_level" class="form-label text-white">Threshold Level <span class="text-danger">*</span></label>
+              <label for="threshold_level" class="form-label ">Threshold Level <span class="text-danger">*</span></label>
               <input type="number" class="form-control" id="threshold_level" name="threshold_level" min="0" required autocomplete="off">
               <div class="invalid-feedback"></div>
             </div>
             
             <div class="col-md-6 mb-3">
-              <label for="supplier" class="form-label text-white">Supplier</label>
+              <label for="supplier" class="form-label ">Supplier</label>
               <input type="text" class="form-control" id="supplier" name="supplier" autocomplete="off">
               <div class="invalid-feedback"></div>
             </div>
             
             <div class="col-12 mb-3">
-              <label for="description" class="form-label text-white">Description</label>
+              <label for="description" class="form-label ">Description</label>
               <textarea class="form-control" id="description" name="description" rows="3" autocomplete="off"></textarea>
               <div class="invalid-feedback"></div>
             </div>
@@ -490,13 +537,13 @@
         <div id="methodField"></div>
         <div class="row">
         <div class="col-md-6 mb-3">
-          <label for="name" class="form-label text-white">Name <span class="text-danger">*</span></label>
+          <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
           <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         
         <div class="col-md-6 mb-3">
-          <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
+          <label for="category" class="form-label ">Category <span class="text-danger">*</span></label>
           <select class="form-select" id="category" name="category" required>
             <option value="">Select Category</option>
             <option value="electrical">Electrical</option>
@@ -510,37 +557,37 @@
         </div>
         
         <div class="col-md-6 mb-3">
-          <label for="unit" class="form-label text-white">Unit</label>
+          <label for="unit" class="form-label ">Unit</label>
           <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         
         <div class="col-md-6 mb-3">
-          <label for="price" class="form-label text-white">Price</label>
+          <label for="price" class="form-label ">Price</label>
           <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         
         <div class="col-md-6 mb-3">
-          <label for="stock_quantity" class="form-label text-white">Stock Quantity <span class="text-danger">*</span></label>
+          <label for="stock_quantity" class="form-label ">Stock Quantity <span class="text-danger">*</span></label>
           <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         
         <div class="col-md-6 mb-3">
-          <label for="threshold_level" class="form-label text-white">Threshold Level <span class="text-danger">*</span></label>
+          <label for="threshold_level" class="form-label ">Threshold Level <span class="text-danger">*</span></label>
           <input type="number" class="form-control" id="threshold_level" name="threshold_level" min="0" required autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         
         <div class="col-md-6 mb-3">
-          <label for="supplier" class="form-label text-white">Supplier</label>
+          <label for="supplier" class="form-label ">Supplier</label>
           <input type="text" class="form-control" id="supplier" name="supplier" autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         
         <div class="col-12 mb-3">
-          <label for="description" class="form-label text-white">Description</label>
+          <label for="description" class="form-label ">Description</label>
           <textarea class="form-control" id="description" name="description" rows="3" autocomplete="off"></textarea>
           <div class="invalid-feedback"></div>
         </div>

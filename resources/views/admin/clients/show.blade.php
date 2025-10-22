@@ -1,51 +1,57 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Client Details')
+@section('title', 'Client Details — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Client Details: {{ $client->client_name }}</h5>
-          <div class="btn-group">
-            <a href="{{ route('admin.clients.edit', $client) }}" class="btn btn-warning btn-sm">
-              <i data-feather="edit"></i> Edit
-            </a>
-            <form action="{{ route('admin.clients.toggle-status', $client) }}" method="POST" class="d-inline">
-              @csrf
-              <button type="submit" class="btn btn-{{ $client->status === 'active' ? 'warning' : 'success' }} btn-sm">
-                <i data-feather="{{ $client->status === 'active' ? 'user-x' : 'user-check' }}"></i>
-                {{ $client->status === 'active' ? 'Deactivate' : 'Activate' }}
-              </button>
-            </form>
-          </div>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Client Details</h2>
+      <p class="text-light">View and manage client information</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.clients.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Back to Clients
+      </a>
+      <a href="{{ route('admin.clients.edit', $client) }}" class="btn btn-accent">
+        <i data-feather="edit" class="me-2"></i>Edit Client
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT INFORMATION -->
+<div class="card-glass">
+  <div class="card-header">
+    <h5 class="card-title mb-0 text-white">
+      <i data-feather="user" class="me-2"></i>Client Details: {{ $client->client_name }}
+    </h5>
+  </div>
+  <div class="card-body">
           <div class="row">
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Basic Information</h6>
+                <h6 class="text-white fw-bold">Basic Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Client Name:</strong></td>
-                    <td>{{ $client->client_name }}</td>
+                    <td class="text-white"><strong>Client Name:</strong></td>
+                    <td class="text-white">{{ $client->client_name }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Contact Person:</strong></td>
-                    <td>{{ $client->contact_person ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>Contact Person:</strong></td>
+                    <td class="text-white">{{ $client->contact_person ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Phone:</strong></td>
-                    <td>{{ $client->phone ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>Phone:</strong></td>
+                    <td class="text-white">{{ $client->phone ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Email:</strong></td>
-                    <td>{{ $client->email ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>Email:</strong></td>
+                    <td class="text-white">{{ $client->email ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Status:</strong></td>
+                    <td class="text-white"><strong>Status:</strong></td>
                     <td>
                       <span class="badge bg-{{ $client->status === 'active' ? 'success' : 'danger' }}">
                         {{ ucfirst($client->status) }}
@@ -58,18 +64,18 @@
             
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-muted">Location Information</h6>
+                <h6 class="text-white fw-bold">Location Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td><strong>Address:</strong></td>
-                    <td>{{ $client->address ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>Address:</strong></td>
+                    <td class="text-white">{{ $client->address ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>City:</strong></td>
-                    <td>{{ $client->city ?? 'N/A' }}</td>
+                    <td class="text-white"><strong>City:</strong></td>
+                    <td class="text-white">{{ $client->city ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Total Complaints:</strong></td>
+                    <td class="text-white"><strong>Total Complaints:</strong></td>
                     <td>
                       <span class="badge bg-primary">{{ $client->complaints->count() }} complaints</span>
                     </td>

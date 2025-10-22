@@ -11,7 +11,7 @@
       <p class="text-light" >Generate comprehensive reports and analytics</p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-light">
+      <button class="btn btn-outline-secondary">
         <i data-feather="download" class="me-2"></i>Export All
       </button>
       <button class="btn btn-accent">

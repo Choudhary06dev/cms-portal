@@ -1,22 +1,29 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Edit Client')
-
-@push('head')
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-@endpush
+@section('title', 'Edit Client — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">Edit Client: {{ $client->client_name }}</h5>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Edit Client</h2>
+      <p class="text-light">Update client information</p>
+    </div>
+    <a href="{{ route('admin.clients.show', $client) }}" class="btn btn-outline-secondary">
+      <i data-feather="arrow-left" class="me-2"></i>Back to Client
+    </a>
+  </div>
+</div>
+
+<!-- CLIENT FORM -->
+<div class="card-glass">
+  <div class="card-header">
+    <h5 class="card-title mb-0 text-white">
+      <i data-feather="user-edit" class="me-2"></i>Edit Client: {{ $client->client_name }}
+    </h5>
+  </div>
+  <div class="card-body">
           <form action="{{ route('admin.clients.update', $client) }}" method="POST">
             @csrf
             @method('PUT')
@@ -24,7 +31,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="client_name" class="form-label">Client Name <span class="text-danger">*</span></label>
+                  <label for="client_name" class="form-label text-white">Client Name <span class="text-danger">*</span></label>
                   <input type="text" class="form-control @error('client_name') is-invalid @enderror" 
                          id="client_name" name="client_name" value="{{ old('client_name', $client->client_name) }}" required>
                   @error('client_name')
@@ -35,7 +42,7 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="contact_person" class="form-label">Contact Person</label>
+                  <label for="contact_person" class="form-label text-white">Contact Person</label>
                   <input type="text" class="form-control @error('contact_person') is-invalid @enderror" 
                          id="contact_person" name="contact_person" value="{{ old('contact_person', $client->contact_person) }}">
                   @error('contact_person')
@@ -48,7 +55,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="phone" class="form-label">Phone</label>
+                  <label for="phone" class="form-label text-white">Phone</label>
                   <input type="text" class="form-control @error('phone') is-invalid @enderror" 
                          id="phone" name="phone" value="{{ old('phone', $client->phone) }}">
                   @error('phone')
@@ -59,7 +66,7 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="email" class="form-label">Email</label>
+                  <label for="email" class="form-label text-white">Email</label>
                   <input type="email" class="form-control @error('email') is-invalid @enderror" 
                          id="email" name="email" value="{{ old('email', $client->email) }}">
                   @error('email')
@@ -72,7 +79,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="address" class="form-label">Address</label>
+                  <label for="address" class="form-label text-white">Address</label>
                   <textarea class="form-control @error('address') is-invalid @enderror" 
                             id="address" name="address" rows="3">{{ old('address', $client->address) }}</textarea>
                   @error('address')
@@ -83,7 +90,7 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="city" class="form-label">City</label>
+                  <label for="city" class="form-label text-white">City</label>
                   <input type="text" class="form-control @error('city') is-invalid @enderror" 
                          id="city" name="city" value="{{ old('city', $client->city) }}">
                   @error('city')
@@ -96,7 +103,7 @@
             <div class="row">
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="state" class="form-label">State</label>
+                  <label for="state" class="form-label text-white">State</label>
                   <select class="form-select @error('state') is-invalid @enderror" 
                           id="state" name="state">
                     <option value="">Select State</option>
@@ -114,7 +121,7 @@
               
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="pincode" class="form-label">Pincode</label>
+                  <label for="pincode" class="form-label text-white">Pincode</label>
                   <input type="text" class="form-control @error('pincode') is-invalid @enderror" 
                          id="pincode" name="pincode" value="{{ old('pincode', $client->pincode) }}">
                   @error('pincode')
@@ -125,7 +132,7 @@
               
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="status" class="form-label">Status</label>
+                  <label for="status" class="form-label text-white">Status</label>
                   <select class="form-select @error('status') is-invalid @enderror" 
                           id="status" name="status">
                     <option value="active" {{ old('status', $client->status) == 'active' ? 'selected' : '' }}>Active</option>
@@ -139,8 +146,8 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-              <a href="{{ route('admin.clients.index') }}" class="btn btn-secondary">Cancel</a>
-              <button type="submit" class="btn btn-primary">Update Client</button>
+              <a href="{{ route('admin.clients.show', $client) }}" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-accent">Update Client</button>
             </div>
           </form>
         </div>
@@ -149,6 +156,75 @@
   </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+/* Form control styling for all themes */
+.form-control {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  color: #1e293b !important;
+}
+.form-control::placeholder {
+  color: rgba(30, 41, 59, 0.6) !important;
+}
+.form-control:focus {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #3b82f6 !important;
+  color: #1e293b !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+.form-select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  color: #1e293b !important;
+}
+.form-select:focus {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #3b82f6 !important;
+  color: #1e293b !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+/* Light theme dropdown styling */
+.theme-light .form-select {
+  background-color: #fff !important;
+  color: #1e293b !important;
+}
+.theme-light .form-select option {
+  background-color: #fff !important;
+  color: #1e293b !important;
+}
+.theme-light .form-select option:hover {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+.theme-light .form-select option:checked {
+  background-color: #3b82f6 !important;
+  color: #fff !important;
+}
+/* Dark and Night theme dropdown styling */
+.theme-dark .form-select,
+.theme-night .form-select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+.theme-dark .form-select option,
+.theme-night .form-select option {
+  background-color: #1e293b !important;
+  color: #fff !important;
+}
+.theme-dark .form-select option:hover,
+.theme-night .form-select option:hover {
+  background-color: #334155 !important;
+  color: #fff !important;
+}
+.theme-dark .form-select option:checked,
+.theme-night .form-select option:checked {
+  background-color: #3b82f6 !important;
+  color: #fff !important;
+}
+</style>
+@endpush
 
 @push('scripts')
 <script>

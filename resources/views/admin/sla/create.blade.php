@@ -1,23 +1,36 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Create SLA Rule')
+@section('title', 'Create SLA Rule — CMS Admin')
 
 @section('content')
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">Create New SLA Rule</h5>
-        </div>
-        <div class="card-body">
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Create SLA Rule</h2>
+      <p class="text-light">Add a new SLA rule to the system</p>
+    </div>
+    <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">
+      <i data-feather="arrow-left" class="me-2"></i>Back to SLA Rules
+    </a>
+  </div>
+</div>
+
+<!-- SLA RULE FORM -->
+<div class="card-glass">
+  <div class="card-header">
+    <h5 class="card-title mb-0 text-white">
+      <i data-feather="clock" class="me-2"></i>SLA Rule Information
+    </h5>
+  </div>
+  <div class="card-body">
           <form action="{{ route('admin.sla.store') }}" method="POST">
             @csrf
             
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="complaint_type" class="form-label">Complaint Type <span class="text-danger">*</span></label>
+                  <label for="complaint_type" class="form-label text-white">Complaint Type <span class="text-danger">*</span></label>
                   <select class="form-select @error('complaint_type') is-invalid @enderror" 
                           id="complaint_type" name="complaint_type" required>
                     <option value="">Select Complaint Type</option>
@@ -35,7 +48,7 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="max_response_time" class="form-label">Max Response Time (Hours) <span class="text-danger">*</span></label>
+                  <label for="max_response_time" class="form-label text-white">Max Response Time (Hours) <span class="text-danger">*</span></label>
                   <input type="number" class="form-control @error('max_response_time') is-invalid @enderror" 
                          id="max_response_time" name="max_response_time" value="{{ old('max_response_time') }}" required>
                   @error('max_response_time')
@@ -48,7 +61,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="max_resolution_time" class="form-label">Max Resolution Time (Hours) <span class="text-danger">*</span></label>
+                  <label for="max_resolution_time" class="form-label text-white">Max Resolution Time (Hours) <span class="text-danger">*</span></label>
                   <input type="number" class="form-control @error('max_resolution_time') is-invalid @enderror" 
                          id="max_resolution_time" name="max_resolution_time" value="{{ old('max_resolution_time') }}" required>
                   @error('max_resolution_time')
@@ -59,7 +72,7 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="notify_to" class="form-label">Notify To</label>
+                  <label for="notify_to" class="form-label text-white">Notify To</label>
                   <select class="form-select @error('notify_to') is-invalid @enderror" 
                           id="notify_to" name="notify_to">
                     <option value="">Select User</option>
@@ -79,7 +92,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="escalation_level" class="form-label">Escalation Level</label>
+                  <label for="escalation_level" class="form-label text-white">Escalation Level</label>
                   <select class="form-select @error('escalation_level') is-invalid @enderror" 
                           id="escalation_level" name="escalation_level">
                     <option value="1" {{ old('escalation_level') == '1' ? 'selected' : '' }}>Level 1</option>
@@ -94,7 +107,7 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="status" class="form-label">Status</label>
+                  <label for="status" class="form-label text-white">Status</label>
                   <select class="form-select @error('status') is-invalid @enderror" 
                           id="status" name="status">
                     <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
@@ -110,7 +123,7 @@
             <div class="row">
               <div class="col-12">
                 <div class="mb-3">
-                  <label for="description" class="form-label">Description</label>
+                  <label for="description" class="form-label text-white">Description</label>
                   <textarea class="form-control @error('description') is-invalid @enderror" 
                             id="description" name="description" rows="3">{{ old('description') }}</textarea>
                   @error('description')
@@ -121,8 +134,8 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-              <a href="{{ route('admin.sla.index') }}" class="btn btn-secondary">Cancel</a>
-              <button type="submit" class="btn btn-primary">Create SLA Rule</button>
+              <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-accent">Create SLA Rule</button>
             </div>
           </form>
         </div>
@@ -131,3 +144,72 @@
   </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+/* Form controls styling for all themes */
+.form-control {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  color: #1e293b !important;
+}
+.form-control::placeholder {
+  color: rgba(30, 41, 59, 0.6) !important;
+}
+.form-control:focus {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #3b82f6 !important;
+  color: #1e293b !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+.form-select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  color: #1e293b !important;
+}
+.form-select:focus {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #3b82f6 !important;
+  color: #1e293b !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+/* Light theme dropdown styling */
+.theme-light .form-select {
+  background-color: #fff !important;
+  color: #1e293b !important;
+}
+.theme-light .form-select option {
+  background-color: #fff !important;
+  color: #1e293b !important;
+}
+.theme-light .form-select option:hover {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+.theme-light .form-select option:checked {
+  background-color: #3b82f6 !important;
+  color: #fff !important;
+}
+/* Dark and Night theme dropdown styling */
+.theme-dark .form-select,
+.theme-night .form-select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+.theme-dark .form-select option,
+.theme-night .form-select option {
+  background-color: #1e293b !important;
+  color: #fff !important;
+}
+.theme-dark .form-select option:hover,
+.theme-night .form-select option:hover {
+  background-color: #334155 !important;
+  color: #fff !important;
+}
+.theme-dark .form-select option:checked,
+.theme-night .form-select option:checked {
+  background-color: #3b82f6 !important;
+  color: #fff !important;
+}
+</style>
+@endpush

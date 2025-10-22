@@ -11,7 +11,7 @@
       <p class="text-light" >Manage approval workflows and requests</p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-light">
+      <button class="btn btn-outline-secondary">
         <i data-feather="refresh-cw" class="me-2"></i>Refresh
       </button>
       <button class="btn btn-accent">
@@ -60,7 +60,7 @@
     </div>
     <div class="col-md-3">
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-light btn-sm">
+        <button class="btn btn-outline-secondary btn-sm">
           <i data-feather="filter" class="me-1"></i>Apply
         </button>
         <button class="btn btn-outline-secondary btn-sm">
@@ -96,8 +96,8 @@
         <tr>
           <td >{{ $approval->id }}</td>
           <td>
-            <div style="color: #ffffff !important; font-weight: 600;">{{ $approval->title }}</div>
-            <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ Str::limit($approval->description, 50) }}</div>
+            <div class="text-white fw-bold">{{ $approval->title }}</div>
+            <div class="text-muted small">{{ Str::limit($approval->description, 50) }}</div>
           </td>
           <td>
             <span class="type-badge type-{{ strtolower($approval->type) }}">
@@ -176,6 +176,25 @@
   .status-approved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
   .status-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
   .status-cancelled { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+  
+  /* Table text styling for all themes */
+  .table td {
+    color: #1e293b !important;
+  }
+  
+  .theme-dark .table td,
+  .theme-night .table td {
+    color: #f1f5f9 !important;
+  }
+  
+  .table .text-muted {
+    color: #64748b !important;
+  }
+  
+  .theme-dark .table .text-muted,
+  .theme-night .table .text-muted {
+    color: #94a3b8 !important;
+  }
 </style>
 @endpush
 
