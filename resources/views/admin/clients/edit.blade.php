@@ -2,6 +2,12 @@
 
 @section('title', 'Edit Client')
 
+@push('head')
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+@endpush
+
 @section('content')
 <div class="container-fluid">
   <div class="row">
@@ -88,7 +94,36 @@
             </div>
 
             <div class="row">
-              <div class="col-md-6">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="state" class="form-label">State</label>
+                  <select class="form-select @error('state') is-invalid @enderror" 
+                          id="state" name="state">
+                    <option value="">Select State</option>
+                    <option value="sindh" {{ old('state', $client->state) == 'sindh' ? 'selected' : '' }}>Sindh</option>
+                    <option value="punjab" {{ old('state', $client->state) == 'punjab' ? 'selected' : '' }}>Punjab</option>
+                    <option value="kpk" {{ old('state', $client->state) == 'kpk' ? 'selected' : '' }}>KPK</option>
+                    <option value="balochistan" {{ old('state', $client->state) == 'balochistan' ? 'selected' : '' }}>Balochistan</option>
+                    <option value="other" {{ old('state', $client->state) == 'other' ? 'selected' : '' }}>Other</option>
+                  </select>
+                  @error('state')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="pincode" class="form-label">Pincode</label>
+                  <input type="text" class="form-control @error('pincode') is-invalid @enderror" 
+                         id="pincode" name="pincode" value="{{ old('pincode', $client->pincode) }}">
+                  @error('pincode')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="status" class="form-label">Status</label>
                   <select class="form-select @error('status') is-invalid @enderror" 
@@ -114,3 +149,56 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation enhancement
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function(e) {
+            // Add loading state to submit button
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Updating...';
+            submitBtn.disabled = true;
+        });
+    }
+    
+    // Auto-save draft functionality (optional)
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Save form data to localStorage as draft
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            localStorage.setItem('client_edit_draft', JSON.stringify(data));
+        });
+    });
+    
+    // Load draft data if exists
+    const draft = localStorage.getItem('client_edit_draft');
+    if (draft) {
+        try {
+            const data = JSON.parse(draft);
+            Object.keys(data).forEach(key => {
+                const input = document.querySelector(`[name="${key}"]`);
+                if (input && input.type !== 'file') {
+                    input.value = data[key];
+                }
+            });
+        } catch (e) {
+            console.log('No valid draft data found');
+        }
+    }
+    
+    // Clear draft on successful form submission
+    form.addEventListener('submit', function() {
+        localStorage.removeItem('client_edit_draft');
+    });
+});
+</script>
+@endpush

@@ -26,33 +26,33 @@
     <div class="col-md-2">
       <select class="form-select" 
 >
-            <option value="">All Status</option>
+        <option value="">All Status</option>
         <option value="new">New</option>
         <option value="assigned">Assigned</option>
-            <option value="in_progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
-          </select>
+        <option value="in_progress">In Progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
     </div>
     <div class="col-md-2">
       <select class="form-select" 
 >
-            <option value="">All Priority</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
+        <option value="">All Priority</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="urgent">Urgent</option>
+      </select>
     </div>
     <div class="col-md-2">
       <select class="form-select" 
 >
         <option value="">All Categories</option>
-            <option value="technical">Technical</option>
+        <option value="technical">Technical</option>
         <option value="service">Service</option>
-            <option value="billing">Billing</option>
-            <option value="other">Other</option>
-          </select>
+        <option value="billing">Billing</option>
+        <option value="other">Other</option>
+      </select>
     </div>
     <div class="col-md-3">
       <div class="d-flex gap-2">
@@ -67,8 +67,8 @@
         </button>
       </div>
     </div>
-        </div>
-      </div>
+  </div>
+</div>
 
 <!-- COMPLAINTS TABLE -->
 <div class="card-glass">
@@ -94,7 +94,7 @@
           <td>
             <div style="color: #ffffff !important; font-weight: 600;">{{ $complaint->title }}</div>
             <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ Str::limit($complaint->description, 50) }}</div>
-              </td>
+          </td>
           <td >{{ $complaint->client->name ?? 'N/A' }}</td>
           <td>
             <span class="category-badge category-{{ strtolower($complaint->category) }}">
@@ -116,19 +116,19 @@
           <td>
             <div class="btn-group" role="group">
               <button class="btn btn-outline-info btn-sm" onclick="viewComplaint({{ $complaint->id }})" title="View Details">
-                    <i data-feather="eye"></i>
+                <i data-feather="eye"></i>
               </button>
               <button class="btn btn-outline-warning btn-sm" onclick="editComplaint({{ $complaint->id }})" title="Edit">
-                    <i data-feather="edit"></i>
+                <i data-feather="edit"></i>
               </button>
               <button class="btn btn-outline-danger btn-sm" onclick="deleteComplaint({{ $complaint->id }})" title="Delete">
-                      <i data-feather="trash-2"></i>
-                    </button>
-                </div>
-              </td>
-            </tr>
-            @empty
-            <tr>
+                <i data-feather="trash-2"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        @empty
+        <tr>
           <td colspan="9" class="text-center py-4" >
             <i data-feather="alert-circle" class="feather-lg mb-2"></i>
             <div>No complaints found</div>
@@ -174,17 +174,143 @@
 </style>
 @endpush
 
+<!-- Complaint Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="complaintModalLabel">Complaint Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="complaintModalBody">
+                <!-- Complaint details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" id="editComplaintBtn" style="display: none;">
+                    <i class="fas fa-edit"></i> Edit Complaint
+                </button>
+                <button type="button" class="btn btn-danger" id="deleteComplaintBtn" style="display: none;">
+                    <i class="fas fa-trash"></i> Delete Complaint
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this complaint? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Delete Complaint</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
-  <script>
-    feather.replace();
+<script>
+  feather.replace();
 
   // Complaint Functions
   function viewComplaint(complaintId) {
-    alert('View complaint details functionality coming soon!');
+    currentComplaintId = complaintId;
+    
+    // Show only view button
+    document.getElementById('editComplaintBtn').style.display = 'none';
+    document.getElementById('deleteComplaintBtn').style.display = 'none';
+    
+    // Show loading state
+    const modalBody = document.getElementById('complaintModalBody');
+    modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Fetch complaint data
+    fetch(`/admin/complaints/${complaintId}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        credentials: 'same-origin'
+    })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                const complaint = data.complaint;
+                
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Complaint Information</h6>
+                            <p><strong>Title:</strong> ${complaint.title || 'N/A'}</p>
+                            <p><strong>Description:</strong> ${complaint.description || 'N/A'}</p>
+                            <p><strong>Category:</strong> 
+                                <span class="badge bg-${complaint.category === 'technical' ? 'primary' : complaint.category === 'service' ? 'success' : complaint.category === 'billing' ? 'warning' : 'secondary'}">
+                                    ${complaint.category ? complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1) : 'N/A'}
+                                </span>
+                            </p>
+                            <p><strong>Priority:</strong> 
+                                <span class="badge bg-${complaint.priority === 'low' ? 'success' : complaint.priority === 'medium' ? 'warning' : complaint.priority === 'high' ? 'danger' : 'purple'}">
+                                    ${complaint.priority ? complaint.priority.charAt(0).toUpperCase() + complaint.priority.slice(1) : 'N/A'}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Client & Assignment</h6>
+                            <p><strong>Client:</strong> ${complaint.client ? complaint.client.client_name : 'N/A'}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge bg-${complaint.status === 'new' ? 'primary' : complaint.status === 'assigned' ? 'warning' : complaint.status === 'in_progress' ? 'info' : complaint.status === 'resolved' ? 'success' : 'secondary'}">
+                                    ${complaint.status ? complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1) : 'N/A'}
+                                </span>
+                            </p>
+                            <p><strong>Assigned To:</strong> ${complaint.assigned_to || 'Unassigned'}</p>
+                            <p><strong>Created:</strong> ${complaint.created_at || 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('complaintModalLabel').textContent = 'Complaint Details';
+                new bootstrap.Modal(document.getElementById('complaintModal')).show();
+            } else {
+                modalBody.innerHTML = '<div class="alert alert-danger">Error: ' + (data.message || 'Unknown error occurred') + '</div>';
+                new bootstrap.Modal(document.getElementById('complaintModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalBody.innerHTML = '<div class="alert alert-danger">Error loading complaint details: ' + error.message + '</div>';
+            new bootstrap.Modal(document.getElementById('complaintModal')).show();
+        });
   }
 
   function editComplaint(complaintId) {
-    alert('Edit complaint functionality coming soon!');
+    // Redirect to edit page
+    window.location.href = `/admin/complaints/${complaintId}/edit`;
   }
 
   function deleteComplaint(complaintId) {
@@ -192,5 +318,5 @@
       alert('Delete complaint functionality coming soon!');
     }
   }
-  </script>
+</script>
 @endpush

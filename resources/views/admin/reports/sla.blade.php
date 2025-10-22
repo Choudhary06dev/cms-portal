@@ -112,7 +112,7 @@
                           </td>
                           <td>{{ $complaintData['complaint']->client->client_name ?? 'N/A' }}</td>
                           <td>
-                            <span class="badge bg-info">{{ ucfirst($complaintData['complaint']->complaint_type) }}</span>
+                            <span class="badge bg-info">{{ ucfirst($complaintData['complaint']->category) }}</span>
                           </td>
                           <td>
                             <span class="badge bg-{{ $complaintData['complaint']->status === 'resolved' ? 'success' : ($complaintData['complaint']->status === 'closed' ? 'info' : 'warning') }}">

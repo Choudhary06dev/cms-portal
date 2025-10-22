@@ -44,7 +44,7 @@ class Employee extends Model
      */
     public function assignedComplaints(): HasMany
     {
-        return $this->hasMany(Complaint::class, 'assigned_to');
+        return $this->hasMany(Complaint::class, 'assigned_employee_id');
     }
 
     /**

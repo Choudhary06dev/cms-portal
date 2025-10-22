@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('spare_approval_performa', function (Blueprint $table) {
             $table->id();
             $table->foreignId('complaint_id')->constrained('complaints');
-            $table->foreignId('requested_by')->constrained('employees');
-            $table->foreignId('approved_by')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('requested_by')->constrained('users');
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamp('approved_at')->nullable();
             $table->text('remarks')->nullable();

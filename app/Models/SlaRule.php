@@ -14,6 +14,7 @@ class SlaRule extends Model
     protected $fillable = [
         'complaint_type',
         'max_response_time',
+        'max_resolution_time',
         'escalation_level',
         'notify_to',
         'status',

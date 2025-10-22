@@ -17,6 +17,8 @@ class Spare extends Model
         'unit_price',
         'stock_quantity',
         'threshold_level',
+        'supplier',
+        'description',
         'last_updated',
     ];
 
@@ -57,10 +59,12 @@ class Spare extends Model
     public static function getCategories(): array
     {
         return [
-            'electric' => 'Electrical',
-            'sanitary' => 'Sanitary',
-            'kitchen' => 'Kitchen Appliances',
+            'electrical' => 'Electrical',
+            'plumbing' => 'Plumbing',
+            'kitchen' => 'Kitchen',
             'general' => 'General',
+            'tools' => 'Tools',
+            'consumables' => 'Consumables',
         ];
     }
 

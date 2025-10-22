@@ -735,7 +735,7 @@
                 <tr>
                   <td>{{ $complaint->getTicketNumberAttribute() }}</td>
                   <td>{{ $complaint->client->client_name }}</td>
-                  <td>{{ $complaint->getComplaintTypeDisplayAttribute() }}</td>
+                  <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
                   <td><span class="status-badge status-{{ $complaint->status }}">{{ $complaint->getStatusDisplayAttribute() }}</span></td>
                   <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
                 </tr>

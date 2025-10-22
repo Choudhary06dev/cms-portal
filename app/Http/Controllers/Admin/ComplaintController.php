@@ -32,8 +32,8 @@ class ComplaintController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%")
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
                   ->orWhereHas('client', function($clientQuery) use ($search) {
                       $clientQuery->where('client_name', 'like', "%{$search}%");
                   });
@@ -45,9 +45,9 @@ class ComplaintController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by type
-        if ($request->has('complaint_type') && $request->complaint_type) {
-            $query->where('complaint_type', $request->complaint_type);
+        // Filter by category
+        if ($request->has('category') && $request->category) {
+            $query->where('category', $request->category);
         }
 
         // Filter by priority
@@ -56,8 +56,8 @@ class ComplaintController extends Controller
         }
 
         // Filter by assigned employee
-        if ($request->has('assigned_to') && $request->assigned_to) {
-            $query->where('assigned_to', $request->assigned_to);
+        if ($request->has('assigned_employee_id') && $request->assigned_employee_id) {
+            $query->where('assigned_employee_id', $request->assigned_employee_id);
         }
 
         // Filter by client
@@ -89,6 +89,9 @@ class ComplaintController extends Controller
      */
     public function create()
     {
+        // Clear any old input data to ensure clean form
+        request()->session()->forget('_old_input');
+        
         $clients = Client::orderBy('client_name')->get();
         $employees = Employee::whereHas('user', function($q) {
             $q->where('status', 'active');
@@ -103,12 +106,13 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            'complaint_type' => 'required|in:electric,sanitary,kitchen,general',
+            'category' => 'required|in:technical,service,billing,other',
+            'priority' => 'required|in:low,medium,high,urgent',
             'description' => 'required|string',
-            'location' => 'nullable|string|max:255',
-            'priority' => 'required|in:low,medium,high',
-            'assigned_to' => 'nullable|exists:employees,id',
+            'assigned_employee_id' => 'nullable|exists:employees,id',
+            'status' => 'required|in:new,assigned,in_progress,resolved,closed',
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
         ]);
@@ -120,13 +124,13 @@ class ComplaintController extends Controller
         }
 
         $complaint = Complaint::create([
+            'title' => $request->title,
             'client_id' => $request->client_id,
-            'complaint_type' => $request->complaint_type,
-            'description' => $request->description,
-            'location' => $request->location,
+            'category' => $request->category,
             'priority' => $request->priority,
-            'assigned_to' => $request->assigned_to,
-            'status' => $request->assigned_to ? 'assigned' : 'new',
+            'description' => $request->description,
+            'assigned_employee_id' => $request->assigned_employee_id,
+            'status' => $request->status,
         ]);
 
         // Handle file attachments
@@ -149,9 +153,9 @@ class ComplaintController extends Controller
         // Log the complaint creation
         ComplaintLog::create([
             'complaint_id' => $complaint->id,
-            'status' => $complaint->status,
-            'notes' => 'Complaint created',
-            'created_by' => auth()->user()->employee->id ?? null,
+            'action_by' => auth()->id(),
+            'action' => 'created',
+            'remarks' => 'Complaint created',
         ]);
 
         return redirect()->route('admin.complaints.index')
@@ -167,10 +171,17 @@ class ComplaintController extends Controller
             'client',
             'assignedEmployee.user',
             'attachments',
-            'logs.user',
+            'logs.actionBy',
             'spareParts.spare',
             'spareApprovals.items.spare'
         ]);
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'complaint' => $complaint
+            ]);
+        }
 
         return view('admin.complaints.show', compact('complaint'));
     }
@@ -194,12 +205,12 @@ class ComplaintController extends Controller
     public function update(Request $request, Complaint $complaint)
     {
         $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            'complaint_type' => 'required|in:electric,sanitary,kitchen,general',
+            'category' => 'required|in:technical,service,billing,other',
+            'priority' => 'required|in:low,medium,high,urgent',
             'description' => 'required|string',
-            'location' => 'nullable|string|max:255',
-            'priority' => 'required|in:low,medium,high',
-            'assigned_to' => 'nullable|exists:employees,id',
+            'assigned_employee_id' => 'nullable|exists:employees,id',
             'status' => 'required|in:new,assigned,in_progress,resolved,closed',
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
@@ -212,15 +223,15 @@ class ComplaintController extends Controller
         }
 
         $oldStatus = $complaint->status;
-        $oldAssignedTo = $complaint->assigned_to;
+        $oldAssignedTo = $complaint->assigned_employee_id;
 
         $complaint->update([
+            'title' => $request->title,
             'client_id' => $request->client_id,
-            'complaint_type' => $request->complaint_type,
-            'description' => $request->description,
-            'location' => $request->location,
+            'category' => $request->category,
             'priority' => $request->priority,
-            'assigned_to' => $request->assigned_to,
+            'description' => $request->description,
+            'assigned_employee_id' => $request->assigned_employee_id,
             'status' => $request->status,
             'closed_at' => $request->status === 'closed' ? now() : null,
         ]);
@@ -246,24 +257,24 @@ class ComplaintController extends Controller
         if ($oldStatus !== $request->status) {
             ComplaintLog::create([
                 'complaint_id' => $complaint->id,
-                'status' => $request->status,
-                'notes' => "Status changed from {$oldStatus} to {$request->status}",
-                'created_by' => auth()->user()->employee->id ?? null,
+                'action_by' => auth()->id(),
+                'action' => 'status_changed',
+                'remarks' => "Status changed from {$oldStatus} to {$request->status}",
             ]);
         }
 
         // Log assignment changes
-        if ($oldAssignedTo !== $request->assigned_to) {
-            $assignedEmployee = $request->assigned_to ? Employee::find($request->assigned_to) : null;
+        if ($oldAssignedTo !== $request->assigned_employee_id) {
+            $assignedEmployee = $request->assigned_employee_id ? Employee::find($request->assigned_employee_id) : null;
             $assignmentNote = $assignedEmployee 
                 ? "Assigned to {$assignedEmployee->user->full_name}"
                 : "Unassigned";
             
             ComplaintLog::create([
                 'complaint_id' => $complaint->id,
-                'status' => $complaint->status,
-                'notes' => $assignmentNote,
-                'created_by' => auth()->user()->employee->id ?? null,
+                'action_by' => auth()->id(),
+                'action' => 'assignment_changed',
+                'remarks' => $assignmentNote,
             ]);
         }
 
@@ -276,21 +287,33 @@ class ComplaintController extends Controller
      */
     public function destroy(Complaint $complaint)
     {
-        // Check if complaint has any related records
-        if ($complaint->spareParts()->count() > 0 || $complaint->spareApprovals()->count() > 0) {
+        try {
+            // Check if complaint has any related records that prevent deletion
+            if ($complaint->spareParts()->count() > 0 || $complaint->spareApprovals()->count() > 0) {
+                return redirect()->back()
+                    ->with('error', 'Cannot delete complaint with existing spare parts or approval records.');
+            }
+
+            // Delete in proper order to avoid foreign key constraints
+            // 1. Delete complaint logs first
+            $complaint->logs()->delete();
+
+            // 2. Delete attachments (files and database records)
+            foreach ($complaint->attachments as $attachment) {
+                Storage::disk('public')->delete($attachment->file_path);
+            }
+            $complaint->attachments()->delete();
+
+            // 3. Finally delete the complaint
+            $complaint->delete();
+
+            return redirect()->route('admin.complaints.index')
+                ->with('success', 'Complaint deleted successfully.');
+                
+        } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Cannot delete complaint with existing spare parts or approval records.');
+                ->with('error', 'Error deleting complaint: ' . $e->getMessage());
         }
-
-        // Delete attachments
-        foreach ($complaint->attachments as $attachment) {
-            Storage::disk('public')->delete($attachment->file_path);
-        }
-
-        $complaint->delete();
-
-        return redirect()->route('admin.complaints.index')
-            ->with('success', 'Complaint deleted successfully.');
     }
 
     /**
@@ -299,7 +322,7 @@ class ComplaintController extends Controller
     public function assign(Request $request, Complaint $complaint)
     {
         $validator = Validator::make($request->all(), [
-            'assigned_to' => 'required|exists:employees,id',
+            'assigned_employee_id' => 'required|exists:employees,id',
             'notes' => 'nullable|string',
         ]);
 
@@ -308,18 +331,18 @@ class ComplaintController extends Controller
                 ->withErrors($validator);
         }
 
-        $employee = Employee::find($request->assigned_to);
+        $employee = Employee::find($request->assigned_employee_id);
 
         $complaint->update([
-            'assigned_to' => $request->assigned_to,
+            'assigned_employee_id' => $request->assigned_employee_id,
             'status' => 'assigned',
         ]);
 
         ComplaintLog::create([
             'complaint_id' => $complaint->id,
-            'status' => 'assigned',
-            'notes' => "Assigned to {$employee->user->full_name}. " . ($request->notes ?? ''),
-            'created_by' => auth()->user()->employee->id ?? null,
+            'action_by' => auth()->id(),
+            'action' => 'assigned',
+            'remarks' => "Assigned to {$employee->user->full_name}. " . ($request->notes ?? ''),
         ]);
 
         return redirect()->back()
@@ -350,9 +373,9 @@ class ComplaintController extends Controller
 
         ComplaintLog::create([
             'complaint_id' => $complaint->id,
-            'status' => $request->status,
-            'notes' => "Status changed from {$oldStatus} to {$request->status}. " . ($request->notes ?? ''),
-            'created_by' => auth()->user()->employee->id ?? null,
+            'action_by' => auth()->id(),
+            'action' => 'status_changed',
+            'remarks' => "Status changed from {$oldStatus} to {$request->status}. " . ($request->notes ?? ''),
         ]);
 
         return redirect()->back()
@@ -375,9 +398,9 @@ class ComplaintController extends Controller
 
         ComplaintLog::create([
             'complaint_id' => $complaint->id,
-            'status' => $complaint->status,
-            'notes' => $request->notes,
-            'created_by' => auth()->user()->employee->id ?? null,
+            'action_by' => auth()->id(),
+            'action' => 'note_added',
+            'remarks' => $request->notes,
         ]);
 
         return redirect()->back()
@@ -457,11 +480,11 @@ class ComplaintController extends Controller
         $period = $request->get('period', '30'); // days
 
         $performance = Complaint::where('created_at', '>=', now()->subDays($period))
-            ->whereNotNull('assigned_to')
-            ->selectRaw('assigned_to, COUNT(*) as total_complaints, 
+            ->whereNotNull('assigned_employee_id')
+            ->selectRaw('assigned_employee_id, COUNT(*) as total_complaints, 
                 SUM(CASE WHEN status = "resolved" OR status = "closed" THEN 1 ELSE 0 END) as resolved_complaints,
                 AVG(CASE WHEN status = "resolved" OR status = "closed" THEN TIMESTAMPDIFF(HOUR, created_at, updated_at) ELSE NULL END) as avg_resolution_time')
-            ->groupBy('assigned_to')
+            ->groupBy('assigned_employee_id')
             ->with('assignedEmployee.user')
             ->get();
 
@@ -500,7 +523,7 @@ class ComplaintController extends Controller
         switch ($action) {
             case 'assign':
                 $validator = Validator::make($request->all(), [
-                    'assigned_to' => 'required|exists:employees,id',
+                    'assigned_employee_id' => 'required|exists:employees,id',
                 ]);
                 
                 if ($validator->fails()) {
@@ -508,7 +531,7 @@ class ComplaintController extends Controller
                 }
                 
                 Complaint::whereIn('id', $complaintIds)->update([
-                    'assigned_to' => $request->assigned_to,
+                    'assigned_employee_id' => $request->assigned_employee_id,
                     'status' => 'assigned',
                 ]);
                 $message = 'Selected complaints assigned successfully.';

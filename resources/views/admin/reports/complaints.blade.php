@@ -90,7 +90,7 @@
                         @elseif($groupBy === 'client' && isset($item->client))
                           {{ $item->client->client_name }}
                         @else
-                          {{ ucfirst($item->{$groupBy} ?? $item->complaint_type ?? $item->status ?? $item->priority ?? 'Unknown') }}
+                          {{ ucfirst($item->{$groupBy} ?? $item->category ?? $item->status ?? $item->priority ?? 'Unknown') }}
                         @endif
                       </td>
                       <td>{{ $item->count }}</td>
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
         @elseif($groupBy === 'client')
           return item.client?.client_name || 'Unknown';
         @else
-          return item.{{ $groupBy }} || item.complaint_type || item.status || item.priority || 'Unknown';
+          return item.{{ $groupBy }} || item.category || item.status || item.priority || 'Unknown';
         @endif
       }),
       datasets: [{

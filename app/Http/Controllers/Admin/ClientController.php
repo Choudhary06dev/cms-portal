@@ -30,7 +30,9 @@ class ClientController extends Controller
                   ->orWhere('contact_person', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('address', 'like', "%{$search}%");
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhere('state', 'like', "%{$search}%");
             });
         }
 
@@ -39,9 +41,14 @@ class ClientController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by type
-        if ($request->has('client_type') && $request->client_type) {
-            $query->where('client_type', $request->client_type);
+        // Filter by city
+        if ($request->has('city') && $request->city) {
+            $query->where('city', $request->city);
+        }
+
+        // Filter by state
+        if ($request->has('state') && $request->state) {
+            $query->where('state', $request->state);
         }
 
         $clients = $query->orderBy('client_name')->paginate(15);
@@ -54,6 +61,9 @@ class ClientController extends Controller
      */
     public function create()
     {
+        // Clear any old input data to ensure clean form
+        request()->session()->forget('_old_input');
+        
         return view('admin.clients.create');
     }
 
@@ -63,14 +73,15 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'client_name' => 'required|string|max:150|unique:clients',
-            'contact_person' => 'required|string|max:100',
-            'email' => 'nullable|email|max:150',
+            'client_name' => 'required|string|max:100|unique:clients',
+            'contact_person' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
-            'client_type' => 'required|in:individual,company,government',
+            'city' => 'nullable|string|max:50',
+            'state' => 'nullable|string|max:50|in:sindh,punjab,kpk,balochistan,other',
+            'pincode' => 'nullable|string|max:10',
             'status' => 'required|in:active,inactive',
-            'notes' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -119,6 +130,17 @@ class ClientController extends Controller
             ->groupBy('status')
             ->get();
 
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'client' => $client,
+                'stats' => $stats,
+                'recentComplaints' => $recentComplaints,
+                'complaintsByType' => $complaintsByType,
+                'complaintsByStatus' => $complaintsByStatus
+            ]);
+        }
+
         return view('admin.clients.show', compact('client', 'stats', 'recentComplaints', 'complaintsByType', 'complaintsByStatus'));
     }
 
@@ -136,14 +158,15 @@ class ClientController extends Controller
     public function update(Request $request, Client $client)
     {
         $validator = Validator::make($request->all(), [
-            'client_name' => 'required|string|max:150|unique:clients,client_name,' . $client->id,
-            'contact_person' => 'required|string|max:100',
-            'email' => 'nullable|email|max:150',
+            'client_name' => 'required|string|max:100|unique:clients,client_name,' . $client->id,
+            'contact_person' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
-            'client_type' => 'required|in:individual,company,government',
+            'city' => 'nullable|string|max:50',
+            'state' => 'nullable|string|max:50|in:sindh,punjab,kpk,balochistan,other',
+            'pincode' => 'nullable|string|max:10',
             'status' => 'required|in:active,inactive',
-            'notes' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {

@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
             $table->foreignId('client_id')->constrained('clients');
-            $table->enum('complaint_type', ['electric', 'sanitary', 'kitchen', 'general']);
+            $table->enum('category', ['technical', 'service', 'billing', 'other']);
             $table->text('description')->nullable();
-            $table->string('location', 255)->nullable();
             $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed'])->default('new');
-            $table->foreignId('assigned_to')->nullable()->constrained('employees')->nullOnDelete();
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->foreignId('assigned_employee_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->timestamp('closed_at')->nullable();
             $table->timestamps();
         });

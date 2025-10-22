@@ -12,13 +12,13 @@ class Complaint extends Model
     use HasFactory;
 
     protected $fillable = [
+        'title',
         'client_id',
-        'complaint_type',
-        'description',
-        'location',
-        'status',
-        'assigned_to',
+        'category',
         'priority',
+        'description',
+        'assigned_employee_id',
+        'status',
         'closed_at',
     ];
 
@@ -39,7 +39,7 @@ class Complaint extends Model
      */
     public function assignedEmployee(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'assigned_to');
+        return $this->belongsTo(Employee::class, 'assigned_employee_id');
     }
 
     /**
@@ -75,7 +75,20 @@ class Complaint extends Model
     }
 
     /**
-     * Get available complaint types
+     * Get available complaint categories
+     */
+    public static function getCategories(): array
+    {
+        return [
+            'technical' => 'Technical',
+            'service' => 'Service',
+            'billing' => 'Billing',
+            'other' => 'Other',
+        ];
+    }
+
+    /**
+     * Get available complaint types (legacy method for SLA rules)
      */
     public static function getComplaintTypes(): array
     {
@@ -114,11 +127,11 @@ class Complaint extends Model
     }
 
     /**
-     * Get complaint type display name
+     * Get complaint category display name
      */
-    public function getComplaintTypeDisplayAttribute(): string
+    public function getCategoryDisplayAttribute(): string
     {
-        return self::getComplaintTypes()[$this->complaint_type] ?? $this->complaint_type;
+        return self::getCategories()[$this->category] ?? $this->category;
     }
 
     /**
@@ -234,7 +247,7 @@ class Complaint extends Model
      */
     public function isSlaBreached(): bool
     {
-        $slaRule = SlaRule::where('complaint_type', $this->complaint_type)
+        $slaRule = SlaRule::where('complaint_type', $this->category)
             ->where('status', 'active')
             ->first();
 
@@ -250,7 +263,7 @@ class Complaint extends Model
      */
     public function getHoursOverdue(): int
     {
-        $slaRule = SlaRule::where('complaint_type', $this->complaint_type)
+        $slaRule = SlaRule::where('complaint_type', $this->category)
             ->where('status', 'active')
             ->first();
 
@@ -267,7 +280,7 @@ class Complaint extends Model
      */
     public function slaRule()
     {
-        return $this->belongsTo(SlaRule::class, 'complaint_type', 'complaint_type');
+        return $this->belongsTo(SlaRule::class, 'category', 'complaint_type');
     }
 
     /**
@@ -395,11 +408,19 @@ class Complaint extends Model
     }
 
     /**
-     * Scope for complaints by type
+     * Scope for complaints by category
+     */
+    public function scopeByCategory($query, $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    /**
+     * Scope for complaints by type (legacy method)
      */
     public function scopeByType($query, $type)
     {
-        return $query->where('complaint_type', $type);
+        return $query->where('category', $type);
     }
 
     /**
@@ -415,7 +436,7 @@ class Complaint extends Model
      */
     public function scopeByAssignedEmployee($query, $employeeId)
     {
-        return $query->where('assigned_to', $employeeId);
+        return $query->where('assigned_employee_id', $employeeId);
     }
 
     /**
