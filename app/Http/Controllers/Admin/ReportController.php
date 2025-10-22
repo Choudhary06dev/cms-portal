@@ -59,8 +59,8 @@ class ReportController extends Controller
                 break;
 
             case 'type':
-                $data = $query->selectRaw('complaint_type, COUNT(*) as count')
-                    ->groupBy('complaint_type')
+                $data = $query->selectRaw('category, COUNT(*) as count')
+                    ->groupBy('category')
                     ->get();
                 break;
 

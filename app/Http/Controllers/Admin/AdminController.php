@@ -60,10 +60,10 @@ class AdminController extends Controller
             ->pluck('count', 'status')
             ->toArray();
 
-        // Get complaints by type
-        $complaintsByType = Complaint::selectRaw('complaint_type, COUNT(*) as count')
-            ->groupBy('complaint_type')
-            ->pluck('count', 'complaint_type')
+        // Get complaints by category
+        $complaintsByType = Complaint::selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
+            ->pluck('count', 'category')
             ->toArray();
 
         // Get monthly complaint trends
@@ -225,8 +225,8 @@ class AdminController extends Controller
             ->groupBy('status')
             ->get();
         
-        $data['complaints_by_type'] = Complaint::selectRaw('complaint_type, COUNT(*) as count')
-            ->groupBy('complaint_type')
+        $data['complaints_by_type'] = Complaint::selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
             ->get();
 
         if ($format === 'pdf') {

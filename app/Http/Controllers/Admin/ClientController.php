@@ -82,7 +82,8 @@ class ClientController extends Controller
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:50',
             'state' => 'nullable|string|max:50|in:sindh,punjab,kpk,balochistan,other',
-            'pincode' => 'nullable|string|max:10',
+            // Pincode must be exactly 4 digits if provided
+            'pincode' => 'nullable|digits:4',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -135,10 +136,10 @@ class ClientController extends Controller
             ->limit(10)
             ->get();
 
-        // Get complaints by type
+        // Get complaints by category
         $complaintsByType = $client->complaints()
-            ->selectRaw('complaint_type, COUNT(*) as count')
-            ->groupBy('complaint_type')
+            ->selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
             ->get();
 
         // Get complaints by status
@@ -182,7 +183,8 @@ class ClientController extends Controller
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:50',
             'state' => 'nullable|string|max:50|in:sindh,punjab,kpk,balochistan,other',
-            'pincode' => 'nullable|string|max:10',
+            // Pincode must be exactly 4 digits if provided
+            'pincode' => 'nullable|digits:4',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -307,9 +309,9 @@ class ClientController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by type
+        // Filter by category
         if ($request->has('complaint_type') && $request->complaint_type) {
-            $query->where('complaint_type', $request->complaint_type);
+            $query->where('category', $request->complaint_type);
         }
 
         // Filter by date range

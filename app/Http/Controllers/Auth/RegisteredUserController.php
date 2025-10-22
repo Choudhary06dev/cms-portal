@@ -36,19 +36,37 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password_hash' => Hash::make($request->password),
-            'role_id' => 4, // Default to client role
-            'status' => 'active',
-        ]);
+        try {
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'role_id' => 4, // Default to client role
+                'status' => 'active',
+            ]);
 
-        event(new Registered($user));
+            // Log the user creation for debugging
+            \Log::info('User created successfully', [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email
+            ]);
 
-        Auth::login($user);
+            event(new Registered($user));
 
-        return redirect(route('dashboard', absolute: false));
+            Auth::login($user);
+
+            return redirect(route('dashboard', absolute: false));
+        } catch (\Exception $e) {
+            \Log::error('User creation failed', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->all()
+            ]);
+            
+            return redirect()->back()
+                ->withErrors(['error' => 'Registration failed. Please try again.'])
+                ->withInput();
+        }
     }
 }

@@ -208,7 +208,7 @@ class EmployeeController extends Controller
             }
 
             if ($request->filled('password')) {
-                $updateUserData['password_hash'] = Hash::make($request->password);
+                $updateUserData['password'] = Hash::make($request->password);
             }
 
             $employee->user->update($updateUserData);

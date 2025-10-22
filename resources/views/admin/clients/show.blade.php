@@ -10,14 +10,6 @@
       <h2 class="text-white mb-2">Client Details</h2>
       <p class="text-light">View and manage client information</p>
     </div>
-    <div class="d-flex gap-2">
-      <a href="{{ route('admin.clients.index') }}" class="btn btn-outline-secondary">
-        <i data-feather="arrow-left" class="me-2"></i>Back to Clients
-      </a>
-      <a href="{{ route('admin.clients.edit', $client) }}" class="btn btn-accent">
-        <i data-feather="edit" class="me-2"></i>Edit Client
-      </a>
-    </div>
   </div>
 </div>
 
@@ -182,18 +174,7 @@
                 <a href="{{ route('admin.clients.index') }}" class="btn btn-secondary">
                   <i data-feather="arrow-left"></i> Back to Clients
                 </a>
-                <div class="btn-group">
-                  <a href="{{ route('admin.clients.edit', $client) }}" class="btn btn-warning">
-                    <i data-feather="edit"></i> Edit Client
-                  </a>
-                  <form action="{{ route('admin.clients.destroy', $client) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this client?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                      <i data-feather="trash-2"></i> Delete
-                    </button>
-                  </form>
-                </div>
+               
               </div>
             </div>
           </div>

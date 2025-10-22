@@ -10,9 +10,6 @@
       <h2 class="text-white mb-2">Edit Client</h2>
       <p class="text-light">Update client information</p>
     </div>
-    <a href="{{ route('admin.clients.show', $client) }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Client
-    </a>
   </div>
 </div>
 
@@ -121,12 +118,14 @@
               
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="pincode" class="form-label text-white">Pincode</label>
-                  <input type="text" class="form-control @error('pincode') is-invalid @enderror" 
-                         id="pincode" name="pincode" value="{{ old('pincode', $client->pincode) }}">
+                  <label for="pincode" class="form-label text-white">Pincode <small class="text-muted">(4 digits only)</small></label>
+                  <input type="tel" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="form-control @error('pincode') is-invalid @enderror" 
+                         id="pincode" name="pincode" value="{{ old('pincode', $client->pincode) }}" placeholder="1234" 
+                         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
                   @error('pincode')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
+                  <div class="form-text text-muted">Enter exactly 4 digits</div>
                 </div>
               </div>
               
@@ -146,7 +145,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-              <a href="{{ route('admin.clients.show', $client) }}" class="btn btn-outline-secondary">Cancel</a>
+              <a href="{{ route('admin.clients.index', $client) }}" class="btn btn-outline-secondary">Cancel</a>
               <button type="submit" class="btn btn-accent">Update Client</button>
             </div>
           </form>
@@ -275,6 +274,82 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function() {
         localStorage.removeItem('client_edit_draft');
     });
+    
+    // Enforce pincode numeric-only and exactly 4 digits
+    const pincodeInput = document.querySelector('input[name="pincode"]');
+    if (pincodeInput) {
+        // Function to validate and format pincode
+        const validatePincode = (value) => {
+            // Remove all non-numeric characters
+            let cleanValue = value.replace(/[^0-9]/g, '');
+            // Limit to 4 digits
+            cleanValue = cleanValue.slice(0, 4);
+            return cleanValue;
+        };
+        
+        // Function to update input value and visual feedback
+        const updatePincode = (value) => {
+            const cleanValue = validatePincode(value);
+            pincodeInput.value = cleanValue;
+            
+            // Visual feedback
+            pincodeInput.classList.remove('is-valid', 'is-invalid');
+            if (cleanValue.length === 4) {
+                pincodeInput.classList.add('is-valid');
+            } else if (cleanValue.length > 0) {
+                pincodeInput.classList.add('is-invalid');
+            }
+        };
+        
+        // Handle input event
+        pincodeInput.addEventListener('input', function(e) {
+            updatePincode(e.target.value);
+        });
+        
+        // Handle paste event
+        pincodeInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            updatePincode(pastedText);
+        });
+        
+        // Handle keydown event - prevent non-numeric input
+        pincodeInput.addEventListener('keydown', function(e) {
+            // Allow: backspace, delete, tab, escape, enter, arrow keys
+            if ([8, 9, 27, 13, 46, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                (e.ctrlKey && [65, 67, 86, 88, 90].indexOf(e.keyCode) !== -1)) {
+                return;
+            }
+            
+            // Allow only numeric keys (0-9)
+            if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // If we already have 4 digits and user is not deleting, prevent input
+            if (pincodeInput.value.length >= 4 && ![8, 46].includes(e.keyCode)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Handle keypress event as additional safety
+        pincodeInput.addEventListener('keypress', function(e) {
+            // Only allow numeric characters
+            if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Prevent input if already 4 digits
+            if (pincodeInput.value.length >= 4) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
 });
 </script>
 @endpush

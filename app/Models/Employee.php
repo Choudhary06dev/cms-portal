@@ -72,6 +72,14 @@ class Employee extends Model
     }
 
     /**
+     * Get the complaint logs for this employee.
+     */
+    public function complaintLogs(): HasMany
+    {
+        return $this->hasMany(ComplaintLog::class, 'action_by');
+    }
+
+    /**
      * Get employee's username
      */
     public function getUsernameAttribute(): string

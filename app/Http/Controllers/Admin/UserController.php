@@ -83,7 +83,7 @@ class UserController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'phone' => $request->phone,
-            'password_hash' => Hash::make($request->password),
+            'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
             'status' => $request->status,
         ]);
@@ -140,7 +140,7 @@ class UserController extends Controller
             ];
 
             if ($request->filled('password')) {
-                $updateData['password_hash'] = Hash::make($request->password);
+                $updateData['password'] = Hash::make($request->password);
             }
 
             $user->update($updateData);
@@ -201,7 +201,7 @@ class UserController extends Controller
         }
 
         $user->update([
-            'password_hash' => Hash::make($request->password)
+            'password' => Hash::make($request->password)
         ]);
 
         return redirect()->back()

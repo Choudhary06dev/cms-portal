@@ -143,9 +143,9 @@ class Client extends Model
     public function getComplaintsByType(): array
     {
         return $this->complaints()
-            ->selectRaw('complaint_type, COUNT(*) as count')
-            ->groupBy('complaint_type')
-            ->pluck('count', 'complaint_type')
+            ->selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
+            ->pluck('count', 'category')
             ->toArray();
     }
 

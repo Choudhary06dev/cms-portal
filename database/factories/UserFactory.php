@@ -27,7 +27,7 @@ class UserFactory extends Factory
             'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
-            'password_hash' => static::$password ??= Hash::make('password'),
+            'password' => static::$password ??= Hash::make('password'),
             'role_id' => 1, // Default to admin role
             'status' => 'active',
             'remember_token' => Str::random(10),

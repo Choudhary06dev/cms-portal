@@ -74,6 +74,21 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the complaint logs for this user through employee.
+     */
+    public function complaintLogs()
+    {
+        return $this->hasManyThrough(
+            ComplaintLog::class,
+            Employee::class,
+            'user_id', // Foreign key on employees table
+            'action_by', // Foreign key on complaint_logs table
+            'id', // Local key on users table
+            'id' // Local key on employees table
+        );
+    }
+
+    /**
      * Check if user is active
      */
     public function isActive(): bool
