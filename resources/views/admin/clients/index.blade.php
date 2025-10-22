@@ -10,59 +10,59 @@
       <h2 class="text-white mb-2" >Clients Management</h2>
       <p class="text-light" >Manage client information and relationships</p>
     </div>
-    <a href="{{ route('admin.clients.create') }}" class="btn btn-accent">
+    <button id="addClientBtn" class="btn btn-accent" data-bs-toggle="modal" data-bs-target="#clientCreateModal">
       <i data-feather="plus" class="me-2"></i>Add Client
-    </a>
+    </button>
   </div>
 </div>
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
   <form method="GET" action="{{ route('admin.clients.index') }}">
-    <div class="row g-3">
-      <div class="col-md-3">
+  <div class="row g-3">
+    <div class="col-md-3">
         <input type="text" class="form-control" name="search" placeholder="Search clients..." 
                value="{{ request('search') }}">
-      </div>
-      <div class="col-md-2">
+    </div>
+    <div class="col-md-2">
         <select class="form-select" name="status">
-          <option value="">All Status</option>
+        <option value="">All Status</option>
           <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
           <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-        </select>
-      </div>
-      <div class="col-md-2">
+      </select>
+    </div>
+    <div class="col-md-2">
         <select class="form-select" name="city">
           <option value="">All Cities</option>
           <option value="karachi" {{ request('city') == 'karachi' ? 'selected' : '' }}>Karachi</option>
           <option value="lahore" {{ request('city') == 'lahore' ? 'selected' : '' }}>Lahore</option>
           <option value="islamabad" {{ request('city') == 'islamabad' ? 'selected' : '' }}>Islamabad</option>
           <option value="other" {{ request('city') == 'other' ? 'selected' : '' }}>Other</option>
-        </select>
-      </div>
-      <div class="col-md-2">
+      </select>
+    </div>
+    <div class="col-md-2">
         <select class="form-select" name="state">
           <option value="">All States</option>
           <option value="sindh" {{ request('state') == 'sindh' ? 'selected' : '' }}>Sindh</option>
           <option value="punjab" {{ request('state') == 'punjab' ? 'selected' : '' }}>Punjab</option>
           <option value="kpk" {{ request('state') == 'kpk' ? 'selected' : '' }}>KPK</option>
           <option value="balochistan" {{ request('state') == 'balochistan' ? 'selected' : '' }}>Balochistan</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <div class="d-flex gap-2">
+      </select>
+    </div>
+    <div class="col-md-3">
+      <div class="d-flex gap-2">
           <button type="submit" class="btn btn-outline-light btn-sm">
-            <i data-feather="filter" class="me-1"></i>Apply
-          </button>
+          <i data-feather="filter" class="me-1"></i>Apply
+        </button>
           <a href="{{ route('admin.clients.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i data-feather="x" class="me-1"></i>Clear
+          <i data-feather="x" class="me-1"></i>Clear
           </a>
           <button type="button" class="btn btn-outline-primary btn-sm">
-            <i data-feather="download" class="me-1"></i>Export
-          </button>
-        </div>
+          <i data-feather="download" class="me-1"></i>Export
+        </button>
       </div>
     </div>
+  </div>
   </form>
 </div>
 
@@ -356,5 +356,199 @@
     // Show delete confirmation modal
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
   }
+</script>
+@endpush
+
+<!-- Client Create Modal -->
+<div class="modal fade" id="clientCreateModal" tabindex="-1" aria-labelledby="clientCreateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="clientCreateModalLabel">Create New Client</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="clientCreateModalBody">
+        <form id="clientCreateForm" method="POST" autocomplete="off" novalidate>
+          @csrf
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="client_name_modal" class="form-label">Client Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="client_name_modal" name="client_name" required>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="contact_person_modal" class="form-label">Contact Person</label>
+                <input type="text" class="form-control" id="contact_person_modal" name="contact_person">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="phone_modal" class="form-label">Phone</label>
+                <input type="text" class="form-control" id="phone_modal" name="phone">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="email_modal" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email_modal" name="email">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="address_modal" class="form-label">Address</label>
+                <textarea class="form-control" id="address_modal" name="address" rows="3"></textarea>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="city_modal" class="form-label">City</label>
+                <input type="text" class="form-control" id="city_modal" name="city">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="state_modal" class="form-label">State</label>
+                <select class="form-select" id="state_modal" name="state">
+                  <option value="">Select State</option>
+                  <option value="sindh">Sindh</option>
+                  <option value="punjab">Punjab</option>
+                  <option value="kpk">KPK</option>
+                  <option value="balochistan">Balochistan</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="pincode_modal" class="form-label">Pincode</label>
+                <input type="text" class="form-control" id="pincode_modal" name="pincode">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="status_modal" class="form-label">Status</label>
+                <select class="form-select" id="status_modal" name="status">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="clientCreateSubmit">
+          <span id="clientCreateText">Create Client</span>
+          <span id="clientCreateSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const addBtn = document.getElementById('addClientBtn');
+  const modal = new bootstrap.Modal(document.getElementById('clientCreateModal'));
+  const form = document.getElementById('clientCreateForm');
+  const submitBtn = document.getElementById('clientCreateSubmit');
+  const spinner = document.getElementById('clientCreateSpinner');
+
+  addBtn.addEventListener('click', function() {
+    clearForm(form);
+    modal.show();
+  });
+
+  submitBtn.addEventListener('click', function() {
+    clearValidationErrors(form);
+    submitBtn.disabled = true;
+    spinner.style.display = 'inline-block';
+
+    const fd = new FormData(form);
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    fetch("{{ route('admin.clients.store') }}", {
+      method: 'POST',
+      body: fd,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return { status: res.status, data: JSON.parse(text) };
+      } catch (err) {
+        throw new Error('Unexpected response: ' + text);
+      }
+    })
+    .then(result => {
+      if (result.data.success) {
+        location.reload();
+      } else {
+        if (result.data.errors) {
+          showValidationErrors(form, result.data.errors);
+        } else {
+          alert('Error: ' + (result.data.message || 'Unknown error'));
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Create client error:', err);
+      alert('Error creating client: ' + err.message);
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      spinner.style.display = 'none';
+    });
+  });
+
+  function clearForm(f) {
+    f.reset();
+    clearValidationErrors(f);
+  }
+
+  // reuse validation helpers from other views if available
+  function clearValidationErrors(form) {
+    const inputs = form.querySelectorAll('.is-invalid');
+    inputs.forEach(i => i.classList.remove('is-invalid'));
+    const feedbacks = form.querySelectorAll('.invalid-feedback');
+    feedbacks.forEach(f => f.textContent = '');
+  }
+
+  function showValidationErrors(form, errors) {
+    Object.keys(errors).forEach(field => {
+      const input = form.querySelector(`[name="${field}"]`);
+      const messages = errors[field];
+      if (input) {
+        input.classList.add('is-invalid');
+        const fb = input.closest('.mb-3')?.querySelector('.invalid-feedback') || form.querySelector('.invalid-feedback');
+        if (fb) fb.textContent = messages.join(' ');
+      }
+    });
+  }
+});
 </script>
 @endpush

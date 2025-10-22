@@ -10,11 +10,13 @@ use App\Models\Employee;
 use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
 use App\Models\SlaRule;
+use App\Traits\DatabaseTimeHelpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    use DatabaseTimeHelpers;
     public function __construct()
     {
         // Middleware is applied in routes
@@ -145,9 +147,11 @@ class DashboardController extends Controller
         $breached = 0;
 
         if ($totalComplaints > 0) {
+            $timeDiff = $this->getTimeDiffInHours('created_at', 'updated_at');
+            
             $withinSla = Complaint::where('created_at', '>=', now()->subDays(30))
                 ->whereIn('status', ['resolved', 'closed'])
-                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = "active")')
+                ->whereRaw("{$timeDiff} <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active')")
                 ->count();
 
             $breached = $totalComplaints - $withinSla;
@@ -196,8 +200,10 @@ class DashboardController extends Controller
      */
     private function getSlaBreaches()
     {
+        $timeDiff = $this->getTimeDiffFromNow('created_at');
+        
         return Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, NOW()) > (SELECT max_response_time FROM sla_rules WHERE complaint_type = complaints.category AND status = "active")')
+            ->whereRaw("{$timeDiff} > (SELECT max_response_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active')")
             ->count();
     }
 
@@ -269,11 +275,13 @@ class DashboardController extends Controller
      */
     private function getSlaChartData($period)
     {
+        $timeDiff = $this->getTimeDiffInHours('created_at', 'updated_at');
+        
         $data = Complaint::where('created_at', '>=', now()->subDays($period))
-            ->selectRaw('category, 
+            ->selectRaw("category, 
                 COUNT(*) as total,
-                SUM(CASE WHEN TIMESTAMPDIFF(HOUR, created_at, updated_at) <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = "active") THEN 1 ELSE 0 END) as within_sla,
-                SUM(CASE WHEN TIMESTAMPDIFF(HOUR, created_at, updated_at) > (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = "active") THEN 1 ELSE 0 END) as breached')
+                SUM(CASE WHEN {$timeDiff} <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active') THEN 1 ELSE 0 END) as within_sla,
+                SUM(CASE WHEN {$timeDiff} > (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active') THEN 1 ELSE 0 END) as breached")
             ->groupBy('category')
             ->get();
 

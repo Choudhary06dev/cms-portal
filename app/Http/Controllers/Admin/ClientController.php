@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Complaint;
+use App\Traits\DatabaseTimeHelpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ClientController extends Controller
 {
+    use DatabaseTimeHelpers;
     public function __construct()
     {
         // Middleware is applied in routes
@@ -85,12 +87,27 @@ class ClientController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
         $client = Client::create($request->all());
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Client created successfully.',
+                'client' => $client
+            ]);
+        }
 
         return redirect()->route('admin.clients.index')
             ->with('success', 'Client created successfully.');
@@ -170,12 +187,27 @@ class ClientController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
         $client->update($request->all());
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Client updated successfully.',
+                'client' => $client
+            ]);
+        }
 
         return redirect()->route('admin.clients.index')
             ->with('success', 'Client updated successfully.');
@@ -309,7 +341,7 @@ class ClientController extends Controller
             'avg_resolution_time' => $client->complaints()
                 ->where('created_at', '>=', now()->subDays($period))
                 ->whereIn('status', ['resolved', 'closed'])
-                ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_time')
+                ->selectRaw('AVG(' . $this->getTimeDiffInHours('created_at', 'updated_at') . ') as avg_time')
                 ->value('avg_time'),
         ];
 
