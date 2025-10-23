@@ -256,25 +256,38 @@
         },
         credentials: 'same-origin'
       })
-      .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response URL:', response.url);
-        
-        if (response.ok) {
-          console.log('Employee deleted successfully!');
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
           location.reload();
         } else {
-          return response.text().then(text => {
-            console.error('Delete failed:', text);
-            alert('Error deleting employee. Status: ' + response.status);
-          });
+          alert('Error deleting employee: ' + (data.message || 'Unknown error'));
         }
       })
       .catch(error => {
-        console.error('Delete error:', error);
-        alert('Error deleting employee: ' + error.message);
+        console.error('Error deleting employee:', error);
+        alert('Error deleting employee');
       });
     }
+  }
+
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
   }
 </script>
 @endpush

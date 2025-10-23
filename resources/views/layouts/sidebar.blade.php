@@ -887,6 +887,89 @@
       color: #ffffff !important;
     }
     
+    /* Search Autocomplete Styles */
+    .search-autocomplete {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+      width: 100% !important;
+      max-width: 300px !important;
+      overflow-x: hidden !important;
+      word-wrap: break-word !important;
+    }
+    
+    .autocomplete-item {
+      transition: all 0.2s ease !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 100% !important;
+    }
+    
+    .autocomplete-item:hover {
+      background: rgba(59, 130, 246, 0.1) !important;
+      color: #ffffff !important;
+    }
+    
+    .autocomplete-item:last-child {
+      border-bottom: none !important;
+    }
+    
+    .autocomplete-item .d-flex {
+      flex-wrap: nowrap !important;
+      overflow: hidden !important;
+    }
+    
+    .autocomplete-item .flex-grow-1 {
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+    
+    .autocomplete-item .fw-bold {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 200px !important;
+    }
+    
+    .autocomplete-item .text-muted {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 150px !important;
+    }
+    
+    /* Light theme autocomplete */
+    .theme-light .search-autocomplete {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .theme-light .autocomplete-item {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .autocomplete-item:hover {
+      background: rgba(0, 0, 0, 0.05) !important;
+      color: #0f172a !important;
+    }
+    
+    /* Night theme autocomplete */
+    .theme-night .search-autocomplete {
+      background: linear-gradient(135deg, #000000 0%, #111111 100%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .theme-night .autocomplete-item {
+      color: #e5e5e5 !important;
+    }
+    
+    .theme-night .autocomplete-item:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #ffffff !important;
+    }
+    
     .theme-night .text-primary {
       color: #60a5fa !important;
     }
@@ -969,6 +1052,27 @@
     
     .theme-night .list-group-item:hover {
       background: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    /* Fix hover effects on filter buttons in night theme */
+    .theme-night .btn-outline-light:hover,
+    .theme-night .btn-outline-light:focus,
+    .theme-night .btn-outline-light:active,
+    .theme-night .btn-outline-light:focus-visible {
+      background-color: #ffffff !important;
+      border-color: #ffffff !important;
+      color: #000000 !important;
+      box-shadow: none !important;
+    }
+    
+    .theme-night .btn-outline-secondary:hover,
+    .theme-night .btn-outline-secondary:focus,
+    .theme-night .btn-outline-secondary:active,
+    .theme-night .btn-outline-secondary:focus-visible {
+      background-color: #6c757d !important;
+      border-color: #6c757d !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
     }
   </style>
   <script src="https://unpkg.com/feather-icons"></script>
@@ -1161,18 +1265,163 @@
 
     // Topbar functionality
     document.addEventListener('DOMContentLoaded', function() {
-      // Global search functionality
+      // Global search functionality with autocomplete
       const globalSearch = document.getElementById('globalSearch');
+      
       if (globalSearch) {
+        let searchTimeout;
+        let autocompleteDropdown;
+        
+        // Create autocomplete dropdown
+        function createAutocompleteDropdown() {
+          if (autocompleteDropdown) {
+            autocompleteDropdown.remove();
+          }
+          
+          autocompleteDropdown = document.createElement('div');
+          autocompleteDropdown.className = 'search-autocomplete position-absolute bg-dark border rounded shadow-lg';
+          autocompleteDropdown.style.cssText = `
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: none;
+            width: 100%;
+            max-width: 300px;
+            word-wrap: break-word;
+          `;
+          
+          const searchBox = globalSearch.closest('.search-box');
+          if (searchBox) {
+            searchBox.style.position = 'relative';
+            searchBox.appendChild(autocompleteDropdown);
+          }
+        }
+        
+        // Show autocomplete dropdown
+        function showAutocomplete(results) {
+          if (!autocompleteDropdown) {
+            createAutocompleteDropdown();
+          }
+          
+          if (results.length === 0) {
+            autocompleteDropdown.style.display = 'none';
+            return;
+          }
+          
+          autocompleteDropdown.innerHTML = results.map(result => `
+            <a href="${result.url}" class="autocomplete-item d-block p-3 text-decoration-none text-white border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+              <div class="d-flex align-items-center" style="overflow: hidden;">
+                <div class="me-3 flex-shrink-0">
+                  <i data-feather="${result.icon}" class="text-${result.color}"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0; overflow: hidden;">
+                  <div class="fw-bold" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${result.title}</div>
+                  <div class="text-muted small" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${result.subtitle}</div>
+                </div>
+                <div class="text-muted small flex-shrink-0 ms-2">${result.type}</div>
+              </div>
+            </a>
+          `).join('');
+          
+          // Add "View all results" link
+          const searchTerm = globalSearch.value.trim();
+          autocompleteDropdown.innerHTML += `
+            <a href="/admin/search?q=${encodeURIComponent(searchTerm)}" class="autocomplete-item d-block p-3 text-decoration-none text-primary border-0" style="overflow: hidden;">
+              <div class="text-center" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <i data-feather="search" class="me-2"></i>
+                View all results for "${searchTerm}"
+              </div>
+            </a>
+          `;
+          
+          autocompleteDropdown.style.display = 'block';
+          feather.replace();
+        }
+        
+        // Hide autocomplete dropdown
+        function hideAutocomplete() {
+          if (autocompleteDropdown) {
+            autocompleteDropdown.style.display = 'none';
+          }
+        }
+        
+        // Handle search input
+        globalSearch.addEventListener('input', function() {
+          const searchTerm = this.value.trim();
+          
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+          
+          if (searchTerm.length < 2) {
+            hideAutocomplete();
+            return;
+          }
+          
+          // Debounce search
+          searchTimeout = setTimeout(() => {
+            fetch(`/admin/search/api?q=${encodeURIComponent(searchTerm)}`)
+              .then(response => response.json())
+              .then(data => {
+                showAutocomplete(data.results || []);
+              })
+              .catch(error => {
+                console.error('Search error:', error);
+                hideAutocomplete();
+              });
+          }, 300);
+        });
+        
+        // Handle Enter key
         globalSearch.addEventListener('keypress', function(e) {
           if (e.key === 'Enter') {
             const searchTerm = this.value.trim();
             if (searchTerm) {
-              // Implement global search
+              hideAutocomplete();
               window.location.href = `/admin/search?q=${encodeURIComponent(searchTerm)}`;
             }
           }
         });
+        
+        // Handle Escape key
+        globalSearch.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            hideAutocomplete();
+            this.blur();
+          }
+        });
+        
+        // Hide autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!globalSearch.contains(e.target) && !autocompleteDropdown?.contains(e.target)) {
+            hideAutocomplete();
+          }
+        });
+        
+        // Handle autocomplete item clicks
+        document.addEventListener('click', function(e) {
+          if (e.target.closest('.autocomplete-item')) {
+            hideAutocomplete();
+          }
+        });
+        
+        // Handle search button click
+        const searchButton = document.getElementById('searchButton');
+        
+        if (searchButton) {
+          searchButton.addEventListener('click', function() {
+            const searchTerm = globalSearch.value.trim();
+            if (searchTerm) {
+              hideAutocomplete();
+              window.location.href = `/admin/search?q=${encodeURIComponent(searchTerm)}`;
+            }
+          });
+        }
       }
 
       // Notification functionality
@@ -1286,6 +1535,8 @@
     // Auto-refresh notifications every 30 seconds
     setInterval(loadNotifications, 30000);
   </script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   @stack('scripts')
 </body>
 </html>

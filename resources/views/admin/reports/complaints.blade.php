@@ -118,65 +118,96 @@
             </div>
           </div>
 
-          <!-- Chart -->
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h6 class="card-title">Distribution Chart</h6>
-                </div>
-                <div class="card-body">
-                  <canvas id="complaintsChart" height="100"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const ctx = document.getElementById('complaintsChart').getContext('2d');
-  const data = @json($data);
-  
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: data.map(item => {
-        @if($groupBy === 'employee')
-          return item.assignedEmployee?.user?.username || 'Unknown';
-        @elseif($groupBy === 'client')
-          return item.client?.client_name || 'Unknown';
-        @else
-          return item.{{ $groupBy }} || item.category || item.status || item.priority || 'Unknown';
-        @endif
-      }),
-      datasets: [{
-        data: data.map(item => item.count),
-        backgroundColor: [
-          '#FF6384',
-          '#36A2EB',
-          '#FFCE56',
-          '#4BC0C0',
-          '#9966FF',
-          '#FF9F40'
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
-    }
-  });
-});
 
+<script>
 function exportReport(format) {
+  // Show loading state
+  const buttons = document.querySelectorAll('button[onclick*="exportReport"]');
+  buttons.forEach(btn => {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
+    btn.disabled = true;
+  });
+  feather.replace();
+
+  // Get current URL parameters
   const url = new URL(window.location);
-  url.searchParams.set('format', format);
-  window.open(url.toString(), '_blank');
+  const params = new URLSearchParams(url.search);
+  params.set('format', format);
+  
+  // Make export request
+  fetch(`/admin/reports/download/complaints/${format}?${params.toString()}`)
+    .then(response => {
+      if (response.ok) {
+        if (format === 'json') {
+          return response.json();
+        } else {
+          return response.json();
+        }
+      }
+      throw new Error('Export failed');
+    })
+    .then(data => {
+      if (format === 'json') {
+        // Download JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `complaints_report_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+      } else {
+        // Show message for PDF/Excel
+        alert(data.message || 'Export completed');
+      }
+      
+      // Show success notification
+      showNotification(`${format.toUpperCase()} export completed successfully!`, 'success');
+    })
+    .catch(error => {
+      console.error('Export error:', error);
+      showNotification('Export failed: ' + error.message, 'error');
+    })
+    .finally(() => {
+      // Reset buttons
+      buttons.forEach(btn => {
+        const originalText = btn.innerHTML.includes('PDF') ? 
+          '<i data-feather="download" class="me-2"></i>Export PDF' :
+          '<i data-feather="file-text" class="me-2"></i>Export Excel';
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      });
+      feather.replace();
+    });
+}
+
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
 }
 </script>
 @endsection

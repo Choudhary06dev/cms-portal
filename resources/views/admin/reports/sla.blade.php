@@ -34,7 +34,7 @@
   <div class="card-body">
           <!-- SLA Summary -->
           <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div class="card bg-primary text-white">
                 <div class="card-body">
                   <h5 class="card-title">{{ $summary['total_complaints'] ?? 0 }}</h5>
@@ -42,7 +42,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div class="card bg-success text-white">
                 <div class="card-body">
                   <h5 class="card-title">{{ $summary['within_sla'] ?? 0 }}</h5>
@@ -50,7 +50,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div class="card bg-danger text-white">
                 <div class="card-body">
                   <h5 class="card-title">{{ $summary['breached_sla'] ?? 0 }}</h5>
@@ -58,11 +58,27 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+              <div class="card bg-warning text-white">
+                <div class="card-body">
+                  <h5 class="card-title">{{ $summary['critical_urgent'] ?? 0 }}</h5>
+                  <p class="card-text">Critical</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
               <div class="card bg-info text-white">
                 <div class="card-body">
                   <h5 class="card-title">{{ $summary['sla_compliance_rate'] ?? 0 }}%</h5>
                   <p class="card-text">Compliance Rate</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="card bg-secondary text-white">
+                <div class="card-body">
+                  <h5 class="card-title">{{ round($summary['average_resolution_time'] ?? 0, 1) }}h</h5>
+                  <p class="card-text">Avg Resolution</p>
                 </div>
               </div>
             </div>
@@ -109,6 +125,9 @@
                           <th>Status</th>
                           <th>Assigned To</th>
                           <th>Age (Hours)</th>
+                          <th>SLA Limit</th>
+                          <th>Time Remaining</th>
+                          <th>Urgency</th>
                           <th>SLA Status</th>
                         </tr>
                       </thead>
@@ -131,13 +150,79 @@
                           </td>
                           <td>{{ $complaintData['complaint']->assignedEmployee->user->username ?? 'Unassigned' }}</td>
                           <td>
-                            <span class="badge bg-{{ $complaintData['age_hours'] > 24 ? 'danger' : 'success' }}">
+                            <span class="badge bg-{{ $complaintData['age_hours'] > $complaintData['max_response_time'] ? 'danger' : 'success' }}">
                               {{ $complaintData['age_hours'] }}h
+                            </span>
+                          </td>
+                          <td>
+                            <span class="badge bg-secondary">{{ $complaintData['max_response_time'] }}h</span>
+                          </td>
+                          <td>
+                            @if($complaintData['time_remaining'] > 0)
+                              <span class="badge bg-success">{{ $complaintData['time_remaining'] }}h left</span>
+                            @else
+                              <span class="badge bg-danger">Overdue</span>
+                            @endif
+                          </td>
+                          <td>
+                            <span class="badge bg-{{ $complaintData['urgency_level'] === 'critical' ? 'danger' : ($complaintData['urgency_level'] === 'high' ? 'warning' : ($complaintData['urgency_level'] === 'medium' ? 'info' : 'success')) }}">
+                              {{ ucfirst($complaintData['urgency_level']) }}
                             </span>
                           </td>
                           <td>
                             <span class="badge bg-{{ $complaintData['sla_status'] === 'breached' ? 'danger' : 'success' }}">
                               {{ ucfirst(str_replace('_', ' ', $complaintData['sla_status'])) }}
+                            </span>
+                          </td>
+                        </tr>
+                        @endforeach
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SLA Rules Summary -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="card-title">SLA Rules Performance</h6>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Complaint Type</th>
+                          <th>Max Response Time</th>
+                          <th>Total Complaints</th>
+                          <th>Within SLA</th>
+                          <th>Breached SLA</th>
+                          <th>Compliance Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @foreach($slaRulesSummary as $ruleSummary)
+                        <tr>
+                          <td>
+                            <span class="badge bg-primary">{{ $ruleSummary['rule']->getComplaintTypeDisplayAttribute() }}</span>
+                          </td>
+                          <td>
+                            <span class="badge bg-info">{{ $ruleSummary['rule']->getMaxResponseTimeDisplayAttribute() }}</span>
+                          </td>
+                          <td>{{ $ruleSummary['total_complaints'] }}</td>
+                          <td>
+                            <span class="badge bg-success">{{ $ruleSummary['within_sla'] }}</span>
+                          </td>
+                          <td>
+                            <span class="badge bg-danger">{{ $ruleSummary['breached_sla'] }}</span>
+                          </td>
+                          <td>
+                            <span class="badge bg-{{ $ruleSummary['compliance_rate'] >= 80 ? 'success' : ($ruleSummary['compliance_rate'] >= 60 ? 'warning' : 'danger') }}">
+                              {{ $ruleSummary['compliance_rate'] }}%
                             </span>
                           </td>
                         </tr>
@@ -189,37 +274,49 @@ document.addEventListener('DOMContentLoaded', function() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#ffffff',
+            font: {
+              size: 12,
+              weight: '500'
+            }
+          }
+        }
+      }
     }
   });
 
-  // Performance Chart
+  // Performance Chart - Urgency Levels
   const performanceCtx = document.getElementById('performanceChart').getContext('2d');
-  const ageGroups = {
-    '0-6h': complaints.filter(c => c.age_hours <= 6).length,
-    '6-12h': complaints.filter(c => c.age_hours > 6 && c.age_hours <= 12).length,
-    '12-24h': complaints.filter(c => c.age_hours > 12 && c.age_hours <= 24).length,
-    '24h+': complaints.filter(c => c.age_hours > 24).length
+  const urgencyGroups = {
+    'Critical': complaints.filter(c => c.urgency_level === 'critical').length,
+    'High': complaints.filter(c => c.urgency_level === 'high').length,
+    'Medium': complaints.filter(c => c.urgency_level === 'medium').length,
+    'Low': complaints.filter(c => c.urgency_level === 'low').length
   };
   
   new Chart(performanceCtx, {
     type: 'bar',
     data: {
-      labels: Object.keys(ageGroups),
+      labels: Object.keys(urgencyGroups),
       datasets: [{
         label: 'Number of Complaints',
-        data: Object.values(ageGroups),
+        data: Object.values(urgencyGroups),
         backgroundColor: [
-          '#28a745',
+          '#dc3545',
           '#ffc107',
-          '#fd7e14',
-          '#dc3545'
+          '#17a2b8',
+          '#28a745'
         ],
         borderColor: [
-          '#1e7e34',
+          '#bd2130',
           '#e0a800',
-          '#e55a00',
-          '#bd2130'
+          '#138496',
+          '#1e7e34'
         ],
         borderWidth: 1
       }]
@@ -227,9 +324,40 @@ document.addEventListener('DOMContentLoaded', function() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: '#ffffff',
+            font: {
+              size: 12,
+              weight: '500'
+            }
+          }
+        }
+      },
       scales: {
         y: {
-          beginAtZero: true
+          beginAtZero: true,
+          ticks: {
+            color: '#ffffff',
+            font: {
+              size: 11
+            }
+          },
+          grid: {
+            color: '#4b5563'
+          }
+        },
+        x: {
+          ticks: {
+            color: '#ffffff',
+            font: {
+              size: 11
+            }
+          },
+          grid: {
+            color: '#4b5563'
+          }
         }
       }
     }
@@ -237,9 +365,92 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function exportReport(format) {
+  // Show loading state
+  const buttons = document.querySelectorAll('button[onclick*="exportReport"]');
+  buttons.forEach(btn => {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
+    btn.disabled = true;
+  });
+  feather.replace();
+
+  // Get current URL parameters
   const url = new URL(window.location);
-  url.searchParams.set('format', format);
-  window.open(url.toString(), '_blank');
+  const params = new URLSearchParams(url.search);
+  params.set('format', format);
+
+  // Make export request
+  fetch(`/admin/reports/download/sla/${format}?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    },
+    credentials: 'same-origin'
+  })
+    .then(response => {
+      if (response.ok) {
+        if (format === 'json') {
+          return response.json();
+        } else {
+          return response.json();
+        }
+      }
+      throw new Error('Export failed');
+    })
+    .then(data => {
+      if (format === 'json') {
+        // Download JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `sla_report_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+      } else {
+        // Show message for PDF/Excel
+        alert(data.message || 'Export completed');
+      }
+
+      // Show success notification
+      showNotification(`${format.toUpperCase()} export completed successfully!`, 'success');
+    })
+    .catch(error => {
+      console.error('Export error:', error);
+      showNotification('Export failed: ' + error.message, 'error');
+    })
+    .finally(() => {
+      // Reset buttons
+      buttons.forEach(btn => {
+        const originalText = btn.innerHTML.includes('PDF') ? 'Export PDF' : 'Export Excel';
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      });
+      feather.replace();
+    });
+}
+
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  document.body.appendChild(notification);
+
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
 }
 </script>
 @endsection

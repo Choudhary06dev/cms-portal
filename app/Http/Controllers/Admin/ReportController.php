@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Client;
 use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
+use App\Models\EmployeeLeave;
 use App\Models\ReportsSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,10 +25,288 @@ class ReportController extends Controller
      */
     public function index()
     {
-        $reportTypes = ReportsSummary::getReportTypes();
-        $recentReports = ReportsSummary::recent(7)->get();
+        // Get real-time statistics
+        $stats = $this->getRealTimeStats();
+        $recentActivity = $this->getRecentActivity();
         
-        return view('admin.reports.index', compact('reportTypes', 'recentReports'));
+        // Get real data for JavaScript functions
+        $realData = $this->getRealDataForJS();
+        
+        return view('admin.reports.index', compact('stats', 'recentActivity', 'realData'));
+    }
+
+    /**
+     * Get real data for JavaScript functions
+     */
+    private function getRealDataForJS()
+    {
+        $now = now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        
+        return [
+            'complaints' => [
+                'total' => \App\Models\Complaint::count(),
+                'resolved' => \App\Models\Complaint::where('status', 'resolved')
+                    ->whereBetween('updated_at', [$startOfMonth, $now])
+                    ->count(),
+                'pending' => \App\Models\Complaint::where('status', '!=', 'resolved')->count(),
+                'avg_resolution_time' => $this->getAverageResolutionTime()
+            ],
+            'employees' => [
+                'total' => \App\Models\Employee::count(),
+                'active' => \App\Models\Employee::whereHas('user', function($query) {
+                    $query->where('status', 'active');
+                })->count(),
+                'on_leave' => \App\Models\EmployeeLeave::where('status', 'pending')->count(),
+                'avg_performance' => $this->getAverageEmployeePerformance()
+            ],
+            'spares' => [
+                'total_items' => \App\Models\Spare::count(),
+                'low_stock' => \App\Models\Spare::where('stock_quantity', '<=', \DB::raw('threshold_level'))->count(),
+                'out_of_stock' => \App\Models\Spare::where('stock_quantity', 0)->count(),
+                'total_value' => \App\Models\Spare::sum(\DB::raw('stock_quantity * unit_price'))
+            ],
+            'financial' => [
+                'total_costs' => $this->getTotalSpareCosts(),
+                'approvals' => \App\Models\SpareApprovalPerforma::count(),
+                'approved' => \App\Models\SpareApprovalPerforma::where('status', 'approved')->count(),
+                'approval_rate' => $this->getApprovalRate()
+            ]
+        ];
+    }
+
+    /**
+     * Get average resolution time in hours
+     */
+    private function getAverageResolutionTime()
+    {
+        $resolvedComplaints = \App\Models\Complaint::where('status', 'resolved')
+            ->whereNotNull('updated_at')
+            ->get();
+            
+        if ($resolvedComplaints->isEmpty()) {
+            return 0;
+        }
+        
+        $totalHours = $resolvedComplaints->sum(function($complaint) {
+            return $complaint->created_at->diffInHours($complaint->updated_at);
+        });
+        
+        return round($totalHours / $resolvedComplaints->count(), 1);
+    }
+
+    /**
+     * Get average employee performance
+     */
+    private function getAverageEmployeePerformance()
+    {
+        $employees = \App\Models\Employee::with(['assignedComplaints' => function($query) {
+            $query->where('status', 'resolved');
+        }])->get();
+        
+        if ($employees->isEmpty()) {
+            return 0;
+        }
+        
+        $totalPerformance = $employees->sum(function($employee) {
+            $totalComplaints = $employee->assignedComplaints->count();
+            if ($totalComplaints === 0) return 0;
+            
+            $resolvedComplaints = $employee->assignedComplaints->where('status', 'resolved')->count();
+            return ($resolvedComplaints / $totalComplaints) * 100;
+        });
+        
+        return round($totalPerformance / $employees->count(), 1);
+    }
+
+    /**
+     * Get total spare costs
+     */
+    private function getTotalSpareCosts()
+    {
+        return \DB::table('complaint_spares')
+            ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
+            ->sum(\DB::raw('complaint_spares.quantity * spares.unit_price'));
+    }
+
+    /**
+     * Get approval rate percentage
+     */
+    private function getApprovalRate()
+    {
+        $totalApprovals = \App\Models\SpareApprovalPerforma::count();
+        if ($totalApprovals === 0) return 0;
+        
+        $approvedApprovals = \App\Models\SpareApprovalPerforma::where('status', 'approved')->count();
+        return round(($approvedApprovals / $totalApprovals) * 100, 1);
+    }
+
+    /**
+     * Get real-time statistics for dashboard
+     */
+    private function getRealTimeStats()
+    {
+        $now = now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        
+        return [
+            'active_complaints' => Complaint::where('status', '!=', 'resolved')->count(),
+            'resolved_this_month' => Complaint::where('status', 'resolved')
+                ->whereBetween('updated_at', [$startOfMonth, $now])
+                ->count(),
+            'sla_compliance' => $this->calculateSlaCompliance(),
+            'active_employees' => Employee::whereHas('user', function($query) {
+                $query->where('status', 'active');
+            })->count(),
+            'total_spares' => Spare::count(),
+            'low_stock_items' => Spare::where('stock_quantity', '<=', DB::raw('threshold_level'))->count(),
+            'out_of_stock_items' => Spare::where('stock_quantity', 0)->count(),
+            'total_approvals' => SpareApprovalPerforma::count(),
+            'pending_approvals' => SpareApprovalPerforma::where('status', 'pending')->count(),
+            'total_clients' => \App\Models\Client::count(),
+            'active_clients' => \App\Models\Client::where('status', 'active')->count(),
+            'total_spare_value' => Spare::sum(DB::raw('stock_quantity * unit_price')),
+            'avg_resolution_time' => $this->getAverageResolutionTime(),
+            'employee_performance' => $this->getAverageEmployeePerformance()
+        ];
+    }
+
+    /**
+     * Calculate SLA compliance percentage
+     */
+    private function calculateSlaCompliance()
+    {
+        $totalComplaints = Complaint::count();
+        if ($totalComplaints === 0) return 100;
+        
+        // Get complaints that are resolved and within SLA time limits
+        $compliantComplaints = Complaint::where('status', 'resolved')
+            ->whereHas('slaRule', function($query) {
+                $query->whereRaw('TIMESTAMPDIFF(HOUR, complaints.created_at, complaints.updated_at) <= sla_rules.max_resolution_time');
+            })->count();
+        
+        return round(($compliantComplaints / $totalComplaints) * 100, 1);
+    }
+
+    /**
+     * Get recent activity for dashboard
+     */
+    private function getRecentActivity()
+    {
+        $activities = collect();
+        
+        try {
+            // Recent complaints
+            $recentComplaints = Complaint::with(['client', 'assignedEmployee.user'])
+                ->latest()
+                ->limit(3)
+                ->get();
+                
+            foreach ($recentComplaints as $complaint) {
+                $activities->push([
+                    'type' => 'complaint',
+                    'title' => 'New complaint submitted',
+                    'description' => $complaint->title,
+                    'time' => $complaint->created_at->diffForHumans(),
+                    'badge' => ucfirst($complaint->status),
+                    'badge_class' => $this->getStatusBadgeClass($complaint->status)
+                ]);
+            }
+            
+            // Recent approvals
+            $recentApprovals = SpareApprovalPerforma::with(['requestedBy.user'])
+                ->latest()
+                ->limit(2)
+                ->get();
+                
+            foreach ($recentApprovals as $approval) {
+                $activities->push([
+                    'type' => 'approval',
+                    'title' => 'Spare part approval',
+                    'description' => 'Requested by ' . ($approval->requestedBy->user->username ?? 'Unknown'),
+                    'time' => $approval->created_at->diffForHumans(),
+                    'badge' => ucfirst($approval->status),
+                    'badge_class' => $this->getApprovalBadgeClass($approval->status)
+                ]);
+            }
+            
+            // Recent employee activities
+            $recentLeaves = EmployeeLeave::with(['employee.user'])
+                ->where('status', 'pending')
+                ->latest()
+                ->limit(1)
+                ->get();
+                
+            foreach ($recentLeaves as $leave) {
+                $activities->push([
+                    'type' => 'leave',
+                    'title' => 'Employee leave request',
+                    'description' => ($leave->employee->user->username ?? 'Unknown') . ' requested leave',
+                    'time' => $leave->created_at->diffForHumans(),
+                    'badge' => 'Pending',
+                    'badge_class' => 'warning'
+                ]);
+            }
+            
+            // Recent spare part activities
+            $recentSpares = Spare::where('stock_quantity', '<=', DB::raw('threshold_level'))
+                ->latest('updated_at')
+                ->limit(1)
+                ->get();
+                
+            foreach ($recentSpares as $spare) {
+                $activities->push([
+                    'type' => 'spare',
+                    'title' => 'Low stock alert',
+                    'description' => $spare->item_name . ' is running low',
+                    'time' => $spare->updated_at->diffForHumans(),
+                    'badge' => 'Low Stock',
+                    'badge_class' => 'warning'
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            // If there's an error, return empty activities
+            \Log::error('Error fetching recent activity: ' . $e->getMessage());
+        }
+        
+        return $activities->sortByDesc('time')->take(5)->values();
+    }
+
+    /**
+     * Get badge class for complaint status
+     */
+    private function getStatusBadgeClass($status)
+    {
+        switch (strtolower($status)) {
+            case 'resolved':
+                return 'success';
+            case 'in_progress':
+                return 'info';
+            case 'pending':
+                return 'warning';
+            case 'closed':
+                return 'secondary';
+            default:
+                return 'primary';
+        }
+    }
+
+    /**
+     * Get badge class for approval status
+     */
+    private function getApprovalBadgeClass($status)
+    {
+        switch (strtolower($status)) {
+            case 'approved':
+                return 'success';
+            case 'pending':
+                return 'warning';
+            case 'rejected':
+                return 'danger';
+            default:
+                return 'primary';
+        }
     }
 
     /**
@@ -35,17 +314,21 @@ class ReportController extends Controller
      */
     public function complaints(Request $request)
     {
-        $validator = $request->validate([
-            'date_from' => 'required|date',
-            'date_to' => 'required|date|after_or_equal:date_from',
-            'group_by' => 'nullable|in:status,type,priority,employee,client',
-            'format' => 'nullable|in:html,pdf,excel',
-        ]);
-
-        $dateFrom = $request->date_from;
-        $dateTo = $request->date_to;
+        // Set default values if not provided
+        $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
+        $dateTo = $request->date_to ?? now()->format('Y-m-d');
         $groupBy = $request->group_by ?? 'status';
         $format = $request->format ?? 'html';
+
+        // Validate only if parameters are provided
+        if ($request->has('date_from') || $request->has('date_to')) {
+            $request->validate([
+                'date_from' => 'date',
+                'date_to' => 'date|after_or_equal:date_from',
+                'group_by' => 'nullable|in:status,type,priority,employee,client',
+                'format' => 'nullable|in:html,pdf,excel',
+            ]);
+        }
 
         $query = Complaint::whereBetween('created_at', [$dateFrom, $dateTo])
             ->with(['client', 'assignedEmployee.user']);
@@ -110,17 +393,21 @@ class ReportController extends Controller
      */
     public function employees(Request $request)
     {
-        $validator = $request->validate([
-            'date_from' => 'required|date',
-            'date_to' => 'required|date|after_or_equal:date_from',
-            'department' => 'nullable|string',
-            'format' => 'nullable|in:html,pdf,excel',
-        ]);
-
-        $dateFrom = $request->date_from;
-        $dateTo = $request->date_to;
+        // Set default values if not provided
+        $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
+        $dateTo = $request->date_to ?? now()->format('Y-m-d');
         $department = $request->department;
         $format = $request->format ?? 'html';
+
+        // Validate only if parameters are provided
+        if ($request->has('date_from') || $request->has('date_to')) {
+            $request->validate([
+                'date_from' => 'date',
+                'date_to' => 'date|after_or_equal:date_from',
+                'department' => 'nullable|string',
+                'format' => 'nullable|in:html,pdf,excel',
+            ]);
+        }
 
         $query = Employee::with(['user', 'assignedComplaints' => function($q) use ($dateFrom, $dateTo) {
             $q->whereBetween('created_at', [$dateFrom, $dateTo]);
@@ -163,17 +450,21 @@ class ReportController extends Controller
      */
     public function spares(Request $request)
     {
-        $validator = $request->validate([
-            'date_from' => 'required|date',
-            'date_to' => 'required|date|after_or_equal:date_from',
-            'category' => 'nullable|string',
-            'format' => 'nullable|in:html,pdf,excel',
-        ]);
-
-        $dateFrom = $request->date_from;
-        $dateTo = $request->date_to;
+        // Set default values if not provided
+        $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
+        $dateTo = $request->date_to ?? now()->format('Y-m-d');
         $category = $request->category;
         $format = $request->format ?? 'html';
+
+        // Validate only if parameters are provided
+        if ($request->has('date_from') || $request->has('date_to')) {
+            $request->validate([
+                'date_from' => 'date',
+                'date_to' => 'date|after_or_equal:date_from',
+                'category' => 'nullable|string',
+                'format' => 'nullable|in:html,pdf,excel',
+            ]);
+        }
 
         $query = Spare::query();
 
@@ -219,15 +510,19 @@ class ReportController extends Controller
      */
     public function financial(Request $request)
     {
-        $validator = $request->validate([
-            'date_from' => 'required|date',
-            'date_to' => 'required|date|after_or_equal:date_from',
-            'format' => 'nullable|in:html,pdf,excel',
-        ]);
-
-        $dateFrom = $request->date_from;
-        $dateTo = $request->date_to;
+        // Set default values if not provided
+        $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
+        $dateTo = $request->date_to ?? now()->format('Y-m-d');
         $format = $request->format ?? 'html';
+
+        // Validate only if parameters are provided
+        if ($request->has('date_from') || $request->has('date_to')) {
+            $request->validate([
+                'date_from' => 'date',
+                'date_to' => 'date|after_or_equal:date_from',
+                'format' => 'nullable|in:html,pdf,excel',
+            ]);
+        }
 
         // Spare parts costs
         $spareCosts = DB::table('complaint_spares')
@@ -237,16 +532,15 @@ class ReportController extends Controller
             ->groupBy('spares.category')
             ->get();
 
-        // Approval costs
+        // Approval costs - simplified approach
         $approvalCosts = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', 'approved')
-            ->with(['items.spare'])
             ->get()
             ->groupBy(function($approval) {
                 return $approval->created_at->format('Y-m');
             })
             ->map(function($approvals) {
-                return $approvals->sum('getTotalEstimatedCostAttribute');
+                return $approvals->count(); // For now, just count approvals per month
             });
 
         $summary = [
@@ -270,41 +564,81 @@ class ReportController extends Controller
      */
     public function sla(Request $request)
     {
-        $validator = $request->validate([
-            'date_from' => 'required|date',
-            'date_to' => 'required|date|after_or_equal:date_from',
-            'format' => 'nullable|in:html,pdf,excel',
-        ]);
-
-        $dateFrom = $request->date_from;
-        $dateTo = $request->date_to;
+        // Make date parameters optional with defaults
+        $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
+        $dateTo = $request->date_to ?? now()->format('Y-m-d');
         $format = $request->format ?? 'html';
 
+        // Get SLA rules
+        $slaRules = \App\Models\SlaRule::all()->keyBy('complaint_type');
+
+        // Get complaints with SLA analysis
         $complaints = Complaint::whereBetween('created_at', [$dateFrom, $dateTo])
             ->with(['client', 'assignedEmployee.user'])
             ->get()
-            ->map(function($complaint) {
+            ->map(function($complaint) use ($slaRules) {
                 $ageInHours = $complaint->created_at->diffInHours(now());
-                $isOverdue = $ageInHours > 24; // Default SLA of 24 hours
+                
+                // Get SLA rule for this complaint type
+                $slaRule = $slaRules->get($complaint->category);
+                $maxResponseTime = $slaRule ? $slaRule->max_response_time : 24; // Default 24 hours
+                
+                $isOverdue = $ageInHours > $maxResponseTime;
+                $timeRemaining = max(0, $maxResponseTime - $ageInHours);
+                
+                // Calculate urgency level
+                $urgencyLevel = 'low';
+                if ($isOverdue) {
+                    $urgencyLevel = 'critical';
+                } elseif ($timeRemaining <= $maxResponseTime * 0.25) {
+                    $urgencyLevel = 'high';
+                } elseif ($timeRemaining <= $maxResponseTime * 0.5) {
+                    $urgencyLevel = 'medium';
+                }
                 
                 return [
                     'complaint' => $complaint,
                     'age_hours' => $ageInHours,
+                    'max_response_time' => $maxResponseTime,
+                    'time_remaining' => $timeRemaining,
                     'is_overdue' => $isOverdue,
                     'sla_status' => $isOverdue ? 'breached' : 'within_sla',
+                    'urgency_level' => $urgencyLevel,
+                    'sla_rule' => $slaRule,
                 ];
             });
 
+        // Calculate summary statistics
         $summary = [
             'total_complaints' => $complaints->count(),
             'within_sla' => $complaints->where('sla_status', 'within_sla')->count(),
             'breached_sla' => $complaints->where('sla_status', 'breached')->count(),
             'sla_compliance_rate' => $complaints->count() > 0 ? 
                 round(($complaints->where('sla_status', 'within_sla')->count() / $complaints->count()) * 100, 2) : 0,
+            'critical_urgent' => $complaints->where('urgency_level', 'critical')->count(),
+            'high_priority' => $complaints->where('urgency_level', 'high')->count(),
+            'average_resolution_time' => $complaints->filter(function($complaintData) {
+                return $complaintData['complaint']->status === 'resolved';
+            })->avg('age_hours') ?? 0,
         ];
 
+        // Get SLA rules summary
+        $slaRulesSummary = $slaRules->map(function($rule) use ($complaints) {
+            $ruleComplaints = $complaints->filter(function($complaintData) use ($rule) {
+                return $complaintData['complaint']->category === $rule->complaint_type;
+            });
+            return [
+                'rule' => $rule,
+                'total_complaints' => $ruleComplaints->count(),
+                'within_sla' => $ruleComplaints->where('sla_status', 'within_sla')->count(),
+                'breached_sla' => $ruleComplaints->where('sla_status', 'breached')->count(),
+                'compliance_rate' => $ruleComplaints->count() > 0 ? 
+                    round(($ruleComplaints->where('sla_status', 'within_sla')->count() / $ruleComplaints->count()) * 100, 2) : 0,
+            ];
+        });
+
         if ($format === 'html') {
-            return view('admin.reports.sla', compact('complaints', 'summary', 'dateFrom', 'dateTo'));
+            return view('admin.reports.sla', compact('complaints', 'summary', 'slaRulesSummary', 'dateFrom', 'dateTo'));
         } else {
             return $this->exportReport('sla', $complaints, $summary, $format);
         }
@@ -388,12 +722,121 @@ class ReportController extends Controller
      */
     private function exportReport($type, $data, $summary, $format)
     {
-        // Implementation for export (PDF, Excel, etc.)
+        try {
+            if ($format === 'pdf') {
+                return $this->exportToPDF($type, $data, $summary);
+            } elseif ($format === 'excel') {
+                return $this->exportToExcel($type, $data, $summary);
+            } else {
+                return $this->exportToJSON($type, $data, $summary);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Export failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export report to PDF
+     */
+    private function exportToPDF($type, $data, $summary)
+    {
+        $filename = "{$type}_report_" . now()->format('Y-m-d_H-i-s') . '.pdf';
+        
+        // For now, return JSON with download link
+        // In production, you would use a PDF library like DomPDF or TCPDF
         return response()->json([
-            'message' => "Export functionality for {$type} report in {$format} format not implemented yet",
+            'message' => 'PDF export functionality will be implemented with a PDF library',
+            'filename' => $filename,
             'data' => $data,
-            'summary' => $summary
+            'summary' => $summary,
+            'download_url' => route('admin.reports.download', ['type' => $type, 'format' => 'pdf'])
         ]);
+    }
+
+    /**
+     * Export report to Excel
+     */
+    private function exportToExcel($type, $data, $summary)
+    {
+        $filename = "{$type}_report_" . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        
+        // For now, return JSON with download link
+        // In production, you would use a library like Laravel Excel
+        return response()->json([
+            'message' => 'Excel export functionality will be implemented with Laravel Excel',
+            'filename' => $filename,
+            'data' => $data,
+            'summary' => $summary,
+            'download_url' => route('admin.reports.download', ['type' => $type, 'format' => 'excel'])
+        ]);
+    }
+
+    /**
+     * Export report to JSON
+     */
+    private function exportToJSON($type, $data, $summary)
+    {
+        $filename = "{$type}_report_" . now()->format('Y-m-d_H-i-s') . '.json';
+        
+        $exportData = [
+            'report_type' => $type,
+            'generated_at' => now()->toISOString(),
+            'summary' => $summary,
+            'data' => $data
+        ];
+        
+        return response()->json($exportData)
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->header('Content-Type', 'application/json');
+    }
+
+    /**
+     * Download report file
+     */
+    public function download($type, $format)
+    {
+        try {
+            // Get report data based on type
+            $request = new Request();
+            $reportData = $this->getReportData($type, $request);
+            
+            if ($format === 'json') {
+                return $this->exportToJSON($type, $reportData['data'], $reportData['summary']);
+            } else {
+                // For PDF and Excel, return a message with download instructions
+                return response()->json([
+                    'message' => "{$format} export functionality will be implemented with appropriate libraries",
+                    'type' => $type,
+                    'format' => $format,
+                    'data' => $reportData
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Download failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get report data based on type
+     */
+    private function getReportData($type, $request)
+    {
+        switch ($type) {
+            case 'complaints':
+                return $this->getComplaintsData($request);
+            case 'employees':
+                return $this->getEmployeesData($request);
+            case 'spares':
+                return $this->getSparesData($request);
+            case 'financial':
+                return $this->getFinancialData($request);
+            default:
+                throw new \Exception("Unknown report type: {$type}");
+        }
     }
 
     /**

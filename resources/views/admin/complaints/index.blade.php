@@ -412,34 +412,10 @@
             window.location.href = `/admin/complaints/${complaintId}/edit`;
         }
 
-        function deleteComplaint(complaintId) {
-            if (confirm('Are you sure you want to delete this complaint? This action cannot be undone.')) {
-                // Create a form and submit it
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/admin/complaints/${complaintId}`;
-
-                // Add CSRF token
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = '_token';
-                csrfInput.value = csrfToken;
-                form.appendChild(csrfInput);
-
-                // Add DELETE method
-                const methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                methodInput.value = 'DELETE';
-                form.appendChild(methodInput);
-
-                // Submit the form
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-
-        // Modal buttons removed - no event listeners needed
-    </script>
+  function deleteComplaint(complaintId) {
+    if (confirm('Are you sure you want to delete this complaint?')) {
+      alert('Delete complaint functionality coming soon!');
+    }
+  }
+</script>
 @endpush

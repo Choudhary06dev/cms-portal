@@ -241,7 +241,7 @@ class QuickDataSeeder extends Seeder
                         'ticket_number' => 'TKT-' . str_pad($i, 6, '0', STR_PAD_LEFT),
                         'client_id' => $client->id,
                         'assigned_to' => $assignedTo->id,
-                        'complaint_type' => $slaRule->complaint_type,
+                        'category' => $slaRule->complaint_type,
                         'priority' => $priority,
                         'status' => $status,
                         'subject' => "Complaint Subject {$i} - " . ucfirst($slaRule->complaint_type) . " Issue",

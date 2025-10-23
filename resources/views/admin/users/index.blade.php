@@ -186,16 +186,44 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          location.reload();
+          showNotification('User deleted successfully!', 'success');
+          // Remove the row from table
+          const row = document.querySelector(`button[onclick="deleteUser(${userId})"]`).closest('tr');
+          if (row) {
+            row.remove();
+          }
+          // Reload page after a short delay
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
         } else {
-          alert('Error deleting user: ' + (data.message || 'Unknown error'));
+          showNotification('Error deleting user: ' + (data.message || 'Unknown error'), 'error');
         }
       })
       .catch(error => {
         console.error('Error deleting user:', error);
-        alert('Error deleting user');
+        showNotification('Error deleting user: ' + error.message, 'error');
       });
     }
+  }
+
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
   }
 </script>
 @endpush
