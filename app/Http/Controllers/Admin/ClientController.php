@@ -53,7 +53,7 @@ class ClientController extends Controller
             $query->where('state', $request->state);
         }
 
-        $clients = $query->orderBy('client_name')->paginate(15);
+        $clients = $query->orderBy('id', 'desc')->paginate(15);
 
         return view('admin.clients.index', compact('clients'));
     }

@@ -142,10 +142,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-between align-items-center mt-3">
-    <div >
-      Showing {{ $clients->firstItem() ?? 0 }} to {{ $clients->lastItem() ?? 0 }} of {{ $clients->total() }} clients
-    </div>
+  <div class="d-flex justify-content-center mt-3">
     <div>
       {{ $clients->links() }}
     </div>
@@ -159,6 +156,8 @@
   .type-individual { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
   .type-company { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
   .type-government { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  
+  /* Pagination styles are now centralized in components/pagination.blade.php */
   
   .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
   .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
@@ -191,28 +190,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this client? This action cannot be undone.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Delete Client</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 @push('scripts')
 <script>
@@ -347,14 +324,31 @@
   }
 
   function deleteClient(clientId) {
-    currentClientId = clientId;
-    
-    // Set up the delete form action
-    const deleteForm = document.getElementById('deleteForm');
-    deleteForm.action = `/admin/clients/${clientId}`;
-    
-    // Show delete confirmation modal
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    if (confirm('Are you sure you want to delete this client? This action cannot be undone.')) {
+      // Create a form and submit it
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/clients/${clientId}`;
+      
+      // Add CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = '_token';
+      csrfInput.value = csrfToken;
+      form.appendChild(csrfInput);
+      
+      // Add DELETE method
+      const methodInput = document.createElement('input');
+      methodInput.type = 'hidden';
+      methodInput.name = '_method';
+      methodInput.value = 'DELETE';
+      form.appendChild(methodInput);
+      
+      // Submit the form
+      document.body.appendChild(form);
+      form.submit();
+    }
   }
 </script>
 @endpush

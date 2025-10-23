@@ -120,10 +120,7 @@
       </div>
 
   <!-- PAGINATION -->
-      <div class="d-flex justify-content-between align-items-center mt-3">
-    <div >
-      Showing {{ $spares->firstItem() ?? 0 }} to {{ $spares->lastItem() ?? 0 }} of {{ $spares->total() }} spare parts
-        </div>
+      <div class="d-flex justify-content-center mt-3">
         <div>
           {{ $spares->links() }}
         </div>
@@ -216,6 +213,8 @@
 @push('styles')
 <style>
   .category-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  
+  /* Pagination styles are now centralized in components/pagination.blade.php */
   
   /* Modal theme styling */
   .modal-content.card-glass {

@@ -25,7 +25,7 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        $employees = Employee::with('user.role')->latest()->paginate(10);
+        $employees = Employee::with('user.role')->orderBy('id', 'desc')->paginate(10);
         $roles = Role::all();
         
         return view('admin.employees.index', compact('employees', 'roles'));

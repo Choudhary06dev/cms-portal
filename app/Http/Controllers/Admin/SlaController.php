@@ -42,7 +42,7 @@ class SlaController extends Controller
             $query->where('status', $request->status);
         }
 
-        $slaRules = $query->orderBy('complaint_type')->paginate(15);
+        $slaRules = $query->orderBy('id', 'desc')->paginate(15);
         $users = User::where('status', 'active')->get();
 
         return view('admin.sla.index', compact('slaRules', 'users'));

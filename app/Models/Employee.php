@@ -32,6 +32,14 @@ class Employee extends Model
     }
 
     /**
+     * Get full name of the employee
+     */
+    public function getFullNameAttribute(): string
+    {
+        return $this->user ? $this->user->username : 'Unknown Employee';
+    }
+
+    /**
      * Get the leaves for the employee.
      */
     public function leaves(): HasMany

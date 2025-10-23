@@ -117,10 +117,7 @@
       </div>
 
   <!-- PAGINATION -->
-      <div class="d-flex justify-content-between align-items-center mt-3">
-    <div >
-      Showing {{ $slaRules->firstItem() ?? 0 }} to {{ $slaRules->lastItem() ?? 0 }} of {{ $slaRules->total() }} SLA rules
-        </div>
+      <div class="d-flex justify-content-center mt-3">
         <div>
           {{ $slaRules->links() }}
         </div>

@@ -61,7 +61,7 @@ class SpareController extends Controller
             $query->where('unit_price', '<=', $request->price_to);
         }
 
-        $spares = $query->orderBy('item_name')->paginate(15);
+        $spares = $query->orderBy('id', 'desc')->paginate(15);
         $categories = Spare::getCategories();
 
         return view('admin.spares.index', compact('spares', 'categories'));

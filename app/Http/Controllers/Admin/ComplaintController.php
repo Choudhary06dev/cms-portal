@@ -74,7 +74,7 @@ class ComplaintController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $complaints = $query->orderBy('created_at', 'desc')->paginate(15);
+        $complaints = $query->orderBy('id', 'desc')->paginate(15);
         
         $clients = Client::orderBy('client_name')->get();
         $employees = Employee::whereHas('user', function($q) {

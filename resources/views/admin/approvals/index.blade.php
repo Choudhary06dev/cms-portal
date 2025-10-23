@@ -146,10 +146,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-between align-items-center mt-3">
-    <div >
-      Showing {{ $approvals->firstItem() ?? 0 }} to {{ $approvals->lastItem() ?? 0 }} of {{ $approvals->total() }} approval requests
-    </div>
+  <div class="d-flex justify-content-center mt-3">
     <div>
       {{ $approvals->links() }}
     </div>

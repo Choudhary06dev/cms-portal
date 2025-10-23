@@ -36,7 +36,7 @@ class RoleController extends Controller
             $query->where('status', $request->status);
         }
 
-        $roles = $query->orderBy('role_name')->paginate(15);
+        $roles = $query->orderBy('id', 'desc')->paginate(15);
 
         return view('admin.roles.index', compact('roles'));
     }
