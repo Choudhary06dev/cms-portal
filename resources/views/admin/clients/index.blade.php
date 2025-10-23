@@ -415,8 +415,8 @@
           <div class="row">
             <div class="col-md-4">
               <div class="mb-3">
-                <label for="state_modal" class="form-label">State</label>
-                <select class="form-select" id="state_modal" name="state">
+                <label for="state_modal" class="form-label">State <span class="text-danger">*</span></label>
+                <select class="form-select" id="state_modal" name="state" required>
                   <option value="">Select State</option>
                   <option value="sindh">Sindh</option>
                   <option value="punjab">Punjab</option>
@@ -429,9 +429,12 @@
             </div>
             <div class="col-md-4">
               <div class="mb-3">
-                <label for="pincode_modal" class="form-label">Pincode</label>
-                <input type="text" class="form-control" id="pincode_modal" name="pincode">
+                <label for="pincode_modal" class="form-label">Pincode <small class="text-muted">(4 digits only)</small></label>
+                <input type="tel" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="form-control" 
+                       id="pincode_modal" name="pincode" placeholder="1234" 
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
                 <div class="invalid-feedback"></div>
+                <div class="form-text text-muted">Enter exactly 4 digits</div>
               </div>
             </div>
             <div class="col-md-4">

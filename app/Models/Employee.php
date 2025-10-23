@@ -17,6 +17,7 @@ class Employee extends Model
         'designation',
         'biometric_id',
         'leave_quota',
+        'address',
     ];
 
     protected $casts = [

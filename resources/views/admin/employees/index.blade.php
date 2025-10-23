@@ -94,7 +94,7 @@
               <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-outline-warning btn-sm" title="Edit">
                 <i data-feather="edit"></i>
               </a>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteEmployee({{ $employee->id }})" title="Delete">
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteEmployee({{ $employee->id }})" title="Delete" data-employee-id="{{ $employee->id }}">
                 <i data-feather="trash-2"></i>
               </button>
             </div>
@@ -225,25 +225,54 @@
   
   // Delete employee function
   function deleteEmployee(employeeId) {
-    if (confirm('Are you sure you want to delete this employee?')) {
+    console.log('Deleting employee ID:', employeeId);
+    
+    if (!employeeId) {
+      alert('Invalid employee ID');
+      return;
+    }
+    
+    // Check if employee exists by looking for the delete button
+    const deleteButton = document.querySelector(`button[data-employee-id="${employeeId}"]`);
+    if (!deleteButton) {
+      alert('Employee not found. The page will be refreshed.');
+      location.reload();
+      return;
+    }
+    
+    if (confirm('Are you sure you want to delete this employee? This action cannot be undone.')) {
+      console.log('User confirmed deletion for employee ID:', employeeId);
+      
+      // Try using fetch with proper headers first
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      console.log('CSRF Token:', csrfToken);
+      
       fetch(`/admin/employees/${employeeId}`, {
         method: 'DELETE',
         headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'X-CSRF-TOKEN': csrfToken,
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        credentials: 'same-origin'
       })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
+      .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response URL:', response.url);
+        
+        if (response.ok) {
+          console.log('Employee deleted successfully!');
           location.reload();
         } else {
-          alert('Error deleting employee: ' + (data.message || 'Unknown error'));
+          return response.text().then(text => {
+            console.error('Delete failed:', text);
+            alert('Error deleting employee. Status: ' + response.status);
+          });
         }
       })
       .catch(error => {
-        console.error('Error deleting employee:', error);
-        alert('Error deleting employee');
+        console.error('Delete error:', error);
+        alert('Error deleting employee: ' + error.message);
       });
     }
   }

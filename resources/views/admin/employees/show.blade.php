@@ -10,9 +10,6 @@
       <h2 class="text-white mb-2">Employee Details</h2>
       <p class="text-light">View employee information and records</p>
     </div>
-    <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Employees
-    </a>
   </div>
 </div>
 
@@ -50,7 +47,7 @@
           </div>
           <div class="mb-3">
             <span class="text-muted">Phone:</span>
-            <span class="text-white ms-2">{{ $employee->phone ?? 'N/A' }}</span>
+            <span class="text-white ms-2">{{ $employee->user->phone ?? 'N/A' }}</span>
           </div>
         </div>
         
@@ -65,6 +62,10 @@
             <span class="text-white ms-2">{{ $employee->designation ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
+            <span class="text-muted">Role:</span>
+            <span class="text-white ms-2">{{ $employee->user->role->role_name ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
             <span class="text-muted">Status:</span>
             <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2">
               {{ ucfirst($employee->user->status ?? 'inactive') }}
@@ -77,23 +78,32 @@
         </div>
       </div>
       
-      @if($employee->address)
       <div class="row mt-4">
-        <div class="col-12">
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Additional Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Biometric ID:</span>
+            <span class="text-white ms-2">{{ $employee->biometric_id ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Leave Quota:</span>
+            <span class="text-white ms-2">{{ $employee->leave_quota ?? 'N/A' }} days</span>
+          </div>
+        </div>
+        
+        @if($employee->address)
+        <div class="col-md-6">
           <h6 class="text-white fw-bold mb-3">Address</h6>
           <p class="text-light">{{ $employee->address }}</p>
         </div>
+        @endif
       </div>
-      @endif
     </div>
   </div>
   
   <hr class="my-4">
   
   <div class="d-flex gap-2">
-    <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-accent">
-      <i data-feather="edit" class="me-2"></i>Edit Employee
-    </a>
     <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
       <i data-feather="arrow-left" class="me-2"></i>Back to Employees
     </a>

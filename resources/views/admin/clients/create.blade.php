@@ -109,9 +109,9 @@
             <div class="row">
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="state" class="form-label text-white">State</label>
+                  <label for="state" class="form-label text-white">State <span class="text-danger">*</span></label>
                   <select class="form-select @error('state') is-invalid @enderror" 
-                          id="state" name="state">
+                          id="state" name="state" required>
                     <option value="">Select State</option>
                     <option value="sindh">Sindh</option>
                     <option value="punjab">Punjab</option>

@@ -10,9 +10,6 @@
       <h2 class="text-white mb-2">Edit Role: {{ $role->role_name }}</h2>
       <p class="text-light">Update role information and permissions</p>
     </div>
-    <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Role
-    </a>
   </div>
 </div>
 
@@ -85,7 +82,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-              <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-outline-secondary">
+              <a href="{{ route('admin.roles.index', $role) }}" class="btn btn-outline-secondary">
                 <i data-feather="x" class="me-2"></i>Cancel
               </a>
               <button type="submit" class="btn btn-accent">

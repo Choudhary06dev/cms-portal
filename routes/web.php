@@ -145,6 +145,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::post('complaints/{complaint}/assign', [AdminComplaintController::class, 'assign'])->name('complaints.assign');
         Route::post('complaints/{complaint}/update-status', [AdminComplaintController::class, 'updateStatus'])->name('complaints.update-status');
         Route::post('complaints/{complaint}/add-notes', [AdminComplaintController::class, 'addNotes'])->name('complaints.add-notes');
+        Route::get('complaints/{complaint}/print-slip', [AdminComplaintController::class, 'printSlip'])->name('complaints.print-slip');
     });
 
     // ===============================
@@ -153,6 +154,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::resource('spares', AdminSpareController::class)->middleware(['permission:spares.view']);
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::resource('approvals', AdminApprovalController::class)->middleware(['permission:approvals.view']);
+    Route::post('approvals/bulk-action', [AdminApprovalController::class, 'bulkAction'])->middleware(['permission:approvals.view'])->name('approvals.bulk-action');
     Route::resource('sla', AdminSlaController::class)->middleware(['permission:sla.view']);
     Route::get('reports', [AdminReportController::class, 'index'])->middleware(['permission:reports.view'])->name('reports.index');
     Route::get('reports/complaints', [AdminReportController::class, 'complaints'])->middleware(['permission:reports.view'])->name('reports.complaints');

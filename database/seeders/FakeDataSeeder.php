@@ -175,7 +175,8 @@ class FakeDataSeeder extends Seeder
                 'user_id' => $user->id,
                 'department' => $departments[$index % count($departments)],
                 'designation' => $designations[$index % count($designations)],
-                'phone' => $user->phone,
+                'biometric_id' => 'EMP' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
+                'leave_quota' => 30,
                 'address' => 'Employee Address ' . ($index + 1) . ', City, State 12345',
             ]);
         }
@@ -194,7 +195,6 @@ class FakeDataSeeder extends Seeder
                 'notify_to' => $users->random()->id,
                 'escalation_level' => rand(1, 3),
                 'status' => 'active',
-                'description' => "SLA rule for {$type} complaints with specific response and resolution times.",
             ]);
         }
     }

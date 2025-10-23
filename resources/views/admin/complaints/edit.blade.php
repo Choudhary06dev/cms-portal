@@ -10,9 +10,7 @@
       <h2 class="text-white mb-2">Edit Complaint</h2>
       <p class="text-light">Update complaint information</p>
     </div>
-    <a href="{{ route('admin.complaints.show', $complaint) }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Complaint
-    </a>
+   
   </div>
 </div>
 
@@ -31,10 +29,10 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="type" class="form-label text-white">Type <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control @error('type') is-invalid @enderror" 
-                         id="type" name="type" value="{{ old('type', $complaint->type) }}" required>
-                  @error('type')
+                  <label for="title" class="form-label text-white">Title <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control @error('title') is-invalid @enderror" 
+                         id="title" name="title" value="{{ old('title', $complaint->title) }}" required>
+                  @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -42,10 +40,54 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="location" class="form-label text-white">Location</label>
-                  <input type="text" class="form-control @error('location') is-invalid @enderror" 
-                         id="location" name="location" value="{{ old('location', $complaint->location) }}">
-                  @error('location')
+                  <label for="client_id" class="form-label text-white">Client <span class="text-danger">*</span></label>
+                  <select class="form-select @error('client_id') is-invalid @enderror" 
+                          id="client_id" name="client_id" required>
+                    <option value="">Select Client</option>
+                    @foreach($clients as $client)
+                    <option value="{{ $client->id }}" 
+                            {{ old('client_id', $complaint->client_id) == $client->id ? 'selected' : '' }}>
+                      {{ $client->client_name }}
+                    </option>
+                    @endforeach
+                  </select>
+                  @error('client_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
+                  <select class="form-select @error('category') is-invalid @enderror" 
+                          id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="technical" {{ old('category', $complaint->category) == 'technical' ? 'selected' : '' }}>Technical</option>
+                    <option value="service" {{ old('category', $complaint->category) == 'service' ? 'selected' : '' }}>Service</option>
+                    <option value="billing" {{ old('category', $complaint->category) == 'billing' ? 'selected' : '' }}>Billing</option>
+                    <option value="other" {{ old('category', $complaint->category) == 'other' ? 'selected' : '' }}>Other</option>
+                  </select>
+                  @error('category')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="priority" class="form-label text-white">Priority <span class="text-danger">*</span></label>
+                  <select class="form-select @error('priority') is-invalid @enderror" 
+                          id="priority" name="priority" required>
+                    <option value="">Select Priority</option>
+                    <option value="low" {{ old('priority', $complaint->priority) == 'low' ? 'selected' : '' }}>Low</option>
+                    <option value="medium" {{ old('priority', $complaint->priority) == 'medium' ? 'selected' : '' }}>Medium</option>
+                    <option value="high" {{ old('priority', $complaint->priority) == 'high' ? 'selected' : '' }}>High</option>
+                    <option value="urgent" {{ old('priority', $complaint->priority) == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                  </select>
+                  @error('priority')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -90,12 +132,11 @@
                   <label for="status" class="form-label text-white">Status <span class="text-danger">*</span></label>
                   <select class="form-select @error('status') is-invalid @enderror" 
                           id="status" name="status" required>
-                    @foreach(['NEW','IN_PROGRESS','RESOLVED','CLOSED','REOPENED'] as $st)
-                    <option value="{{ $st }}" 
-                            {{ old('status', $complaint->status) == $st ? 'selected' : '' }}>
-                      {{ $st }}
-                    </option>
-                    @endforeach
+                    <option value="new" {{ old('status', $complaint->status) == 'new' ? 'selected' : '' }}>New</option>
+                    <option value="assigned" {{ old('status', $complaint->status) == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                    <option value="in_progress" {{ old('status', $complaint->status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                    <option value="resolved" {{ old('status', $complaint->status) == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                    <option value="closed" {{ old('status', $complaint->status) == 'closed' ? 'selected' : '' }}>Closed</option>
                   </select>
                   @error('status')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -105,7 +146,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-              <a href="{{ route('admin.complaints.show', $complaint) }}" class="btn btn-outline-secondary">Cancel</a>
+              <a href="{{ route('admin.complaints.index', $complaint) }}" class="btn btn-outline-secondary">Cancel</a>
               <button type="submit" class="btn btn-accent">Update Complaint</button>
             </div>
           </form>

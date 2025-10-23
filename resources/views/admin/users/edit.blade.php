@@ -148,7 +148,7 @@
       </div>
       
       <div class="d-flex justify-content-end gap-2 mt-4">
-        <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.users.index', $user) }}" class="btn btn-outline-secondary">
           <i data-feather="x" class="me-2"></i>Cancel
         </a>
         <button type="submit" class="btn btn-accent">

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('designation', 100)->nullable();
             $table->string('biometric_id', 50)->nullable()->unique();
             $table->integer('leave_quota')->default(30);
+            $table->text('address')->nullable();
             $table->timestamps();
         });
     }

@@ -15,9 +15,7 @@
               </h5>
               <p class="text-muted mb-0">Configure what this role can access in the system</p>
             </div>
-            <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-secondary btn-sm">
-              <i data-feather="arrow-left"></i> Back to Role
-            </a>
+          
           </div>
         </div>
         <div class="card-body">
@@ -116,16 +114,8 @@
             @endif
 
             <div class="d-flex justify-content-between align-items-center mt-4">
-              <div>
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllPermissions()">
-                  <i data-feather="check-square" class="me-1"></i>Select All
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="clearAllPermissions()">
-                  <i data-feather="square" class="me-1"></i>Clear All
-                </button>
-              </div>
               <div class="d-flex gap-2">
-                <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-secondary">Cancel</a>
+                <a href="{{ route('admin.roles.index', $role) }}" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">
                   <i data-feather="save" class="me-1"></i>Update Permissions
                 </button>

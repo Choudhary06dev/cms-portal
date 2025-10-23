@@ -10,17 +10,7 @@
       <h2 class="text-white mb-2">Complaint Details</h2>
       <p class="text-light">View and manage complaint information</p>
     </div>
-    <div class="d-flex gap-2">
-      <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary">
-        <i data-feather="arrow-left" class="me-2"></i>Back to Complaints
-      </a>
-      <a href="{{ route('admin.complaints.edit', $complaint) }}" class="btn btn-accent">
-        <i data-feather="edit" class="me-2"></i>Edit Complaint
-      </a>
-      <a href="{{ route('admin.complaints.print-slip', $complaint) }}" class="btn btn-outline-info" target="_blank">
-        <i data-feather="printer" class="me-2"></i>Print Slip
-      </a>
-    </div>
+   
   </div>
 </div>
 
@@ -172,20 +162,9 @@
                 <a href="{{ route('admin.complaints.index') }}" class="btn btn-secondary">
                   <i data-feather="arrow-left"></i> Back to Complaints
                 </a>
-                <div class="btn-group">
-                  <a href="{{ route('admin.complaints.edit', $complaint) }}" class="btn btn-warning">
-                    <i data-feather="edit"></i> Edit Complaint
-                  </a>
-                  <a href="{{ route('admin.complaints.print-slip', $complaint) }}" class="btn btn-info" target="_blank">
-                    <i data-feather="printer"></i> Print Slip
-                  </a>
-                  <form action="{{ route('admin.complaints.destroy', $complaint) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this complaint?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                      <i data-feather="trash-2"></i> Delete
-                    </button>
-                  </form>
+               
+                 
+                 
                 </div>
               </div>
             </div>

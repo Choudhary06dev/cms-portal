@@ -72,12 +72,12 @@
           <td >{{ $spare->id }}</td>
               <td>
                 <div class="d-flex align-items-center">
-              <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
-                {{ substr($spare->name, 0, 1) }}
+                <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
+                {{ substr($spare->item_name, 0, 1) }}
                   </div>
                   <div>
-                <div style="color: #ffffff !important; font-weight: 600;">{{ $spare->name }}</div>
-                <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $spare->description ?? 'No description' }}</div>
+             <div style="color: #ffffff !important; font-weight: 600;">{{ $spare->item_name }}</div>
+                <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $spare->item_name ?? 'No description' }}</div>
                   </div>
                 </div>
               </td>
@@ -141,8 +141,8 @@
                     <div id="methodField"></div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
+                            <label for="item_name" class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="item_name" name="item_name" required autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                         
@@ -317,16 +317,16 @@
         modalBody.innerHTML = `
           <div class="row">
             <div class="col-md-6">
-              <strong>Name:</strong> ${data.item_name || 'N/A'}<br>
+              <strong>Name:</strong> ${data.name || 'N/A'}<br>
               <strong>Category:</strong> ${data.category || 'N/A'}<br>
               <strong>Unit:</strong> ${data.unit || 'N/A'}<br>
-              <strong>Price:</strong> $${data.unit_price || '0.00'}<br>
+              <strong>Price:</strong> $${data.price || '0.00'}<br>
             </div>
             <div class="col-md-6">
               <strong>Stock Quantity:</strong> ${data.stock_quantity || 'N/A'}<br>
               <strong>Threshold Level:</strong> ${data.threshold_level || 'N/A'}<br>
               <strong>Status:</strong> ${data.status || 'N/A'}<br>
-              <strong>Last Updated:</strong> ${data.last_updated || 'N/A'}<br>
+              <strong>Last Updated:</strong> ${data.updated_at || 'N/A'}<br>
             </div>
             <div class="col-12 mt-3">
               <strong>Supplier:</strong> ${data.supplier || 'N/A'}<br>
@@ -391,8 +391,8 @@
             <div id="methodField"></div>
             <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
+              <label for="item_name" class="form-label">Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="item_name" name="item_name" required autocomplete="off">
               <div class="invalid-feedback"></div>
             </div>
             
@@ -457,7 +457,7 @@
         // Submit button will be handled by event delegation
         
         // Populate form fields with data
-        document.getElementById('name').value = data.name;
+        document.getElementById('item_name').value = data.item_name;
         document.getElementById('category').value = data.category;
         document.getElementById('unit').value = data.unit || '';
         document.getElementById('price').value = data.price || '';
@@ -536,8 +536,8 @@
         <div id="methodField"></div>
         <div class="row">
         <div class="col-md-6 mb-3">
-          <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="name" name="name" required autocomplete="off">
+          <label for="item_name" class="form-label">Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="item_name" name="item_name" required autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         

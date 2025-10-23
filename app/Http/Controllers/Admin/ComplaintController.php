@@ -151,12 +151,17 @@ class ComplaintController extends Controller
         }
 
         // Log the complaint creation
-        ComplaintLog::create([
-            'complaint_id' => $complaint->id,
-            'action_by' => auth()->id(),
-            'action' => 'created',
-            'remarks' => 'Complaint created',
-        ]);
+        // Find the employee associated with the current user
+        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        
+        if ($currentEmployee) {
+            ComplaintLog::create([
+                'complaint_id' => $complaint->id,
+                'action_by' => $currentEmployee->id,
+                'action' => 'created',
+                'remarks' => 'Complaint created',
+            ]);
+        }
 
         return redirect()->route('admin.complaints.index')
             ->with('success', 'Complaint created successfully.');
@@ -255,12 +260,15 @@ class ComplaintController extends Controller
 
         // Log status changes
         if ($oldStatus !== $request->status) {
-            ComplaintLog::create([
-                'complaint_id' => $complaint->id,
-                'action_by' => auth()->id(),
-                'action' => 'status_changed',
-                'remarks' => "Status changed from {$oldStatus} to {$request->status}",
-            ]);
+            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+            if ($currentEmployee) {
+                ComplaintLog::create([
+                    'complaint_id' => $complaint->id,
+                    'action_by' => $currentEmployee->id,
+                    'action' => 'status_changed',
+                    'remarks' => "Status changed from {$oldStatus} to {$request->status}",
+                ]);
+            }
         }
 
         // Log assignment changes
@@ -270,12 +278,15 @@ class ComplaintController extends Controller
                 ? "Assigned to {$assignedEmployee->user->full_name}"
                 : "Unassigned";
             
-            ComplaintLog::create([
-                'complaint_id' => $complaint->id,
-                'action_by' => auth()->id(),
-                'action' => 'assignment_changed',
-                'remarks' => $assignmentNote,
-            ]);
+            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+            if ($currentEmployee) {
+                ComplaintLog::create([
+                    'complaint_id' => $complaint->id,
+                    'action_by' => $currentEmployee->id,
+                    'action' => 'assignment_changed',
+                    'remarks' => $assignmentNote,
+                ]);
+            }
         }
 
         return redirect()->route('admin.complaints.index')
@@ -338,12 +349,15 @@ class ComplaintController extends Controller
             'status' => 'assigned',
         ]);
 
-        ComplaintLog::create([
-            'complaint_id' => $complaint->id,
-            'action_by' => auth()->id(),
-            'action' => 'assigned',
-            'remarks' => "Assigned to {$employee->user->full_name}. " . ($request->notes ?? ''),
-        ]);
+        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        if ($currentEmployee) {
+            ComplaintLog::create([
+                'complaint_id' => $complaint->id,
+                'action_by' => $currentEmployee->id,
+                'action' => 'assigned',
+                'remarks' => "Assigned to {$employee->user->full_name}. " . ($request->notes ?? ''),
+            ]);
+        }
 
         return redirect()->back()
             ->with('success', 'Complaint assigned successfully.');
@@ -371,12 +385,15 @@ class ComplaintController extends Controller
             'closed_at' => $request->status === 'closed' ? now() : null,
         ]);
 
-        ComplaintLog::create([
-            'complaint_id' => $complaint->id,
-            'action_by' => auth()->id(),
-            'action' => 'status_changed',
-            'remarks' => "Status changed from {$oldStatus} to {$request->status}. " . ($request->notes ?? ''),
-        ]);
+        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        if ($currentEmployee) {
+            ComplaintLog::create([
+                'complaint_id' => $complaint->id,
+                'action_by' => $currentEmployee->id,
+                'action' => 'status_changed',
+                'remarks' => "Status changed from {$oldStatus} to {$request->status}. " . ($request->notes ?? ''),
+            ]);
+        }
 
         return redirect()->back()
             ->with('success', 'Complaint status updated successfully.');
@@ -396,12 +413,15 @@ class ComplaintController extends Controller
                 ->withErrors($validator);
         }
 
-        ComplaintLog::create([
-            'complaint_id' => $complaint->id,
-            'action_by' => auth()->id(),
-            'action' => 'note_added',
-            'remarks' => $request->notes,
-        ]);
+        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        if ($currentEmployee) {
+            ComplaintLog::create([
+                'complaint_id' => $complaint->id,
+                'action_by' => $currentEmployee->id,
+                'action' => 'note_added',
+                'remarks' => $request->notes,
+            ]);
+        }
 
         return redirect()->back()
             ->with('success', 'Notes added successfully.');
@@ -617,4 +637,5 @@ class ComplaintController extends Controller
         // Implementation for export
         return response()->json(['message' => 'Export functionality not implemented yet']);
     }
+
 }

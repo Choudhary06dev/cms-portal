@@ -84,7 +84,7 @@ class SpareController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:150',
+            'item_name' => 'required|string|max:150',
             'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
             'unit' => 'nullable|string|max:50',
             'price' => 'nullable|numeric|min:0',
@@ -107,7 +107,7 @@ class SpareController extends Controller
         }
 
         $spare = Spare::create([
-            'item_name' => $request->name,
+            'item_name' => $request->item_name,
             'category' => $request->category,
             'unit' => $request->unit,
             'unit_price' => $request->price,
@@ -220,7 +220,7 @@ class SpareController extends Controller
     public function update(Request $request, Spare $spare)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:150',
+            'item_name' => 'required|string|max:150',
             'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
             'unit' => 'nullable|string|max:50',
             'price' => 'nullable|numeric|min:0',
@@ -243,7 +243,7 @@ class SpareController extends Controller
         }
 
         $spare->update([
-            'item_name' => $request->name,
+            'item_name' => $request->item_name,
             'category' => $request->category,
             'unit' => $request->unit,
             'unit_price' => $request->price,

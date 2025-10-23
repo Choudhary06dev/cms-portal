@@ -10,10 +10,6 @@
       <h2 class="text-white mb-2">Create New Complaint</h2>
       <p class="text-light">Add a new complaint to the system</p>
     </div>
-    <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Complaints
-    </a>
-  </div>
 </div>
 
 <!-- COMPLAINT FORM -->

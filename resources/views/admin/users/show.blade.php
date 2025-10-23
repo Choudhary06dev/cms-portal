@@ -10,10 +10,6 @@
       <h2 class="text-white mb-2">User Details</h2>
       <p class="text-light">View user information and details</p>
     </div>
-    <div class="d-flex gap-1">
-      <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-primary">
-        <i data-feather="edit" class="me-2"></i>Edit User
-      </a>
       <form action="{{ route('admin.users.toggle-status', $user) }}" method="POST" class="d-inline">
         @csrf
         <button type="submit" class="btn btn-{{ $user->status === 'active' ? 'danger' : 'success' }}">

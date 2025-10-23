@@ -175,7 +175,7 @@ class EmployeeController extends Controller
             'designation' => 'required|string|max:100',
             'biometric_id' => 'nullable|string|max:50|unique:employees,biometric_id,' . $employee->id,
             'leave_quota' => 'required|integer|min:0|max:365',
-            'status' => 'nullable|in:active,inactive',
+            'status' => 'required|in:active,inactive',
         ]);
 
         if ($validator->fails()) {
@@ -202,10 +202,8 @@ class EmployeeController extends Controller
                 'theme' => $request->theme ?? $employee->user->theme,
             ];
             
-            // Only update status if provided
-            if ($request->has('status') && $request->status) {
-                $updateUserData['status'] = $request->status;
-            }
+            // Update status (default to active if not provided)
+            $updateUserData['status'] = $request->status ?? 'active';
 
             if ($request->filled('password')) {
                 $updateUserData['password'] = Hash::make($request->password);
@@ -256,10 +254,17 @@ class EmployeeController extends Controller
     public function destroy(Employee $employee)
     {
         try {
+            \Log::info('Attempting to delete employee ID: ' . $employee->id);
+            
             // Check if employee has any related records
-            if ($employee->assignedComplaints()->count() > 0 || 
-                $employee->usedSpares()->count() > 0 || 
-                $employee->requestedApprovals()->count() > 0) {
+            $assignedComplaints = $employee->assignedComplaints()->count();
+            $usedSpares = $employee->usedSpares()->count();
+            $requestedApprovals = $employee->requestedApprovals()->count();
+            
+            \Log::info('Employee relationships - Complaints: ' . $assignedComplaints . ', Spares: ' . $usedSpares . ', Approvals: ' . $requestedApprovals);
+            
+            if ($assignedComplaints > 0 || $usedSpares > 0 || $requestedApprovals > 0) {
+                \Log::info('Employee has related records, cannot delete');
                 
                 if (request()->ajax() || request()->wantsJson()) {
                     return response()->json([
@@ -272,8 +277,16 @@ class EmployeeController extends Controller
                     ->with('error', 'Cannot delete employee with existing records.');
             }
 
+            \Log::info('Deleting user for employee ID: ' . $employee->id);
+            
+            // Delete related records first to avoid foreign key constraints
+            // Delete complaint logs that reference this employee
+            \DB::table('complaint_logs')->where('action_by', $employee->id)->delete();
+            \Log::info('Deleted complaint logs for employee ID: ' . $employee->id);
+            
             // Delete user (which will cascade to employee due to foreign key)
             $employee->user->delete();
+            \Log::info('User deleted successfully for employee ID: ' . $employee->id);
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
@@ -286,6 +299,9 @@ class EmployeeController extends Controller
                 ->with('success', 'Employee deleted successfully.');
 
         } catch (Exception $e) {
+            \Log::error('Error deleting employee ID ' . $employee->id . ': ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,

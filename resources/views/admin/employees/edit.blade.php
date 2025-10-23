@@ -10,9 +10,6 @@
       <h2 class="text-white mb-2">Edit Employee</h2>
       <p class="text-light">Update employee information</p>
     </div>
-    <a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Employee
-    </a>
   </div>
 </div>
 
@@ -108,11 +105,57 @@
         <div class="mb-3">
           <label for="status" class="form-label text-white">Status</label>
           <select class="form-select @error('status') is-invalid @enderror" 
-                  id="status" name="status">
+                  id="status" name="status" required>
+            <option value="">Select Status</option>
             <option value="active" {{ old('status', $employee->user->status) == 'active' ? 'selected' : '' }}>Active</option>
             <option value="inactive" {{ old('status', $employee->user->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
           </select>
           @error('status')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="role_id" class="form-label text-white">Role <span class="text-danger">*</span></label>
+          <select class="form-select @error('role_id') is-invalid @enderror" 
+                  id="role_id" name="role_id" required>
+            <option value="">Select Role</option>
+            @foreach($roles as $role)
+              <option value="{{ $role->id }}" {{ old('role_id', $employee->user->role_id) == $role->id ? 'selected' : '' }}>
+                {{ $role->role_name }}
+              </option>
+            @endforeach
+          </select>
+          @error('role_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="biometric_id" class="form-label text-white">Biometric ID</label>
+          <input type="text" class="form-control @error('biometric_id') is-invalid @enderror" 
+                 id="biometric_id" name="biometric_id" value="{{ old('biometric_id', $employee->biometric_id) }}">
+          @error('biometric_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="leave_quota" class="form-label text-white">Leave Quota (Days) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control @error('leave_quota') is-invalid @enderror" 
+                 id="leave_quota" name="leave_quota" value="{{ old('leave_quota', $employee->leave_quota) }}" 
+                 min="0" max="365" required>
+          @error('leave_quota')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
         </div>
@@ -136,7 +179,7 @@
       <button type="submit" class="btn btn-accent">
         <i data-feather="save" class="me-2"></i>Update Employee
       </button>
-      <a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-outline-secondary">
+      <a href="{{ route('admin.employees.index', $employee) }}" class="btn btn-outline-secondary">
         <i data-feather="x" class="me-2"></i>Cancel
       </a>
     </div>

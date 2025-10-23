@@ -38,6 +38,14 @@ class RoleController extends Controller
 
         $roles = $query->orderBy('id', 'desc')->paginate(15);
 
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'roles' => $roles->items()
+            ]);
+        }
+
         return view('admin.roles.index', compact('roles'));
     }
 
