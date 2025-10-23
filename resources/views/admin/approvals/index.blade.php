@@ -201,19 +201,117 @@
 
   // Approval Functions
   function viewApproval(approvalId) {
-    alert('View approval details functionality coming soon!');
+    // Redirect to view page
+    window.location.href = `/admin/approvals/${approvalId}`;
   }
 
   function approveRequest(approvalId) {
     if (confirm('Are you sure you want to approve this request?')) {
-      alert('Approve request functionality coming soon!');
+      // Show loading state
+      const approveBtn = document.querySelector(`button[onclick="approveRequest(${approvalId})"]`);
+      const originalText = approveBtn.innerHTML;
+      approveBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Approving...';
+      approveBtn.disabled = true;
+      feather.replace();
+
+      // Make approve request
+      fetch(`/admin/approvals/${approvalId}/approve`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Approve failed');
+      })
+      .then(data => {
+        // Show success message
+        showNotification('Request approved successfully!', 'success');
+        
+        // Reload page after a short delay
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      })
+      .catch(error => {
+        console.error('Approve error:', error);
+        showNotification('Failed to approve request: ' + error.message, 'error');
+        
+        // Reset button
+        approveBtn.innerHTML = originalText;
+        approveBtn.disabled = false;
+        feather.replace();
+      });
     }
   }
 
   function rejectRequest(approvalId) {
     if (confirm('Are you sure you want to reject this request?')) {
-      alert('Reject request functionality coming soon!');
+      // Show loading state
+      const rejectBtn = document.querySelector(`button[onclick="rejectRequest(${approvalId})"]`);
+      const originalText = rejectBtn.innerHTML;
+      rejectBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Rejecting...';
+      rejectBtn.disabled = true;
+      feather.replace();
+
+      // Make reject request
+      fetch(`/admin/approvals/${approvalId}/reject`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Reject failed');
+      })
+      .then(data => {
+        // Show success message
+        showNotification('Request rejected successfully!', 'success');
+        
+        // Reload page after a short delay
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      })
+      .catch(error => {
+        console.error('Reject error:', error);
+        showNotification('Failed to reject request: ' + error.message, 'error');
+        
+        // Reset button
+        rejectBtn.innerHTML = originalText;
+        rejectBtn.disabled = false;
+        feather.replace();
+      });
     }
+  }
+
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
   }
 </script>
 @endpush

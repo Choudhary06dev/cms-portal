@@ -138,106 +138,96 @@
             </div>
           </div>
 
-          <!-- Usage Chart -->
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h6 class="card-title">Spare Parts Usage Chart</h6>
-                </div>
-                <div class="card-body">
-                  <canvas id="sparesChart" height="100"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Category Breakdown -->
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h6 class="card-title">Category Breakdown</h6>
-                </div>
-                <div class="card-body">
-                  <canvas id="categoryChart" height="100"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const spares = @json($spares);
+function exportReport(format) {
+  // Show loading state
+  const buttons = document.querySelectorAll('button[onclick*="exportReport"]');
+  buttons.forEach(btn => {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
+    btn.disabled = true;
+  });
+  feather.replace();
+
+  // Get current URL parameters
+  const url = new URL(window.location);
+  const params = new URLSearchParams(url.search);
+  params.set('format', format);
   
-  // Usage Chart
-  const usageCtx = document.getElementById('sparesChart').getContext('2d');
-  new Chart(usageCtx, {
-    type: 'bar',
-    data: {
-      labels: spares.map(spare => spare.spare.part_name),
-      datasets: [{
-        label: 'Total Used',
-        data: spares.map(spare => spare.total_used),
-        backgroundColor: '#36A2EB',
-        borderColor: '#1E88E5',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true
+  // Make export request
+  fetch(`/admin/reports/download/spares/${format}?${params.toString()}`)
+    .then(response => {
+      if (response.ok) {
+        if (format === 'json') {
+          return response.json();
+        } else {
+          return response.json();
         }
       }
-    }
-  });
+      throw new Error('Export failed');
+    })
+    .then(data => {
+      if (format === 'json') {
+        // Download JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `spares_report_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+      } else {
+        // Show message for PDF/Excel
+        alert(data.message || 'Export completed');
+      }
+      
+      // Show success notification
+      showNotification(`${format.toUpperCase()} export completed successfully!`, 'success');
+    })
+    .catch(error => {
+      console.error('Export error:', error);
+      showNotification('Export failed: ' + error.message, 'error');
+    })
+    .finally(() => {
+      // Reset buttons
+      buttons.forEach(btn => {
+        const originalText = btn.innerHTML.includes('PDF') ? 
+          '<i data-feather="download" class="me-2"></i>Export PDF' :
+          '<i data-feather="file-text" class="me-2"></i>Export Excel';
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      });
+      feather.replace();
+    });
+}
 
-  // Category Chart
-  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-  const categories = {};
-  spares.forEach(spare => {
-    const category = spare.spare.category;
-    if (!categories[category]) {
-      categories[category] = 0;
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
     }
-    categories[category] += spare.total_cost;
-  });
-
-  new Chart(categoryCtx, {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(categories),
-      datasets: [{
-        data: Object.values(categories),
-        backgroundColor: [
-          '#FF6384',
-          '#36A2EB',
-          '#FFCE56',
-          '#4BC0C0',
-          '#9966FF',
-          '#FF9F40'
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
-    }
-  });
-});
-
-function exportReport(format) {
-  const url = new URL(window.location);
-  url.searchParams.set('format', format);
-  window.open(url.toString(), '_blank');
+  }, 5000);
 }
 </script>
 @endsection

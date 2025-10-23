@@ -33,7 +33,7 @@ class SlaRule extends Model
      */
     public function complaints(): HasMany
     {
-        return $this->hasMany(Complaint::class, 'complaint_type', 'complaint_type');
+        return $this->hasMany(Complaint::class, 'category', 'complaint_type');
     }
 
     /**

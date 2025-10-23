@@ -8,9 +8,9 @@
   <div class="d-flex justify-content-between align-items-center">
     <div>
       <h2 class="text-white mb-2">Edit SLA Rule</h2>
-      <p class="text-light">Update SLA rule: {{ $slaRule->complaint_type }}</p>
+      <p class="text-light">Update SLA rule: {{ $sla->complaint_type }}</p>
     </div>
-    <a href="{{ route('admin.sla.show', $slaRule) }}" class="btn btn-outline-secondary">
+    <a href="{{ route('admin.sla.show', $sla) }}" class="btn btn-outline-secondary">
       <i data-feather="arrow-left" class="me-2"></i>Back to SLA Rule
     </a>
   </div>
@@ -24,7 +24,7 @@
     </h5>
   </div>
   <div class="card-body">
-          <form action="{{ route('admin.sla.update', $slaRule) }}" method="POST">
+          <form action="{{ route('admin.sla.update', $sla) }}" method="POST">
             @csrf
             @method('PUT')
             
@@ -36,7 +36,7 @@
                           id="complaint_type" name="complaint_type" required>
                     <option value="">Select Complaint Type</option>
                     @foreach($complaintTypes as $type)
-                    <option value="{{ $type }}" {{ old('complaint_type', $slaRule->complaint_type) == $type ? 'selected' : '' }}>
+                    <option value="{{ $type }}" {{ old('complaint_type', $sla->complaint_type) == $type ? 'selected' : '' }}>
                       {{ ucfirst($type) }}
                     </option>
                     @endforeach
@@ -51,7 +51,7 @@
                 <div class="mb-3">
                   <label for="max_response_time" class="form-label text-white">Max Response Time (Hours) <span class="text-danger">*</span></label>
                   <input type="number" class="form-control @error('max_response_time') is-invalid @enderror" 
-                         id="max_response_time" name="max_response_time" value="{{ old('max_response_time', $slaRule->max_response_time) }}" required>
+                         id="max_response_time" name="max_response_time" value="{{ old('max_response_time', $sla->max_response_time) }}" required>
                   @error('max_response_time')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -64,7 +64,7 @@
                 <div class="mb-3">
                   <label for="max_resolution_time" class="form-label text-white">Max Resolution Time (Hours) <span class="text-danger">*</span></label>
                   <input type="number" class="form-control @error('max_resolution_time') is-invalid @enderror" 
-                         id="max_resolution_time" name="max_resolution_time" value="{{ old('max_resolution_time', $slaRule->max_resolution_time) }}" required>
+                         id="max_resolution_time" name="max_resolution_time" value="{{ old('max_resolution_time', $sla->max_resolution_time) }}" required>
                   @error('max_resolution_time')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -78,7 +78,7 @@
                           id="notify_to" name="notify_to">
                     <option value="">Select User</option>
                     @foreach($users as $user)
-                    <option value="{{ $user->id }}" {{ old('notify_to', $slaRule->notify_to) == $user->id ? 'selected' : '' }}>
+                    <option value="{{ $user->id }}" {{ old('notify_to', $sla->notify_to) == $user->id ? 'selected' : '' }}>
                       {{ $user->username }} ({{ $user->role->role_name ?? 'No Role' }})
                     </option>
                     @endforeach
@@ -96,9 +96,9 @@
                   <label for="escalation_level" class="form-label text-white">Escalation Level</label>
                   <select class="form-select @error('escalation_level') is-invalid @enderror" 
                           id="escalation_level" name="escalation_level">
-                    <option value="1" {{ old('escalation_level', $slaRule->escalation_level) == '1' ? 'selected' : '' }}>Level 1</option>
-                    <option value="2" {{ old('escalation_level', $slaRule->escalation_level) == '2' ? 'selected' : '' }}>Level 2</option>
-                    <option value="3" {{ old('escalation_level', $slaRule->escalation_level) == '3' ? 'selected' : '' }}>Level 3</option>
+                    <option value="1" {{ old('escalation_level', $sla->escalation_level) == '1' ? 'selected' : '' }}>Level 1</option>
+                    <option value="2" {{ old('escalation_level', $sla->escalation_level) == '2' ? 'selected' : '' }}>Level 2</option>
+                    <option value="3" {{ old('escalation_level', $sla->escalation_level) == '3' ? 'selected' : '' }}>Level 3</option>
                   </select>
                   @error('escalation_level')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -111,8 +111,8 @@
                   <label for="status" class="form-label text-white">Status</label>
                   <select class="form-select @error('status') is-invalid @enderror" 
                           id="status" name="status">
-                    <option value="active" {{ old('status', $slaRule->status) == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ old('status', $slaRule->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    <option value="active" {{ old('status', $sla->status) == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ old('status', $sla->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
                   </select>
                   @error('status')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -126,7 +126,7 @@
                 <div class="mb-3">
                   <label for="description" class="form-label text-white">Description</label>
                   <textarea class="form-control @error('description') is-invalid @enderror" 
-                            id="description" name="description" rows="3">{{ old('description', $slaRule->description) }}</textarea>
+                            id="description" name="description" rows="3">{{ old('description', $sla->description) }}</textarea>
                   @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror

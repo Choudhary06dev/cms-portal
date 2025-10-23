@@ -314,8 +314,72 @@
 
   function deleteComplaint(complaintId) {
     if (confirm('Are you sure you want to delete this complaint?')) {
-      alert('Delete complaint functionality coming soon!');
+      // Show loading state
+      const deleteBtn = document.querySelector(`button[onclick="deleteComplaint(${complaintId})"]`);
+      const originalText = deleteBtn.innerHTML;
+      deleteBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Deleting...';
+      deleteBtn.disabled = true;
+      feather.replace();
+
+      // Make delete request
+      fetch(`/admin/complaints/${complaintId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Delete failed');
+      })
+      .then(data => {
+        // Show success message
+        showNotification('Complaint deleted successfully!', 'success');
+        
+        // Remove the row from table
+        const row = document.querySelector(`button[onclick="deleteComplaint(${complaintId})"]`).closest('tr');
+        if (row) {
+          row.remove();
+        }
+        
+        // Reload page after a short delay
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      })
+      .catch(error => {
+        console.error('Delete error:', error);
+        showNotification('Failed to delete complaint: ' + error.message, 'error');
+        
+        // Reset button
+        deleteBtn.innerHTML = originalText;
+        deleteBtn.disabled = false;
+        feather.replace();
+      });
     }
+  }
+
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
   }
 </script>
 @endpush

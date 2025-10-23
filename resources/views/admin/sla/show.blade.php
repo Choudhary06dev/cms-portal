@@ -8,20 +8,17 @@
   <div class="d-flex justify-content-between align-items-center">
     <div>
       <h2 class="text-white mb-2">SLA Rule Details</h2>
-      <p class="text-light">View SLA rule: {{ ucfirst($slaRule->complaint_type) }}</p>
+      <p class="text-light">View SLA rule: {{ ucfirst($sla->complaint_type) }}</p>
     </div>
     <div class="d-flex gap-2">
       <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">
         <i data-feather="arrow-left" class="me-2"></i>Back to SLA Rules
       </a>
-      <a href="{{ route('admin.sla.edit', $slaRule) }}" class="btn btn-outline-info">
-        <i data-feather="edit" class="me-2"></i>Edit
-      </a>
-      <form action="{{ route('admin.sla.toggle-status', $slaRule) }}" method="POST" class="d-inline">
+      <form action="{{ route('admin.sla.toggle-status', $sla) }}" method="POST" class="d-inline">
         @csrf
-        <button type="submit" class="btn btn-{{ $slaRule->status === 'active' ? 'outline-warning' : 'outline-success' }}">
-          <i data-feather="{{ $slaRule->status === 'active' ? 'pause' : 'play' }}" class="me-2"></i>
-          {{ $slaRule->status === 'active' ? 'Deactivate' : 'Activate' }}
+        <button type="submit" class="btn btn-{{ $sla->status === 'active' ? 'outline-warning' : 'outline-success' }}">
+          <i data-feather="{{ $sla->status === 'active' ? 'pause' : 'play' }}" class="me-2"></i>
+          {{ $sla->status === 'active' ? 'Deactivate' : 'Activate' }}
         </button>
       </form>
     </div>
@@ -44,26 +41,26 @@
                   <tr>
                     <td class="text-white"><strong>Complaint Type:</strong></td>
                     <td>
-                      <span class="badge bg-info">{{ ucfirst($slaRule->complaint_type) }}</span>
+                      <span class="badge bg-info">{{ ucfirst($sla->complaint_type) }}</span>
                     </td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Max Response Time:</strong></td>
-                    <td class="text-white">{{ $slaRule->max_response_time }} hours</td>
+                    <td class="text-white">{{ $sla->max_response_time }} hours</td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Max Resolution Time:</strong></td>
-                    <td class="text-white">{{ $slaRule->max_resolution_time }} hours</td>
+                    <td class="text-white">{{ $sla->max_resolution_time }} hours</td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Escalation Level:</strong></td>
-                    <td class="text-white">Level {{ $slaRule->escalation_level }}</td>
+                    <td class="text-white">Level {{ $sla->escalation_level }}</td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Status:</strong></td>
                     <td>
-                      <span class="badge bg-{{ $slaRule->status === 'active' ? 'success' : 'danger' }}">
-                        {{ ucfirst($slaRule->status) }}
+                      <span class="badge bg-{{ $sla->status === 'active' ? 'success' : 'danger' }}">
+                        {{ ucfirst($sla->status) }}
                       </span>
                     </td>
                   </tr>
@@ -77,20 +74,20 @@
                 <table class="table table-borderless">
                   <tr>
                     <td class="text-white"><strong>Notify To:</strong></td>
-                    <td class="text-white">{{ $slaRule->notifyTo->username ?? 'Not Set' }}</td>
+                    <td class="text-white">{{ $sla->notifyTo->username ?? 'Not Set' }}</td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Created:</strong></td>
-                    <td class="text-white">{{ $slaRule->created_at->format('M d, Y H:i') }}</td>
+                    <td class="text-white">{{ $sla->created_at->format('M d, Y H:i') }}</td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Last Updated:</strong></td>
-                    <td class="text-white">{{ $slaRule->updated_at->format('M d, Y H:i') }}</td>
+                    <td class="text-white">{{ $sla->updated_at->format('M d, Y H:i') }}</td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Total Complaints:</strong></td>
                     <td>
-                      <span class="badge bg-primary">{{ $slaRule->complaints->count() }} complaints</span>
+                      <span class="badge bg-primary">{{ $sla->complaints->count() }} complaints</span>
                     </td>
                   </tr>
                 </table>
@@ -98,13 +95,13 @@
             </div>
           </div>
 
-          @if($slaRule->description)
+          @if($sla->description)
           <div class="row">
             <div class="col-12">
               <h6 class="text-white fw-bold">Description</h6>
               <div class="card">
                 <div class="card-body">
-                  <p class="text-white">{{ $slaRule->description }}</p>
+                  <p class="text-white">{{ $sla->description }}</p>
                 </div>
               </div>
             </div>
@@ -205,27 +202,6 @@
           </div>
           @endif
 
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="d-flex justify-content-between">
-                <a href="{{ route('admin.sla.index') }}" class="btn btn-secondary">
-                  <i data-feather="arrow-left"></i> Back to SLA Rules
-                </a>
-                <div class="btn-group">
-                  <a href="{{ route('admin.sla.edit', $slaRule) }}" class="btn btn-warning">
-                    <i data-feather="edit"></i> Edit SLA Rule
-                  </a>
-                  <form action="{{ route('admin.sla.destroy', $slaRule) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this SLA rule?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                      <i data-feather="trash-2"></i> Delete
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

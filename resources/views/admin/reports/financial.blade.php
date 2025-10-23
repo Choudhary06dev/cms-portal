@@ -80,11 +80,11 @@
           <!-- Category Breakdown -->
           <div class="row mb-4">
             <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h6 class="card-title">Spare Parts Costs by Category</h6>
+              <div class="card-glass">
+                <div class="card-header" style="background: transparent; border: none;">
+                  <h6 class="card-title text-white">Spare Parts Costs by Category</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="background: transparent;">
                   <div class="table-responsive">
                     <table class="table table-striped">
                       <thead>
@@ -124,102 +124,96 @@
             </div>
           </div>
 
-          <!-- Monthly Approvals Chart -->
-          <div class="row">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h6 class="card-title">Monthly Approval Costs</h6>
-                </div>
-                <div class="card-body">
-                  <canvas id="monthlyChart" height="100"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Category Costs Chart -->
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h6 class="card-title">Category Cost Distribution</h6>
-                </div>
-                <div class="card-body">
-                  <canvas id="categoryChart" height="100"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const summary = @json($summary);
+function exportReport(format) {
+  // Show loading state
+  const buttons = document.querySelectorAll('button[onclick*="exportReport"]');
+  buttons.forEach(btn => {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
+    btn.disabled = true;
+  });
+  feather.replace();
+
+  // Get current URL parameters
+  const url = new URL(window.location);
+  const params = new URLSearchParams(url.search);
+  params.set('format', format);
   
-  // Monthly Chart
-  const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-  const monthlyData = summary.monthly_approvals;
-  
-  new Chart(monthlyCtx, {
-    type: 'line',
-    data: {
-      labels: Object.keys(monthlyData),
-      datasets: [{
-        label: 'Approval Costs',
-        data: Object.values(monthlyData),
-        borderColor: '#36A2EB',
-        backgroundColor: 'rgba(54, 162, 235, 0.1)',
-        borderWidth: 2,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true
+  // Make export request
+  fetch(`/admin/reports/download/financial/${format}?${params.toString()}`)
+    .then(response => {
+      if (response.ok) {
+        if (format === 'json') {
+          return response.json();
+        } else {
+          return response.json();
         }
       }
-    }
-  });
+      throw new Error('Export failed');
+    })
+    .then(data => {
+      if (format === 'json') {
+        // Download JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `financial_report_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+      } else {
+        // Show message for PDF/Excel
+        alert(data.message || 'Export completed');
+      }
+      
+      // Show success notification
+      showNotification(`${format.toUpperCase()} export completed successfully!`, 'success');
+    })
+    .catch(error => {
+      console.error('Export error:', error);
+      showNotification('Export failed: ' + error.message, 'error');
+    })
+    .finally(() => {
+      // Reset buttons
+      buttons.forEach(btn => {
+        const originalText = btn.innerHTML.includes('PDF') ? 
+          '<i data-feather="download" class="me-2"></i>Export PDF' :
+          '<i data-feather="file-text" class="me-2"></i>Export Excel';
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      });
+      feather.replace();
+    });
+}
 
-  // Category Chart
-  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-  const categoryData = summary.category_breakdown;
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
   
-  new Chart(categoryCtx, {
-    type: 'doughnut',
-    data: {
-      labels: categoryData.map(cat => cat.category.charAt(0).toUpperCase() + cat.category.slice(1)),
-      datasets: [{
-        data: categoryData.map(cat => cat.total_cost),
-        backgroundColor: [
-          '#FF6384',
-          '#36A2EB',
-          '#FFCE56',
-          '#4BC0C0',
-          '#9966FF',
-          '#FF9F40'
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
+  document.body.appendChild(notification);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
     }
-  });
-});
-
-function exportReport(format) {
-  const url = new URL(window.location);
-  url.searchParams.set('format', format);
-  window.open(url.toString(), '_blank');
+  }, 5000);
 }
 </script>
 @endsection

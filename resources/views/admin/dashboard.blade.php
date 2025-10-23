@@ -172,8 +172,173 @@
     background: #f9fafb !important;
   }
   
+  /* Table hover effects removed - no hover styling */
+  
+  /* Chart toolbar dropdown visibility */
+  .apexcharts-toolbar {
+    z-index: 1000 !important;
+  }
+  
+  .apexcharts-menu {
+    background: #1f2937 !important;
+    border: 1px solid #374151 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  .apexcharts-menu-item {
+    color: #ffffff !important;
+    background: transparent !important;
+  }
+  
+  .apexcharts-menu-item:hover {
+    background: #374151 !important;
+    color: #ffffff !important;
+  }
+  
+  /* Light theme chart toolbar */
+  .theme-light .apexcharts-menu {
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-menu-item {
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-menu-item:hover {
+    background: #f3f4f6 !important;
+    color: #000000 !important;
+  }
+  
+  /* Chart tooltip styling for light theme */
+  .theme-light .apexcharts-tooltip {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #d1d5db !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  .theme-light .apexcharts-tooltip-title {
+    background: #f9fafb !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #d1d5db !important;
+  }
+  
+  .theme-light .apexcharts-tooltip-series-group {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip-y-group {
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip-marker {
+    background: #ffffff !important;
+  }
+  
+  /* Chart tooltip content styling for light theme */
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
+    background: #f9fafb !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #d1d5db !important;
+    font-weight: 600 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group .apexcharts-tooltip-y-group {
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group .apexcharts-tooltip-y-group .apexcharts-tooltip-y-label {
+    color: #6b7280 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group .apexcharts-tooltip-y-group .apexcharts-tooltip-y-value {
+    color: #000000 !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Force all tooltip text to be black in light theme */
+  .theme-light .apexcharts-tooltip * {
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group * {
+    color: #000000 !important;
+  }
+  
+  /* Specific styling for month/date in tooltip */
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
+    background: #f9fafb !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #d1d5db !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title * {
+    color: #000000 !important;
+    background: transparent !important;
+  }
+  
+  /* Force tooltip title background to be light */
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
+    background: #f9fafb !important;
+    background-color: #f9fafb !important;
+  }
+  
   /* Override all inline styles */
   .theme-light [style*="color: #ffffff"] {
+    color: #000000 !important;
+  }
+  
+  /* Force tooltip title to have light background and black text */
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="background"] {
+    background: #f9fafb !important;
+    background-color: #f9fafb !important;
+    color: #000000 !important;
+  }
+  
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="color"] {
+    color: #000000 !important;
+  }
+  
+  /* Override any dark background styles */
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="background-color: #000000"],
+  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="background: #000000"] {
+    background: #f9fafb !important;
+    background-color: #f9fafb !important;
+    color: #000000 !important;
+  }
+  
+  /* Force all ApexCharts tooltips to be light theme */
+  .apexcharts-tooltip {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #d1d5db !important;
+  }
+  
+  .apexcharts-tooltip .apexcharts-tooltip-title {
+    background: #f9fafb !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #d1d5db !important;
+  }
+  
+  .apexcharts-tooltip .apexcharts-tooltip-series-group {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .apexcharts-tooltip .apexcharts-tooltip-series-group * {
     color: #000000 !important;
   }
   
@@ -720,7 +885,7 @@
         <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">View All</a>
           </div>
           <div class="table-responsive">
-            <table class="table table-dark table-hover">
+            <table class="table table-dark ">
                 <thead>
                 <tr>
                   <th>Ticket</th>
@@ -757,7 +922,7 @@
         <a href="{{ route('admin.approvals.index') }}" class="btn btn-accent btn-sm">View All</a>
           </div>
           <div class="table-responsive">
-            <table class="table table-dark table-hover">
+            <table class="table table-dark ">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -800,7 +965,7 @@
             <a href="{{ route('admin.spares.index') }}" class="btn btn-outline-warning btn-sm">Manage Stock</a>
         </div>
         <div class="table-responsive">
-            <table class="table table-dark table-hover">
+            <table class="table table-dark ">
             <thead>
                 <tr>
                   <th>Item</th>
@@ -874,6 +1039,13 @@
         style: {
           colors: ['#fff']
         }
+      },
+      tooltip: {
+        theme: document.body.classList.contains('theme-light') ? 'light' : 'dark',
+        style: {
+          fontSize: '12px',
+          fontFamily: 'inherit'
+        }
       }
     };
 
@@ -905,6 +1077,13 @@
         style: {
           colors: ['#fff']
         }
+      },
+      tooltip: {
+        theme: document.body.classList.contains('theme-light') ? 'light' : 'dark',
+        style: {
+          fontSize: '12px',
+          fontFamily: 'inherit'
+        }
       }
     };
 
@@ -923,37 +1102,56 @@
       chart: {
         type: 'line',
         height: 350,
-        background: 'transparent'
+        background: 'transparent',
+        toolbar: {
+          show: true,
+          tools: {
+            download: true,
+            selection: true,
+            zoom: true,
+            zoomin: true,
+            zoomout: true,
+            pan: true,
+            reset: true
+          }
+        }
       },
       colors: ['#3b82f6', '#22c55e'],
       xaxis: {
       categories: monthsData,
         labels: {
           style: {
-            colors: '#e2e8f0'
+            colors: document.body.classList.contains('theme-light') ? '#000000' : '#e2e8f0'
           }
         }
       },
       yaxis: {
         labels: {
           style: {
-            colors: '#e2e8f0'
+            colors: document.body.classList.contains('theme-light') ? '#000000' : '#e2e8f0'
           }
         }
       },
       legend: {
         labels: {
-          colors: '#e2e8f0'
+          colors: document.body.classList.contains('theme-light') ? '#000000' : '#e2e8f0'
         }
       },
       grid: {
-        borderColor: '#374151'
+        borderColor: document.body.classList.contains('theme-light') ? '#d1d5db' : '#374151'
       },
       stroke: {
         width: 3
       },
       markers: {
         size: 5
+      },
+      tooltip: {
+        theme: 'light',
+        style: {
+          fontSize: '12px',
+          fontFamily: 'inherit'
+        }
       }
     };
 

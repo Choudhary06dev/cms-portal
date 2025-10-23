@@ -120,8 +120,8 @@ class ClientController extends Controller
 
         // Get complaints by type
         $complaintsByType = $client->complaints()
-            ->selectRaw('complaint_type, COUNT(*) as count')
-            ->groupBy('complaint_type')
+            ->selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
             ->get();
 
         // Get complaints by status
@@ -277,7 +277,7 @@ class ClientController extends Controller
 
         // Filter by type
         if ($request->has('complaint_type') && $request->complaint_type) {
-            $query->where('complaint_type', $request->complaint_type);
+            $query->where('category', $request->complaint_type);
         }
 
         // Filter by date range

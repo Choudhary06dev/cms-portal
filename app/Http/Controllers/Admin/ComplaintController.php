@@ -450,8 +450,8 @@ class ComplaintController extends Controller
         $period = $request->get('period', '30'); // days
 
         $data = Complaint::where('created_at', '>=', now()->subDays($period))
-            ->selectRaw('complaint_type, COUNT(*) as count')
-            ->groupBy('complaint_type')
+            ->selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
             ->get();
 
         return response()->json($data);
@@ -609,7 +609,7 @@ class ComplaintController extends Controller
         }
 
         if ($request->has('complaint_type') && $request->complaint_type) {
-            $query->where('complaint_type', $request->complaint_type);
+            $query->where('category', $request->complaint_type);
         }
 
         $complaints = $query->get();

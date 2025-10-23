@@ -89,50 +89,50 @@ class SlaController extends Controller
     /**
      * Display the specified SLA rule
      */
-    public function show(SlaRule $slaRule)
+    public function show(SlaRule $sla)
     {
-        $slaRule->load('notifyTo');
+        $sla->load('notifyTo');
         
         // Get SLA performance metrics
         $metrics = [
-            'total_complaints' => Complaint::where('complaint_type', $slaRule->complaint_type)->count(),
-            'complaints_within_sla' => Complaint::where('complaint_type', $slaRule->complaint_type)
-                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= ?', [$slaRule->max_resolution_time])
+            'total_complaints' => Complaint::where('category', $sla->complaint_type)->count(),
+            'complaints_within_sla' => Complaint::where('category', $sla->complaint_type)
+                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= ?', [$sla->max_resolution_time])
                 ->count(),
-            'complaints_breached' => Complaint::where('complaint_type', $slaRule->complaint_type)
-                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) > ?', [$slaRule->max_resolution_time])
+            'complaints_breached' => Complaint::where('category', $sla->complaint_type)
+                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) > ?', [$sla->max_resolution_time])
                 ->count(),
-            'avg_resolution_time' => Complaint::where('complaint_type', $slaRule->complaint_type)
+            'avg_resolution_time' => Complaint::where('category', $sla->complaint_type)
                 ->whereIn('status', ['resolved', 'closed'])
                 ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_time')
                 ->value('avg_time'),
         ];
 
         // Get recent complaints for this SLA rule
-        $recentComplaints = Complaint::where('complaint_type', $slaRule->complaint_type)
+        $recentComplaints = Complaint::where('category', $sla->complaint_type)
             ->with(['client', 'assignedEmployee.user'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
-        return view('admin.sla.show', compact('slaRule', 'metrics', 'recentComplaints'));
+        return view('admin.sla.show', compact('sla', 'metrics', 'recentComplaints'));
     }
 
     /**
      * Show the form for editing the SLA rule
      */
-    public function edit(SlaRule $slaRule)
+    public function edit(SlaRule $sla)
     {
         $users = User::where('status', 'active')->get();
         $complaintTypes = Complaint::getComplaintTypes();
 
-        return view('admin.sla.edit', compact('slaRule', 'users', 'complaintTypes'));
+        return view('admin.sla.edit', compact('sla', 'users', 'complaintTypes'));
     }
 
     /**
      * Update the specified SLA rule
      */
-    public function update(Request $request, SlaRule $slaRule)
+    public function update(Request $request, SlaRule $sla)
     {
         $validator = Validator::make($request->all(), [
             'complaint_type' => 'required|in:electric,sanitary,kitchen,general',
@@ -150,7 +150,7 @@ class SlaController extends Controller
                 ->withInput();
         }
 
-        $slaRule->update($request->all());
+        $sla->update($request->all());
 
         return redirect()->route('admin.sla.index')
             ->with('success', 'SLA rule updated successfully.');
@@ -159,24 +159,26 @@ class SlaController extends Controller
     /**
      * Remove the specified SLA rule
      */
-    public function destroy(SlaRule $slaRule)
+    public function destroy(SlaRule $sla)
     {
-        $slaRule->delete();
+        $sla->delete();
 
-        return redirect()->route('admin.sla.index')
-            ->with('success', 'SLA rule deleted successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'SLA rule deleted successfully.'
+        ]);
     }
 
     /**
      * Toggle SLA rule status
      */
-    public function toggleStatus(SlaRule $slaRule)
+    public function toggleStatus(SlaRule $sla)
     {
-        $slaRule->update([
-            'status' => $slaRule->status === 'active' ? 'inactive' : 'active'
+        $sla->update([
+            'status' => $sla->status === 'active' ? 'inactive' : 'active'
         ]);
 
-        $status = $slaRule->status === 'active' ? 'activated' : 'deactivated';
+        $status = $sla->status === 'active' ? 'activated' : 'deactivated';
         
         return redirect()->back()
             ->with('success', "SLA rule {$status} successfully.");
@@ -260,11 +262,11 @@ class SlaController extends Controller
         $complaintTypes = Complaint::getComplaintTypes();
 
         foreach ($complaintTypes as $type => $label) {
-            $total = Complaint::where('complaint_type', $type)
+            $total = Complaint::where('category', $type)
                 ->where('created_at', '>=', now()->subDays($period))
                 ->count();
 
-            $withinSla = Complaint::where('complaint_type', $type)
+            $withinSla = Complaint::where('category', $type)
                 ->where('created_at', '>=', now()->subDays($period))
                 ->whereIn('status', ['resolved', 'closed'])
                 ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = ? AND status = "active")', [$type])
@@ -317,7 +319,7 @@ class SlaController extends Controller
     /**
      * Test SLA rule
      */
-    public function testSlaRule(Request $request, SlaRule $slaRule)
+    public function testSlaRule(Request $request, SlaRule $sla)
     {
         $validator = Validator::make($request->all(), [
             'test_complaint_id' => 'required|exists:complaints,id',
@@ -332,16 +334,16 @@ class SlaController extends Controller
         
         $result = [
             'complaint_id' => $complaint->id,
-            'complaint_type' => $complaint->complaint_type,
+            'complaint_type' => $complaint->category,
             'created_at' => $complaint->created_at,
             'current_status' => $complaint->status,
             'hours_elapsed' => $complaint->getHoursElapsed(),
-            'max_response_time' => $slaRule->max_response_time,
-            'max_resolution_time' => $slaRule->max_resolution_time,
-            'response_breached' => $complaint->isResponseTimeBreached($slaRule),
-            'resolution_breached' => $complaint->isResolutionTimeBreached($slaRule),
-            'escalation_level' => $slaRule->escalation_level,
-            'notify_to' => $slaRule->notifyTo->username,
+            'max_response_time' => $sla->max_response_time,
+            'max_resolution_time' => $sla->max_resolution_time,
+            'response_breached' => $complaint->isResponseTimeBreached($sla),
+            'resolution_breached' => $complaint->isResolutionTimeBreached($sla),
+            'escalation_level' => $sla->escalation_level,
+            'notify_to' => $sla->notifyTo->username,
         ];
 
         return response()->json($result);
@@ -423,7 +425,7 @@ class SlaController extends Controller
     {
         return Complaint::where('created_at', '>=', now()->subDays($period))
             ->whereIn('status', ['resolved', 'closed'])
-            ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.complaint_type AND status = "active")')
+            ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = "active")')
             ->count();
     }
 
@@ -434,7 +436,7 @@ class SlaController extends Controller
     {
         return Complaint::where('created_at', '>=', now()->subDays($period))
             ->whereIn('status', ['resolved', 'closed'])
-            ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) > (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.complaint_type AND status = "active")')
+            ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) > (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = "active")')
             ->count();
     }
 }

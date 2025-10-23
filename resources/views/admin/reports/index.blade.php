@@ -74,28 +74,73 @@
     <div class="card-glass">
       <h5 class="text-white mb-3">Quick Statistics</h5>
       <div class="row g-3">
+        <!-- Row 1: Complaints & SLA -->
         <div class="col-6">
           <div class="text-center">
-            <div class="h4 text-primary mb-1">24</div>
+            <div class="h4 text-primary mb-1">{{ $stats['active_complaints'] ?? 0 }}</div>
             <div class="text-muted small">Active Complaints</div>
           </div>
         </div>
         <div class="col-6">
           <div class="text-center">
-            <div class="h4 text-success mb-1">156</div>
+            <div class="h4 text-success mb-1">{{ $stats['resolved_this_month'] ?? 0 }}</div>
             <div class="text-muted small">Resolved This Month</div>
           </div>
         </div>
+        
+        <!-- Row 2: SLA & Employees -->
         <div class="col-6">
           <div class="text-center">
-            <div class="h4 text-warning mb-1">89%</div>
+            <div class="h4 text-warning mb-1">{{ $stats['sla_compliance'] ?? 0 }}%</div>
             <div class="text-muted small">SLA Compliance</div>
           </div>
         </div>
         <div class="col-6">
           <div class="text-center">
-            <div class="h4 text-info mb-1">45</div>
+            <div class="h4 text-info mb-1">{{ $stats['active_employees'] ?? 0 }}</div>
             <div class="text-muted small">Active Employees</div>
+          </div>
+        </div>
+        
+        <!-- Row 3: Spare Parts & Stock -->
+        <div class="col-6">
+          <div class="text-center">
+            <div class="h4 text-secondary mb-1">{{ $stats['total_spares'] ?? 0 }}</div>
+            <div class="text-muted small">Total Spare Parts</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="text-center">
+            <div class="h4 text-danger mb-1">{{ $stats['low_stock_items'] ?? 0 }}</div>
+            <div class="text-muted small">Low Stock Items</div>
+          </div>
+        </div>
+        
+        <!-- Row 4: Approvals & Clients -->
+        <div class="col-6">
+          <div class="text-center">
+            <div class="h4 text-warning mb-1">{{ $stats['pending_approvals'] ?? 0 }}</div>
+            <div class="text-muted small">Pending Approvals</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="text-center">
+            <div class="h4 text-success mb-1">{{ $stats['active_clients'] ?? 0 }}</div>
+            <div class="text-muted small">Active Clients</div>
+          </div>
+        </div>
+        
+        <!-- Row 5: Performance & Resolution Time -->
+        <div class="col-6">
+          <div class="text-center">
+            <div class="h4 text-info mb-1">{{ $stats['employee_performance'] ?? 0 }}%</div>
+            <div class="text-muted small">Avg Performance</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="text-center">
+            <div class="h4 text-primary mb-1">{{ $stats['avg_resolution_time'] ?? 0 }}h</div>
+            <div class="text-muted small">Avg Resolution Time</div>
           </div>
         </div>
       </div>
@@ -106,27 +151,20 @@
     <div class="card-glass">
       <h5 class="text-white mb-3">Recent Activity</h5>
       <div class="list-group list-group-flush">
+        @forelse($recentActivity as $activity)
         <div class="list-group-item d-flex justify-content-between align-items-center" style="background: transparent; border: none; color: #cbd5e1;">
           <div>
-            <div class="fw-bold">New complaint submitted</div>
-            <small class="text-muted">2 minutes ago</small>
+            <div class="fw-bold">{{ $activity['title'] }}</div>
+            <small class="text-muted">{{ $activity['description'] }}</small>
+            <br><small class="text-muted">{{ $activity['time'] }}</small>
           </div>
-          <span class="badge bg-primary">New</span>
+          <span class="badge bg-{{ $activity['badge_class'] }}">{{ $activity['badge'] }}</span>
         </div>
-        <div class="list-group-item d-flex justify-content-between align-items-center" style="background: transparent; border: none; color: #cbd5e1;">
-          <div>
-            <div class="fw-bold">Spare part approved</div>
-            <small class="text-muted">15 minutes ago</small>
-          </div>
-          <span class="badge bg-success">Approved</span>
+        @empty
+        <div class="list-group-item text-center" style="background: transparent; border: none; color: #cbd5e1;">
+          <div class="text-muted">No recent activity</div>
         </div>
-        <div class="list-group-item d-flex justify-content-between align-items-center" style="background: transparent; border: none; color: #cbd5e1;">
-          <div>
-            <div class="fw-bold">Employee leave request</div>
-            <small class="text-muted">1 hour ago</small>
-          </div>
-          <span class="badge bg-warning">Pending</span>
-        </div>
+        @endforelse
       </div>
     </div>
   </div>
@@ -135,11 +173,11 @@
 <!-- REPORT FILTERS -->
 <div class="card-glass">
   <h5 class="text-white mb-3">Generate Custom Report</h5>
-  <form>
+  <form id="customReportForm">
     <div class="row g-3">
       <div class="col-md-3">
         <label class="form-label text-white">Report Type</label>
-        <select class="form-select" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;">
+        <select name="report_type" class="form-select" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;" required>
           <option value="">Select Report Type</option>
           <option value="complaints">Complaints Report</option>
           <option value="employees">Employee Report</option>
@@ -149,11 +187,11 @@
       </div>
       <div class="col-md-3">
         <label class="form-label text-white">Date From</label>
-        <input type="date" class="form-control" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;">
+        <input type="date" name="date_from" class="form-control" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;" required>
       </div>
       <div class="col-md-3">
         <label class="form-label text-white">Date To</label>
-        <input type="date" class="form-control" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;">
+        <input type="date" name="date_to" class="form-control" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;" required>
       </div>
       <div class="col-md-3">
         <label class="form-label text-white">&nbsp;</label>
@@ -171,5 +209,191 @@
 @push('scripts')
 <script>
   feather.replace();
+
+  // Export All functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const exportAllBtn = document.querySelector('.btn-outline-secondary');
+    if (exportAllBtn && exportAllBtn.textContent.includes('Export All')) {
+      exportAllBtn.addEventListener('click', function() {
+        exportAllReports();
+      });
+    }
+
+    // Refresh Data functionality
+    const refreshBtn = document.querySelector('.btn-accent');
+    if (refreshBtn && refreshBtn.textContent.includes('Refresh Data')) {
+      refreshBtn.addEventListener('click', function() {
+        refreshReportData();
+      });
+    }
+
+    // Custom Report Form
+    const customReportForm = document.getElementById('customReportForm');
+    if (customReportForm) {
+      customReportForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        generateCustomReport();
+      });
+    }
+  });
+
+  function exportAllReports() {
+    // Show loading state
+    const btn = document.querySelector('.btn-outline-secondary');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
+    btn.disabled = true;
+    feather.replace();
+
+    // Simulate export process
+    setTimeout(() => {
+      // Create a comprehensive report
+      const reportData = {
+        complaints: getComplaintsData(),
+        employees: getEmployeesData(),
+        spares: getSparesData(),
+        financial: getFinancialData(),
+        generated_at: new Date().toISOString(),
+        period: getCurrentPeriod()
+      };
+
+      // Download as JSON (you can implement PDF/Excel export later)
+      downloadReportAsJSON(reportData, 'comprehensive_report.json');
+      
+      // Reset button
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      feather.replace();
+      
+      // Show success message
+      showNotification('All reports exported successfully!', 'success');
+    }, 2000);
+  }
+
+  function refreshReportData() {
+    // Show loading state
+    const btn = document.querySelector('.btn-accent');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Refreshing...';
+    btn.disabled = true;
+    feather.replace();
+
+    // Refresh the page data
+    setTimeout(() => {
+      location.reload();
+    }, 1500);
+  }
+
+  function generateCustomReport() {
+    const form = document.getElementById('customReportForm');
+    const formData = new FormData(form);
+    
+    const reportType = formData.get('report_type');
+    const dateFrom = formData.get('date_from');
+    const dateTo = formData.get('date_to');
+
+    if (!reportType || !dateFrom || !dateTo) {
+      showNotification('Please fill in all fields', 'error');
+      return;
+    }
+
+    // Show loading
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Generating...';
+    submitBtn.disabled = true;
+    feather.replace();
+
+    // Generate report based on type
+    setTimeout(() => {
+      const reportUrl = getReportUrl(reportType, dateFrom, dateTo);
+      window.open(reportUrl, '_blank');
+      
+      // Reset button
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+      feather.replace();
+      
+      showNotification('Custom report generated successfully!', 'success');
+    }, 2000);
+  }
+
+  function getReportUrl(type, from, to) {
+    const baseUrl = window.location.origin + '/admin/reports/';
+    const params = new URLSearchParams({
+      date_from: from,
+      date_to: to
+    });
+    
+    switch(type) {
+      case 'complaints':
+        return `${baseUrl}complaints?${params.toString()}`;
+      case 'employees':
+        return `${baseUrl}employees?${params.toString()}`;
+      case 'spares':
+        return `${baseUrl}spares?${params.toString()}`;
+      case 'financial':
+        return `${baseUrl}financial?${params.toString()}`;
+      default:
+        return baseUrl;
+    }
+  }
+
+  function getComplaintsData() {
+    return @json($realData['complaints']);
+  }
+
+  function getEmployeesData() {
+    return @json($realData['employees']);
+  }
+
+  function getSparesData() {
+    return @json($realData['spares']);
+  }
+
+  function getFinancialData() {
+    return @json($realData['financial']);
+  }
+
+  function getCurrentPeriod() {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {
+      from: startOfMonth.toISOString().split('T')[0],
+      to: now.toISOString().split('T')[0]
+    };
+  }
+
+  function downloadReportAsJSON(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
+  }
 </script>
 @endpush

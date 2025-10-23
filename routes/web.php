@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SpareController as AdminSpareController;
 use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
 use App\Http\Controllers\Admin\SlaController as AdminSlaController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -154,12 +155,35 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::resource('approvals', AdminApprovalController::class)->middleware(['permission:approvals.view']);
     Route::resource('sla', AdminSlaController::class)->middleware(['permission:sla.view']);
+    Route::post('sla/{sla}/toggle-status', [AdminSlaController::class, 'toggleStatus'])->name('sla.toggle-status');
     Route::get('reports', [AdminReportController::class, 'index'])->middleware(['permission:reports.view'])->name('reports.index');
     Route::get('reports/complaints', [AdminReportController::class, 'complaints'])->middleware(['permission:reports.view'])->name('reports.complaints');
     Route::get('reports/spares', [AdminReportController::class, 'spares'])->middleware(['permission:reports.view'])->name('reports.spares');
     Route::get('reports/employees', [AdminReportController::class, 'employees'])->middleware(['permission:reports.view'])->name('reports.employees');
     Route::get('reports/financial', [AdminReportController::class, 'financial'])->middleware(['permission:reports.view'])->name('reports.financial');
     Route::get('reports/sla', [AdminReportController::class, 'sla'])->middleware(['permission:reports.view'])->name('reports.sla');
+    Route::get('reports/download/{type}/{format}', [AdminReportController::class, 'download'])->middleware(['permission:reports.view'])->name('reports.download');
+    
+    // Debug route for testing reports
+    Route::get('reports/test', function() {
+        return response()->json([
+            'message' => 'Reports routes are working!',
+            'timestamp' => now(),
+            'routes' => [
+                'complaints' => route('admin.reports.complaints'),
+                'employees' => route('admin.reports.employees'),
+                'spares' => route('admin.reports.spares'),
+                'financial' => route('admin.reports.financial'),
+            ]
+        ]);
+    })->name('reports.test');
+
+    // ===============================
+    // 🔍 Search
+    // ===============================
+    Route::get('search', [SearchController::class, 'index'])->name('search.index');
+    Route::get('search/api', [SearchController::class, 'api'])->name('search.api');
+    
 
     // Settings & Help
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');

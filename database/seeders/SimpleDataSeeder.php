@@ -199,7 +199,7 @@ class SimpleDataSeeder extends Seeder
                     'ticket_number' => 'TKT-' . str_pad($i, 6, '0', STR_PAD_LEFT),
                     'client_id' => $client->id,
                     'assigned_to' => $assignedTo->id,
-                    'complaint_type' => $complaintType,
+                    'category' => $complaintType,
                     'priority' => $priority,
                     'status' => $status,
                     'subject' => "Complaint Subject {$i} - " . ucfirst($complaintType) . " Issue",
