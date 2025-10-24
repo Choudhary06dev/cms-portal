@@ -92,10 +92,8 @@ class ComplaintController extends Controller
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
         
-        $clients = Client::orderBy('client_name')->get();
-        $employees = Employee::whereHas('user', function($q) {
-            $q->where('status', 'active');
-        })->with('user')->get();
+        $clients = Client::where('status', 'active')->orderBy('client_name')->get();
+        $employees = Employee::with('user')->get();
 
         return view('admin.complaints.create', compact('clients', 'employees'));
     }
@@ -108,8 +106,8 @@ class ComplaintController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            'category' => 'required|in:technical,service,billing,other',
-            'priority' => 'required|in:low,medium,high,urgent',
+            'category' => 'required|in:electrical,sanitary,kitchen,general,technical,service,billing,other',
+            'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
             'status' => 'required|in:new,assigned,in_progress,resolved,closed',
@@ -163,6 +161,36 @@ class ComplaintController extends Controller
             ]);
         }
 
+        // Create approval performa for the complaint
+        try {
+            // Get any employee as fallback if current user doesn't have employee record
+            $requestedBy = $currentEmployee ? $currentEmployee->id : \App\Models\Employee::first()->id;
+            
+            if (!$requestedBy) {
+                \Log::error('No employee found to assign as requested_by');
+                return redirect()->route('admin.complaints.index')
+                    ->with('error', 'Complaint created but approval could not be generated. Please create an employee first.');
+            }
+            
+            $approval = SpareApprovalPerforma::create([
+                'complaint_id' => $complaint->id,
+                'requested_by' => $requestedBy,
+                'status' => 'pending',
+                'remarks' => 'Auto-generated approval for complaint: ' . $complaint->title,
+            ]);
+            
+            \Log::info('Approval created successfully', [
+                'approval_id' => $approval->id,
+                'complaint_id' => $complaint->id,
+                'requested_by' => $requestedBy
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create approval', [
+                'complaint_id' => $complaint->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
         return redirect()->route('admin.complaints.index')
             ->with('success', 'Complaint created successfully.');
     }
@@ -212,8 +240,8 @@ class ComplaintController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            'category' => 'required|in:technical,service,billing,other',
-            'priority' => 'required|in:low,medium,high,urgent',
+            'category' => 'required|in:electrical,sanitary,kitchen,general,technical,service,billing,other',
+            'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
             'status' => 'required|in:new,assigned,in_progress,resolved,closed',

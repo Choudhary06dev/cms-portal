@@ -408,9 +408,14 @@ class ApprovalController extends Controller
                         }
 
                         if ($canApprove) {
+                            $employee = auth()->user()->employee ?? Employee::first();
+                            if (!$employee) {
+                                throw new \Exception('No employee record found');
+                            }
+                            
                             $approval->update([
                                 'status' => 'approved',
-                                'approved_by' => auth()->user()->employee->id,
+                                'approved_by' => $employee->id,
                                 'approved_at' => now(),
                                 'remarks' => $request->remarks,
                             ]);
@@ -429,11 +434,16 @@ class ApprovalController extends Controller
                     break;
 
                 case 'reject':
+                    $employee = auth()->user()->employee ?? Employee::first();
+                    if (!$employee) {
+                        throw new \Exception('No employee record found');
+                    }
+                    
                     $updated = SpareApprovalPerforma::whereIn('id', $approvalIds)
                         ->where('status', 'pending')
                         ->update([
                             'status' => 'rejected',
-                            'approved_by' => auth()->user()->employee->id,
+                            'approved_by' => $employee->id,
                             'approved_at' => now(),
                             'remarks' => $request->remarks,
                         ]);

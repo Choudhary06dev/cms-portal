@@ -923,9 +923,9 @@
       e.preventDefault();
       e.stopPropagation();
       
-      if (this.disabled) {
-        console.log('Button is disabled, showing error');
-        alert('Please select at least one approval first');
+      if (this.disabled || selectedApprovals.length === 0) {
+        console.log('Button is disabled or no approvals selected, showing error');
+        alert('Please select at least one approval to process');
         return false;
       }
       

@@ -91,11 +91,10 @@
           <td>
             <div class="d-flex align-items-center">
               <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
-                {{ substr($client->client_name, 0, 1) }}
+                {{ substr($client->client_name ?? 'N', 0, 1) }}
               </div>
               <div>
-                <div style="color: #ffffff !important; font-weight: 600;">{{ $client->client_name }}</div>
-                <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $client->contact_person ?? 'No Contact Person' }}</div>
+                <div style="color: #94a3b8 !important; font-size: 0.8rem;"> {{ $client->client_name ?? 'No Client Name' }}</div>
               </div>
             </div>
           </td>

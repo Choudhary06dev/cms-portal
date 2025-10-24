@@ -47,9 +47,13 @@
                   <select class="form-select @error('client_id') is-invalid @enderror" 
                           id="client_id" name="client_id" required>
                     <option value="">Select Client</option>
-                    @foreach($clients as $client)
-                      <option value="{{ $client->id }}">{{ $client->client_name }}</option>
-                    @endforeach
+                    @if(isset($clients) && $clients->count() > 0)
+                      @foreach($clients as $client)
+                        <option value="{{ $client->id }}">{{ $client->client_name }}</option>
+                      @endforeach
+                    @else
+                      <option value="" disabled>No clients available</option>
+                    @endif
                   </select>
                   @error('client_id')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -65,9 +69,13 @@
                   <select class="form-select @error('category') is-invalid @enderror" 
                           id="category" name="category" required>
                     <option value="">Select Category</option>
-                    <option value="technical">Technical</option>
-                    <option value="service">Service</option>
-                    <option value="billing">Billing</option>
+                    <option value="electrical">Electrical Issues</option>
+                    <option value="sanitary">Sanitary Issues</option>
+                    <option value="kitchen">Kitchen Problems</option>
+                    <option value="general">General Maintenance</option>
+                    <option value="technical">Technical Support</option>
+                    <option value="service">Service Request</option>
+                    <option value="billing">Billing Issues</option>
                     <option value="other">Other</option>
                   </select>
                   @error('category')
@@ -82,10 +90,11 @@
                   <select class="form-select @error('priority') is-invalid @enderror" 
                           id="priority" name="priority" required>
                     <option value="">Select Priority</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">Low - Can wait</option>
+                    <option value="medium">Medium - Normal</option>
+                    <option value="high">High - Important</option>
+                    <option value="urgent">Urgent - Critical</option>
+                    <option value="emergency">Emergency - Immediate</option>
                   </select>
                   @error('priority')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -114,9 +123,13 @@
                   <select class="form-select @error('assigned_employee_id') is-invalid @enderror" 
                           id="assigned_employee_id" name="assigned_employee_id">
                     <option value="">Select Employee (Optional)</option>
-                    @foreach($employees as $employee)
-                      <option value="{{ $employee->id }}">{{ $employee->user->username }} - {{ $employee->user->name }}</option>
-                    @endforeach
+                    @if(isset($employees) && $employees->count() > 0)
+                      @foreach($employees as $employee)
+                        <option value="{{ $employee->id }}">{{ $employee->user->username }} - {{ $employee->user->name }}</option>
+                      @endforeach
+                    @else
+                      <option value="" disabled>No employees available</option>
+                    @endif
                   </select>
                   @error('assigned_employee_id')
                     <div class="invalid-feedback">{{ $message }}</div>
