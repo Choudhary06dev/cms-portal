@@ -10,9 +10,7 @@
       <h2 class="text-white mb-2">Add New Employee</h2>
       <p class="text-light">Create a new employee record</p>
     </div>
-    <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Employees
-    </a>
+   
   </div>
 </div>
 
@@ -26,7 +24,7 @@
         <div class="mb-3">
           <label for="username" class="form-label text-white">Username <span class="text-danger">*</span></label>
           <input type="text" class="form-control @error('username') is-invalid @enderror" 
-                 id="username" name="username" value="{{ old('username') }}" required>
+                 id="username" name="username" value="" autocomplete="off" required>
           @error('username')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -37,7 +35,7 @@
         <div class="mb-3">
           <label for="email" class="form-label text-white">Email <span class="text-danger">*</span></label>
           <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                 id="email" name="email" value="{{ old('email') }}" required>
+                 id="email" name="email" value="" autocomplete="off" required>
           @error('email')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -50,7 +48,7 @@
         <div class="mb-3">
           <label for="password" class="form-label text-white">Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control @error('password') is-invalid @enderror" 
-                 id="password" name="password" required>
+                 id="password" name="password" value="" autocomplete="new-password" required>
           @error('password')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -61,7 +59,7 @@
         <div class="mb-3">
           <label for="password_confirmation" class="form-label text-white">Confirm Password <span class="text-danger">*</span></label>
           <input type="password" class="form-control" 
-                 id="password_confirmation" name="password_confirmation" required>
+                 id="password_confirmation" name="password_confirmation" value="" autocomplete="new-password" required>
         </div>
       </div>
     </div>
@@ -71,7 +69,7 @@
         <div class="mb-3">
           <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
           <input type="text" class="form-control @error('department') is-invalid @enderror" 
-                 id="department" name="department" value="{{ old('department') }}" required>
+                 id="department" name="department" value="" autocomplete="off" required>
           @error('department')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -82,7 +80,7 @@
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation <span class="text-danger">*</span></label>
           <input type="text" class="form-control @error('designation') is-invalid @enderror" 
-                 id="designation" name="designation" value="{{ old('designation') }}" required>
+                 id="designation" name="designation" value="" autocomplete="off" required>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -190,5 +188,41 @@
 @push('scripts')
 <script>
   feather.replace();
+  
+  // Clear form fields on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    // Clear username field
+    const usernameField = document.getElementById('username');
+    if (usernameField) {
+      usernameField.value = '';
+    }
+    
+    // Clear password fields
+    const passwordField = document.getElementById('password');
+    if (passwordField) {
+      passwordField.value = '';
+    }
+    
+    const confirmPasswordField = document.getElementById('password_confirmation');
+    if (confirmPasswordField) {
+      confirmPasswordField.value = '';
+    }
+    
+    // Clear email field as well
+    const emailField = document.getElementById('email');
+    if (emailField) {
+      emailField.value = '';
+    }
+  });
+  
+  // Form submission debug
+  document.querySelector('form').addEventListener('submit', function(e) {
+    console.log('Form submitted');
+    console.log('Username:', document.getElementById('username').value);
+    console.log('Email:', document.getElementById('email').value);
+    console.log('Password:', document.getElementById('password').value);
+    console.log('Department:', document.getElementById('department').value);
+    console.log('Designation:', document.getElementById('designation').value);
+  });
 </script>
 @endpush

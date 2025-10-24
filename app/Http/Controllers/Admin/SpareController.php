@@ -148,15 +148,15 @@ class SpareController extends Controller
             // Return JSON for modal
             return response()->json([
                 'id' => $spare->id,
-                'item_name' => $spare->item_name,
+                'name' => $spare->item_name,
                 'category' => $spare->category,
                 'unit' => $spare->unit,
-                'unit_price' => $spare->unit_price,
+                'price' => $spare->unit_price,
                 'stock_quantity' => $spare->stock_quantity,
                 'threshold_level' => $spare->threshold_level,
                 'supplier' => $spare->supplier,
                 'description' => $spare->description,
-                'last_updated' => $spare->updated_at ? $spare->updated_at->format('Y-m-d H:i:s') : 'N/A',
+                'updated_at' => $spare->updated_at ? $spare->updated_at->format('M d, Y H:i') : 'N/A',
                 'status' => $spare->stock_quantity > 0 ? 'in_stock' : 'out_of_stock',
                 'stock_status' => $spare->stock_quantity <= $spare->threshold_level ? 'low_stock' : 'normal',
             ]);

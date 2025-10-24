@@ -3,58 +3,62 @@
         @csrf
 
         <!-- Username -->
-        <div>
-            <x-input-label for="username" value="Username" />
-            <x-text-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('username')" class="mt-2" />
-        </div>
-
-
-        <!-- Phone -->
-        <div class="mt-4">
-            <x-input-label for="phone" value="Phone" />
-            <x-text-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone')" autocomplete="tel" />
-            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+        <div class="form-group">
+            <label for="username" class="form-label">
+                <i data-feather="user" class="inline w-4 h-4 mr-2"></i>Username
+            </label>
+            <input id="username" class="form-input" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username" placeholder="Choose a username" />
+            @error('username')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
         </div>
 
         <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" value="Email" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="form-group">
+            <label for="email" class="form-label">
+                <i data-feather="mail" class="inline w-4 h-4 mr-2"></i>Email Address
+            </label>
+            <input id="email" class="form-input" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email" />
+            @error('email')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" value="Password" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="form-group">
+            <label for="password" class="form-label">
+                <i data-feather="lock" class="inline w-4 h-4 mr-2"></i>Password
+            </label>
+            <input id="password" class="form-input" type="password" name="password" required autocomplete="new-password" placeholder="Create a password" />
+            @error('password')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
         </div>
 
         <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" value="Confirm Password" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div class="form-group">
+            <label for="password_confirmation" class="form-label">
+                <i data-feather="lock" class="inline w-4 h-4 mr-2"></i>Confirm Password
+            </label>
+            <input id="password_confirmation" class="form-input" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" />
+            @error('password_confirmation')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                Already registered?
-            </a>
+        <div class="form-group">
+            <button type="submit" class="btn-primary">
+                <i data-feather="user-plus" class="inline w-4 h-4 mr-2"></i>Create Account
+            </button>
+        </div>
 
-            <x-primary-button class="ms-4">
-                Register
-            </x-primary-button>
+        <div class="text-center mt-4">
+            <p class="text-sm text-gray-600">
+                Already have an account? 
+                <a href="{{ route('login') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    Sign in here
+                </a>
+            </p>
         </div>
     </form>
 </x-guest-layout>

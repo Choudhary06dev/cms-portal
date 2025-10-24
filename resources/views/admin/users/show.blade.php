@@ -42,7 +42,6 @@
           </div>
           <div class="mb-2">
             <span class="text-muted">Phone:</span>
-            <span class="text-white">{{ $user->phone ?? 'Not provided' }}</span>
           </div>
         </div>
       </div>

@@ -48,12 +48,6 @@
         
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="phone" class="form-label text-white">Phone</label>
-            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
-            @error('phone')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
           </div>
         </div>
       </div>

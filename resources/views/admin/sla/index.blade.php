@@ -72,18 +72,18 @@
             <tr>
           <td >{{ $rule->id }}</td>
           <td>
-            <div style="color: #ffffff !important; font-weight: 600;">{{ $rule->rule_name }}</div>
-            <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $rule->description ?? 'No description' }}</div>
+            <div style="color: #ffffff !important; font-weight: 600;">{{ ucfirst($rule->complaint_type) }} Rule</div>
+            <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $rule->complaint_type_display ?? ucfirst($rule->complaint_type) }}</div>
               </td>
               <td>
-            <span class="priority-badge priority-{{ strtolower($rule->priority) }}">
-              {{ ucfirst($rule->priority) }}
+            <span class="priority-badge priority-medium">
+              Level {{ $rule->escalation_level }}
                 </span>
               </td>
-          <td >{{ $rule->response_time }} hours</td>
-          <td >{{ $rule->resolution_time }} hours</td>
-          <td >{{ $rule->escalation_time }} hours</td>
-          <td >{{ $rule->notify_to ?? 'N/A' }}</td>
+          <td >{{ $rule->max_response_time }} hours</td>
+          <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
+          <td >{{ $rule->escalation_level }} hours</td>
+          <td >{{ $rule->notifyTo->username ?? 'N/A' }}</td>
           <td>
             <span class="status-badge status-{{ $rule->status ?? 'active' }}">
               {{ ucfirst($rule->status ?? 'active') }}

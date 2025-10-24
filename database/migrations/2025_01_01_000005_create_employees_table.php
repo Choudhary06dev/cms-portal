@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('department', 100)->nullable();
             $table->string('designation', 100)->nullable();
+            $table->string('phone', 20)->nullable();
             $table->string('biometric_id', 50)->nullable()->unique();
             $table->integer('leave_quota')->default(30);
             $table->text('address')->nullable();

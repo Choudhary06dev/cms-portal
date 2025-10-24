@@ -13,11 +13,19 @@ return new class extends Migration
     {
         Schema::create('spare_approval_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('performa_id')->constrained('spare_approval_performa');
-            $table->foreignId('spare_id')->constrained('spares');
+            $table->unsignedBigInteger('performa_id');
+            $table->unsignedBigInteger('spare_id');
             $table->integer('quantity_requested');
             $table->text('reason')->nullable();
             $table->timestamps();
+
+            // Foreign key constraints
+            $table->foreign('performa_id')->references('id')->on('spare_approval_performa')->onDelete('cascade');
+            $table->foreign('spare_id')->references('id')->on('spares')->onDelete('cascade');
+
+            // Indexes for better performance
+            $table->index(['performa_id', 'spare_id']);
+            $table->index('spare_id');
         });
     }
 

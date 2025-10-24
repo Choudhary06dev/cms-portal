@@ -58,6 +58,7 @@
           <th>Employee</th>
           <th>Department</th>
           <th>Position</th>
+          <th>Phone</th>
           <th>Status</th>
           <th>Hire Date</th>
           <th>Actions</th>
@@ -80,6 +81,7 @@
           </td>
           <td>{{ $employee->department ?? 'N/A' }}</td>
           <td>{{ $employee->designation ?? 'N/A' }}</td>
+          <td>{{ $employee->phone ?: 'N/A' }}</td>
           <td>
             <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }}">
               {{ ucfirst($employee->user->status ?? 'inactive') }}
@@ -102,7 +104,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="7" class="text-center text-muted py-4">
+          <td colspan="8" class="text-center text-muted py-4">
             <i data-feather="users" class="feather-lg mb-2"></i>
             <div>No employees found</div>
           </td>

@@ -30,7 +30,7 @@ class SpareApprovalItem extends Model
      */
     public function spare(): BelongsTo
     {
-        return $this->belongsTo(Spare::class);
+        return $this->belongsTo(Spare::class, 'spare_id', 'id');
     }
 
     /**
@@ -70,7 +70,7 @@ class SpareApprovalItem extends Model
      */
     public function getFormattedUnitPriceAttribute(): string
     {
-        return '₹' . number_format($this->getSpareUnitPriceAttribute(), 2);
+        return 'PKR ' . number_format($this->getSpareUnitPriceAttribute(), 2);
     }
 
     /**
@@ -86,43 +86,7 @@ class SpareApprovalItem extends Model
      */
     public function getFormattedTotalEstimatedCostAttribute(): string
     {
-        return '₹' . number_format($this->getTotalEstimatedCostAttribute(), 2);
-    }
-
-    /**
-     * Get spare stock status
-     */
-    public function getSpareStockStatusAttribute(): string
-    {
-        if (!$this->spare) {
-            return 'unknown';
-        }
-
-        return $this->spare->getStockStatusAttribute();
-    }
-
-    /**
-     * Get spare stock status display
-     */
-    public function getSpareStockStatusDisplayAttribute(): string
-    {
-        if (!$this->spare) {
-            return 'Unknown';
-        }
-
-        return $this->spare->getStockStatusDisplayAttribute();
-    }
-
-    /**
-     * Get spare stock status color
-     */
-    public function getSpareStockStatusColorAttribute(): string
-    {
-        if (!$this->spare) {
-            return 'muted';
-        }
-
-        return $this->spare->getStockStatusColorAttribute();
+        return 'PKR ' . number_format($this->getTotalEstimatedCostAttribute(), 2);
     }
 
     /**
@@ -134,7 +98,7 @@ class SpareApprovalItem extends Model
             return false;
         }
 
-        return $this->spare->isStockSufficient($this->quantity_requested);
+        return $this->spare->current_stock >= $this->quantity_requested;
     }
 
     /**
@@ -143,107 +107,25 @@ class SpareApprovalItem extends Model
     public function getAvailabilityStatusAttribute(): string
     {
         if (!$this->spare) {
-            return 'unavailable';
+            return 'Spare not found';
         }
 
         if ($this->isSpareAvailable()) {
-            return 'available';
-        } elseif ($this->spare->isOutOfStock()) {
-            return 'out_of_stock';
-        } else {
-            return 'insufficient_stock';
+            return 'Available';
         }
+
+        return 'Insufficient stock';
     }
 
     /**
-     * Get availability status display
+     * Get stock shortfall
      */
-    public function getAvailabilityStatusDisplayAttribute(): string
+    public function getStockShortfallAttribute(): int
     {
-        $statuses = [
-            'available' => 'Available',
-            'insufficient_stock' => 'Insufficient Stock',
-            'out_of_stock' => 'Out of Stock',
-            'unavailable' => 'Unavailable',
-        ];
+        if (!$this->spare) {
+            return $this->quantity_requested;
+        }
 
-        return $statuses[$this->getAvailabilityStatusAttribute()] ?? 'Unknown';
-    }
-
-    /**
-     * Get availability status color
-     */
-    public function getAvailabilityStatusColorAttribute(): string
-    {
-        $colors = [
-            'available' => 'success',
-            'insufficient_stock' => 'warning',
-            'out_of_stock' => 'danger',
-            'unavailable' => 'muted',
-        ];
-
-        return $colors[$this->getAvailabilityStatusAttribute()] ?? 'muted';
-    }
-
-    /**
-     * Get formatted quantity with unit
-     */
-    public function getFormattedQuantityAttribute(): string
-    {
-        return $this->quantity_requested . ' ' . $this->getSpareUnitAttribute();
-    }
-
-    /**
-     * Get reason or default message
-     */
-    public function getReasonDisplayAttribute(): string
-    {
-        return $this->reason ?: 'No reason provided';
-    }
-
-    /**
-     * Scope for specific performa
-     */
-    public function scopeForPerforma($query, $performaId)
-    {
-        return $query->where('performa_id', $performaId);
-    }
-
-    /**
-     * Scope for specific spare
-     */
-    public function scopeForSpare($query, $spareId)
-    {
-        return $query->where('spare_id', $spareId);
-    }
-
-    /**
-     * Scope for available items
-     */
-    public function scopeAvailable($query)
-    {
-        return $query->whereHas('spare', function ($q) {
-            $q->whereRaw('stock_quantity > 0');
-        });
-    }
-
-    /**
-     * Scope for unavailable items
-     */
-    public function scopeUnavailable($query)
-    {
-        return $query->whereHas('spare', function ($q) {
-            $q->where('stock_quantity', '<=', 0);
-        });
-    }
-
-    /**
-     * Scope for low stock items
-     */
-    public function scopeLowStock($query)
-    {
-        return $query->whereHas('spare', function ($q) {
-            $q->whereRaw('stock_quantity <= threshold_level');
-        });
+        return max(0, $this->quantity_requested - $this->spare->current_stock);
     }
 }

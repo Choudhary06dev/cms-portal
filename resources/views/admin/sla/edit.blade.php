@@ -35,9 +35,9 @@
                   <select class="form-select @error('complaint_type') is-invalid @enderror" 
                           id="complaint_type" name="complaint_type" required>
                     <option value="">Select Complaint Type</option>
-                    @foreach($complaintTypes as $type)
-                    <option value="{{ $type }}" {{ old('complaint_type', $sla->complaint_type) == $type ? 'selected' : '' }}>
-                      {{ ucfirst($type) }}
+                    @foreach($complaintTypes as $key => $label)
+                    <option value="{{ $key }}" {{ old('complaint_type', $sla->complaint_type) == $key ? 'selected' : '' }}>
+                      {{ $label }}
                     </option>
                     @endforeach
                   </select>

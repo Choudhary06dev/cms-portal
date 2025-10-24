@@ -13,13 +13,22 @@ return new class extends Migration
     {
         Schema::create('spare_approval_performa', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('complaint_id')->constrained('complaints');
-            $table->foreignId('requested_by')->constrained('employees');
-            $table->foreignId('approved_by')->nullable()->constrained('employees')->nullOnDelete();
+            $table->unsignedBigInteger('complaint_id');
+            $table->unsignedBigInteger('requested_by');
+            $table->unsignedBigInteger('approved_by')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamp('approved_at')->nullable();
             $table->text('remarks')->nullable();
             $table->timestamps();
+
+            // Foreign key constraints
+            $table->foreign('complaint_id')->references('id')->on('complaints')->onDelete('cascade');
+            // Foreign key constraints removed for easier data management
+
+            // Indexes for better performance
+            $table->index(['status', 'created_at']);
+            $table->index(['requested_by', 'status']);
+            $table->index(['approved_by', 'status']);
         });
     }
 

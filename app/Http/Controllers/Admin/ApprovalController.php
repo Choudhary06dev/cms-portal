@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\Spare;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class ApprovalController extends Controller
 {
@@ -23,9 +24,6 @@ class ApprovalController extends Controller
      */
     public function index(Request $request)
     {
-        // Debug: Log all request parameters
-        \Log::info('Approvals filter request:', $request->all());
-        
         $query = SpareApprovalPerforma::with([
             'complaint.client',
             'requestedBy.user',
@@ -49,20 +47,7 @@ class ApprovalController extends Controller
 
         // Filter by status
         if ($request->has('status') && $request->status) {
-            \Log::info('Filtering by status: ' . $request->status);
             $query->where('status', $request->status);
-        }
-
-        // Filter by type (for now, all are spare parts, but we can add logic later)
-        if ($request->has('type') && $request->type) {
-            // For now, all approvals are spare parts, so we don't need to filter
-            // This can be extended when we add other approval types
-        }
-
-        // Filter by priority (this would need to be added to the database schema)
-        if ($request->has('priority') && $request->priority) {
-            // Priority filtering would need a priority column in the database
-            // For now, we'll skip this filter
         }
 
         // Filter by requested by
@@ -77,12 +62,10 @@ class ApprovalController extends Controller
 
         // Filter by date range
         if ($request->has('date_from') && $request->date_from) {
-            \Log::info('Filtering by date_from: ' . $request->date_from);
             $query->whereDate('created_at', '>=', $request->date_from);
         }
 
         if ($request->has('date_to') && $request->date_to) {
-            \Log::info('Filtering by date_to: ' . $request->date_to);
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
@@ -105,9 +88,62 @@ class ApprovalController extends Controller
             ->with(['client', 'assignedEmployee.user'])
             ->get();
         
-        $spares = Spare::where('status', 'active')->get();
+        $spares = Spare::all(); // Get all spares since status column might not exist
         
         return view('admin.approvals.create', compact('complaints', 'spares'));
+    }
+
+    /**
+     * Store a newly created approval performa.
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'complaint_id' => 'required|exists:complaints,id',
+            'items' => 'required|array|min:1',
+            'items.*.spare_id' => 'required|exists:spares,id',
+            'items.*.quantity_requested' => 'required|integer|min:1',
+            'items.*.reason' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create approval performa
+            $approval = SpareApprovalPerforma::create([
+                'complaint_id' => $request->complaint_id,
+                'requested_by' => auth()->user()->employee->id,
+                'status' => 'pending',
+                'remarks' => $request->remarks,
+            ]);
+
+            // Create approval items
+            foreach ($request->items as $item) {
+                SpareApprovalItem::create([
+                    'performa_id' => $approval->id,
+                    'spare_id' => $item['spare_id'],
+                    'quantity_requested' => $item['quantity_requested'],
+                    'reason' => $item['reason'],
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.approvals.index')
+                ->with('success', 'Approval request created successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Failed to create approval request: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**
@@ -124,12 +160,6 @@ class ApprovalController extends Controller
 
         // Return JSON for AJAX requests
         if (request()->ajax() || request()->wantsJson()) {
-            \Log::info('Approval details requested', [
-                'approval_id' => $approval->id,
-                'items_count' => $approval->items->count(),
-                'items' => $approval->items->toArray()
-            ]);
-            
             return response()->json([
                 'success' => true,
                 'approval' => [
@@ -162,47 +192,104 @@ class ApprovalController extends Controller
      */
     public function approve(Request $request, SpareApprovalPerforma $approval)
     {
+        // Load relationships
+        $approval->load(['items.spare', 'complaint.client', 'requestedBy.user']);
+        
         $validator = Validator::make($request->all(), [
             'remarks' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            return redirect()->back()->withErrors($validator);
         }
 
         // Check if all items are available
         $unavailableItems = [];
         foreach ($approval->items as $item) {
-            if (!$item->isSpareAvailable()) {
-                $unavailableItems[] = $item->spare->item_name;
+            // Get spare directly to avoid relationship issues
+            $spare = \App\Models\Spare::find($item->spare_id);
+            
+            if (!$spare) {
+                \Log::error('Spare not found for item ID: ' . $item->id . ', Spare ID: ' . $item->spare_id);
+                $unavailableItems[] = 'Unknown Spare (ID: ' . $item->spare_id . ')';
+                continue;
+            }
+            
+            // Check stock availability directly
+            if ($spare->current_stock < $item->quantity_requested) {
+                $unavailableItems[] = $spare->item_name;
             }
         }
 
         if (!empty($unavailableItems)) {
-            return redirect()->back()
-                ->with('error', 'Cannot approve: ' . implode(', ', $unavailableItems) . ' are not available in sufficient quantity.');
+            $message = 'Cannot approve: ' . implode(', ', $unavailableItems) . ' are not available in sufficient quantity.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 422);
+            }
+            return redirect()->back()->with('error', $message);
         }
 
-        // Update approval status
-        $approval->update([
-            'status' => 'approved',
-            'approved_by' => auth()->user()->employee->id,
-            'approved_at' => now(),
-            'remarks' => $request->remarks,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Deduct stock for each item
-        foreach ($approval->items as $item) {
-            $item->spare->removeStock(
-                $item->quantity_requested,
-                "Approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
-                $approval->complaint_id
-            );
+            // Update approval status
+            $employee = auth()->user()->employee ?? Employee::first();
+            if (!$employee) {
+                throw new \Exception('No employee record found');
+            }
+            
+            $approval->update([
+                'status' => 'approved',
+                'approved_by' => $employee->id,
+                'approved_at' => now(),
+                'remarks' => $request->remarks,
+            ]);
+
+            // Deduct stock for each item
+            foreach ($approval->items as $item) {
+                $spare = \App\Models\Spare::find($item->spare_id);
+                if ($spare) {
+                    $spare->removeStock(
+                        $item->quantity_requested,
+                        "Approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
+                        $approval->complaint_id
+                    );
+                }
+            }
+
+            DB::commit();
+
+            $message = 'Approval performa approved successfully.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $message = 'Failed to approve: ' . $e->getMessage();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 500);
+            }
+            return redirect()->back()->with('error', $message);
         }
-
-        return redirect()->back()
-            ->with('success', 'Approval performa approved successfully.');
     }
 
     /**
@@ -210,24 +297,52 @@ class ApprovalController extends Controller
      */
     public function reject(Request $request, SpareApprovalPerforma $approval)
     {
+        // Load relationships
+        $approval->load(['items.spare', 'complaint.client', 'requestedBy.user']);
+        
         $validator = Validator::make($request->all(), [
             'remarks' => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            return redirect()->back()->withErrors($validator);
         }
 
-        $approval->update([
-            'status' => 'rejected',
-            'approved_by' => auth()->user()->employee->id,
-            'approved_at' => now(),
-            'remarks' => $request->remarks,
-        ]);
+        try {
+            $approval->update([
+                'status' => 'rejected',
+                'approved_by' => auth()->user()->employee->id,
+                'approved_at' => now(),
+                'remarks' => $request->remarks,
+            ]);
 
-        return redirect()->back()
-            ->with('success', 'Approval performa rejected successfully.');
+            $message = 'Approval performa rejected successfully.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            $message = 'Failed to reject: ' . $e->getMessage();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 500);
+            }
+            return redirect()->back()->with('error', $message);
+        }
     }
 
     /**
@@ -249,108 +364,11 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Get approval chart data
-     */
-    public function getChartData(Request $request)
-    {
-        $period = $request->get('period', '30'); // days
-
-        $data = SpareApprovalPerforma::where('created_at', '>=', now()->subDays($period))
-            ->selectRaw('status, COUNT(*) as count')
-            ->groupBy('status')
-            ->get();
-
-        return response()->json($data);
-    }
-
-    /**
-     * Get monthly approval trends
-     */
-    public function getMonthlyTrends(Request $request)
-    {
-        $months = $request->get('months', 12);
-
-        $data = SpareApprovalPerforma::where('created_at', '>=', now()->subMonths($months))
-            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-
-        return response()->json($data);
-    }
-
-    /**
-     * Get overdue approvals
-     */
-    public function getOverdueApprovals(Request $request)
-    {
-        $hours = $request->get('hours', 24);
-
-        $overdue = SpareApprovalPerforma::overdue($hours)
-            ->with(['complaint.client', 'requestedBy.user'])
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        return response()->json($overdue);
-    }
-
-    /**
-     * Get approval performance by employee
-     */
-    public function getEmployeePerformance(Request $request)
-    {
-        $period = $request->get('period', '30'); // days
-
-        $performance = SpareApprovalPerforma::where('created_at', '>=', now()->subDays($period))
-            ->whereNotNull('approved_by')
-            ->selectRaw('approved_by, COUNT(*) as total_approved, AVG(TIMESTAMPDIFF(HOUR, created_at, approved_at)) as avg_approval_time')
-            ->groupBy('approved_by')
-            ->with('approvedBy.user')
-            ->get();
-
-        return response()->json($performance);
-    }
-
-    /**
-     * Get approval cost analysis
-     */
-    public function getCostAnalysis(Request $request)
-    {
-        $period = $request->get('period', '30'); // days
-
-        $costAnalysis = SpareApprovalPerforma::where('created_at', '>=', now()->subDays($period))
-            ->where('status', 'approved')
-            ->with(['items.spare'])
-            ->get()
-            ->map(function($approval) {
-                return [
-                    'id' => $approval->id,
-                    'complaint_id' => $approval->complaint_id,
-                    'total_cost' => $approval->getTotalEstimatedCostAttribute(),
-                    'items_count' => $approval->getTotalItemsAttribute(),
-                    'created_at' => $approval->created_at,
-                ];
-            })
-            ->sortByDesc('total_cost')
-            ->values();
-
-        return response()->json($costAnalysis);
-    }
-
-    /**
      * Bulk actions on approvals
      */
     public function bulkAction(Request $request)
     {
         try {
-            \Log::info('Bulk action request received', [
-                'action' => $request->action,
-                'approval_ids' => $request->approval_ids,
-                'is_ajax' => $request->ajax(),
-                'wants_json' => $request->wantsJson(),
-                'headers' => $request->headers->all()
-            ]);
-
             $validator = Validator::make($request->all(), [
                 'action' => 'required|in:approve,reject',
                 'approval_ids' => 'required|array|min:1',
@@ -358,7 +376,6 @@ class ApprovalController extends Controller
             ]);
 
             if ($validator->fails()) {
-                \Log::error('Validation failed', $validator->errors()->toArray());
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
                         'success' => false,
@@ -366,106 +383,66 @@ class ApprovalController extends Controller
                         'errors' => $validator->errors()
                     ], 422);
                 }
-                return redirect()->back()
-                    ->withErrors($validator);
+                return redirect()->back()->withErrors($validator);
             }
 
-            \Log::info('Validation passed, processing action', [
-                'action' => $request->action,
-                'approval_ids' => $request->approval_ids
-            ]);
+            $approvalIds = $request->approval_ids;
+            $action = $request->action;
 
-        $approvalIds = $request->approval_ids;
-        $action = $request->action;
+            DB::beginTransaction();
 
-        switch ($action) {
-            case 'approve':
-                $validator = Validator::make($request->all(), [
-                    'remarks' => 'nullable|string',
-                ]);
-                
-                if ($validator->fails()) {
-                    return redirect()->back()->withErrors($validator);
-                }
-                
-                $approvals = SpareApprovalPerforma::whereIn('id', $approvalIds)
-                    ->where('status', 'pending')
-                    ->get();
+            switch ($action) {
+                case 'approve':
+                    $approvals = SpareApprovalPerforma::whereIn('id', $approvalIds)
+                        ->where('status', 'pending')
+                        ->get();
 
-                foreach ($approvals as $approval) {
-                    // Check availability for each item
-                    $canApprove = true;
-                    foreach ($approval->items as $item) {
-                        if (!$item->isSpareAvailable()) {
-                            $canApprove = false;
-                            break;
+                    foreach ($approvals as $approval) {
+                        // Check availability for each item
+                        $canApprove = true;
+                        foreach ($approval->items as $item) {
+                            if (!$item->isSpareAvailable()) {
+                                $canApprove = false;
+                                break;
+                            }
+                        }
+
+                        if ($canApprove) {
+                            $approval->update([
+                                'status' => 'approved',
+                                'approved_by' => auth()->user()->employee->id,
+                                'approved_at' => now(),
+                                'remarks' => $request->remarks,
+                            ]);
+
+                            // Deduct stock
+                            foreach ($approval->items as $item) {
+                                $item->spare->removeStock(
+                                    $item->quantity_requested,
+                                    "Bulk approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
+                                    $approval->complaint_id
+                                );
+                            }
                         }
                     }
+                    $message = 'Selected approvals processed successfully.';
+                    break;
 
-                    if ($canApprove) {
-                        // Get the current user's employee ID, or use a default if not found
-                        $currentEmployee = Employee::where('user_id', auth()->id())->first();
-                        $approvedBy = $currentEmployee ? $currentEmployee->id : null;
-                        
-                        $approval->update([
-                            'status' => 'approved',
-                            'approved_by' => $approvedBy,
+                case 'reject':
+                    $updated = SpareApprovalPerforma::whereIn('id', $approvalIds)
+                        ->where('status', 'pending')
+                        ->update([
+                            'status' => 'rejected',
+                            'approved_by' => auth()->user()->employee->id,
                             'approved_at' => now(),
                             'remarks' => $request->remarks,
                         ]);
-
-                        // Deduct stock
-                        foreach ($approval->items as $item) {
-                            $item->spare->removeStock(
-                                $item->quantity_requested,
-                                "Bulk approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
-                                $approval->complaint_id
-                            );
-                        }
-                    }
-                }
-                $message = 'Selected approvals processed successfully.';
-                break;
-
-            case 'reject':
-                $validator = Validator::make($request->all(), [
-                    'remarks' => 'nullable|string',
-                ]);
-                
-                if ($validator->fails()) {
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Validation failed',
-                            'errors' => $validator->errors()
-                        ], 422);
-                    }
-                    return redirect()->back()->withErrors($validator);
-                }
-                
-                // Get the current user's employee ID, or use a default if not found
-                $currentEmployee = Employee::where('user_id', auth()->id())->first();
-                $approvedBy = $currentEmployee ? $currentEmployee->id : null;
-                
-                \Log::info('Rejecting approvals', [
-                    'approval_ids' => $approvalIds,
-                    'approved_by' => $approvedBy,
-                    'remarks' => $request->remarks
-                ]);
-                
-                $updated = SpareApprovalPerforma::whereIn('id', $approvalIds)
-                    ->where('status', 'pending')
-                    ->update([
-                        'status' => 'rejected',
-                        'approved_by' => $approvedBy,
-                        'approved_at' => now(),
-                        'remarks' => $request->remarks,
-                    ]);
                     
-                \Log::info('Reject update result', ['updated_count' => $updated]);
-                $message = 'Selected approvals rejected successfully.';
-                break;
-        }
+                    $message = 'Selected approvals rejected successfully.';
+                    break;
+            }
+
+            DB::commit();
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -477,10 +454,7 @@ class ApprovalController extends Controller
             return redirect()->back()->with('success', $message);
             
         } catch (\Exception $e) {
-            \Log::error('Bulk action error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
-            ]);
+            DB::rollBack();
             
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -517,9 +491,86 @@ class ApprovalController extends Controller
             $query->where('status', $request->status);
         }
 
-        $approvals = $query->get();
+        if ($request->has('date_from') && $request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
 
-        // Implementation for export
-        return response()->json(['message' => 'Export functionality not implemented yet']);
+        if ($request->has('date_to') && $request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $approvals = $query->orderBy('created_at', 'desc')->get();
+
+        $format = $request->get('format', 'csv');
+        
+        if ($format === 'csv') {
+            return $this->exportToCsv($approvals);
+        } elseif ($format === 'excel') {
+            return $this->exportToExcel($approvals);
+        } else {
+            return response()->json(['message' => 'Unsupported export format']);
+        }
+    }
+
+    /**
+     * Export to CSV
+     */
+    private function exportToCsv($approvals)
+    {
+        $filename = 'approvals_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($approvals) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Headers
+            fputcsv($file, [
+                'ID',
+                'Complaint ID',
+                'Client Name',
+                'Requested By',
+                'Status',
+                'Total Items',
+                'Total Cost',
+                'Created At',
+                'Approved At',
+                'Approved By',
+                'Remarks'
+            ]);
+
+            // CSV Data
+            foreach ($approvals as $approval) {
+                fputcsv($file, [
+                    $approval->id,
+                    $approval->complaint->getTicketNumberAttribute(),
+                    $approval->complaint->client->client_name ?? 'N/A',
+                    $approval->requestedBy->user->username ?? 'N/A',
+                    ucfirst($approval->status),
+                    $approval->items->count(),
+                    'PKR ' . number_format($approval->getTotalEstimatedCostAttribute(), 2),
+                    $approval->created_at->format('Y-m-d H:i:s'),
+                    $approval->approved_at ? $approval->approved_at->format('Y-m-d H:i:s') : 'N/A',
+                    $approval->approvedBy->user->username ?? 'N/A',
+                    $approval->remarks ?? 'N/A'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export to Excel (placeholder)
+     */
+    private function exportToExcel($approvals)
+    {
+        // This would require Laravel Excel package
+        return response()->json(['message' => 'Excel export requires Laravel Excel package']);
     }
 }

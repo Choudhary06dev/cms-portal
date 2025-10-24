@@ -15,6 +15,7 @@ class Employee extends Model
         'user_id',
         'department',
         'designation',
+        'phone',
         'biometric_id',
         'leave_quota',
         'address',
@@ -104,13 +105,6 @@ class Employee extends Model
         return $this->user ? $this->user->email : null;
     }
 
-    /**
-     * Get employee's phone
-     */
-    public function getPhoneAttribute(): ?string
-    {
-        return $this->user ? $this->user->phone : null;
-    }
 
     /**
      * Get employee's status

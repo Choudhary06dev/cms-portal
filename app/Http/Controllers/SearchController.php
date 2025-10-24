@@ -59,8 +59,7 @@ class SearchController extends Controller
             ->orWhereHas('client', function($q) use ($query) {
                 $q->where('client_name', 'like', "%{$query}%")
                   ->orWhere('contact_person', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%")
-                  ->orWhere('phone', 'like', "%{$query}%");
+                  ->orWhere('email', 'like', "%{$query}%");
             })
             ->orWhereHas('assignedEmployee.user', function($q) use ($query) {
                 $q->where('username', 'like', "%{$query}%")

@@ -1472,8 +1472,8 @@
         },
         {
           id: 3,
-          title: 'Approval Required',
-          message: 'Spare approval request pending',
+          title: 'Spare Parts Alert',
+          message: 'Spare parts stock low',
           type: 'primary',
           icon: 'check-circle',
           time: '1 hour ago',

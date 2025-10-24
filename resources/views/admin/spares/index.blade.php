@@ -87,7 +87,7 @@
                 </span>
               </td>
           <td >{{ $spare->stock_quantity ?? 0 }}</td>
-          <td >${{ number_format($spare->unit_price ?? 0, 2) }}</td>
+          <td >RS{{ number_format($spare->unit_price ?? 0, 2) }}</td>
           <td>
             <span class="status-badge status-{{ $spare->status ?? 'active' }}">
               {{ ucfirst($spare->status ?? 'active') }}
@@ -306,48 +306,74 @@
       .then(data => {
         console.log('Received data:', data);
         
-        // Show spare details in modal
-        document.getElementById('spareModalLabel').textContent = 'View Spare Part';
-        document.getElementById('spareForm').style.display = 'none';
+        // Wait for DOM to be ready
+        setTimeout(() => {
+          // Show spare details in modal
+          const modalLabel = document.getElementById('spareModalLabel');
+          const modalBody = document.getElementById('modalBody');
+          
+          if (!modalLabel || !modalBody) {
+            console.error('Modal elements not found');
+            console.log('ModalLabel:', modalLabel);
+            console.log('ModalBody:', modalBody);
+            alert('Error: Modal elements not found');
+            return;
+          }
         
-        // Create view content
-        const modalBody = document.getElementById('modalBody');
-        console.log('Modal body found:', modalBody);
-        
-        modalBody.innerHTML = `
-          <div class="row">
-            <div class="col-md-6">
-              <strong>Name:</strong> ${data.name || 'N/A'}<br>
-              <strong>Category:</strong> ${data.category || 'N/A'}<br>
-              <strong>Unit:</strong> ${data.unit || 'N/A'}<br>
-              <strong>Price:</strong> $${data.price || '0.00'}<br>
+          modalLabel.textContent = 'View Spare Part';
+          
+          // Hide the form inside modal body
+          const spareForm = modalBody.querySelector('#spareForm');
+          if (spareForm) {
+            spareForm.style.display = 'none';
+          }
+          
+          console.log('Modal body found:', modalBody);
+          
+          modalBody.innerHTML = `
+            <div class="row">
+              <div class="col-md-6">
+                <strong>Name:</strong> ${data.name || 'N/A'}<br>
+                <strong>Category:</strong> ${data.category || 'N/A'}<br>
+                <strong>Unit:</strong> ${data.unit || 'N/A'}<br>
+                <strong>Price:</strong> $${data.price || '0.00'}<br>
+              </div>
+              <div class="col-md-6">
+                <strong>Stock Quantity:</strong> ${data.stock_quantity || 'N/A'}<br>
+                <strong>Threshold Level:</strong> ${data.threshold_level || 'N/A'}<br>
+                <strong>Status:</strong> ${data.status || 'N/A'}<br>
+                <strong>Last Updated:</strong> ${data.updated_at || 'N/A'}<br>
+              </div>
+              <div class="col-12 mt-3">
+                <strong>Supplier:</strong> ${data.supplier || 'N/A'}<br>
+                <strong>Description:</strong> ${data.description || 'N/A'}<br>
+              </div>
             </div>
-            <div class="col-md-6">
-              <strong>Stock Quantity:</strong> ${data.stock_quantity || 'N/A'}<br>
-              <strong>Threshold Level:</strong> ${data.threshold_level || 'N/A'}<br>
-              <strong>Status:</strong> ${data.status || 'N/A'}<br>
-              <strong>Last Updated:</strong> ${data.updated_at || 'N/A'}<br>
-            </div>
-            <div class="col-12 mt-3">
-              <strong>Supplier:</strong> ${data.supplier || 'N/A'}<br>
-              <strong>Description:</strong> ${data.description || 'N/A'}<br>
-            </div>
-          </div>
-        `;
-        
-        console.log('Modal body content updated');
-        
-        // Hide modal footer for view mode
-        const modalFooter = document.querySelector('.modal-footer');
-        if (modalFooter) {
-          modalFooter.style.display = 'none';
-          console.log('Modal footer hidden');
-        }
-        
-        // Show the modal
-        const modal = new bootstrap.Modal(document.getElementById('spareModal'));
-        modal.show();
-        console.log('Modal shown');
+          `;
+          
+          console.log('Modal body content updated');
+          
+          // Show the modal first
+          const modalElement = document.getElementById('spareModal');
+          if (!modalElement) {
+            console.error('Spare modal element not found');
+            alert('Error: Modal not found');
+            return;
+          }
+          
+          const modal = new bootstrap.Modal(modalElement);
+          modal.show();
+          console.log('Modal shown');
+          
+          // Hide modal footer for view mode after modal is shown
+          setTimeout(() => {
+            const modalFooter = document.querySelector('.modal-footer');
+            if (modalFooter) {
+              modalFooter.style.display = 'none';
+              console.log('Modal footer hidden');
+            }
+          }, 100);
+        }, 100);
       })
       .catch(error => {
         console.error('Error loading spare details:', error);
@@ -457,8 +483,8 @@
         // Submit button will be handled by event delegation
         
         // Populate form fields with data
-        document.getElementById('item_name').value = data.item_name;
-        document.getElementById('category').value = data.category;
+        document.getElementById('item_name').value = data.name || '';
+        document.getElementById('category').value = data.category || '';
         document.getElementById('unit').value = data.unit || '';
         document.getElementById('price').value = data.price || '';
         document.getElementById('stock_quantity').value = data.stock_quantity || '';

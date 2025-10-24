@@ -188,7 +188,7 @@ class SpareApprovalPerforma extends Model
      */
     public function getFormattedTotalEstimatedCostAttribute(): string
     {
-        return '₹' . number_format($this->getTotalEstimatedCostAttribute(), 2);
+        return 'PKR ' . number_format($this->getTotalEstimatedCostAttribute(), 2);
     }
 
     /**

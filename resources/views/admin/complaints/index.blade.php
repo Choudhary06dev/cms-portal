@@ -253,7 +253,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <a href="{{ route('admin.complaints.print-slip', $complaint) }}" class="btn btn-info" target="_blank">
+                <a href="#" class="btn btn-info" id="printSlipBtn" target="_blank" style="display: none;">
                     <i data-feather="printer"></i> Print Slip
                 </a>
             </div>
@@ -324,6 +324,13 @@
                     console.log('Response data:', data);
                     if (data.success) {
                         const complaint = data.complaint;
+
+                        // Set print slip button
+                        const printSlipBtn = document.getElementById('printSlipBtn');
+                        if (printSlipBtn) {
+                            printSlipBtn.href = `/admin/complaints/${complaintId}/print-slip`;
+                            printSlipBtn.style.display = 'inline-block';
+                        }
 
                         modalBody.innerHTML = `
                     <div class="row">

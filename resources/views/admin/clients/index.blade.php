@@ -75,7 +75,8 @@
           <th >#</th>
           <th >Client</th>
           <th >Type</th>
-          <th >Contact</th>
+          <th >Email</th>
+          <th >Phone</th>
           <th >Location</th>
           <th >Status</th>
           <th >Complaints</th>
@@ -103,10 +104,8 @@
               Client
             </span>
           </td>
-          <td>
-            <div >{{ $client->email ?? 'N/A' }}</div>
-            <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $client->phone ?? 'N/A' }}</div>
-          </td>
+          <td>{{ $client->email ?? 'N/A' }}</td>
+          <td>{{ $client->phone ?? 'N/A' }}</td>
           <td >{{ $client->city ?? 'N/A' }}</td>
           <td>
             <span class="status-badge status-{{ strtolower($client->status) }}">
@@ -131,7 +130,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="9" class="text-center py-4" >
+          <td colspan="10" class="text-center py-4" >
             <i data-feather="briefcase" class="feather-lg mb-2"></i>
             <div>No clients found</div>
           </td>

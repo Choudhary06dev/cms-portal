@@ -838,12 +838,6 @@
       </div>
       <div class="col-md-2 mb-3">
     <div class="card-glass text-center">
-      <div class="h5 mb-1 text-primary" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['pending_approvals'] ?? 0 }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Pending Approvals</div>
-        </div>
-      </div>
-      <div class="col-md-2 mb-3">
-    <div class="card-glass text-center">
       <div class="h5 mb-1 text-success" style="font-size: 1.5rem; font-weight: bold;">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
       <div class="text-muted" style="font-size: 0.8rem;">SLA Performance</div>
         </div>
@@ -915,43 +909,6 @@
           </div>
         </div>
 
-      <div class="col-md-6">
-        <div class="card-glass">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 text-white" style="font-weight: bold;">Pending Approvals</h5>
-        <a href="{{ route('admin.approvals.index') }}" class="btn btn-accent btn-sm">View All</a>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-dark ">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Complaint</th>
-                  <th>Requester</th>
-                  <th>Items</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-            @forelse($pendingApprovals ?? [] as $approval)
-                <tr>
-                  <td>{{ $approval->id }}</td>
-                  <td>{{ $approval->complaint->getTicketNumberAttribute() }}</td>
-                  <td>{{ $approval->requestedBy->user->full_name }}</td>
-                  <td>{{ $approval->items->count() }}</td>
-                  <td>PKR {{ number_format($approval->getTotalValueRequestedAttribute(), 2) }}</td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="5" class="text-center py-3">No pending approvals</td>
-                </tr>
-                @endforelse
-              </tbody>
-            </table>
-          </div>
-          </div>
-        </div>
-      </div>
 
     <!-- LOW STOCK ALERTS -->
 @if(isset($lowStockItems) && $lowStockItems->count() > 0)
