@@ -316,7 +316,7 @@
                 </div>
               </div>
               <div class="text-end">
-                <div class="text-white fw-bold">PKR ${item.total_cost}</div>
+                <div class="text-white fw-bold">-</div>
                 <div class="text-muted small">${item.items_count} items</div>
                 <button class="btn btn-outline-info btn-sm mt-2" onclick="viewWorkflowDetails(${item.id})">
                   <i data-feather="eye"></i>
@@ -355,7 +355,7 @@
                 <p class="text-muted small mb-2">${item.client_name}</p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <div class="text-white fw-bold">PKR ${item.total_cost}</div>
+                    <div class="text-white fw-bold">-</div>
                     <div class="text-muted small">${item.items_count} items</div>
                   </div>
                   <button class="btn btn-outline-info btn-sm" onclick="viewWorkflowDetails(${item.id})">

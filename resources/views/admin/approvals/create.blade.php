@@ -77,10 +77,9 @@
                 @if(isset($spares) && $spares->count() > 0)
                 @foreach($spares as $spare)
                 <option value="{{ $spare->id }}" 
-                        data-price="{{ $spare->unit_price }}"
                         data-stock="{{ $spare->current_stock }}"
                         data-unit="{{ $spare->unit }}">
-                  {{ $spare->item_name }} - PKR {{ number_format($spare->unit_price, 2) }} (Stock: {{ $spare->current_stock }})
+                  {{ $spare->item_name }} (Stock: {{ $spare->current_stock }})
                 </option>
                 @endforeach
                 @else
@@ -107,16 +106,10 @@
                 <div class="card bg-dark">
                   <div class="card-body">
                     <div class="row">
-                      <div class="col-md-3">
-                        <strong>Unit Price:</strong> <span class="unit-price">-</span>
-                      </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <strong>Available Stock:</strong> <span class="available-stock">-</span>
                       </div>
-                      <div class="col-md-3">
-                        <strong>Total Cost:</strong> <span class="total-cost">-</span>
-                      </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <strong>Stock Status:</strong> <span class="stock-status">-</span>
                       </div>
                     </div>
@@ -149,8 +142,7 @@
               <div class="card-body">
                 <h6 class="text-white">Request Summary</h6>
                 <p class="text-muted mb-1"><strong>Total Items:</strong> <span id="total-items">0</span></p>
-                <p class="text-muted mb-1"><strong>Total Quantity:</strong> <span id="total-quantity">0</span></p>
-                <p class="text-muted mb-0"><strong>Estimated Cost:</strong> <span id="estimated-cost">PKR 0.00</span></p>
+                <p class="text-muted mb-0"><strong>Total Quantity:</strong> <span id="total-quantity">0</span></p>
               </div>
             </div>
           </div>
@@ -244,10 +236,9 @@
           @if(isset($spares) && $spares->count() > 0)
           @foreach($spares as $spare)
           <option value="{{ $spare->id }}" 
-                  data-price="{{ $spare->unit_price }}"
                   data-stock="{{ $spare->current_stock }}"
                   data-unit="{{ $spare->unit }}">
-            {{ $spare->item_name }} - PKR {{ number_format($spare->unit_price, 2) }} (Stock: {{ $spare->current_stock }})
+            {{ $spare->item_name }} (Stock: {{ $spare->current_stock }})
           </option>
           @endforeach
           @else
@@ -274,16 +265,10 @@
           <div class="card bg-dark">
             <div class="card-body">
               <div class="row">
-                <div class="col-md-3">
-                  <strong>Unit Price:</strong> <span class="unit-price">-</span>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <strong>Available Stock:</strong> <span class="available-stock">-</span>
                 </div>
-                <div class="col-md-3">
-                  <strong>Total Cost:</strong> <span class="total-cost">-</span>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <strong>Stock Status:</strong> <span class="stock-status">-</span>
                 </div>
               </div>
@@ -325,20 +310,17 @@
     const detailsDiv = row.querySelector('.spare-item-details');
     const selectedOption = selectElement.options[selectElement.selectedIndex];
     
-    if (selectElement.value && selectedOption.dataset.price) {
-      const price = parseFloat(selectedOption.dataset.price);
-      const stock = parseInt(selectedOption.dataset.stock);
+    if (selectElement.value) {
+      const stock = parseInt(selectedOption.dataset.stock || 0);
       const quantityInput = row.querySelector('.quantity-input');
       const quantity = parseInt(quantityInput.value) || 0;
-      
-      // Update details
-      row.querySelector('.unit-price').textContent = `PKR ${price.toFixed(2)}`;
+
+      // Update details (price removed)
       row.querySelector('.available-stock').textContent = stock;
-      row.querySelector('.total-cost').textContent = `PKR ${(price * quantity).toFixed(2)}`;
-      
+
       // Update stock status
       const stockStatus = row.querySelector('.stock-status');
-      if (stock >= quantity) {
+      if (stock >= quantity && quantity > 0) {
         stockStatus.textContent = 'Available';
         stockStatus.className = 'stock-status stock-available';
       } else if (stock > 0) {
@@ -348,7 +330,7 @@
         stockStatus.textContent = 'Out of Stock';
         stockStatus.className = 'stock-status stock-out';
       }
-      
+
       detailsDiv.style.display = 'block';
     } else {
       detailsDiv.style.display = 'none';
@@ -371,19 +353,14 @@
       if (select.value && quantityInput.value) {
         totalItems++;
         totalQuantity += parseInt(quantityInput.value) || 0;
-        
-        const selectedOption = select.options[select.selectedIndex];
-        if (selectedOption.dataset.price) {
-          const price = parseFloat(selectedOption.dataset.price);
-          const quantity = parseInt(quantityInput.value) || 0;
-          totalCost += price * quantity;
-        }
       }
     });
     
     document.getElementById('total-items').textContent = totalItems;
     document.getElementById('total-quantity').textContent = totalQuantity;
-    document.getElementById('estimated-cost').textContent = `PKR ${totalCost.toFixed(2)}`;
+    // Estimated cost removed (price no longer tracked in approvals). If you want to keep a cost estimate, re-introduce price handling.
+    const est = document.getElementById('estimated-cost');
+    if (est) est.textContent = `PKR 0.00`;
   }
 
   // Form validation

@@ -10,9 +10,7 @@
       <h2 class="text-white mb-2">Create New User</h2>
       <p class="text-light">Add a new user to the system</p>
     </div>
-    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Users
-    </a>
+    
   </div>
 </div>
 
@@ -46,6 +44,7 @@
         </div>
       </div>
       
+      <!-- Make all rows two-column like Username/Email -->
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
@@ -57,14 +56,7 @@
             @enderror
           </div>
         </div>
-        
-        <div class="col-md-6">
-          <div class="mb-3">
-          </div>
-        </div>
-      </div>
-      
-      <div class="row">
+
         <div class="col-md-6">
           <div class="mb-3">
             <label for="password" class="form-label text-white">Password <span class="text-danger">*</span></label>
@@ -75,7 +67,9 @@
             @enderror
           </div>
         </div>
-        
+      </div>
+
+      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="password_confirmation" class="form-label text-white">Confirm Password <span class="text-danger">*</span></label>
@@ -83,9 +77,7 @@
                    id="password_confirmation" name="password_confirmation" required>
           </div>
         </div>
-      </div>
-      
-      <div class="row">
+
         <div class="col-md-6">
           <div class="mb-3">
             <label for="role_id" class="form-label text-white">Role <span class="text-danger">*</span></label>
@@ -103,7 +95,9 @@
             @enderror
           </div>
         </div>
-        
+      </div>
+
+      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="status" class="form-label text-white">Status</label>
@@ -117,9 +111,7 @@
             @enderror
           </div>
         </div>
-      </div>
-      
-      <div class="row">
+
         <div class="col-md-6">
           <div class="mb-3">
             <label for="address" class="form-label text-white">Address</label>
@@ -130,7 +122,9 @@
             @enderror
           </div>
         </div>
-        
+      </div>
+
+      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="city" class="form-label text-white">City</label>
@@ -140,7 +134,9 @@
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
           </div>
-          
+        </div>
+
+        <div class="col-md-6">
           <div class="mb-3">
             <label for="country" class="form-label text-white">Country</label>
             <input type="text" class="form-control @error('country') is-invalid @enderror" 

@@ -51,10 +51,7 @@
                       <span class="badge bg-info">{{ ucfirst($spare->category) }}</span>
                     </td>
                   </tr>
-                  <tr>
-                    <td class="text-white"><strong>Unit Price:</strong></td>
-                    <td class="text-white">₹{{ number_format($spare->unit_price, 2) }}</td>
-                  </tr>
+                  
                   <tr>
                     <td class="text-white"><strong>Status:</strong></td>
                     <td>
@@ -83,10 +80,7 @@
                     <td><strong>Minimum Level:</strong></td>
                     <td>{{ $spare->min_stock_level }} units</td>
                   </tr>
-                  <tr>
-                    <td><strong>Total Value:</strong></td>
-                    <td>₹{{ number_format($spare->stock_quantity * $spare->unit_price, 2) }}</td>
-                  </tr>
+                  
                   <tr>
                     <td><strong>Supplier:</strong></td>
                     <td>{{ $spare->supplier ?? 'N/A' }}</td>
