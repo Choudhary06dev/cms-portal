@@ -92,21 +92,6 @@ class SlaController extends Controller
     public function show(SlaRule $sla)
     {
         $sla->load('notifyTo');
-        
-        // Get SLA performance metrics
-        $metrics = [
-            'total_complaints' => Complaint::where('category', $sla->complaint_type)->count(),
-            'complaints_within_sla' => Complaint::where('category', $sla->complaint_type)
-                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= ?', [$sla->max_resolution_time])
-                ->count(),
-            'complaints_breached' => Complaint::where('category', $sla->complaint_type)
-                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) > ?', [$sla->max_resolution_time])
-                ->count(),
-            'avg_resolution_time' => Complaint::where('category', $sla->complaint_type)
-                ->whereIn('status', ['resolved', 'closed'])
-                ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_time')
-                ->value('avg_time'),
-        ];
 
         // Get recent complaints for this SLA rule
         $recentComplaints = Complaint::where('category', $sla->complaint_type)
@@ -115,7 +100,7 @@ class SlaController extends Controller
             ->limit(10)
             ->get();
 
-        return view('admin.sla.show', compact('sla', 'metrics', 'recentComplaints'));
+        return view('admin.sla.show', compact('sla', 'recentComplaints'));
     }
 
     /**

@@ -872,7 +872,7 @@
 
     <!-- TABLES ROW -->
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-12">
         <div class="card-glass">
           <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0 text-white" style="font-weight: bold;">Recent Complaints</h5>

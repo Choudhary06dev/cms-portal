@@ -377,45 +377,41 @@
   function displayApprovalDetails(approval) {
     const modalBody = document.getElementById('approvalDetailsModalBody');
     modalBody.innerHTML = `
-      <div class="row" style="color: var(--text-primary);">
+      <div class="row">
         <div class="col-md-6">
-          <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Approval Information</h6>
-          <div style="color: var(--text-primary);">
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Approval ID:</strong> <span style="color: var(--text-secondary);">#${approval.id}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Status:</strong> <span class="badge bg-${approval.status === 'pending' ? 'warning' : approval.status === 'approved' ? 'success' : 'danger'}">${approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Requested By:</strong> <span style="color: var(--text-secondary);">${approval.requested_by_name}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Approved By:</strong> <span style="color: var(--text-secondary);">${approval.approved_by_name || 'Not Approved'}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Created:</strong> <span style="color: var(--text-secondary);">${approval.created_at}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Approved:</strong> <span style="color: var(--text-secondary);">${approval.approved_at || 'Not Approved'}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Remarks:</strong> <span style="color: var(--text-secondary);">${approval.remarks || 'No remarks'}</span></p>
-          </div>
+          <h6 class="fw-bold mb-3">Approval Information</h6>
+          <div class="mb-2"><strong>Approval ID:</strong> <span class="text-secondary">#${approval.id}</span></div>
+          <div class="mb-2"><strong>Status:</strong> <span class="badge bg-${approval.status === 'pending' ? 'warning' : approval.status === 'approved' ? 'success' : 'danger'}">${approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}</span></div>
+          <div class="mb-2"><strong>Requested By:</strong> <span class="text-secondary">${approval.requested_by_name}</span></div>
+          <div class="mb-2"><strong>Approved By:</strong> <span class="text-secondary">${approval.approved_by_name || 'Not Approved'}</span></div>
+          <div class="mb-2"><strong>Created:</strong> <span class="text-secondary">${approval.created_at}</span></div>
+          <div class="mb-2"><strong>Approved:</strong> <span class="text-secondary">${approval.approved_at || 'Not Approved'}</span></div>
+          <div class="mb-2"><strong>Remarks:</strong> <span class="text-secondary">${approval.remarks || 'No remarks'}</span></div>
         </div>
         <div class="col-md-6">
-          <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Complaint Information</h6>
-          <div style="color: var(--text-primary);">
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Complaint ID:</strong> <span style="color: var(--text-secondary);">#${approval.complaint_id}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Client:</strong> <span style="color: var(--text-secondary);">${approval.client_name}</span></p>
-            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Title:</strong> <span style="color: var(--text-secondary);">${approval.complaint_title}</span></p>
-          </div>
+          <h6 class="fw-bold mb-3">Complaint Information</h6>
+          <div class="mb-2"><strong>Complaint ID:</strong> <span class="text-secondary">#${approval.complaint_id}</span></div>
+          <div class="mb-2"><strong>Client:</strong> <span class="text-secondary">${approval.client_name}</span></div>
+          <div class="mb-2"><strong>Title:</strong> <span class="text-secondary">${approval.complaint_title}</span></div>
         </div>
       </div>
       
       <div class="row mt-4">
         <div class="col-12">
-          <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Requested Items (${approval.items.length})</h6>
+          <h6 class="fw-bold mb-3">Requested Items (${approval.items.length})</h6>
           <div class="table-responsive">
-            <table class="table table-striped" style="color: var(--text-primary);">
+            <table class="table table-striped">
               <thead>
                 <tr>
-                  <th style="color: var(--text-primary);">Spare Part</th>
-                  <th style="color: var(--text-primary);">Quantity</th>
+                  <th>Spare Part</th>
+                  <th>Quantity</th>
                 </tr>
               </thead>
               <tbody>
                 ${approval.items.map(item => `
-                  <tr style="color: var(--text-primary);">
-                    <td style="color: var(--text-secondary);">${item.spare_name}</td>
-                    <td style="color: var(--text-secondary);">${item.quantity_requested}</td>
+                  <tr>
+                    <td class="text-secondary">${item.spare_name}</td>
+                    <td class="text-secondary">${item.quantity_requested}</td>
                   </tr>
                 `).join('')}
               </tbody>
