@@ -98,7 +98,6 @@
           <th>Type</th>
           <th>Requested By</th>
           <th>Status</th>
-          <th>Amount</th>
           <th>Requested</th>
           <th>Actions</th>
         </tr>
@@ -127,7 +126,6 @@
               {{ ucfirst($approval->status) }}
             </span>
           </td>
-          <td>PKR {{ number_format($approval->items->sum(function($item) { return $item->spare->unit_price * $item->quantity_requested; }) ?? 0, 2) }}</td>
           <td>{{ $approval->created_at->format('M d, Y') }}</td>
           <td>
             <div class="btn-group" role="group">
@@ -145,9 +143,9 @@
             </div>
           </td>
         </tr>
-        @empty
+          @empty
         <tr>
-          <td colspan="9" class="text-center py-4">
+          <td colspan="8" class="text-center py-4">
             <i data-feather="check-circle" class="feather-lg mb-2"></i>
             <div>No approval requests found</div>
           </td>
@@ -379,79 +377,45 @@
   function displayApprovalDetails(approval) {
     const modalBody = document.getElementById('approvalDetailsModalBody');
     modalBody.innerHTML = `
-      <div class="row">
+      <div class="row" style="color: var(--text-primary);">
         <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3">Approval Information</h6>
-          <table class="table table-sm table-dark">
-            <tr>
-              <td class="text-white"><strong>Approval ID:</strong></td>
-              <td class="text-white">#${approval.id}</td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Status:</strong></td>
-              <td><span class="badge bg-${approval.status === 'pending' ? 'warning' : approval.status === 'approved' ? 'success' : 'danger'}">${approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}</span></td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Requested By:</strong></td>
-              <td class="text-white">${approval.requested_by_name}</td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Approved By:</strong></td>
-              <td class="text-white">${approval.approved_by_name || 'Not Approved'}</td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Created:</strong></td>
-              <td class="text-white">${approval.created_at}</td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Approved:</strong></td>
-              <td class="text-white">${approval.approved_at || 'Not Approved'}</td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Remarks:</strong></td>
-              <td class="text-white">${approval.remarks || 'No remarks'}</td>
-            </tr>
-          </table>
+          <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Approval Information</h6>
+          <div style="color: var(--text-primary);">
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Approval ID:</strong> <span style="color: var(--text-secondary);">#${approval.id}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Status:</strong> <span class="badge bg-${approval.status === 'pending' ? 'warning' : approval.status === 'approved' ? 'success' : 'danger'}">${approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Requested By:</strong> <span style="color: var(--text-secondary);">${approval.requested_by_name}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Approved By:</strong> <span style="color: var(--text-secondary);">${approval.approved_by_name || 'Not Approved'}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Created:</strong> <span style="color: var(--text-secondary);">${approval.created_at}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Approved:</strong> <span style="color: var(--text-secondary);">${approval.approved_at || 'Not Approved'}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Remarks:</strong> <span style="color: var(--text-secondary);">${approval.remarks || 'No remarks'}</span></p>
+          </div>
         </div>
         <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3">Complaint Information</h6>
-          <table class="table table-sm table-dark">
-            <tr>
-              <td class="text-white"><strong>Complaint ID:</strong></td>
-              <td class="text-white">#${approval.complaint_id}</td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Client:</strong></td>
-              <td class="text-white">${approval.client_name}</td>
-            </tr>
-            <tr>
-              <td class="text-white"><strong>Title:</strong></td>
-              <td class="text-white">${approval.complaint_title}</td>
-            </tr>
-          </table>
+          <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Complaint Information</h6>
+          <div style="color: var(--text-primary);">
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Complaint ID:</strong> <span style="color: var(--text-secondary);">#${approval.complaint_id}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Client:</strong> <span style="color: var(--text-secondary);">${approval.client_name}</span></p>
+            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Title:</strong> <span style="color: var(--text-secondary);">${approval.complaint_title}</span></p>
+          </div>
         </div>
       </div>
       
       <div class="row mt-4">
         <div class="col-12">
-          <h6 class="text-white fw-bold mb-3">Requested Items (${approval.items.length})</h6>
+          <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Requested Items (${approval.items.length})</h6>
           <div class="table-responsive">
-            <table class="table table-striped table-dark">
+            <table class="table table-striped" style="color: var(--text-primary);">
               <thead>
                 <tr>
-                  <th class="text-white">Spare Part</th>
-                  <th class="text-white">Quantity</th>
-                  <th class="text-white">Unit Price</th>
-                  <th class="text-white">Total</th>
+                  <th style="color: var(--text-primary);">Spare Part</th>
+                  <th style="color: var(--text-primary);">Quantity</th>
                 </tr>
               </thead>
               <tbody>
                 ${approval.items.map(item => `
-                  <tr>
-                    <td class="text-white">${item.spare_name}</td>
-                    <td class="text-white">${item.quantity_requested}</td>
-                    <td class="text-white">PKR ${parseFloat(item.unit_price).toFixed(2)}</td>
-                    <td class="text-white">PKR ${(item.quantity_requested * item.unit_price).toFixed(2)}</td>
+                  <tr style="color: var(--text-primary);">
+                    <td style="color: var(--text-secondary);">${item.spare_name}</td>
+                    <td style="color: var(--text-secondary);">${item.quantity_requested}</td>
                   </tr>
                 `).join('')}
               </tbody>

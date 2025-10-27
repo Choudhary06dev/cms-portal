@@ -72,10 +72,10 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="unit_price" class="form-label">Unit Price <span class="text-danger">*</span></label>
-                  <input type="number" step="0.01" class="form-control @error('unit_price') is-invalid @enderror" 
-                         id="unit_price" name="unit_price" value="{{ old('unit_price', $spare->unit_price) }}" required>
-                  @error('unit_price')
+                  <label for="stock_quantity" class="form-label text-white">Stock Quantity <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" 
+                         id="stock_quantity" name="stock_quantity" value="{{ old('stock_quantity', $spare->stock_quantity) }}" required>
+                  @error('stock_quantity')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -85,10 +85,10 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="stock_quantity" class="form-label text-white">Stock Quantity <span class="text-danger">*</span></label>
-                  <input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" 
-                         id="stock_quantity" name="stock_quantity" value="{{ old('stock_quantity', $spare->stock_quantity) }}" required>
-                  @error('stock_quantity')
+                  <label for="min_stock_level" class="form-label text-white">Minimum Stock Level</label>
+                  <input type="number" class="form-control @error('min_stock_level') is-invalid @enderror" 
+                         id="min_stock_level" name="min_stock_level" value="{{ old('min_stock_level', $spare->min_stock_level) }}">
+                  @error('min_stock_level')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -96,10 +96,10 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="min_stock_level" class="form-label text-white">Minimum Stock Level</label>
-                  <input type="number" class="form-control @error('min_stock_level') is-invalid @enderror" 
-                         id="min_stock_level" name="min_stock_level" value="{{ old('min_stock_level', $spare->min_stock_level) }}">
-                  @error('min_stock_level')
+                  <label for="supplier" class="form-label text-white">Supplier</label>
+                  <input type="text" class="form-control @error('supplier') is-invalid @enderror" 
+                         id="supplier" name="supplier" value="{{ old('supplier', $spare->supplier) }}">
+                  @error('supplier')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>

@@ -61,7 +61,6 @@
           <th>Name</th>
               <th>Category</th>
           <th>Stock</th>
-          <th>Price</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -87,7 +86,6 @@
                 </span>
               </td>
           <td >{{ $spare->stock_quantity ?? 0 }}</td>
-          <td >RS{{ number_format($spare->unit_price ?? 0, 2) }}</td>
           <td>
             <span class="status-badge status-{{ $spare->status ?? 'active' }}">
               {{ ucfirst($spare->status ?? 'active') }}
@@ -109,7 +107,7 @@
             </tr>
             @empty
             <tr>
-          <td colspan="7" class="text-center py-4" >
+          <td colspan="6" class="text-center py-4" >
             <i data-feather="package" class="feather-lg mb-2"></i>
             <div>No spare parts found</div>
               </td>
@@ -160,17 +158,11 @@
                             <div class="invalid-feedback"></div>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <label for="unit" class="form-label">Unit</label>
-                            <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="price" class="form-label">Price</label>
-                            <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" autocomplete="off">
-                            <div class="invalid-feedback"></div>
-                        </div>
+            <div class="col-md-6 mb-3">
+              <label for="unit" class="form-label">Unit</label>
+              <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
+              <div class="invalid-feedback"></div>
+            </div>
                         
                         <div class="col-md-6 mb-3">
                             <label for="stock_quantity" class="form-label">Stock Quantity <span class="text-danger">*</span></label>
@@ -331,22 +323,21 @@
           console.log('Modal body found:', modalBody);
           
           modalBody.innerHTML = `
-            <div class="row">
+            <div class="row" style="color: var(--text-primary);">
               <div class="col-md-6">
-                <strong>Name:</strong> ${data.name || 'N/A'}<br>
-                <strong>Category:</strong> ${data.category || 'N/A'}<br>
-                <strong>Unit:</strong> ${data.unit || 'N/A'}<br>
-                <strong>Price:</strong> $${data.price || '0.00'}<br>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Name:</strong> <span style="color: var(--text-secondary);">${data.name || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Category:</strong> <span style="color: var(--text-secondary);">${data.category || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Unit:</strong> <span style="color: var(--text-secondary);">${data.unit || 'N/A'}</span></p>
               </div>
               <div class="col-md-6">
-                <strong>Stock Quantity:</strong> ${data.stock_quantity || 'N/A'}<br>
-                <strong>Threshold Level:</strong> ${data.threshold_level || 'N/A'}<br>
-                <strong>Status:</strong> ${data.status || 'N/A'}<br>
-                <strong>Last Updated:</strong> ${data.updated_at || 'N/A'}<br>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Stock Quantity:</strong> <span style="color: var(--text-secondary);">${data.stock_quantity || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Threshold Level:</strong> <span style="color: var(--text-secondary);">${data.threshold_level || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Status:</strong> <span style="color: var(--text-secondary);">${data.status || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Last Updated:</strong> <span style="color: var(--text-secondary);">${data.updated_at || 'N/A'}</span></p>
               </div>
               <div class="col-12 mt-3">
-                <strong>Supplier:</strong> ${data.supplier || 'N/A'}<br>
-                <strong>Description:</strong> ${data.description || 'N/A'}<br>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Supplier:</strong> <span style="color: var(--text-secondary);">${data.supplier || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Description:</strong> <span style="color: var(--text-secondary);">${data.description || 'N/A'}</span></p>
               </div>
             </div>
           `;
@@ -443,12 +434,6 @@
             </div>
             
             <div class="col-md-6 mb-3">
-              <label for="price" class="form-label ">Price</label>
-              <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            
-            <div class="col-md-6 mb-3">
               <label for="stock_quantity" class="form-label ">Stock Quantity <span class="text-danger">*</span></label>
               <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required autocomplete="off">
               <div class="invalid-feedback"></div>
@@ -483,14 +468,13 @@
         // Submit button will be handled by event delegation
         
         // Populate form fields with data
-        document.getElementById('item_name').value = data.name || '';
-        document.getElementById('category').value = data.category || '';
-        document.getElementById('unit').value = data.unit || '';
-        document.getElementById('price').value = data.price || '';
-        document.getElementById('stock_quantity').value = data.stock_quantity || '';
-        document.getElementById('threshold_level').value = data.threshold_level || '';
-        document.getElementById('supplier').value = data.supplier || '';
-        document.getElementById('description').value = data.description || '';
+  document.getElementById('item_name').value = data.name || '';
+  document.getElementById('category').value = data.category || '';
+  document.getElementById('unit').value = data.unit || '';
+  document.getElementById('stock_quantity').value = data.stock_quantity || '';
+  document.getElementById('threshold_level').value = data.threshold_level || '';
+  document.getElementById('supplier').value = data.supplier || '';
+  document.getElementById('description').value = data.description || '';
         
         new bootstrap.Modal(document.getElementById('spareModal')).show();
       })
@@ -593,12 +577,6 @@
         <div class="col-md-6 mb-3">
           <label for="unit" class="form-label ">Unit</label>
           <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        
-        <div class="col-md-6 mb-3">
-          <label for="price" class="form-label ">Price</label>
-          <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" autocomplete="off">
           <div class="invalid-feedback"></div>
         </div>
         
