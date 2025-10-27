@@ -76,8 +76,8 @@
                 {{ substr($spare->item_name, 0, 1) }}
                   </div>
                   <div>
-             <div style="color: #ffffff !important; font-weight: 600;">{{ $spare->item_name }}</div>
-                <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $spare->item_name ?? 'No description' }}</div>
+             <div class="fw-bold">{{ $spare->item_name }}</div>
+                <div class="text-muted small">{{ $spare->item_name ?? 'No description' }}</div>
                   </div>
                 </div>
               </td>
@@ -95,15 +95,15 @@
               </td>
               <td>
             <div class="btn-group" role="group">
-              <button class="btn btn-outline-info btn-sm" onclick="viewSpare({{ $spare->id }})" title="View Details" style="border-color: #17a2b8; color: #17a2b8;">
-                    <i class="fas fa-eye"></i>
+              <button class="btn btn-outline-info btn-sm" onclick="viewSpare({{ $spare->id }})" title="View Details">
+                <i data-feather="eye"></i>
               </button>
-              <button class="btn btn-outline-warning btn-sm" onclick="editSpare({{ $spare->id }})" title="Edit" style="border-color: #ffc107; color: #ffc107;">
-                    <i class="fas fa-edit"></i>
+              <button class="btn btn-outline-warning btn-sm" onclick="editSpare({{ $spare->id }})" title="Edit">
+                <i data-feather="edit"></i>
               </button>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare({{ $spare->id }})" title="Delete" style="border-color: #dc3545; color: #dc3545;">
-                      <i class="fas fa-trash"></i>
-                    </button>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare({{ $spare->id }})" title="Delete">
+                <i data-feather="trash-2"></i>
+              </button>
                 </div>
               </td>
             </tr>

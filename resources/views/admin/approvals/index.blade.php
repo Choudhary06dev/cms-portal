@@ -199,19 +199,19 @@
 <!-- Approval Details Modal -->
 <div class="modal fade" id="approvalDetailsModal" tabindex="-1" aria-labelledby="approvalDetailsModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="approvalDetailsModalLabel">Approval Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-content" style="background: rgba(0, 0, 0, 0.9); border: 1px solid rgba(59, 130, 246, 0.3);">
+      <div class="modal-header" style="background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid rgba(59, 130, 246, 0.3);">
+        <h5 class="modal-title text-white" id="approvalDetailsModalLabel">Approval Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
       </div>
-      <div class="modal-body" id="approvalDetailsModalBody">
+      <div class="modal-body" id="approvalDetailsModalBody" style="background: rgba(0, 0, 0, 0.9);">
         <div class="text-center">
-          <div class="spinner-border" role="status">
+          <div class="spinner-border text-white" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="background: rgba(0, 0, 0, 0.9); border-top: 1px solid rgba(59, 130, 246, 0.3);">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -381,52 +381,52 @@
     modalBody.innerHTML = `
       <div class="row">
         <div class="col-md-6">
-          <h6 class="text-primary mb-3">Approval Information</h6>
-          <table class="table table-sm">
+          <h6 class="text-white fw-bold mb-3">Approval Information</h6>
+          <table class="table table-sm table-dark">
             <tr>
-              <td><strong>Approval ID:</strong></td>
-              <td>#${approval.id}</td>
+              <td class="text-white"><strong>Approval ID:</strong></td>
+              <td class="text-white">#${approval.id}</td>
             </tr>
             <tr>
-              <td><strong>Status:</strong></td>
+              <td class="text-white"><strong>Status:</strong></td>
               <td><span class="badge bg-${approval.status === 'pending' ? 'warning' : approval.status === 'approved' ? 'success' : 'danger'}">${approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}</span></td>
             </tr>
             <tr>
-              <td><strong>Requested By:</strong></td>
-              <td>${approval.requested_by_name}</td>
+              <td class="text-white"><strong>Requested By:</strong></td>
+              <td class="text-white">${approval.requested_by_name}</td>
             </tr>
             <tr>
-              <td><strong>Approved By:</strong></td>
-              <td>${approval.approved_by_name || 'Not Approved'}</td>
+              <td class="text-white"><strong>Approved By:</strong></td>
+              <td class="text-white">${approval.approved_by_name || 'Not Approved'}</td>
             </tr>
             <tr>
-              <td><strong>Created:</strong></td>
-              <td>${approval.created_at}</td>
+              <td class="text-white"><strong>Created:</strong></td>
+              <td class="text-white">${approval.created_at}</td>
             </tr>
             <tr>
-              <td><strong>Approved:</strong></td>
-              <td>${approval.approved_at || 'Not Approved'}</td>
+              <td class="text-white"><strong>Approved:</strong></td>
+              <td class="text-white">${approval.approved_at || 'Not Approved'}</td>
             </tr>
             <tr>
-              <td><strong>Remarks:</strong></td>
-              <td>${approval.remarks || 'No remarks'}</td>
+              <td class="text-white"><strong>Remarks:</strong></td>
+              <td class="text-white">${approval.remarks || 'No remarks'}</td>
             </tr>
           </table>
         </div>
         <div class="col-md-6">
-          <h6 class="text-primary mb-3">Complaint Information</h6>
-          <table class="table table-sm">
+          <h6 class="text-white fw-bold mb-3">Complaint Information</h6>
+          <table class="table table-sm table-dark">
             <tr>
-              <td><strong>Complaint ID:</strong></td>
-              <td>#${approval.complaint_id}</td>
+              <td class="text-white"><strong>Complaint ID:</strong></td>
+              <td class="text-white">#${approval.complaint_id}</td>
             </tr>
             <tr>
-              <td><strong>Client:</strong></td>
-              <td>${approval.client_name}</td>
+              <td class="text-white"><strong>Client:</strong></td>
+              <td class="text-white">${approval.client_name}</td>
             </tr>
             <tr>
-              <td><strong>Title:</strong></td>
-              <td>${approval.complaint_title}</td>
+              <td class="text-white"><strong>Title:</strong></td>
+              <td class="text-white">${approval.complaint_title}</td>
             </tr>
           </table>
         </div>
@@ -434,24 +434,24 @@
       
       <div class="row mt-4">
         <div class="col-12">
-          <h6 class="text-primary mb-3">Requested Items (${approval.items.length})</h6>
+          <h6 class="text-white fw-bold mb-3">Requested Items (${approval.items.length})</h6>
           <div class="table-responsive">
-            <table class="table table-striped">
+            <table class="table table-striped table-dark">
               <thead>
                 <tr>
-                  <th>Spare Part</th>
-                  <th>Quantity</th>
-                  <th>Unit Price</th>
-                  <th>Total</th>
+                  <th class="text-white">Spare Part</th>
+                  <th class="text-white">Quantity</th>
+                  <th class="text-white">Unit Price</th>
+                  <th class="text-white">Total</th>
                 </tr>
               </thead>
               <tbody>
                 ${approval.items.map(item => `
                   <tr>
-                    <td>${item.spare_name}</td>
-                    <td>${item.quantity_requested}</td>
-                    <td>PKR ${parseFloat(item.unit_price).toFixed(2)}</td>
-                    <td>PKR ${(item.quantity_requested * item.unit_price).toFixed(2)}</td>
+                    <td class="text-white">${item.spare_name}</td>
+                    <td class="text-white">${item.quantity_requested}</td>
+                    <td class="text-white">PKR ${parseFloat(item.unit_price).toFixed(2)}</td>
+                    <td class="text-white">PKR ${(item.quantity_requested * item.unit_price).toFixed(2)}</td>
                   </tr>
                 `).join('')}
               </tbody>

@@ -314,6 +314,31 @@ p, span, div {
   background-color: var(--bg-tertiary);
 }
 
+/* Light theme specific table fixes */
+.theme-light .table td {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .table td div {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .table td div[style*="color"] {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .table td div[style*="color: #ffffff"] {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .table td div[style*="color: #94a3b8"] {
+  color: var(--text-secondary) !important;
+}
+
+.theme-light .table td div[style*="color: #64748b"] {
+  color: var(--text-secondary) !important;
+}
+
 /* Modals */
 .modal-content {
   background-color: var(--bg-elevated);
@@ -327,6 +352,57 @@ p, span, div {
 
 .modal-footer {
   border-top: 1px solid var(--border-primary);
+}
+
+/* Light theme modal specific styling */
+.theme-light .modal-content {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-light .modal-header {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-light .modal-title {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .modal-body {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-light .modal-footer {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-light .modal-body p,
+.theme-light .modal-body strong,
+.theme-light .modal-body h6 {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .modal-body .form-label {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .modal-body .form-control {
+  background-color: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+.theme-light .modal-body .form-control:focus {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-focus) !important;
+  color: var(--input-text) !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
 }
 
 /* Alerts */

@@ -94,6 +94,36 @@
       color: #000000 !important;
     }
     
+    /* Additional table text fixes for light theme */
+    .theme-light .table tbody tr td {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table tbody tr td * {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table tbody tr td div[style*="color"] {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table tbody tr td span[style*="color"] {
+      color: #1e293b !important;
+    }
+    
+    /* Override specific inline styles in light theme */
+    .theme-light [style*="color: #ffffff"] {
+      color: #1e293b !important;
+    }
+    
+    .theme-light [style*="color: #94a3b8"] {
+      color: #64748b !important;
+    }
+    
+    .theme-light [style*="color: #64748b"] {
+      color: #64748b !important;
+    }
+    
     /* Preserve colored statistics in light theme */
     .theme-light .text-primary {
       color: #3b82f6 !important;
@@ -315,6 +345,62 @@
     }
     
     .theme-light .table-dark .text-muted {
+      color: #64748b !important;
+    }
+    
+    /* Fix table text visibility in light theme */
+    .theme-light .table td {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table td div {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table td div[style*="color: #ffffff"] {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table td div[style*="color: #94a3b8"] {
+      color: #64748b !important;
+    }
+    
+    .theme-light .table td div[style*="color: #64748b"] {
+      color: #64748b !important;
+    }
+    
+    /* Override all inline color styles in tables for light theme */
+    .theme-light .table td[style*="color"] {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table td div[style*="color"] {
+      color: #1e293b !important;
+    }
+    
+    /* Specific fixes for name columns */
+    .theme-light .table td div[style*="color: #ffffff !important"] {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table td div[style*="color: #94a3b8 !important"] {
+      color: #64748b !important;
+    }
+    
+    .theme-light .table td div[style*="color: #64748b !important"] {
+      color: #64748b !important;
+    }
+    
+    /* Specific fix for client names in light theme */
+    .theme-light .table td .fw-bold {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .table td .text-muted {
+      color: #64748b !important;
+    }
+    
+    .theme-light .table td .small {
       color: #64748b !important;
     }
     
@@ -1181,6 +1267,139 @@
     .modal-content { border-radius: 12px; }
     .modal-header { border-radius: 12px 12px 0 0; }
     .modal-footer { border-radius: 0 0 12px 12px; }
+    
+    /* Light theme modal styling */
+    .theme-light .modal-content {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-header {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-title {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body {
+      background: rgba(255, 255, 255, 0.9) !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-footer {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body p {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body strong {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body h6 {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body .badge {
+      color: #ffffff !important;
+    }
+    
+    .theme-light .modal-body .form-label {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body .form-control {
+      background-color: #ffffff !important;
+      border: 1px solid #d1d5db !important;
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body .form-control:focus {
+      background-color: #ffffff !important;
+      border-color: #3b82f6 !important;
+      color: #1e293b !important;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    }
+    
+    .theme-light .modal-body .form-control::placeholder {
+      color: #9ca3af !important;
+    }
+    
+    .theme-light .modal-body .invalid-feedback {
+      color: #ef4444 !important;
+    }
+    
+    .theme-light .modal-body .is-invalid {
+      border-color: #ef4444 !important;
+    }
+    
+    .theme-light .modal-body .btn {
+      color: #1e293b !important;
+    }
+    
+    .theme-light .modal-body .btn-primary {
+      background: #3b82f6 !important;
+      border-color: #3b82f6 !important;
+      color: #ffffff !important;
+    }
+    
+    .theme-light .modal-body .btn-secondary {
+      background: #6b7280 !important;
+      border-color: #6b7280 !important;
+      color: #ffffff !important;
+    }
+    
+    .theme-light .modal-body .btn-warning {
+      background: #f59e0b !important;
+      border-color: #f59e0b !important;
+      color: #ffffff !important;
+    }
+    
+    .theme-light .modal-body .btn-danger {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: #ffffff !important;
+    }
+    
+    .theme-light .modal-body .btn-close {
+      filter: invert(1) !important;
+    }
+    
+    .theme-light .modal-body .spinner-border {
+      color: #3b82f6 !important;
+    }
+    
+    .theme-light .modal-body .text-danger {
+      color: #ef4444 !important;
+    }
+    
+    .theme-light .modal-body .text-muted {
+      color: #64748b !important;
+    }
+    
+    .theme-light .modal-body .text-primary {
+      color: #3b82f6 !important;
+    }
+    
+    .theme-light .modal-body .text-success {
+      color: #22c55e !important;
+    }
+    
+    .theme-light .modal-body .text-warning {
+      color: #f59e0b !important;
+    }
+    
+    .theme-light .modal-body .text-info {
+      color: #06b6d4 !important;
+    }
     .form-control:focus, .form-select:focus { 
       border-color: #3b82f6; 
       box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25); 

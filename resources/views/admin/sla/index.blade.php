@@ -72,8 +72,8 @@
             <tr>
           <td >{{ $rule->id }}</td>
           <td>
-            <div style="color: #ffffff !important; font-weight: 600;">{{ ucfirst($rule->complaint_type) }} Rule</div>
-            <div style="color: #94a3b8 !important; font-size: 0.8rem;">{{ $rule->complaint_type_display ?? ucfirst($rule->complaint_type) }}</div>
+            <div class="fw-bold">{{ ucfirst($rule->complaint_type) }} Rule</div>
+            <div class="text-muted small">{{ $rule->complaint_type_display ?? ucfirst($rule->complaint_type) }}</div>
               </td>
               <td>
             <span class="priority-badge priority-medium">

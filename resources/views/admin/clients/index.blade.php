@@ -94,7 +94,7 @@
                 {{ substr($client->client_name ?? 'N', 0, 1) }}
               </div>
               <div>
-                <div style="color: #94a3b8 !important; font-size: 0.8rem;"> {{ $client->client_name ?? 'No Client Name' }}</div>
+                <div class="fw-bold">{{ $client->client_name ?? 'No Client Name' }}</div>
               </div>
             </div>
           </td>

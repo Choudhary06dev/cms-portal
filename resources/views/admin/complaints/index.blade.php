@@ -88,8 +88,8 @@
                         <tr>
                             <td>{{ $complaint->id }}</td>
                             <td>
-                                <div style="color: #ffffff !important; font-weight: 700; font-size: 1.1rem; line-height: 1.3;">{{ $complaint->title }}</div>
-                                <div style="color: #64748b !important; font-size: 0.7rem; margin-top: 3px; opacity: 0.8;">
+                                <div class="fw-bold fs-5 lh-sm">{{ $complaint->title }}</div>
+                                <div class="text-muted small mt-1 opacity-75">
                                     {{ Str::limit($complaint->title, 25) }}</div>
                             </td>
                             <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
