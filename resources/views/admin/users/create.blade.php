@@ -48,6 +48,17 @@
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
+            <label for="phone" class="form-label text-white">Phone</label>
+            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
+                   id="phone" name="phone" value="{{ old('phone') }}">
+            @error('phone')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="mb-3">
             <label for="full_name" class="form-label text-white">Full Name</label>
             <input type="text" class="form-control @error('full_name') is-invalid @enderror" 
                    id="full_name" name="full_name" value="{{ old('full_name') }}">
@@ -56,7 +67,9 @@
             @enderror
           </div>
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="password" class="form-label text-white">Password <span class="text-danger">*</span></label>
@@ -67,9 +80,7 @@
             @enderror
           </div>
         </div>
-      </div>
 
-      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="password_confirmation" class="form-label text-white">Confirm Password <span class="text-danger">*</span></label>
@@ -77,7 +88,9 @@
                    id="password_confirmation" name="password_confirmation" required>
           </div>
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="role_id" class="form-label text-white">Role <span class="text-danger">*</span></label>

@@ -42,6 +42,7 @@
           </div>
           <div class="mb-2">
             <span class="text-muted">Phone:</span>
+            <span class="text-white">{{ $user->phone ?? 'Not provided' }}</span>
           </div>
         </div>
       </div>
@@ -60,10 +61,6 @@
           <div class="mb-2">
             <span class="text-muted">Created:</span>
             <span class="text-white">{{ $user->created_at->format('M d, Y') }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="text-muted">Last Login:</span>
-            <span class="text-white">{{ $user->last_login_at ? $user->last_login_at->format('M d, Y H:i') : 'Never' }}</span>
           </div>
         </div>
       </div>

@@ -37,10 +37,10 @@
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="full_name" class="form-label text-white">Full Name</label>
-            <input type="text" class="form-control @error('full_name') is-invalid @enderror" 
-                   id="full_name" name="full_name" value="{{ old('full_name', $user->full_name) }}">
-            @error('full_name')
+            <label for="phone" class="form-label text-white">Phone</label>
+            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
+                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
+            @error('phone')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
           </div>
@@ -48,6 +48,12 @@
         
         <div class="col-md-6">
           <div class="mb-3">
+            <label for="full_name" class="form-label text-white">Full Name</label>
+            <input type="text" class="form-control @error('full_name') is-invalid @enderror" 
+                   id="full_name" name="full_name" value="{{ old('full_name', $user->full_name) }}">
+            @error('full_name')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
         </div>
       </div>

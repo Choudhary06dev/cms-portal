@@ -85,7 +85,7 @@ class SpareController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
-            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
+            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
             'unit' => 'nullable|string|max:50',
             'price' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
@@ -221,7 +221,7 @@ class SpareController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
-            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
+            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
             'unit' => 'nullable|string|max:50',
             'price' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
@@ -527,7 +527,7 @@ class SpareController extends Controller
 
             case 'change_category':
                 $validator = Validator::make($request->all(), [
-                    'category' => 'required|in:electric,sanitary,kitchen,general',
+                    'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
                 ]);
                 
                 if ($validator->fails()) {

@@ -811,7 +811,7 @@
     </div>
 
     <!-- ADDITIONAL STATS -->
-    <div class="row mb-4">
+    <div class="row mb-4 justify-content-center">
       <div class="col-md-2 mb-3">
     <div class="card-glass text-center">
       <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_users'] ?? 0 }}</div>

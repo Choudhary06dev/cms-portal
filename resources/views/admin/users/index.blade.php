@@ -64,7 +64,6 @@
           <th>Email</th>
           <th>Role</th>
           <th>Status</th>
-          <th>Last Login</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -92,7 +91,6 @@
               {{ ucfirst($user->status) }}
             </span>
           </td>
-          <td>{{ $user->last_login_at ? $user->last_login_at->format('M d, Y') : 'Never' }}</td>
           <td>
             <div class="btn-group" role="group">
               <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-info btn-sm" title="View Details">
