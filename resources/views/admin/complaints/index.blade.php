@@ -88,9 +88,9 @@
                         <tr>
                             <td>{{ $complaint->id }}</td>
                             <td>
-                                <div class="fw-bold fs-5 lh-sm">{{ $complaint->title }}</div>
-                                <div class="text-muted small mt-1 opacity-75">
-                                    {{ Str::limit($complaint->title, 25) }}</div>
+                                <div class=" fs-5 lh-sm">{{ $complaint->title }}</div>
+                                {{-- <div class="text-muted small mt-1 opacity-75">
+                                    {{ Str::limit($complaint->title, 25) }}</div> --}}
                             </td>
                             <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
                             <td>
@@ -333,65 +333,29 @@
                         }
 
                         modalBody.innerHTML = `
-                    <div class="row" style="color: var(--text-primary);">
+                    <div class="row">
                         <div class="col-md-6">
-                            <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Complaint Information</h6>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Title:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.title || 'N/A'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Category:</span>
-                                <span class="ms-2">
-                                    <span class="badge bg-${complaint.category === 'technical' ? 'primary' : complaint.category === 'service' ? 'success' : complaint.category === 'billing' ? 'warning' : 'secondary'}">
-                                        ${complaint.category ? complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1) : 'N/A'}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Priority:</span>
-                                <span class="ms-2">
-                                    <span class="priority-badge priority-${complaint.priority ? complaint.priority.toLowerCase() : 'low'}">
-                                        ${complaint.priority ? complaint.priority.charAt(0).toUpperCase() + complaint.priority.slice(1) : 'N/A'}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Status:</span>
-                                <span class="ms-2">
-                                    <span class="badge bg-${complaint.status === 'new' ? 'primary' : complaint.status === 'assigned' ? 'warning' : complaint.status === 'in_progress' ? 'info' : complaint.status === 'resolved' ? 'success' : 'secondary'}">
-                                        ${complaint.status ? complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1) : 'N/A'}
-                                    </span>
-                                </span>
-                            </div>
+                            <h6 class="fw-bold mb-3">Complaint Information</h6>
+                            <div class="mb-2"><strong>Title:</strong> <span class="text-secondary ms-2">${complaint.title || 'N/A'}</span></div>
+                            <div class="mb-2"><strong>Category:</strong> <span class="ms-2"><span class="badge bg-${complaint.category === 'technical' ? 'primary' : complaint.category === 'service' ? 'success' : complaint.category === 'billing' ? 'warning' : 'secondary'}">${complaint.category ? complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1) : 'N/A'}</span></span></div>
+                            <div class="mb-2"><strong>Priority:</strong> <span class="ms-2"><span class="priority-badge priority-${complaint.priority ? complaint.priority.toLowerCase() : 'low'}">${complaint.priority ? complaint.priority.charAt(0).toUpperCase() + complaint.priority.slice(1) : 'N/A'}</span></span></div>
+                            <div class="mb-2"><strong>Status:</strong> <span class="ms-2"><span class="badge bg-${complaint.status === 'new' ? 'primary' : complaint.status === 'assigned' ? 'warning' : complaint.status === 'in_progress' ? 'info' : complaint.status === 'resolved' ? 'success' : 'secondary'}">${complaint.status ? complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1) : 'N/A'}</span></span></div>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Client & Assignment</h6>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Client:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.client ? complaint.client.client_name : 'N/A'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Assigned To:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.assigned_employee ? complaint.assigned_employee.user.username : 'Unassigned'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Created:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.created_at ? new Date(complaint.created_at).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Last Updated:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.updated_at ? new Date(complaint.updated_at).toLocaleDateString() : 'N/A'}</span>
-                            </div>
+                            <h6 class="fw-bold mb-3">Client & Assignment</h6>
+                            <div class="mb-2"><strong>Client:</strong> <span class="text-secondary ms-2">${complaint.client ? complaint.client.client_name : 'N/A'}</span></div>
+                            <div class="mb-2"><strong>Assigned To:</strong> <span class="text-secondary ms-2">${complaint.assigned_employee ? complaint.assigned_employee.user.username : 'Unassigned'}</span></div>
+                            <div class="mb-2"><strong>Created:</strong> <span class="text-secondary ms-2">${complaint.created_at ? new Date(complaint.created_at).toLocaleDateString() : 'N/A'}</span></div>
+                            <div class="mb-2"><strong>Last Updated:</strong> <span class="text-secondary ms-2">${complaint.updated_at ? new Date(complaint.updated_at).toLocaleDateString() : 'N/A'}</span></div>
                         </div>
                     </div>
                     
                     <div class="row mt-4">
                         <div class="col-12">
-                            <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Description</h6>
-                            <div class="card" style="background-color: var(--bg-secondary); border: 1px solid var(--border-primary);">
+                            <h6 class="fw-bold mb-3">Description</h6>
+                            <div class="card bg-secondary">
                                 <div class="card-body">
-                                    <p style="color: var(--text-primary);">${complaint.description || 'No description provided'}</p>
+                                    <p>${complaint.description || 'No description provided'}</p>
                                 </div>
                             </div>
                         </div>
