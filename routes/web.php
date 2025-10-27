@@ -95,7 +95,6 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::middleware(['permission:roles.view'])->group(function () {
         Route::resource('roles', AdminRoleController::class)->except(['destroy']);
-        Route::post('roles/{role}/toggle-status', [AdminRoleController::class, 'toggleStatus'])->name('roles.toggle-status');
         Route::get('roles/{role}/permissions', [AdminRoleController::class, 'showPermissions'])->name('roles.permissions');
         Route::post('roles/{role}/permissions', [AdminRoleController::class, 'updatePermissions'])->name('roles.update-permissions');
         Route::get('roles/statistics', [AdminRoleController::class, 'getStatistics'])->name('roles.statistics');

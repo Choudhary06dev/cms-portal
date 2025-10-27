@@ -26,12 +26,9 @@
       <div class="col-md-3">
         <select class="form-select" name="category">
             <option value="">All Categories</option>
-            <option value="electrical" {{ request('category') == 'electrical' ? 'selected' : '' }}>Electrical</option>
-            <option value="plumbing" {{ request('category') == 'plumbing' ? 'selected' : '' }}>Plumbing</option>
-            <option value="kitchen" {{ request('category') == 'kitchen' ? 'selected' : '' }}>Kitchen</option>
-            <option value="general" {{ request('category') == 'general' ? 'selected' : '' }}>General</option>
-            <option value="tools" {{ request('category') == 'tools' ? 'selected' : '' }}>Tools</option>
-            <option value="consumables" {{ request('category') == 'consumables' ? 'selected' : '' }}>Consumables</option>
+            @foreach(App\Models\Complaint::getCategories() as $key => $label)
+            <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
           </select>
       </div>
       <div class="col-md-3">
@@ -150,12 +147,9 @@
                             <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
                             <select class="form-select" id="category" name="category" required>
                                 <option value="">Select Category</option>
-                                <option value="electrical">Electrical</option>
-                                <option value="plumbing">Plumbing</option>
-                                <option value="kitchen">Kitchen</option>
-                                <option value="general">General</option>
-                                <option value="tools">Tools</option>
-                                <option value="consumables">Consumables</option>
+                                @foreach(App\Models\Complaint::getCategories() as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
                             </select>
                             <div class="invalid-feedback"></div>
                         </div>
@@ -264,12 +258,14 @@
   .theme-night .modal-body .form-label {
     color: #fff !important;
   }
-  .category-electrical { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  .category-technical { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+  .category-service { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+  .category-billing { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  .category-sanitary { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+  .category-electric { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  .category-kitchen { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
   .category-plumbing { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-  .category-kitchen { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-  .category-general { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
-  .category-tools { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
-  .category-consumables { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+  .category-other { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
   
   .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
   .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
@@ -426,12 +422,9 @@
               <label for="category" class="form-label ">Category <span class="text-danger">*</span></label>
               <select class="form-select" id="category" name="category" required>
                 <option value="">Select Category</option>
-                <option value="electrical">Electrical</option>
-                <option value="plumbing">Plumbing</option>
-                <option value="kitchen">Kitchen</option>
-                <option value="general">General</option>
-                <option value="tools">Tools</option>
-                <option value="consumables">Consumables</option>
+                @foreach(App\Models\Complaint::getCategories() as $key => $label)
+                <option value="{{ $key }}">{{ $label }}</option>
+                @endforeach
               </select>
               <div class="invalid-feedback"></div>
             </div>
@@ -580,12 +573,9 @@
           <label for="category" class="form-label ">Category <span class="text-danger">*</span></label>
           <select class="form-select" id="category" name="category" required>
             <option value="">Select Category</option>
-            <option value="electrical">Electrical</option>
-            <option value="plumbing">Plumbing</option>
-            <option value="kitchen">Kitchen</option>
-            <option value="general">General</option>
-            <option value="tools">Tools</option>
-            <option value="consumables">Consumables</option>
+            @foreach(App\Models\Complaint::getCategories() as $key => $label)
+            <option value="{{ $key }}">{{ $label }}</option>
+            @endforeach
           </select>
           <div class="invalid-feedback"></div>
         </div>

@@ -17,12 +17,14 @@ class Employee extends Model
         'designation',
         'phone',
         'biometric_id',
+        'date_of_hire',
         'leave_quota',
         'address',
     ];
 
     protected $casts = [
         'leave_quota' => 'integer',
+        'date_of_hire' => 'date',
     ];
 
     /**

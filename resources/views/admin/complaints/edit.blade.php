@@ -65,10 +65,9 @@
                   <select class="form-select @error('category') is-invalid @enderror" 
                           id="category" name="category" required>
                     <option value="">Select Category</option>
-                    <option value="technical" {{ old('category', $complaint->category) == 'technical' ? 'selected' : '' }}>Technical</option>
-                    <option value="service" {{ old('category', $complaint->category) == 'service' ? 'selected' : '' }}>Service</option>
-                    <option value="billing" {{ old('category', $complaint->category) == 'billing' ? 'selected' : '' }}>Billing</option>
-                    <option value="other" {{ old('category', $complaint->category) == 'other' ? 'selected' : '' }}>Other</option>
+                    @foreach(App\Models\Complaint::getCategories() as $key => $label)
+                    <option value="{{ $key }}" {{ old('category', $complaint->category) == $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
                   </select>
                   @error('category')
                     <div class="invalid-feedback">{{ $message }}</div>

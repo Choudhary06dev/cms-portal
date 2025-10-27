@@ -37,35 +37,21 @@
             <div class="row">
               @php
               $modules = ['users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
-              $actions = ['view', 'add', 'edit', 'delete'];
               @endphp
               
               @foreach($modules as $module)
-              <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                  <div class="card-header bg-primary text-white">
-                    <h6 class="card-title mb-0">
-                      <i data-feather="folder" class="me-2"></i>{{ ucfirst($module) }}
-                    </h6>
-                  </div>
-                  <div class="card-body">
-                    @foreach($actions as $action)
-                    @php
-                    $permission = $role->rolePermissions->where('module_name', $module)->first();
-                    $isChecked = $permission ? $permission->{"can_{$action}"} : false;
-                    @endphp
-                    <div class="form-check mb-2">
-                      <input class="form-check-input" type="checkbox" 
-                             id="{{ $module }}_{{ $action }}" 
-                             name="permissions[{{ $module }}][{{ $action }}]"
-                             value="1" {{ $isChecked ? 'checked' : '' }}>
-                      <label class="form-check-label" for="{{ $module }}_{{ $action }}">
-                        <i data-feather="{{ $action === 'view' ? 'eye' : ($action === 'add' ? 'plus' : ($action === 'edit' ? 'edit' : 'trash-2')) }}" class="me-1"></i>
-                        {{ ucfirst($action) }}
-                      </label>
-                    </div>
-                    @endforeach
-                  </div>
+              @php
+              $hasPermission = $role->rolePermissions->where('module_name', $module)->first();
+              @endphp
+              <div class="col-md-6 col-lg-4 mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" 
+                         id="{{ $module }}" 
+                         name="permissions[]"
+                         value="{{ $module }}" {{ $hasPermission ? 'checked' : '' }}>
+                  <label class="form-check-label" for="{{ $module }}">
+                    {{ ucfirst($module) }}
+                  </label>
                 </div>
               </div>
               @endforeach
@@ -97,13 +83,11 @@
                   <p><strong>Role Name:</strong> {{ $role->role_name }}</p>
                   <p><strong>Current Permissions:</strong> {{ $role->rolePermissions->count() }}</p>
                   <p><strong>Form Action:</strong> {{ route('admin.roles.update-permissions', $role) }}</p>
-                  <p><strong>Available Modules:</strong> {{ json_encode($availableModules ?? []) }}</p>
-                  <p><strong>Available Actions:</strong> {{ json_encode($availableActions ?? []) }}</p>
                   
                   @if($role->rolePermissions->count() > 0)
-                    <h6>Current Permissions Data:</h6>
+                    <h6>Current Permissions:</h6>
                     @foreach($role->rolePermissions as $perm)
-                      <p><strong>{{ $perm->module_name }}:</strong> View={{ $perm->can_view ? 'Yes' : 'No' }}, Add={{ $perm->can_add ? 'Yes' : 'No' }}, Edit={{ $perm->can_edit ? 'Yes' : 'No' }}, Delete={{ $perm->can_delete ? 'Yes' : 'No' }}</p>
+                      <p>- {{ ucfirst($perm->module_name) }}</p>
                     @endforeach
                   @else
                     <p><strong>No permissions found for this role.</strong></p>
@@ -130,87 +114,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Add select all functionality for each module
-  const moduleCards = document.querySelectorAll('.card');
-  
-  moduleCards.forEach(card => {
-    const checkboxes = card.querySelectorAll('input[type="checkbox"]');
-    const header = card.querySelector('.card-header');
-    
-    // Create select all checkbox
-    const selectAllCheckbox = document.createElement('input');
-    selectAllCheckbox.type = 'checkbox';
-    selectAllCheckbox.className = 'form-check-input';
-    selectAllCheckbox.id = 'select_all_' + card.querySelector('h6').textContent.toLowerCase().replace(' ', '_');
-    
-    const selectAllLabel = document.createElement('label');
-    selectAllLabel.className = 'form-check-label';
-    selectAllLabel.htmlFor = selectAllCheckbox.id;
-    selectAllLabel.textContent = 'Select All';
-    
-    const selectAllDiv = document.createElement('div');
-    selectAllDiv.className = 'form-check';
-    selectAllDiv.appendChild(selectAllCheckbox);
-    selectAllDiv.appendChild(selectAllLabel);
-    
-    header.appendChild(selectAllDiv);
-    
-    // Handle select all functionality
-    selectAllCheckbox.addEventListener('change', function() {
-      checkboxes.forEach(checkbox => {
-        checkbox.checked = this.checked;
-      });
-    });
-    
-    // Handle individual checkbox changes
-    checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-        const noneChecked = Array.from(checkboxes).every(cb => !cb.checked);
-        
-        if (allChecked) {
-          selectAllCheckbox.checked = true;
-          selectAllCheckbox.indeterminate = false;
-        } else if (noneChecked) {
-          selectAllCheckbox.checked = false;
-          selectAllCheckbox.indeterminate = false;
-        } else {
-          selectAllCheckbox.checked = false;
-          selectAllCheckbox.indeterminate = true;
-        }
-      });
-    });
-  });
-});
-
-// Global functions for select all and clear all
-function selectAllPermissions() {
-  const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
-  allCheckboxes.forEach(checkbox => {
-    checkbox.checked = true;
-  });
-}
-
-function clearAllPermissions() {
-  const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
-  allCheckboxes.forEach(checkbox => {
-    checkbox.checked = false;
-  });
-}
-
-// Debug form submission
-document.addEventListener('DOMContentLoaded', function() {
-  const form = document.querySelector('form');
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      console.log('Form submitting...');
-      const formData = new FormData(form);
-      console.log('Form data:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key + ': ' + value);
-      }
-    });
-  }
+  feather.replace();
 });
 </script>
 @endsection

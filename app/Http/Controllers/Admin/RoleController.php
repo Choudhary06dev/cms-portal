@@ -31,10 +31,6 @@ class RoleController extends Controller
             });
         }
 
-        // Filter by status
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
-        }
 
         $roles = $query->orderBy('id', 'desc')->paginate(15);
 
@@ -54,10 +50,7 @@ class RoleController extends Controller
      */
     public function create()
     {
-        $availableModules = RolePermission::getAvailableModules();
-        $availableActions = RolePermission::getAvailableActions();
-        
-        return view('admin.roles.create', compact('availableModules', 'availableActions'));
+        return view('admin.roles.create');
     }
 
     /**
@@ -68,7 +61,6 @@ class RoleController extends Controller
         $validator = Validator::make($request->all(), [
             'role_name' => 'required|string|max:100|unique:roles',
             'description' => 'nullable|string|max:255',
-            'status' => 'required|in:active,inactive',
             'permissions' => 'nullable|array',
         ]);
 
@@ -81,18 +73,13 @@ class RoleController extends Controller
         $role = Role::create([
             'role_name' => $request->role_name,
             'description' => $request->description,
-            'status' => $request->status,
         ]);
 
         // Add permissions
-        if ($request->has('permissions')) {
-            foreach ($request->permissions as $module => $actions) {
+        if ($request->has('permissions') && is_array($request->permissions)) {
+            foreach ($request->permissions as $module) {
                 $role->rolePermissions()->create([
                     'module_name' => $module,
-                    'can_view' => in_array('view', $actions),
-                    'can_add' => in_array('add', $actions),
-                    'can_edit' => in_array('edit', $actions),
-                    'can_delete' => in_array('delete', $actions),
                 ]);
             }
         }
@@ -107,10 +94,8 @@ class RoleController extends Controller
     public function show(Role $role)
     {
         $role->load(['rolePermissions', 'users']);
-        $availableModules = RolePermission::getAvailableModules();
-        $availableActions = RolePermission::getAvailableActions();
 
-        return view('admin.roles.show', compact('role', 'availableModules', 'availableActions'));
+        return view('admin.roles.show', compact('role'));
     }
 
     /**
@@ -119,10 +104,8 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         $role->load('rolePermissions');
-        $availableModules = RolePermission::getAvailableModules();
-        $availableActions = RolePermission::getAvailableActions();
 
-        return view('admin.roles.edit', compact('role', 'availableModules', 'availableActions'));
+        return view('admin.roles.edit', compact('role'));
     }
 
     /**
@@ -152,17 +135,11 @@ class RoleController extends Controller
             // Update permissions
             $role->rolePermissions()->delete();
             
-            if ($request->has('permissions')) {
-                foreach ($request->permissions as $module => $actions) {
-                    if (is_array($actions)) {
-                        $role->rolePermissions()->create([
-                            'module_name' => $module,
-                            'can_view' => in_array('view', $actions),
-                            'can_add' => in_array('add', $actions),
-                            'can_edit' => in_array('edit', $actions),
-                            'can_delete' => in_array('delete', $actions),
-                        ]);
-                    }
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                foreach ($request->permissions as $module) {
+                    $role->rolePermissions()->create([
+                        'module_name' => $module,
+                    ]);
                 }
             }
 
@@ -220,17 +197,6 @@ class RoleController extends Controller
     /**
      * Toggle role status
      */
-    public function toggleStatus(Role $role)
-    {
-        $role->update([
-            'status' => $role->status === 'active' ? 'inactive' : 'active'
-        ]);
-
-        $status = $role->status === 'active' ? 'activated' : 'deactivated';
-        
-        return redirect()->back()
-            ->with('success', "Role {$status} successfully.");
-    }
 
     /**
      * Get role permissions (JSON API)
@@ -238,13 +204,9 @@ class RoleController extends Controller
     public function getPermissions(Role $role)
     {
         $permissions = $role->getPermissions();
-        $availableModules = RolePermission::getAvailableModules();
-        $availableActions = RolePermission::getAvailableActions();
 
         return response()->json([
             'permissions' => $permissions,
-            'availableModules' => $availableModules,
-            'availableActions' => $availableActions,
         ]);
     }
 
@@ -254,10 +216,8 @@ class RoleController extends Controller
     public function showPermissions(Role $role)
     {
         $role->load('rolePermissions');
-        $availableModules = RolePermission::getAvailableModules();
-        $availableActions = RolePermission::getAvailableActions();
 
-        return view('admin.roles.permissions', compact('role', 'availableModules', 'availableActions'));
+        return view('admin.roles.permissions', compact('role'));
     }
 
     /**
@@ -281,16 +241,10 @@ class RoleController extends Controller
 
             // Add new permissions
             if ($request->has('permissions') && is_array($request->permissions)) {
-                foreach ($request->permissions as $module => $actions) {
-                    if (is_array($actions)) {
-                        $role->rolePermissions()->create([
-                            'module_name' => $module,
-                            'can_view' => isset($actions['view']) && $actions['view'] == '1',
-                            'can_add' => isset($actions['add']) && $actions['add'] == '1',
-                            'can_edit' => isset($actions['edit']) && $actions['edit'] == '1',
-                            'can_delete' => isset($actions['delete']) && $actions['delete'] == '1',
-                        ]);
-                    }
+                foreach ($request->permissions as $module) {
+                    $role->rolePermissions()->create([
+                        'module_name' => $module,
+                    ]);
                 }
             }
 
@@ -310,8 +264,6 @@ class RoleController extends Controller
     {
         $stats = [
             'total' => Role::count(),
-            'active' => Role::where('status', 'active')->count(),
-            'inactive' => Role::where('status', 'inactive')->count(),
             'with_users' => Role::whereHas('users')->count(),
         ];
 
@@ -336,7 +288,7 @@ class RoleController extends Controller
     public function bulkAction(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'action' => 'required|in:activate,deactivate,delete',
+            'action' => 'required|in:delete',
             'role_ids' => 'required|array|min:1',
             'role_ids.*' => 'exists:roles,id',
         ]);
@@ -350,16 +302,6 @@ class RoleController extends Controller
         $action = $request->action;
 
         switch ($action) {
-            case 'activate':
-                Role::whereIn('id', $roleIds)->update(['status' => 'active']);
-                $message = 'Selected roles activated successfully.';
-                break;
-
-            case 'deactivate':
-                Role::whereIn('id', $roleIds)->update(['status' => 'inactive']);
-                $message = 'Selected roles deactivated successfully.';
-                break;
-
             case 'delete':
                 // Check for users
                 $rolesWithUsers = Role::whereIn('id', $roleIds)
@@ -395,9 +337,6 @@ class RoleController extends Controller
             });
         }
 
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
-        }
 
         $roles = $query->get();
 

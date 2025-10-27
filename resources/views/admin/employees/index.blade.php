@@ -87,7 +87,7 @@
               {{ ucfirst($employee->user->status ?? 'inactive') }}
             </span>
           </td>
-          <td>{{ $employee->created_at ? $employee->created_at->format('M d, Y') : 'N/A' }}</td>
+          <td>{{ $employee->date_of_hire ? $employee->date_of_hire->format('M d, Y') : 'N/A' }}</td>
           <td>
             <div class="btn-group" role="group">
               <a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-outline-info btn-sm" title="View Details">

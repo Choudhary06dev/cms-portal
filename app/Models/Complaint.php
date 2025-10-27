@@ -83,6 +83,10 @@ class Complaint extends Model
             'technical' => 'Technical',
             'service' => 'Service',
             'billing' => 'Billing',
+            'sanitary' => 'Sanitary',
+            'electric' => 'Electric',
+            'kitchen' => 'Kitchen',
+            'plumbing' => 'Plumbing',
             'other' => 'Other',
         ];
     }

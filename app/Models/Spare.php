@@ -59,12 +59,14 @@ class Spare extends Model
     public static function getCategories(): array
     {
         return [
-            'electrical' => 'Electrical',
-            'plumbing' => 'Plumbing',
+            'technical' => 'Technical',
+            'service' => 'Service',
+            'billing' => 'Billing',
+            'sanitary' => 'Sanitary',
+            'electric' => 'Electric',
             'kitchen' => 'Kitchen',
-            'general' => 'General',
-            'tools' => 'Tools',
-            'consumables' => 'Consumables',
+            'plumbing' => 'Plumbing',
+            'other' => 'Other',
         ];
     }
 

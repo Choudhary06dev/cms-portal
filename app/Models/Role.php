@@ -32,7 +32,7 @@ class Role extends Model
     }
 
     /**
-     * Check if role has permission for a module and action
+     * Check if role has permission for a module
      */
     public function hasPermission(string $permission): bool
     {
@@ -41,18 +41,12 @@ class Role extends Model
             return true;
         }
 
-        // Parse permission string (e.g., "complaints.view", "users.edit")
-        $parts = explode('.', $permission);
-        if (count($parts) !== 2) {
-            return false;
-        }
+        // Extract module name from "module.action" format (e.g., "users.view" -> "users")
+        $module = explode('.', $permission)[0];
 
-        $module = $parts[0];
-        $action = $parts[1];
-
+        // For module-only permissions
         return $this->rolePermissions()
             ->where('module_name', $module)
-            ->where("can_{$action}", true)
             ->exists();
     }
 
@@ -63,16 +57,7 @@ class Role extends Model
     {
         return $this->rolePermissions()
             ->get()
-            ->mapWithKeys(function ($permission) {
-                return [
-                    $permission->module_name => [
-                        'view' => $permission->can_view,
-                        'add' => $permission->can_add,
-                        'edit' => $permission->can_edit,
-                        'delete' => $permission->can_delete,
-                    ]
-                ];
-            })
+            ->pluck('module_name')
             ->toArray();
     }
 }

@@ -64,6 +64,9 @@ class EmployeeController extends Controller
             'password' => 'required|string|min:6|confirmed',
             'department' => 'required|string|max:100',
             'designation' => 'required|string|max:100',
+            'biometric_id' => 'nullable|string|max:50|unique:employees',
+            'date_of_hire' => 'nullable|date',
+            'leave_quota' => 'nullable|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
             'status' => 'nullable|in:active,inactive',
         ]);
@@ -100,6 +103,9 @@ class EmployeeController extends Controller
                 'department' => $request->department,
                 'designation' => $request->designation,
                 'phone' => $request->phone,
+                'biometric_id' => $request->biometric_id,
+                'date_of_hire' => $request->date_of_hire,
+                'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
             ]);
 
@@ -174,7 +180,9 @@ class EmployeeController extends Controller
             'department' => 'required|string|max:100',
             'designation' => 'required|string|max:100',
             'biometric_id' => 'nullable|string|max:50|unique:employees,biometric_id,' . $employee->id,
+            'date_of_hire' => 'nullable|date',
             'leave_quota' => 'required|integer|min:0|max:365',
+            'address' => 'nullable|string|max:500',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -215,8 +223,11 @@ class EmployeeController extends Controller
             $employee->update([
                 'department' => $request->department,
                 'designation' => $request->designation,
+                'phone' => $request->phone,
                 'biometric_id' => $request->biometric_id,
+                'date_of_hire' => $request->date_of_hire,
                 'leave_quota' => $request->leave_quota,
+                'address' => $request->address,
             ]);
 
             DB::commit();
@@ -251,9 +262,12 @@ class EmployeeController extends Controller
     /**
      * Remove the specified employee from storage.
      */
-    public function destroy(Employee $employee)
+    public function destroy($id)
     {
         try {
+            // Find employee by ID instead of using route model binding
+            $employee = Employee::findOrFail($id);
+            
             \Log::info('Attempting to delete employee ID: ' . $employee->id);
             
             // Check if employee has any related records
@@ -299,7 +313,7 @@ class EmployeeController extends Controller
                 ->with('success', 'Employee deleted successfully.');
 
         } catch (Exception $e) {
-            \Log::error('Error deleting employee ID ' . $employee->id . ': ' . $e->getMessage());
+            \Log::error('Error deleting employee ID ' . ($employee->id ?? $id) . ': ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             
             if (request()->ajax() || request()->wantsJson()) {

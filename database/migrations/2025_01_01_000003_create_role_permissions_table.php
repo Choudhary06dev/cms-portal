@@ -15,10 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('role_id')->constrained('roles');
             $table->string('module_name', 100)->nullable();
-            $table->boolean('can_view')->default(false);
-            $table->boolean('can_add')->default(false);
-            $table->boolean('can_edit')->default(false);
-            $table->boolean('can_delete')->default(false);
             $table->timestamps();
         });
     }

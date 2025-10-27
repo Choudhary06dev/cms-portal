@@ -47,7 +47,7 @@
           </div>
           <div class="mb-3">
             <span class="text-muted">Phone:</span>
-            <span class="text-white ms-2">{{ $employee->user->phone ?? 'N/A' }}</span>
+            <span class="text-white ms-2">{{ $employee->phone ?? 'N/A' }}</span>
           </div>
         </div>
         
@@ -73,7 +73,7 @@
           </div>
           <div class="mb-3">
             <span class="text-muted">Hire Date:</span>
-            <span class="text-white ms-2">{{ $employee->created_at ? $employee->created_at->format('M d, Y') : 'N/A' }}</span>
+            <span class="text-white ms-2">{{ $employee->date_of_hire ? $employee->date_of_hire->format('M d, Y') : 'N/A' }}</span>
           </div>
         </div>
       </div>
