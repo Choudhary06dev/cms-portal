@@ -12,21 +12,30 @@ class Spare extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'product_code',
+        'brand_name',
+        'product_nature',
         'item_name',
         'category',
         'unit',
         'unit_price',
+        'total_received_quantity',
+        'issued_quantity',
         'stock_quantity',
         'threshold_level',
         'supplier',
         'description',
+        'last_stock_in_at',
         'last_updated',
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'total_received_quantity' => 'integer',
+        'issued_quantity' => 'integer',
         'stock_quantity' => 'integer',
         'threshold_level' => 'integer',
+        'last_stock_in_at' => 'datetime',
         'last_updated' => 'datetime',
     ];
 
@@ -60,14 +69,12 @@ class Spare extends Model
     public static function getCategories(): array
     {
         return [
-            'technical' => 'Technical',
-            'service' => 'Service',
-            'billing' => 'Billing',
-            'sanitary' => 'Sanitary',
-            'electric' => 'Electric',
-            'kitchen' => 'Kitchen',
+            'electrical' => 'Electrical',
             'plumbing' => 'Plumbing',
-            'other' => 'Other',
+            'kitchen' => 'Kitchen',
+            'general' => 'General',
+            'tools' => 'Tools',
+            'consumables' => 'Consumables',
         ];
     }
 
@@ -175,6 +182,26 @@ class Spare extends Model
     public function getTotalValueAttribute(): float
     {
         return $this->stock_quantity * $this->unit_price;
+    }
+
+    /**
+     * Get balance quantity (alias of stock_quantity for clarity)
+     */
+    public function getBalanceQuantityAttribute(): int
+    {
+        return (int) $this->stock_quantity;
+    }
+
+    /**
+     * Get utilization percentage based on issued vs total received
+     */
+    public function getUtilizationPercentAttribute(): float
+    {
+        if ($this->total_received_quantity <= 0) {
+            return 0.0;
+        }
+        $percent = ($this->issued_quantity / $this->total_received_quantity) * 100;
+        return round($percent, 2);
     }
 
     /**
