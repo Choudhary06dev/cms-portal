@@ -68,12 +68,12 @@
           <td >{{ $spare->id }}</td>
               <td>
                 <div class="d-flex align-items-center">
-                <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
+                {{-- <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
                 {{ substr($spare->item_name, 0, 1) }}
-                  </div>
+                  </div> --}}
                   <div>
              <div class="fw-bold">{{ $spare->item_name }}</div>
-                <div class="text-muted small">{{ $spare->item_name ?? 'No description' }}</div>
+                {{-- <div class="text-muted small">{{ $spare->item_name ?? 'No description' }}</div> --}}
                   </div>
                 </div>
               </td>
