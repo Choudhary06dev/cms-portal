@@ -10,9 +10,7 @@
       <h2 class="text-white mb-2">Create New Role</h2>
       <p class="text-light">Define a new role and its permissions</p>
     </div>
-    <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Roles
-    </a>
+    
   </div>
 </div>
 
