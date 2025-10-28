@@ -99,7 +99,7 @@
             </div>
           </td>
           <td>
-            <span class="badge bg-primary">
+            <span class="type-badge type-individual">
               Client
             </span>
           </td>
@@ -241,7 +241,7 @@
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Name:</strong> <span style="color: var(--text-secondary);">${client.client_name || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Contact Person:</strong> <span style="color: var(--text-secondary);">${client.contact_person || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Type:</strong> 
-                                <span class="badge bg-primary">
+                                <span class="type-badge type-individual">
                                     Client
                                 </span>
                             </p>

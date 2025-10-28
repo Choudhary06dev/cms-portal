@@ -343,7 +343,7 @@
                             <div class="mb-3" style="color: var(--text-primary);">
                                 <span style="color: var(--text-muted);">Category:</span>
                                 <span class="ms-2">
-                                    <span class="badge bg-${complaint.category === 'technical' ? 'primary' : complaint.category === 'service' ? 'success' : complaint.category === 'billing' ? 'warning' : 'secondary'}">
+                                    <span class="category-badge category-${complaint.category ? complaint.category.toLowerCase() : 'other'}">
                                         ${complaint.category ? complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1) : 'N/A'}
                                     </span>
                                 </span>

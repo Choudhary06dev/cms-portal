@@ -34,7 +34,7 @@
                   <tr>
                     <td class="text-white"><strong>Type:</strong></td>
                     <td>
-                      <span class="badge bg-info">{{ ucfirst($complaint->category) }}</span>
+                      <span class="category-badge category-{{ strtolower($complaint->category) }}">{{ ucfirst($complaint->category) }}</span>
                     </td>
                   </tr>
                   <tr>
