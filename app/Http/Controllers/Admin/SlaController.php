@@ -142,11 +142,11 @@ class SlaController extends Controller
     }
 
     /**
-     * Remove the specified SLA rule
+     * Remove the specified SLA rule (Soft Delete)
      */
     public function destroy(SlaRule $sla)
     {
-        $sla->delete();
+        $sla->delete(); // This will now soft delete due to SoftDeletes trait
 
         return response()->json([
             'success' => true,
@@ -221,7 +221,7 @@ class SlaController extends Controller
             ->map(function($complaint) {
                 return [
                     'id' => $complaint->id,
-                    'client_name' => $complaint->client->client_name,
+                    'client_name' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
                     'category' => $complaint->category,
                     'status' => $complaint->status,
                     'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->user->username : 'Unassigned',
@@ -287,7 +287,7 @@ class SlaController extends Controller
             ->map(function($complaint) {
                 return [
                     'complaint_id' => $complaint->id,
-                    'client_name' => $complaint->client->client_name,
+                    'client_name' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
                     'category' => $complaint->category,
                     'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->user->username : 'Unassigned',
                     'hours_overdue' => $complaint->getHoursOverdue(),
@@ -365,7 +365,7 @@ class SlaController extends Controller
                 break;
 
             case 'delete':
-                SlaRule::whereIn('id', $slaRuleIds)->delete();
+                SlaRule::whereIn('id', $slaRuleIds)->delete(); // Soft delete
                 $message = 'Selected SLA rules deleted successfully.';
                 break;
         }

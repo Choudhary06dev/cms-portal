@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Complaint extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'title',
@@ -31,7 +32,7 @@ class Complaint extends Model
      */
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class)->withTrashed();
     }
 
     /**
@@ -39,7 +40,7 @@ class Complaint extends Model
      */
     public function assignedEmployee(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'assigned_employee_id');
+        return $this->belongsTo(Employee::class, 'assigned_employee_id')->withTrashed();
     }
 
     /**

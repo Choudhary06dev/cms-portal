@@ -327,24 +327,9 @@ class ComplaintController extends Controller
     public function destroy(Complaint $complaint)
     {
         try {
-            // Check if complaint has any related records that prevent deletion
-            if ($complaint->spareParts()->count() > 0 || $complaint->spareApprovals()->count() > 0) {
-                return redirect()->back()
-                    ->with('error', 'Cannot delete complaint with existing spare parts or approval records.');
-            }
-
-            // Delete in proper order to avoid foreign key constraints
-            // 1. Delete complaint logs first
-            $complaint->logs()->delete();
-
-            // 2. Delete attachments (files and database records)
-            foreach ($complaint->attachments as $attachment) {
-                Storage::disk('public')->delete($attachment->file_path);
-            }
-            $complaint->attachments()->delete();
-
-            // 3. Finally delete the complaint
-            $complaint->delete();
+            // Soft delete - no need to check for related records as soft delete preserves them
+            // Also no need to manually delete related records as they will be soft deleted too
+            $complaint->delete(); // This will now soft delete due to SoftDeletes trait
 
             return redirect()->route('admin.complaints.index')
                 ->with('success', 'Complaint deleted successfully.');

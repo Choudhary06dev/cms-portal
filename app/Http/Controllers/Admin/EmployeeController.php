@@ -268,39 +268,11 @@ class EmployeeController extends Controller
             // Find employee by ID instead of using route model binding
             $employee = Employee::findOrFail($id);
             
-            \Log::info('Attempting to delete employee ID: ' . $employee->id);
+            \Log::info('Attempting to soft delete employee ID: ' . $employee->id);
             
-            // Check if employee has any related records
-            $assignedComplaints = $employee->assignedComplaints()->count();
-            $usedSpares = $employee->usedSpares()->count();
-            $requestedApprovals = $employee->requestedApprovals()->count();
-            
-            \Log::info('Employee relationships - Complaints: ' . $assignedComplaints . ', Spares: ' . $usedSpares . ', Approvals: ' . $requestedApprovals);
-            
-            if ($assignedComplaints > 0 || $usedSpares > 0 || $requestedApprovals > 0) {
-                \Log::info('Employee has related records, cannot delete');
-                
-                if (request()->ajax() || request()->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cannot delete employee with existing records.'
-                    ], 422);
-                }
-                
-                return redirect()->back()
-                    ->with('error', 'Cannot delete employee with existing records.');
-            }
-
-            \Log::info('Deleting user for employee ID: ' . $employee->id);
-            
-            // Delete related records first to avoid foreign key constraints
-            // Delete complaint logs that reference this employee
-            \DB::table('complaint_logs')->where('action_by', $employee->id)->delete();
-            \Log::info('Deleted complaint logs for employee ID: ' . $employee->id);
-            
-            // Delete user (which will cascade to employee due to foreign key)
-            $employee->user->delete();
-            \Log::info('User deleted successfully for employee ID: ' . $employee->id);
+            // Soft delete - no need to check for related records as soft delete preserves them
+            $employee->delete(); // This will now soft delete due to SoftDeletes trait
+            \Log::info('Employee soft deleted successfully for ID: ' . $employee->id);
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([

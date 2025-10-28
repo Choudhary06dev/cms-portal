@@ -220,13 +220,8 @@ class ClientController extends Controller
      */
     public function destroy(Client $client)
     {
-        // Check if client has complaints
-        if ($client->complaints()->count() > 0) {
-            return redirect()->back()
-                ->with('error', 'Cannot delete client with existing complaints.');
-        }
-
-        $client->delete();
+        // Soft delete - no need to check for related records as soft delete preserves them
+        $client->delete(); // This will now soft delete due to SoftDeletes trait
 
         return redirect()->route('admin.clients.index')
             ->with('success', 'Client deleted successfully.');

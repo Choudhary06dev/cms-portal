@@ -79,7 +79,7 @@ class SearchController extends Controller
                     return [
                         'id' => $complaint->id,
                         'title' => $complaint->getTicketNumberAttribute(),
-                        'subtitle' => $complaint->client->client_name ?? 'Unknown Client',
+                        'subtitle' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
                         'description' => $complaint->description,
                         'status' => $complaint->getStatusDisplayAttribute(),
                         'priority' => $complaint->getPriorityDisplayAttribute(),
@@ -275,7 +275,7 @@ class SearchController extends Controller
             $results[] = [
                 'type' => 'complaint',
                 'title' => $complaint->getTicketNumberAttribute(),
-                'subtitle' => $complaint->client->client_name ?? 'Unknown Client',
+                'subtitle' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
                 'url' => route('admin.complaints.show', $complaint->id),
                 'icon' => 'alert-circle',
                 'color' => 'primary'

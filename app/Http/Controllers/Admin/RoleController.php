@@ -158,19 +158,8 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         try {
-            // Check if role has users
-            if ($role->users()->count() > 0) {
-                if (request()->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cannot delete role with assigned users.'
-                    ], 400);
-                }
-                return redirect()->back()
-                    ->with('error', 'Cannot delete role with assigned users.');
-            }
-
-            $role->delete();
+            // Soft delete - no need to check for related records as soft delete preserves them
+            $role->delete(); // This will now soft delete due to SoftDeletes trait
 
             if (request()->expectsJson()) {
                 return response()->json([
