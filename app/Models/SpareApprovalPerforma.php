@@ -40,7 +40,7 @@ class SpareApprovalPerforma extends Model
      */
     public function requestedBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'requested_by');
+        return $this->belongsTo(Employee::class, 'requested_by')->withTrashed();
     }
 
     /**
@@ -48,7 +48,7 @@ class SpareApprovalPerforma extends Model
      */
     public function approvedBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'approved_by');
+        return $this->belongsTo(Employee::class, 'approved_by')->withTrashed();
     }
 
     /**

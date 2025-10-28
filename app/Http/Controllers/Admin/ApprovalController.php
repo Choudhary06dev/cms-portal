@@ -223,7 +223,7 @@ class ApprovalController extends Controller
             }
             
             // Check stock availability directly
-            if ($spare->current_stock < $item->quantity_requested) {
+            if ($spare->stock_quantity < $item->quantity_requested) {
                 $unavailableItems[] = $spare->item_name;
             }
         }
@@ -316,9 +316,15 @@ class ApprovalController extends Controller
         }
 
         try {
+            // Resolve acting employee safely (same pattern as approve())
+            $employee = auth()->user()->employee ?? Employee::first();
+            if (!$employee) {
+                throw new \Exception('No employee record found');
+            }
+
             $approval->update([
                 'status' => 'rejected',
-                'approved_by' => auth()->user()->employee->id,
+                'approved_by' => $employee->id,
                 'approved_at' => now(),
                 'remarks' => $request->remarks,
             ]);

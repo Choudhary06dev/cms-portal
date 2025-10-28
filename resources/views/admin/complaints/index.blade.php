@@ -88,7 +88,7 @@
                         <tr>
                             <td>{{ $complaint->id }}</td>
                             <td>
-                                <div class=" fs-5 lh-sm">{{ $complaint->title }}</div>
+                                <div class="lh-sm">{{ $complaint->title }}</div>
                                 {{-- <div class="text-muted small mt-1 opacity-75">
                                     {{ Str::limit($complaint->title, 25) }}</div> --}}
                             </td>
