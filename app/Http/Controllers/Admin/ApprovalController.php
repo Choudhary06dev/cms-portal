@@ -169,7 +169,7 @@ class ApprovalController extends Controller
                     'approved_at' => $approval->approved_at ? $approval->approved_at->format('M d, Y H:i') : null,
                     'remarks' => $approval->remarks,
                     'complaint_id' => $approval->complaint_id,
-                    'client_name' => $approval->complaint->client->client_name ?? 'N/A',
+                    'client_name' => $approval->complaint->client ? $approval->complaint->client->client_name : 'Deleted Client',
                     'complaint_title' => $approval->complaint->title ?? 'N/A',
                     'requested_by_name' => $approval->requestedBy->user->username ?? 'N/A',
                     'approved_by_name' => $approval->approvedBy->user->username ?? null,
@@ -557,7 +557,7 @@ class ApprovalController extends Controller
                 fputcsv($file, [
                     $approval->id,
                     $approval->complaint->getTicketNumberAttribute(),
-                    $approval->complaint->client->client_name ?? 'N/A',
+                    $approval->complaint->client ? $approval->complaint->client->client_name : 'Deleted Client',
                     $approval->requestedBy->user->username ?? 'N/A',
                     ucfirst($approval->status),
                     $approval->items->count(),

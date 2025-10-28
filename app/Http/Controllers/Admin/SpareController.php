@@ -270,19 +270,9 @@ class SpareController extends Controller
      */
     public function destroy(Spare $spare)
     {
-        // Perform cascading delete of related records to allow removal
+        // Soft delete - no need to manually delete related records as soft delete preserves them
         try {
-            \DB::beginTransaction();
-
-            // Delete dependent records first
-            $spare->stockLogs()->delete();
-            $spare->approvalItems()->delete();
-            $spare->complaintSpares()->delete();
-
-            // Finally delete the spare
-            $spare->delete();
-
-            \DB::commit();
+            $spare->delete(); // This will now soft delete due to SoftDeletes trait
 
             if (request()->ajax()) {
                 return response()->json([
@@ -294,8 +284,6 @@ class SpareController extends Controller
             return redirect()->route('admin.spares.index')
                 ->with('success', 'Spare part deleted successfully.');
         } catch (\Throwable $e) {
-            \DB::rollBack();
-
             if (request()->ajax()) {
                 return response()->json([
                     'success' => false,

@@ -155,14 +155,28 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // Check if user has any related records
-        if ($user->complaintLogs()->count() > 0 || $user->slaRules()->count() > 0) {
-            return redirect()->back()
-                ->with('error', 'Cannot delete user with existing records.');
+        // Soft delete - no need to check for related records as soft delete preserves them
+        $user->delete(); // This will now soft delete due to SoftDeletes trait
+
+        // Debug: Log request details
+        \Log::info('User delete request details:', [
+            'expectsJson' => request()->expectsJson(),
+            'ajax' => request()->ajax(),
+            'accept_header' => request()->header('Accept'),
+            'content_type' => request()->header('Content-Type'),
+            'method' => request()->method(),
+        ]);
+
+        // Check if request expects JSON response
+        if (request()->expectsJson() || request()->ajax() || request()->header('Accept') === 'application/json') {
+            \Log::info('Returning JSON response for user delete');
+            return response()->json([
+                'success' => true,
+                'message' => 'User deleted successfully.'
+            ]);
         }
 
-        $user->delete();
-
+        \Log::info('Returning redirect response for user delete');
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');
     }

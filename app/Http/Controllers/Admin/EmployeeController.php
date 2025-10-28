@@ -57,6 +57,13 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
+        // Log incoming request data for debugging
+        \Log::info('Employee create request:', [
+            'all_data' => $request->all(),
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+        ]);
+
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username',
             'email' => 'required|email|max:150|unique:users,email',
@@ -72,6 +79,8 @@ class EmployeeController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Validation failed:', $validator->errors()->toArray());
+            
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -85,17 +94,18 @@ class EmployeeController extends Controller
 
         try {
             DB::beginTransaction();
+            \Log::info('Starting employee creation transaction');
 
-            // Create user first
+            // Create user first (without phone - phone is stored in employee record)
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
-                'phone' => $request->phone,
                 'password' => Hash::make($request->password),
                 'role_id' => 2, // Default employee role
                 'status' => $request->status ?? 'active',
                 'theme' => 'light',
             ]);
+            \Log::info('User created successfully with ID: ' . $user->id);
 
             // Create employee record
             $employee = Employee::create([
@@ -108,8 +118,10 @@ class EmployeeController extends Controller
                 'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
             ]);
+            \Log::info('Employee created successfully with ID: ' . $employee->id);
 
             DB::commit();
+            \Log::info('Transaction committed successfully');
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -124,6 +136,8 @@ class EmployeeController extends Controller
 
         } catch (Exception $e) {
             DB::rollBack();
+            \Log::error('Error creating employee: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -268,41 +282,14 @@ class EmployeeController extends Controller
             // Find employee by ID instead of using route model binding
             $employee = Employee::findOrFail($id);
             
-            \Log::info('Attempting to delete employee ID: ' . $employee->id);
+            \Log::info('Attempting to soft delete employee ID: ' . $employee->id);
             
-            // Check if employee has any related records
-            $assignedComplaints = $employee->assignedComplaints()->count();
-            $usedSpares = $employee->usedSpares()->count();
-            $requestedApprovals = $employee->requestedApprovals()->count();
-            
-            \Log::info('Employee relationships - Complaints: ' . $assignedComplaints . ', Spares: ' . $usedSpares . ', Approvals: ' . $requestedApprovals);
-            
-            if ($assignedComplaints > 0 || $usedSpares > 0 || $requestedApprovals > 0) {
-                \Log::info('Employee has related records, cannot delete');
-                
-                if (request()->ajax() || request()->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cannot delete employee with existing records.'
-                    ], 422);
-                }
-                
-                return redirect()->back()
-                    ->with('error', 'Cannot delete employee with existing records.');
-            }
+            // Soft delete - no need to check for related records as soft delete preserves them
+            $employee->delete(); // This will now soft delete due to SoftDeletes trait
+            \Log::info('Employee soft deleted successfully for ID: ' . $employee->id);
 
-            \Log::info('Deleting user for employee ID: ' . $employee->id);
-            
-            // Delete related records first to avoid foreign key constraints
-            // Delete complaint logs that reference this employee
-            \DB::table('complaint_logs')->where('action_by', $employee->id)->delete();
-            \Log::info('Deleted complaint logs for employee ID: ' . $employee->id);
-            
-            // Delete user (which will cascade to employee due to foreign key)
-            $employee->user->delete();
-            \Log::info('User deleted successfully for employee ID: ' . $employee->id);
-
-            if (request()->ajax() || request()->wantsJson()) {
+            // Check if request expects JSON response
+            if (request()->ajax() || request()->wantsJson() || request()->header('Accept') === 'application/json') {
                 return response()->json([
                     'success' => true,
                     'message' => 'Employee deleted successfully.'
@@ -316,7 +303,7 @@ class EmployeeController extends Controller
             \Log::error('Error deleting employee ID ' . ($employee->id ?? $id) . ': ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             
-            if (request()->ajax() || request()->wantsJson()) {
+            if (request()->ajax() || request()->wantsJson() || request()->header('Accept') === 'application/json') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Error deleting employee: ' . $e->getMessage()

@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SlaRule extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'complaint_type',
@@ -25,7 +26,7 @@ class SlaRule extends Model
      */
     public function notifyTo(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'notify_to');
+        return $this->belongsTo(User::class, 'notify_to')->withTrashed();
     }
 
     /**

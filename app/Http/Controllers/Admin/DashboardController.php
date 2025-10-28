@@ -130,6 +130,8 @@ class DashboardController extends Controller
             'pending_approvals' => SpareApprovalPerforma::where('status', 'pending')->count(),
             'approved_this_month' => SpareApprovalPerforma::where('status', 'approved')
                 ->where('created_at', '>=', $thisMonth)->count(),
+            'total_approvals' => SpareApprovalPerforma::count(),
+            'rejected_approvals' => SpareApprovalPerforma::where('status', 'rejected')->count(),
 
             // SLA statistics
             'active_sla_rules' => SlaRule::where('status', 'active')->count(),
