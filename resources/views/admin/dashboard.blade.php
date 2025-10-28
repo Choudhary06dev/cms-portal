@@ -915,7 +915,7 @@
 
     <!-- TABLES ROW -->
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-12">
         <div class="card-glass">
           <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0 text-white" style="font-weight: bold;">Recent Complaints</h5>
@@ -1138,6 +1138,7 @@
     complaintsTypeChart.render();
 
     // Monthly Trends Chart
+    const isLightTheme = document.documentElement.classList.contains('theme-light');
     var monthlyTrendsOptions = {
       series: [{
         name: 'Complaints',
@@ -1168,24 +1169,24 @@
       categories: monthsData,
         labels: {
           style: {
-            colors: document.body.classList.contains('theme-light') ? '#000000' : '#e2e8f0'
+            colors: isLightTheme ? '#000000' : '#e2e8f0'
           }
         }
       },
       yaxis: {
         labels: {
           style: {
-            colors: document.body.classList.contains('theme-light') ? '#000000' : '#e2e8f0'
+            colors: isLightTheme ? '#000000' : '#e2e8f0'
           }
         }
       },
       legend: {
         labels: {
-          colors: document.body.classList.contains('theme-light') ? '#000000' : '#e2e8f0'
+          colors: isLightTheme ? '#000000' : '#e2e8f0'
         }
       },
       grid: {
-        borderColor: document.body.classList.contains('theme-light') ? '#d1d5db' : '#374151'
+        borderColor: isLightTheme ? '#d1d5db' : '#374151'
       },
       stroke: {
         width: 3
@@ -1194,7 +1195,7 @@
         size: 5
       },
       tooltip: {
-        theme: 'light',
+        theme: isLightTheme ? 'light' : 'dark',
         style: {
           fontSize: '12px',
           fontFamily: 'inherit'

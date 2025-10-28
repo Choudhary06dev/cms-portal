@@ -330,31 +330,32 @@ class ReportController extends Controller
             ]);
         }
 
-        $query = Complaint::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->with(['client', 'assignedEmployee.user']);
+        // Use a base query and clone it for each computation to avoid mutation side-effects
+        $baseQuery = Complaint::whereBetween('created_at', [$dateFrom, $dateTo]);
+        $query = (clone $baseQuery)->with(['client', 'assignedEmployee.user']);
 
         // Generate report data based on group_by
         switch ($groupBy) {
             case 'status':
-                $data = $query->selectRaw('status, COUNT(*) as count')
+                $data = (clone $baseQuery)->selectRaw('status, COUNT(*) as count')
                     ->groupBy('status')
                     ->get();
                 break;
 
             case 'type':
-                $data = $query->selectRaw('category, COUNT(*) as count')
+                $data = (clone $baseQuery)->selectRaw('category, COUNT(*) as count')
                     ->groupBy('category')
                     ->get();
                 break;
 
             case 'priority':
-                $data = $query->selectRaw('priority, COUNT(*) as count')
+                $data = (clone $baseQuery)->selectRaw('priority, COUNT(*) as count')
                     ->groupBy('priority')
                     ->get();
                 break;
 
             case 'employee':
-                $data = $query->selectRaw('assigned_employee_id, COUNT(*) as count')
+                $data = (clone $baseQuery)->selectRaw('assigned_employee_id, COUNT(*) as count')
                     ->whereNotNull('assigned_employee_id')
                     ->groupBy('assigned_employee_id')
                     ->with('assignedEmployee.user')
@@ -362,21 +363,22 @@ class ReportController extends Controller
                 break;
 
             case 'client':
-                $data = $query->selectRaw('client_id, COUNT(*) as count')
+                $data = (clone $baseQuery)->selectRaw('client_id, COUNT(*) as count')
                     ->groupBy('client_id')
                     ->with('client')
                     ->get();
                 break;
 
             default:
-                $data = $query->get();
+                $data = (clone $baseQuery)->with(['client', 'assignedEmployee.user'])->get();
         }
 
+        // Build summary metrics from clean clones of the base query
         $summary = [
-            'total_complaints' => $query->count(),
-            'resolved_complaints' => $query->whereIn('status', ['resolved', 'closed'])->count(),
-            'pending_complaints' => $query->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
-            'avg_resolution_time' => $query->whereIn('status', ['resolved', 'closed'])
+            'total_complaints' => (clone $baseQuery)->count(),
+            'resolved_complaints' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])->count(),
+            'pending_complaints' => (clone $baseQuery)->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
+            'avg_resolution_time' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])
                 ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')
                 ->value('avg_hours') ?? 0,
         ];

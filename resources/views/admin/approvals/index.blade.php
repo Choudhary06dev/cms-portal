@@ -154,20 +154,20 @@
 
 <!-- Approval Details Modal -->
 <div class="modal fade" id="approvalDetailsModal" tabindex="-1" aria-labelledby="approvalDetailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content" style="background: rgba(0, 0, 0, 0.9); border: 1px solid rgba(59, 130, 246, 0.3);">
-      <div class="modal-header" style="background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid rgba(59, 130, 246, 0.3);">
+<div class="modal-dialog modal-xl">
+  <div class="modal-content">
+    <div class="modal-header">
         <h5 class="modal-title text-white" id="approvalDetailsModalLabel">Approval Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="approvalDetailsModalBody" style="background: rgba(0, 0, 0, 0.9);">
+    <div class="modal-body" id="approvalDetailsModalBody">
         <div class="text-center">
           <div class="spinner-border text-white" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
-      <div class="modal-footer" style="background: rgba(0, 0, 0, 0.9); border-top: 1px solid rgba(59, 130, 246, 0.3);">
+    <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>

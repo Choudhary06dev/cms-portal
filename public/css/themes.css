@@ -445,6 +445,14 @@ p, span, div {
   color: var(--text-inverse);
 }
 
+/* Ensure badge text is visible on colored backgrounds in dark/night */
+.theme-dark .badge,
+.theme-dark .badge[class*="bg-"],
+.theme-night .badge,
+.theme-night .badge[class*="bg-"] {
+  color: #ffffff !important;
+}
+
 /* Links */
 a {
   color: var(--accent-primary);
@@ -452,6 +460,29 @@ a {
 
 a:hover {
   color: var(--accent-secondary);
+}
+
+/* ========================================
+   CHARTS (ApexCharts) - Ensure axis/legend labels are visible per theme
+   ======================================== */
+.theme-dark .apexcharts-xaxis text,
+.theme-dark .apexcharts-yaxis text,
+.theme-dark .apexcharts-legend-text {
+  fill: #e2e8f0 !important;
+  color: #e2e8f0 !important;
+}
+
+.theme-night .apexcharts-xaxis text,
+.theme-night .apexcharts-yaxis text,
+.theme-night .apexcharts-legend-text {
+  fill: #e5e5e5 !important;
+  color: #e5e5e5 !important;
+}
+
+/* Improve grid line contrast in dark/night */
+.theme-dark .apexcharts-grid line,
+.theme-night .apexcharts-grid line {
+  stroke: var(--border-primary) !important;
 }
 
 /* ========================================

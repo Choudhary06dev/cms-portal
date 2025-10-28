@@ -106,7 +106,8 @@ class ComplaintController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            'category' => 'required|in:electrical,sanitary,kitchen,general,technical,service,billing,other',
+            // Use canonical category keys defined in Complaint::getCategories()
+            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
@@ -240,7 +241,8 @@ class ComplaintController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            'category' => 'required|in:electrical,sanitary,kitchen,general,technical,service,billing,other',
+            // Use canonical category keys defined in Complaint::getCategories()
+            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
