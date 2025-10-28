@@ -1271,10 +1271,7 @@ body {
 .card-glass p { color: #cbd5e1 !important; }
 .card-glass .text-muted { color: #94a3b8 !important; }
 
-/* Modal Styles */
-.modal-content { border-radius: 12px; }
-.modal-header { border-radius: 12px 12px 0 0; }
-.modal-footer { border-radius: 0 0 12px 12px; }
+/* Modal Styles moved to themes.css to respect theme variables */
 
 .form-control:focus, .form-select:focus { 
   border-color: #3b82f6; 

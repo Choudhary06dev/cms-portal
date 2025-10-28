@@ -235,6 +235,24 @@ p, span, div {
   color: var(--text-primary);
 }
 
+/* Ensure card sections inherit themed backgrounds and borders (fix white headers/bodies) */
+.card-header,
+.card-body,
+.card-footer {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-primary) !important;
+}
+
+/* Tables inside cards should not revert to light backgrounds */
+.card .table,
+.card .table thead th,
+.card .table tbody td {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-primary) !important;
+}
+
 /* Form Elements */
 .form-control,
 .form-select,
@@ -437,38 +455,8 @@ a:hover {
 }
 
 /* ========================================
-   CUSTOM CURSOR SYSTEM
-   ======================================== */
-
-/* Custom cursor for different themes */
-.theme-light {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="%23000" stroke-width="2" opacity="0.6"/><circle cx="10" cy="10" r="2" fill="%23000"/></svg>'), auto;
-}
-
-.theme-dark {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="%23fff" stroke-width="2" opacity="0.6"/><circle cx="10" cy="10" r="2" fill="%23fff"/></svg>'), auto;
-}
-
-.theme-night {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="%23d4af37" stroke-width="2" opacity="0.8"/><circle cx="10" cy="10" r="2" fill="%23d4af37"/></svg>'), auto;
-}
-
-/* Cursor animations */
-@keyframes cursor-pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-.theme-light:hover,
-.theme-dark:hover,
-.theme-night:hover {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2" opacity="0.8"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg>'), auto;
-  animation: cursor-pulse 2s infinite;
-}
-
-/* ========================================
-   ACCESSIBILITY ENHANCEMENTS
-   ======================================== */
+  ACCESSIBILITY ENHANCEMENTS
+  ======================================== */
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
