@@ -14,9 +14,6 @@
       <button class="btn btn-outline-secondary" onclick="refreshPage()">
         <i data-feather="refresh-cw" class="me-2"></i>Refresh
       </button>
-      <button class="btn btn-accent" id="bulkApproveBtn" type="button" disabled>
-        <i data-feather="check-circle" class="me-2"></i>Bulk Approve
-      </button>
     </div>
   </div>
 </div>
@@ -90,9 +87,6 @@
         <table class="table table-dark">
       <thead>
         <tr>
-          <th>
-            <input type="checkbox" id="selectAll" onchange="toggleAllCheckboxes()">
-          </th>
           <th>#</th>
           <th>Request</th>
           <th>Type</th>
@@ -105,11 +99,6 @@
       <tbody>
         @forelse($approvals as $approval)
         <tr>
-          <td>
-            @if($approval->status === 'pending')
-              <input type="checkbox" class="approval-checkbox" value="{{ $approval->id }}" onchange="updateBulkActions()">
-            @endif
-          </td>
           <td>{{ $approval->id }}</td>
           <td>
             <div class="text-white fw-bold">{{ $approval->complaint->title ?? 'No complaint title' }}</div>
@@ -159,37 +148,6 @@
   <div class="d-flex justify-content-center mt-3">
     <div>
       {{ $approvals->links() }}
-    </div>
-  </div>
-</div>
-
-<!-- Bulk Approve Modal -->
-<div class="modal fade" id="bulkApproveModal" tabindex="-1" aria-labelledby="bulkApproveModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="bulkApproveModalLabel">Bulk Approve Requests</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <label for="bulkRemarks" class="form-label">Approval Remarks (Optional)</label>
-          <textarea class="form-control" id="bulkRemarks" rows="3" placeholder="Enter any remarks for the bulk approval..."></textarea>
-        </div>
-        <div class="alert alert-info">
-          <i data-feather="info" class="me-2"></i>
-          <span id="selectedCount">0</span> approval(s) will be processed.
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger me-2" onclick="processBulkReject()">
-          <i data-feather="x-circle" class="me-2"></i>Reject Selected
-        </button>
-        <button type="button" class="btn btn-success" id="confirmBulkApprove" onclick="processBulkApprove()">
-          <i data-feather="check-circle" class="me-2"></i>Approve Selected
-        </button>
-      </div>
     </div>
   </div>
 </div>
@@ -246,44 +204,6 @@
     color: #94a3b8 !important;
   }
   
-  /* Bulk button styling */
-  #bulkApproveBtn {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: relative !important;
-    z-index: 1000 !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
-  }
-  
-  #bulkApproveBtn:disabled,
-  #bulkApproveBtn.disabled {
-    opacity: 0.5 !important;
-    cursor: not-allowed !important;
-    display: inline-block !important;
-    visibility: visible !important;
-    pointer-events: none !important;
-  }
-  
-  #bulkApproveBtn:disabled:hover,
-  #bulkApproveBtn.disabled:hover {
-    opacity: 0.5 !important;
-  }
-  
-  /* Force button to be clickable */
-  #bulkApproveBtn:not(:disabled) {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-    opacity: 1 !important;
-  }
-  
-  
-  /* Force button to be clickable */
-  #bulkApproveBtn {
-    position: relative !important;
-    z-index: 1000 !important;
-  }
 </style>
 @endpush
 
@@ -292,7 +212,6 @@
   feather.replace();
 
   // Global variables
-  let selectedApprovals = [];
   let currentApprovalId = null;
   let isProcessing = false;
 
@@ -300,39 +219,6 @@
   function refreshPage() {
     console.log('Refreshing page...');
     location.reload();
-  }
-
-  // Handle bulk button click
-  function handleBulkButtonClick(e) {
-    console.log('Bulk button clicked');
-    console.log('Button disabled state:', this.disabled);
-    
-    if (this.disabled) {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Button is disabled, preventing click');
-      showError('Please select at least one approval first');
-      return false;
-    }
-  }
-
-  // Handle checkbox change
-  function handleCheckboxChange() {
-    console.log('Checkbox changed:', this.checked, this.value);
-    updateBulkActions();
-  }
-
-  // Force show bulk button
-  function forceShowBulkButton() {
-    const bulkButton = document.getElementById('bulkApproveBtn');
-    if (bulkButton) {
-      bulkButton.style.display = 'inline-block';
-      bulkButton.style.visibility = 'visible';
-      bulkButton.style.opacity = '1';
-      bulkButton.style.position = 'relative';
-      bulkButton.style.zIndex = '1000';
-      console.log('Bulk button forced to be visible');
-    }
   }
 
   // Approval Functions
@@ -494,307 +380,6 @@
     }
   }
 
-  // Bulk Operations Functions
-  function toggleAllCheckboxes() {
-    const selectAll = document.getElementById('selectAll');
-    const checkboxes = document.querySelectorAll('.approval-checkbox');
-    
-    checkboxes.forEach(checkbox => {
-      checkbox.checked = selectAll.checked;
-    });
-    
-    updateBulkActions();
-  }
-
-  function updateBulkActions() {
-    try {
-      const checkboxes = document.querySelectorAll('.approval-checkbox:checked');
-      selectedApprovals = Array.from(checkboxes).map(cb => cb.value);
-      
-      console.log('Selected approvals count:', selectedApprovals.length);
-      console.log('Selected approvals:', selectedApprovals);
-      
-      const bulkButton = document.getElementById('bulkApproveBtn');
-      const selectedCount = document.getElementById('selectedCount');
-      
-      if (selectedCount) {
-        selectedCount.textContent = selectedApprovals.length;
-      }
-      
-      if (bulkButton) {
-        if (selectedApprovals.length === 0) {
-          bulkButton.disabled = true;
-          bulkButton.setAttribute('disabled', 'disabled');
-          bulkButton.classList.add('disabled');
-          bulkButton.style.opacity = '0.5';
-          bulkButton.style.cursor = 'not-allowed';
-          bulkButton.style.pointerEvents = 'none';
-        } else {
-          bulkButton.disabled = false;
-          bulkButton.removeAttribute('disabled');
-          bulkButton.classList.remove('disabled');
-          bulkButton.style.opacity = '1';
-          bulkButton.style.cursor = 'pointer';
-          bulkButton.style.pointerEvents = 'auto';
-        }
-        console.log('Bulk button disabled:', bulkButton.disabled);
-        console.log('Bulk button element:', bulkButton);
-        console.log('Bulk button styles:', {
-          display: bulkButton.style.display,
-          visibility: bulkButton.style.visibility,
-          opacity: bulkButton.style.opacity,
-          cursor: bulkButton.style.cursor,
-          pointerEvents: bulkButton.style.pointerEvents
-        });
-      } else {
-        console.error('Bulk button not found');
-      }
-    } catch (error) {
-      console.error('Error in updateBulkActions:', error);
-    }
-  }
-
-  function showBulkApproveModal() {
-    console.log('showBulkApproveModal called');
-    console.log('Selected approvals:', selectedApprovals);
-    
-    if (isProcessing) {
-      showError('Please wait, another operation is in progress');
-      return;
-    }
-    
-    // Re-check selected approvals
-    const checkboxes = document.querySelectorAll('.approval-checkbox:checked');
-    const currentSelected = Array.from(checkboxes).map(cb => cb.value);
-    
-    console.log('Current selected checkboxes:', currentSelected);
-    console.log('Current selected length:', currentSelected.length);
-    
-    if (currentSelected.length === 0) {
-      showError('Please select at least one approval to process');
-      return;
-    }
-    
-    // Update selected approvals
-    selectedApprovals = currentSelected;
-    console.log('Updated selectedApprovals:', selectedApprovals);
-    
-    const modalElement = document.getElementById('bulkApproveModal');
-    if (!modalElement) {
-      console.error('Bulk approve modal not found');
-      showError('Modal not found');
-      return;
-    }
-    
-    // Update selected count in modal
-    const selectedCount = document.getElementById('selectedCount');
-    if (selectedCount) {
-      selectedCount.textContent = selectedApprovals.length;
-      console.log('Updated selected count:', selectedApprovals.length);
-    }
-    
-    // Clear remarks field
-    const remarksField = document.getElementById('bulkRemarks');
-    if (remarksField) {
-      remarksField.value = '';
-    }
-    
-    try {
-      const modal = new bootstrap.Modal(modalElement);
-      modal.show();
-      console.log('Modal shown successfully');
-    } catch (error) {
-      console.error('Error showing modal:', error);
-      showError('Error opening modal');
-    }
-  }
-
-  function processBulkApprove() {
-    console.log('processBulkApprove called');
-    
-    if (isProcessing) {
-      showError('Please wait, another operation is in progress');
-      return;
-    }
-    
-    const remarks = document.getElementById('bulkRemarks').value;
-    
-    if (selectedApprovals.length === 0) {
-      showError('No approvals selected');
-      return;
-    }
-    
-    if (confirm(`Are you sure you want to approve ${selectedApprovals.length} selected approval(s)?`)) {
-      isProcessing = true;
-      
-      // Disable buttons during processing
-      const approveBtn = document.getElementById('confirmBulkApprove');
-      const rejectBtn = document.querySelector('button[onclick="processBulkReject()"]');
-      
-      if (approveBtn) {
-        approveBtn.disabled = true;
-        approveBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Processing...';
-        feather.replace();
-      }
-      
-      if (rejectBtn) {
-        rejectBtn.disabled = true;
-      }
-      
-      console.log('Sending bulk approve request:', {
-        action: 'approve',
-        approval_ids: selectedApprovals,
-        remarks: remarks
-      });
-      
-      fetch('/admin/approvals/bulk-action', {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-          action: 'approve',
-          approval_ids: selectedApprovals,
-          remarks: remarks
-        })
-      })
-      .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-      })
-      .then(data => {
-        console.log('Response data:', data);
-        isProcessing = false;
-        
-        if (data.success) {
-          showSuccess(data.message || 'Approvals processed successfully!');
-          bootstrap.Modal.getInstance(document.getElementById('bulkApproveModal')).hide();
-          setTimeout(() => {
-            location.reload();
-          }, 1000);
-        } else {
-          showError(data.message || 'Failed to process bulk approval');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        isProcessing = false;
-        showError('Error processing bulk approval: ' + error.message);
-      })
-      .finally(() => {
-        // Re-enable buttons
-        if (approveBtn) {
-          approveBtn.disabled = false;
-          approveBtn.innerHTML = '<i data-feather="check-circle" class="me-2"></i>Approve Selected';
-          feather.replace();
-        }
-        
-        if (rejectBtn) {
-          rejectBtn.disabled = false;
-        }
-      });
-    }
-  }
-
-  function processBulkReject() {
-    console.log('processBulkReject called');
-    
-    if (isProcessing) {
-      showError('Please wait, another operation is in progress');
-      return;
-    }
-    
-    const remarks = prompt('Please enter rejection reason for all selected approvals:');
-    if (remarks === null) return; // User cancelled
-    
-    if (!remarks.trim()) {
-      showError('Rejection reason is required');
-      return;
-    }
-    
-    if (selectedApprovals.length === 0) {
-      showError('No approvals selected');
-      return;
-    }
-    
-    if (confirm(`Are you sure you want to reject ${selectedApprovals.length} selected approval(s)?`)) {
-      isProcessing = true;
-      
-      // Disable buttons during processing
-      const approveBtn = document.getElementById('confirmBulkApprove');
-      const rejectBtn = document.querySelector('button[onclick="processBulkReject()"]');
-      
-      if (rejectBtn) {
-        rejectBtn.disabled = true;
-        rejectBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Processing...';
-        feather.replace();
-      }
-      
-      if (approveBtn) {
-        approveBtn.disabled = true;
-      }
-      
-      console.log('Sending bulk reject request:', {
-        action: 'reject',
-        approval_ids: selectedApprovals,
-        remarks: remarks
-      });
-      
-      fetch('/admin/approvals/bulk-action', {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-          action: 'reject',
-          approval_ids: selectedApprovals,
-          remarks: remarks
-        })
-      })
-      .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-      })
-      .then(data => {
-        console.log('Response data:', data);
-        isProcessing = false;
-        
-        if (data.success) {
-          showSuccess(data.message || 'Approvals rejected successfully!');
-          bootstrap.Modal.getInstance(document.getElementById('bulkApproveModal')).hide();
-          setTimeout(() => {
-            location.reload();
-          }, 1000);
-        } else {
-          showError(data.message || 'Failed to process bulk rejection');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        isProcessing = false;
-        showError('Error processing bulk rejection: ' + error.message);
-      })
-      .finally(() => {
-        // Re-enable buttons
-        if (rejectBtn) {
-          rejectBtn.disabled = false;
-          rejectBtn.innerHTML = '<i data-feather="x-circle" class="me-2"></i>Reject Selected';
-          feather.replace();
-        }
-        
-        if (approveBtn) {
-          approveBtn.disabled = false;
-        }
-      });
-    }
-  }
-
   // Utility Functions
   function showSuccess(message) {
     // Create and show success alert
@@ -838,114 +423,5 @@
     }, 5000);
   }
 
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing bulk actions');
-    
-    try {
-      // Wait a bit for DOM to be fully ready
-      setTimeout(() => {
-        initializeBulkActions();
-        setupBulkButtonClick();
-      }, 500);
-      
-    } catch (error) {
-      console.error('Error initializing bulk actions:', error);
-    }
-  });
-
-  // Setup bulk button click handler
-  function setupBulkButtonClick() {
-    console.log('Setting up bulk button click handler...');
-    
-    const bulkButton = document.getElementById('bulkApproveBtn');
-    if (!bulkButton) {
-      console.error('Bulk button not found!');
-      return;
-    }
-    
-    console.log('Bulk button found:', bulkButton);
-    
-    // Remove all existing event listeners
-    const newButton = bulkButton.cloneNode(true);
-    bulkButton.parentNode.replaceChild(newButton, bulkButton);
-    
-    // Get the new button reference
-    const freshButton = document.getElementById('bulkApproveBtn');
-    
-    // Add click event listener
-    freshButton.addEventListener('click', function(e) {
-      console.log('BULK BUTTON CLICKED!');
-      console.log('Event:', e);
-      console.log('Button:', this);
-      console.log('Disabled:', this.disabled);
-      
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (this.disabled || selectedApprovals.length === 0) {
-        console.log('Button is disabled or no approvals selected, showing error');
-        alert('Please select at least one approval to process');
-        return false;
-      }
-      
-      console.log('Opening bulk approve modal...');
-      showBulkApproveModal();
-    });
-    
-    // Force enable for testing
-    freshButton.disabled = false;
-    freshButton.removeAttribute('disabled');
-    freshButton.classList.remove('disabled');
-    freshButton.style.pointerEvents = 'auto';
-    freshButton.style.cursor = 'pointer';
-    freshButton.style.opacity = '1';
-    
-    console.log('Bulk button setup complete');
-    
-    
-    feather.replace();
-  }
-
-  // Initialize bulk actions
-  function initializeBulkActions() {
-    console.log('Initializing bulk actions...');
-    
-    // Update bulk actions
-    updateBulkActions();
-    
-    // Setup checkboxes
-    setupCheckboxes();
-  }
-
-  // Setup checkboxes
-  function setupCheckboxes() {
-    function initializeCheckboxes() {
-      const checkboxes = document.querySelectorAll('.approval-checkbox');
-      console.log('Found checkboxes:', checkboxes.length);
-      
-      if (checkboxes.length === 0) {
-        console.log('No checkboxes found, will retry after a short delay');
-        setTimeout(initializeCheckboxes, 1000);
-        return;
-      }
-      
-      checkboxes.forEach((checkbox, index) => {
-        // Remove existing listener
-        checkbox.removeEventListener('change', handleCheckboxChange);
-        
-        // Add new listener
-        checkbox.addEventListener('change', function() {
-          console.log('Checkbox changed:', this.checked, this.value);
-          updateBulkActions();
-        });
-      });
-      
-      console.log('Checkboxes initialized successfully');
-    }
-    
-    // Initialize checkboxes
-    initializeCheckboxes();
-  }
 </script>
 @endpush

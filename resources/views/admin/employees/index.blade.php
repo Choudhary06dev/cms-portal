@@ -121,7 +121,54 @@
     </div>
   </div>
 </div>
+
+<!-- Delete Employee Modal -->
+<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" aria-labelledby="deleteEmployeeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(239, 68, 68, 0.3);">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+        <h5 class="modal-title text-white" id="deleteEmployeeModalLabel">
+          <i data-feather="alert-triangle" class="me-2 text-danger"></i>Delete Employee
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-white mb-3">
+          Are you sure you want to delete this employee? This action cannot be undone.
+        </p>
+        <div class="alert alert-warning" role="alert">
+          <i data-feather="info" class="me-2"></i>
+          <strong>Note:</strong> This will soft delete the employee record. The data will be preserved in the database.
+        </div>
+        <div id="employeeDetails" class="text-white">
+          <p class="mb-1"><strong>Employee ID:</strong> <span id="employeeIdModal"></span></p>
+          <p class="mb-0"><strong>Name:</strong> <span id="employeeNameModal"></span></p>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid rgba(239, 68, 68, 0.2);">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i data-feather="x" class="me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i data-feather="trash-2" class="me-1"></i>Delete Employee
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
+
+@push('styles')
+<style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -226,52 +273,92 @@
   });
   
   // Delete employee function
+  let currentDeleteEmployeeId = null;
+  
   function deleteEmployee(employeeId) {
-    console.log('Deleting employee ID:', employeeId);
-    
     if (!employeeId) {
       alert('Invalid employee ID');
       return;
     }
     
-    // Check if employee exists by looking for the delete button
-    const deleteButton = document.querySelector(`button[data-employee-id="${employeeId}"]`);
-    if (!deleteButton) {
-      alert('Employee not found. The page will be refreshed.');
-      location.reload();
+    // Find the employee details from the table
+    const row = document.querySelector(`button[data-employee-id="${employeeId}"]`)?.closest('tr');
+    if (!row) {
+      alert('Employee not found');
       return;
     }
     
-    if (confirm('Are you sure you want to delete this employee? This action cannot be undone.')) {
-      console.log('User confirmed deletion for employee ID:', employeeId);
-      
-      // Try using fetch with proper headers first
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-      console.log('CSRF Token:', csrfToken);
-      
-      fetch(`/admin/employees/${employeeId}`, {
-        method: 'DELETE',
-        headers: {
-          'X-CSRF-TOKEN': csrfToken,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'same-origin'
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          location.reload();
-        } else {
-          alert('Error deleting employee: ' + (data.message || 'Unknown error'));
-        }
-      })
-      .catch(error => {
-        console.error('Error deleting employee:', error);
-        alert('Error deleting employee');
-      });
-    }
+    // Get employee details
+    const employeeIdCell = row.cells[0].textContent.trim();
+    const employeeNameCell = row.cells[1].querySelector('.fw-bold')?.textContent || 'Unknown';
+    
+    // Set modal details
+    document.getElementById('employeeIdModal').textContent = employeeIdCell;
+    document.getElementById('employeeNameModal').textContent = employeeNameCell;
+    
+    // Store the employee ID for deletion
+    currentDeleteEmployeeId = employeeId;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('deleteEmployeeModal'));
+    modal.show();
   }
+  
+  // Handle confirm delete button
+  document.getElementById('confirmDeleteBtn')?.addEventListener('click', function() {
+    if (!currentDeleteEmployeeId) {
+      alert('No employee selected for deletion');
+      return;
+    }
+    
+    const employeeId = currentDeleteEmployeeId;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Show loading state
+    const btn = document.getElementById('confirmDeleteBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-feather="loader" class="spinning"></i> Deleting...';
+    
+    fetch(`/admin/employees/${employeeId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteEmployeeModal'));
+        modal.hide();
+        
+        // Show success notification
+        showNotification('Employee deleted successfully!', 'success');
+        
+        // Reload page after a short delay
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showNotification('Error deleting employee: ' + (data.message || 'Unknown error'), 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting employee:', error);
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      showNotification('Error deleting employee: ' + error.message, 'error');
+    });
+    
+    // Reset
+    currentDeleteEmployeeId = null;
+  });
 
   function showNotification(message, type = 'info') {
     // Create notification element

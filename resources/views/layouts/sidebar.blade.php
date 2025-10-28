@@ -1166,27 +1166,44 @@
   
   <!-- Error handling for missing scripts -->
   <script>
-    // Prevent errors from missing scripts
+    // Prevent errors from missing scripts and null element access
     window.addEventListener('error', function(e) {
+      // Silence share-modal.js errors
       if (e.filename && (e.filename.includes('share-modal.js') || e.filename.includes('share-modal'))) {
-        console.warn('share-modal.js not found - ignoring error');
         e.preventDefault();
         return true;
       }
-    });
+      
+      // Catch and silence TypeError for null element access
+      if (e.message && e.message.includes("Cannot read properties of null")) {
+        console.warn('Caught null element error:', e.message);
+        e.preventDefault();
+        return true;
+      }
+    }, true);
     
-    // Handle null element errors
-    document.addEventListener('DOMContentLoaded', function() {
-      // Override addEventListener to handle null elements gracefully
-      const originalAddEventListener = Element.prototype.addEventListener;
-      Element.prototype.addEventListener = function(type, listener, options) {
-        if (this === null || this === undefined) {
-          console.warn('Attempted to add event listener to null element');
-          return;
-        }
-        return originalAddEventListener.call(this, type, listener, options);
-      };
-    });
+    // Handle null element errors globally
+    const originalQuerySelector = document.querySelector;
+    const originalQuerySelectorAll = document.querySelectorAll;
+    
+    // Override querySelector to prevent null element errors
+    document.querySelector = function(selector) {
+      try {
+        return originalQuerySelector.call(document, selector);
+      } catch(e) {
+        console.warn('querySelector error:', e);
+        return null;
+      }
+    };
+    
+    document.querySelectorAll = function(selector) {
+      try {
+        return originalQuerySelectorAll.call(document, selector);
+      } catch(e) {
+        console.warn('querySelectorAll error:', e);
+        return [];
+      }
+    };
   </script>
   <style>
     :root{
@@ -1434,7 +1451,7 @@
     
     <div class="section-title">Main Menu</div>
     <a href="{{ route('admin.dashboard') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-      <i data-feather="home" class="me-2"></i> Dashboard
+      <i data-feather="home" class="me-2"></i>Dashboard & Reporting
     </a>
     
     <div class="section-title">Management</div>
@@ -1445,13 +1462,13 @@
       <i data-feather="shield" class="me-2"></i> Roles
     </a>
     <a href="{{ route('admin.employees.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
-      <i data-feather="user-check" class="me-2"></i> Employees
+      <i data-feather="user-check" class="me-2"></i> Employee 
     </a>
     <a href="{{ route('admin.clients.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
       <i data-feather="briefcase" class="me-2"></i> Clients
     </a>
     <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}">
-      <i data-feather="alert-circle" class="me-2"></i> Complaints
+      <i data-feather="alert-circle" class="me-2"></i> Complaint 
     </a>
     <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}">
       <i data-feather="package" class="me-2"></i> Spare Parts

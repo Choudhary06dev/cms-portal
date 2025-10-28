@@ -810,6 +810,49 @@
       </div>
     </div>
 
+    <!-- APPROVALS STATISTICS -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="card-glass">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="h4 mb-1 text-warning" style="font-size: 2rem; font-weight: bold;">{{ $stats['pending_approvals'] ?? 0 }}</div>
+              <div class="text-muted" style="font-size: 0.9rem;">Pending Approvals</div>
+            </div>
+            <div class="text-warning">
+              <i data-feather="clock" class="feather-lg"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card-glass">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="h4 mb-1 text-success" style="font-size: 2rem; font-weight: bold;">{{ $stats['approved_this_month'] ?? 0 }}</div>
+              <div class="text-muted" style="font-size: 0.9rem;">Approved This Month</div>
+            </div>
+            <div class="text-success">
+              <i data-feather="check-circle" class="feather-lg"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card-glass">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="h4 mb-1 text-info" style="font-size: 2rem; font-weight: bold;">{{ $stats['total_approvals'] ?? 0 }}</div>
+              <div class="text-muted" style="font-size: 0.9rem;">Total Approvals</div>
+            </div>
+            <div class="text-info">
+              <i data-feather="file-text" class="feather-lg"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ADDITIONAL STATS -->
     <div class="row mb-4 justify-content-center">
       <div class="col-md-2 mb-3">
@@ -905,10 +948,57 @@
                 @endforelse
                 </tbody>
               </table>
-            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENDING APPROVALS SECTION -->
+    @if(isset($pendingApprovals) && $pendingApprovals->count() > 0)
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card-glass">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 text-warning">
+              <i data-feather="clock" class="me-2"></i>Pending Approvals
+            </h5>
+            <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-warning btn-sm">View All</a>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-dark">
+              <thead>
+                <tr>
+                  <th>Approval ID</th>
+                  <th>Complaint</th>
+                  <th>Client</th>
+                  <th>Requested By</th>
+                  <th>Items</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($pendingApprovals as $approval)
+                <tr>
+                  <td>#{{ $approval->id }}</td>
+                  <td>{{ $approval->complaint ? $approval->complaint->getTicketNumberAttribute() : 'N/A' }}</td>
+                  <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
+                  <td>{{ $approval->requestedBy && $approval->requestedBy->user ? $approval->requestedBy->user->username : 'N/A' }}</td>
+                  <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
+                  <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
+                  <td>
+                    <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-sm btn-outline-primary">
+                      <i data-feather="eye" class="me-1"></i>View
+                    </a>
+                  </td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
           </div>
         </div>
-
+      </div>
+    </div>
+    @endif
 
     <!-- LOW STOCK ALERTS -->
 @if(isset($lowStockItems) && $lowStockItems->count() > 0)

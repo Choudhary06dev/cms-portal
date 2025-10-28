@@ -57,6 +57,13 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
+        // Log incoming request data for debugging
+        \Log::info('Employee create request:', [
+            'all_data' => $request->all(),
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+        ]);
+
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username',
             'email' => 'required|email|max:150|unique:users,email',
@@ -72,6 +79,8 @@ class EmployeeController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Validation failed:', $validator->errors()->toArray());
+            
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -85,17 +94,18 @@ class EmployeeController extends Controller
 
         try {
             DB::beginTransaction();
+            \Log::info('Starting employee creation transaction');
 
-            // Create user first
+            // Create user first (without phone - phone is stored in employee record)
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
-                'phone' => $request->phone,
                 'password' => Hash::make($request->password),
                 'role_id' => 2, // Default employee role
                 'status' => $request->status ?? 'active',
                 'theme' => 'light',
             ]);
+            \Log::info('User created successfully with ID: ' . $user->id);
 
             // Create employee record
             $employee = Employee::create([
@@ -108,8 +118,10 @@ class EmployeeController extends Controller
                 'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
             ]);
+            \Log::info('Employee created successfully with ID: ' . $employee->id);
 
             DB::commit();
+            \Log::info('Transaction committed successfully');
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -124,6 +136,8 @@ class EmployeeController extends Controller
 
         } catch (Exception $e) {
             DB::rollBack();
+            \Log::error('Error creating employee: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -274,7 +288,8 @@ class EmployeeController extends Controller
             $employee->delete(); // This will now soft delete due to SoftDeletes trait
             \Log::info('Employee soft deleted successfully for ID: ' . $employee->id);
 
-            if (request()->ajax() || request()->wantsJson()) {
+            // Check if request expects JSON response
+            if (request()->ajax() || request()->wantsJson() || request()->header('Accept') === 'application/json') {
                 return response()->json([
                     'success' => true,
                     'message' => 'Employee deleted successfully.'
@@ -288,7 +303,7 @@ class EmployeeController extends Controller
             \Log::error('Error deleting employee ID ' . ($employee->id ?? $id) . ': ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             
-            if (request()->ajax() || request()->wantsJson()) {
+            if (request()->ajax() || request()->wantsJson() || request()->header('Accept') === 'application/json') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Error deleting employee: ' . $e->getMessage()
