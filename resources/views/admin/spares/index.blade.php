@@ -3,17 +3,17 @@
 @section('title', 'Spare Parts Management — CMS Admin')
 
 @section('content')
-    <!-- PAGE HEADER -->
-    <div class="mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2 class=" mb-2">Spare Parts Management</h2>
-                <p class="text-light">Manage inventory and spare parts</p>
-            </div>
-            <button id="addSpareBtn" class="btn btn-accent">
-                <i class="fas fa-plus me-2"></i>Add Spare Part
-            </button>
-        </div>
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+      <div>
+      <h2 class=" mb-2">Spare Parts Management</h2>
+      <p class="text-light">Manage inventory and spare parts</p>
+      </div>
+    <button id="addSpareBtn" class="btn btn-accent">
+      <i class="fas fa-plus me-2"></i>Add Spare Part
+        </button>
+      </div>
     </div>
 
 <!-- FILTERS -->
@@ -26,12 +26,9 @@
       <div class="col-md-3">
         <select class="form-select" name="category">
             <option value="">All Categories</option>
-            <option value="electrical" {{ request('category') == 'electrical' ? 'selected' : '' }}>Electrical</option>
-            <option value="plumbing" {{ request('category') == 'plumbing' ? 'selected' : '' }}>Plumbing</option>
-            <option value="kitchen" {{ request('category') == 'kitchen' ? 'selected' : '' }}>Kitchen</option>
-            <option value="general" {{ request('category') == 'general' ? 'selected' : '' }}>General</option>
-            <option value="tools" {{ request('category') == 'tools' ? 'selected' : '' }}>Tools</option>
-            <option value="consumables" {{ request('category') == 'consumables' ? 'selected' : '' }}>Consumables</option>
+            @foreach(App\Models\Complaint::getCategories() as $key => $label)
+            <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
           </select>
       </div>
       <div class="col-md-3">
@@ -51,83 +48,79 @@
   </form>
       </div>
 
-    <!-- SPARES TABLE -->
-    <div class="card-glass">
-        <div class="table-responsive">
-            <table class="table table-dark">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Stock</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($spares as $spare)
-                        <tr>
-                            <td>{{ $spare->id }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {{-- <div class="avatar-sm me-3"
-                                        style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
-                                        {{ substr($spare->item_name, 0, 1) }}
-                                    </div> --}}
-                                    <div>
-                                        <div class="fw-bold">{{ $spare->item_name }}</div>
-                                        {{-- <div class="text-muted small">{{ $spare->item_name ?? 'No description' }}</div> --}}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="category-badge category-{{ strtolower($spare->category) }}">
-                                    {{ ucfirst($spare->category) }}
-                                </span>
-                            </td>
-                            <td>{{ $spare->stock_quantity ?? 0 }}</td>
-                            <td>
-                                <span class="status-badge status-{{ $spare->status ?? 'active' }}">
-                                    {{ ucfirst($spare->status ?? 'active') }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-outline-info btn-sm" onclick="viewSpare({{ $spare->id }})"
-                                        title="View Details">
-                                        <i data-feather="eye"></i>
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm" onclick="editSpare({{ $spare->id }})"
-                                        title="Edit">
-                                        <i data-feather="edit"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteSpare({{ $spare->id }})" title="Delete">
-                                        <i data-feather="trash-2"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-4">
-                                <i data-feather="package" class="feather-lg mb-2"></i>
-                                <div>No spare parts found</div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+<!-- SPARES TABLE -->
+<div class="card-glass">
+      <div class="table-responsive">
+        <table class="table table-dark">
+          <thead>
+            <tr>
+          <th>#</th>
+          <th>Name</th>
+              <th>Category</th>
+          <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($spares as $spare)
+            <tr>
+          <td >{{ $spare->id }}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
+                {{ substr($spare->item_name, 0, 1) }}
+                  </div>
+                  <div>
+             <div class="fw-bold">{{ $spare->item_name }}</div>
+                <div class="text-muted small">{{ $spare->item_name ?? 'No description' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+            <span class="category-badge category-{{ strtolower($spare->category) }}">
+                  {{ ucfirst($spare->category) }}
+                </span>
+              </td>
+          <td >{{ $spare->stock_quantity ?? 0 }}</td>
+          <td>
+            <span class="status-badge status-{{ $spare->status ?? 'active' }}">
+              {{ ucfirst($spare->status ?? 'active') }}
+                </span>
+              </td>
+              <td>
+            <div class="btn-group" role="group">
+              <button class="btn btn-outline-info btn-sm" onclick="viewSpare({{ $spare->id }})" title="View Details">
+                <i data-feather="eye"></i>
+              </button>
+              <button class="btn btn-outline-warning btn-sm" onclick="editSpare({{ $spare->id }})" title="Edit">
+                <i data-feather="edit"></i>
+              </button>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare({{ $spare->id }})" title="Delete">
+                <i data-feather="trash-2"></i>
+              </button>
+                </div>
+              </td>
+            </tr>
+            @empty
+            <tr>
+          <td colspan="6" class="text-center py-4" >
+            <i data-feather="package" class="feather-lg mb-2"></i>
+            <div>No spare parts found</div>
+              </td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
 
-        <!-- PAGINATION -->
-        <div class="d-flex justify-content-center mt-3">
-            <div>
-                {{ $spares->links() }}
-            </div>
+  <!-- PAGINATION -->
+      <div class="d-flex justify-content-center mt-3">
+        <div>
+          {{ $spares->links() }}
         </div>
-    </div>
+      </div>
+</div>
 
 <!-- Spare Part Modal -->
 <div class="modal fade" id="spareModal" tabindex="-1" aria-labelledby="spareModalLabel" aria-hidden="true">
@@ -152,12 +145,9 @@
                             <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
                             <select class="form-select" id="category" name="category" required>
                                 <option value="">Select Category</option>
-                                <option value="electrical">Electrical</option>
-                                <option value="plumbing">Plumbing</option>
-                                <option value="kitchen">Kitchen</option>
-                                <option value="general">General</option>
-                                <option value="tools">Tools</option>
-                                <option value="consumables">Consumables</option>
+                                @foreach(App\Models\Complaint::getCategories() as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
                             </select>
                             <div class="invalid-feedback"></div>
                         </div>
@@ -260,12 +250,14 @@
   .theme-night .modal-body .form-label {
     color: #fff !important;
   }
-  .category-electrical { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  .category-technical { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+  .category-service { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+  .category-billing { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  .category-sanitary { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+  .category-electric { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+  .category-kitchen { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
   .category-plumbing { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-  .category-kitchen { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-  .category-general { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
-  .category-tools { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
-  .category-consumables { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+  .category-other { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
   
   .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
   .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
@@ -275,138 +267,138 @@
 @endpush
 
 @push('scripts')
-    <script>
-        // Spare parts JavaScript loaded
-        feather.replace();
+  <script>
+    // Spare parts JavaScript loaded
+    feather.replace();
 
-        // Spare Modal Functions
-        function viewSpare(spareId) {
-            console.log('Viewing spare ID:', spareId);
-
-            // Load spare details via AJAX
-            fetch(`/admin/spares/${spareId}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    credentials: 'same-origin'
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Received data:', data);
-
-                    // Wait for DOM to be ready
-                    setTimeout(() => {
-                        // Show spare details in modal
-                        const modalLabel = document.getElementById('spareModalLabel');
-                        const modalBody = document.getElementById('modalBody');
-
-                        if (!modalLabel || !modalBody) {
-                            console.error('Modal elements not found');
-                            console.log('ModalLabel:', modalLabel);
-                            console.log('ModalBody:', modalBody);
-                            alert('Error: Modal elements not found');
-                            return;
-                        }
-
-                        modalLabel.textContent = 'View Spare Part';
-
-                        // Hide the form inside modal body
-                        const spareForm = modalBody.querySelector('#spareForm');
-                        if (spareForm) {
-                            spareForm.style.display = 'none';
-                        }
-
-                        console.log('Modal body found:', modalBody);
-
-                        modalBody.innerHTML = `
-            <div class="row">
+  // Spare Modal Functions
+  function viewSpare(spareId) {
+    console.log('Viewing spare ID:', spareId);
+    
+    // Load spare details via AJAX
+    fetch(`/admin/spares/${spareId}`, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      credentials: 'same-origin'
+    })
+      .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Received data:', data);
+        
+        // Wait for DOM to be ready
+        setTimeout(() => {
+          // Show spare details in modal
+          const modalLabel = document.getElementById('spareModalLabel');
+          const modalBody = document.getElementById('modalBody');
+          
+          if (!modalLabel || !modalBody) {
+            console.error('Modal elements not found');
+            console.log('ModalLabel:', modalLabel);
+            console.log('ModalBody:', modalBody);
+            alert('Error: Modal elements not found');
+            return;
+          }
+        
+          modalLabel.textContent = 'View Spare Part';
+          
+          // Hide the form inside modal body
+          const spareForm = modalBody.querySelector('#spareForm');
+          if (spareForm) {
+            spareForm.style.display = 'none';
+          }
+          
+          console.log('Modal body found:', modalBody);
+          
+          modalBody.innerHTML = `
+            <div class="row" style="color: var(--text-primary);">
               <div class="col-md-6">
-                <div class="mb-2"><strong>Name:</strong> <span class="text-secondary">${data.name || 'N/A'}</span></div>
-                <div class="mb-2"><strong>Category:</strong> <span class="text-secondary">${data.category || 'N/A'}</span></div>
-                <div class="mb-2"><strong>Unit:</strong> <span class="text-secondary">${data.unit || 'N/A'}</span></div>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Name:</strong> <span style="color: var(--text-secondary);">${data.name || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Category:</strong> <span style="color: var(--text-secondary);">${data.category || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Unit:</strong> <span style="color: var(--text-secondary);">${data.unit || 'N/A'}</span></p>
               </div>
               <div class="col-md-6">
-                <div class="mb-2"><strong>Stock Quantity:</strong> <span class="text-secondary">${data.stock_quantity || 'N/A'}</span></div>
-                <div class="mb-2"><strong>Threshold Level:</strong> <span class="text-secondary">${data.threshold_level || 'N/A'}</span></div>
-                <div class="mb-2"><strong>Status:</strong> <span class="text-secondary">${data.status || 'N/A'}</span></div>
-                <div class="mb-2"><strong>Last Updated:</strong> <span class="text-secondary">${data.updated_at || 'N/A'}</span></div>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Stock Quantity:</strong> <span style="color: var(--text-secondary);">${data.stock_quantity || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Threshold Level:</strong> <span style="color: var(--text-secondary);">${data.threshold_level || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Status:</strong> <span style="color: var(--text-secondary);">${data.status || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Last Updated:</strong> <span style="color: var(--text-secondary);">${data.updated_at || 'N/A'}</span></p>
               </div>
               <div class="col-12 mt-3">
-                <div class="mb-2"><strong>Supplier:</strong> <span class="text-secondary">${data.supplier || 'N/A'}</span></div>
-                <div class="mb-2"><strong>Description:</strong> <span class="text-secondary">${data.description || 'N/A'}</span></div>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Supplier:</strong> <span style="color: var(--text-secondary);">${data.supplier || 'N/A'}</span></p>
+                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Description:</strong> <span style="color: var(--text-secondary);">${data.description || 'N/A'}</span></p>
               </div>
             </div>
           `;
+          
+          console.log('Modal body content updated');
+          
+          // Show the modal first
+          const modalElement = document.getElementById('spareModal');
+          if (!modalElement) {
+            console.error('Spare modal element not found');
+            alert('Error: Modal not found');
+            return;
+          }
+          
+          const modal = new bootstrap.Modal(modalElement);
+          modal.show();
+          console.log('Modal shown');
+          
+          // Hide modal footer for view mode after modal is shown
+          setTimeout(() => {
+            const modalFooter = document.querySelector('.modal-footer');
+            if (modalFooter) {
+              modalFooter.style.display = 'none';
+              console.log('Modal footer hidden');
+            }
+          }, 100);
+        }, 100);
+      })
+      .catch(error => {
+        console.error('Error loading spare details:', error);
+        alert('Error loading spare details: ' + error.message);
+      });
+  }
 
-                        console.log('Modal body content updated');
-
-                        // Show the modal first
-                        const modalElement = document.getElementById('spareModal');
-                        if (!modalElement) {
-                            console.error('Spare modal element not found');
-                            alert('Error: Modal not found');
-                            return;
-                        }
-
-                        const modal = new bootstrap.Modal(modalElement);
-                        modal.show();
-                        console.log('Modal shown');
-
-                        // Hide modal footer for view mode after modal is shown
-                        setTimeout(() => {
-                            const modalFooter = document.querySelector('.modal-footer');
-                            if (modalFooter) {
-                                modalFooter.style.display = 'none';
-                                console.log('Modal footer hidden');
-                            }
-                        }, 100);
-                    }, 100);
-                })
-                .catch(error => {
-                    console.error('Error loading spare details:', error);
-                    alert('Error loading spare details: ' + error.message);
-                });
+  function editSpare(spareId) {
+    console.log('Editing spare ID:', spareId);
+    
+    // Load spare data for editing
+    fetch(`/admin/spares/${spareId}/edit-data`, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      credentials: 'same-origin'
+    })
+      .then(response => {
+        console.log('Edit response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        function editSpare(spareId) {
-            console.log('Editing spare ID:', spareId);
-
-            // Load spare data for editing
-            fetch(`/admin/spares/${spareId}/edit-data`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    credentials: 'same-origin'
-                })
-                .then(response => {
-                    console.log('Edit response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Edit data received:', data);
-                    // Reset modal to form mode
-                    document.getElementById('spareModalLabel').textContent = 'Edit Spare Part';
-
-                    // Show modal footer for edit mode
-                    const modalFooter = document.querySelector('.modal-footer');
-                    modalFooter.style.display = 'block';
-
-                    // Reset modal body to original form structure
-                    const modalBody = document.getElementById('modalBody');
-                    modalBody.innerHTML = `
+        return response.json();
+      })
+      .then(data => {
+        console.log('Edit data received:', data);
+        // Reset modal to form mode
+        document.getElementById('spareModalLabel').textContent = 'Edit Spare Part';
+        
+        // Show modal footer for edit mode
+        const modalFooter = document.querySelector('.modal-footer');
+        modalFooter.style.display = 'block';
+        
+        // Reset modal body to original form structure
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
           <form id="spareForm" method="POST" autocomplete="off" novalidate>
             @csrf
             <div id="methodField"></div>
@@ -460,107 +452,97 @@
           </div>
           </form>
         `;
+        
+        // Configure form after it's created
+        document.getElementById('spareForm').action = `/admin/spares/${spareId}`;
+        document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+        document.getElementById('submitText').textContent = 'Update Spare Part';
+        
+        // Submit button will be handled by event delegation
+        
+        // Populate form fields with data
+  document.getElementById('item_name').value = data.name || '';
+  document.getElementById('category').value = data.category || '';
+  document.getElementById('unit').value = data.unit || '';
+  document.getElementById('stock_quantity').value = data.stock_quantity || '';
+  document.getElementById('threshold_level').value = data.threshold_level || '';
+  document.getElementById('supplier').value = data.supplier || '';
+  document.getElementById('description').value = data.description || '';
+        
+        new bootstrap.Modal(document.getElementById('spareModal')).show();
+      })
+      .catch(error => {
+        console.error('Error loading spare data:', error);
+        alert('Error loading spare data');
+      });
+  }
 
-                    // Configure form after it's created
-                    document.getElementById('spareForm').action = `/admin/spares/${spareId}`;
-                    document.getElementById('methodField').innerHTML =
-                        '<input type="hidden" name="_method" value="PUT">';
-                    document.getElementById('submitText').textContent = 'Update Spare Part';
+  function deleteSpare(spareId) {
+    if (confirm('Are you sure you want to delete this spare part?')) {
+      // Use POST + _method=DELETE so Laravel receives form data and CSRF properly
+      const fd = new FormData();
+      fd.append('_method', 'DELETE');
+      fd.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
-                    // Submit button will be handled by event delegation
-
-                    // Populate form fields with data
-                    document.getElementById('item_name').value = data.name || '';
-                    document.getElementById('category').value = data.category || '';
-                    document.getElementById('unit').value = data.unit || '';
-                    document.getElementById('stock_quantity').value = data.stock_quantity || '';
-                    document.getElementById('threshold_level').value = data.threshold_level || '';
-                    document.getElementById('supplier').value = data.supplier || '';
-                    document.getElementById('description').value = data.description || '';
-
-                    new bootstrap.Modal(document.getElementById('spareModal')).show();
-                })
-                .catch(error => {
-                    console.error('Error loading spare data:', error);
-                    alert('Error loading spare data');
-                });
+      fetch(`/admin/spares/${spareId}`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: fd,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
         }
-
-        function deleteSpare(spareId) {
-            if (confirm('Are you sure you want to delete this spare part?')) {
-                // Use POST + _method=DELETE so Laravel receives form data and CSRF properly
-                const fd = new FormData();
-                fd.append('_method', 'DELETE');
-                fd.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-
-                fetch(`/admin/spares/${spareId}`, {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        body: fd,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(async response => {
-                        const text = await response.text();
-                        let data = null;
-                        try {
-                            data = JSON.parse(text);
-                        } catch (err) {
-                            console.error('Non-JSON response:', text);
-                            throw new Error('Unexpected response from server (not JSON). Status: ' + response
-                                .status);
-                        }
-                        return {
-                            response,
-                            data
-                        };
-                    })
-                    .then(({
-                        response,
-                        data
-                    }) => {
-                        if (data.success) {
-                            showNotification('Spare part deleted successfully!', 'success');
-                            // Remove the row from table
-                            const row = document.querySelector(`button[onclick="deleteSpare(${spareId})"]`).closest(
-                                'tr');
-                            if (row) {
-                                row.remove();
-                            }
-                            // Reload page after a short delay
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            showNotification('Error deleting spare part: ' + (data.message || 'Unknown error'),
-                            'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error deleting spare part:', error);
-                        showNotification('Error deleting spare part: ' + (error.message || 'Unknown error'), 'error');
-                    });
-            }
+      })
+      .then(async response => {
+        const text = await response.text();
+        let data = null;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.error('Non-JSON response:', text);
+          throw new Error('Unexpected response from server (not JSON). Status: ' + response.status);
         }
+        return { response, data };
+      })
+      .then(({ response, data }) => {
+        if (data.success) {
+          showNotification('Spare part deleted successfully!', 'success');
+          // Remove the row from table
+          const row = document.querySelector(`button[onclick="deleteSpare(${spareId})"]`).closest('tr');
+          if (row) {
+            row.remove();
+          }
+          // Reload page after a short delay
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        } else {
+          showNotification('Error deleting spare part: ' + (data.message || 'Unknown error'), 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting spare part:', error);
+        showNotification('Error deleting spare part: ' + (error.message || 'Unknown error'), 'error');
+      });
+    }
+  }
 
-        // Add Spare Button
-        document.getElementById('addSpareBtn')?.addEventListener('click', function() {
-            // Reset modal to form mode
-            document.getElementById('spareModalLabel').textContent = 'Add Spare Part';
-            document.getElementById('spareForm').style.display = 'block';
-            document.getElementById('spareForm').action = '/admin/spares';
-            document.getElementById('methodField').innerHTML = '';
-            document.getElementById('submitText').textContent = 'Add Spare Part';
-
-            // Show modal footer for add mode
-            const modalFooter = document.querySelector('.modal-footer');
-            modalFooter.style.display = 'block';
-
-            // Reset modal body to original form structure
-            const modalBody = document.getElementById('modalBody');
-            modalBody.innerHTML = `
+  // Add Spare Button
+  document.getElementById('addSpareBtn')?.addEventListener('click', function() {
+    // Reset modal to form mode
+    document.getElementById('spareModalLabel').textContent = 'Add Spare Part';
+    document.getElementById('spareForm').style.display = 'block';
+    document.getElementById('spareForm').action = '/admin/spares';
+    document.getElementById('methodField').innerHTML = '';
+    document.getElementById('submitText').textContent = 'Add Spare Part';
+    
+    // Show modal footer for add mode
+    const modalFooter = document.querySelector('.modal-footer');
+    modalFooter.style.display = 'block';
+    
+    // Reset modal body to original form structure
+    const modalBody = document.getElementById('modalBody');
+    modalBody.innerHTML = `
       <form id="spareForm" method="POST" autocomplete="off" novalidate>
         @csrf
         <div id="methodField"></div>
@@ -614,211 +596,205 @@
       </div>
       </form>
     `;
+    
+    // Configure form after it's created
+    document.getElementById('spareForm').action = '/admin/spares';
+    document.getElementById('methodField').innerHTML = '';
+    document.getElementById('submitText').textContent = 'Add Spare Part';
+    
+    // Submit button will be handled by event delegation
+    
+    // Clear all form fields
+    document.getElementById('spareForm').reset();
+    
+    new bootstrap.Modal(document.getElementById('spareModal')).show();
+  });
 
-            // Configure form after it's created
-            document.getElementById('spareForm').action = '/admin/spares';
-            document.getElementById('methodField').innerHTML = '';
-            document.getElementById('submitText').textContent = 'Add Spare Part';
+  // Form submission - using event delegation for dynamically created forms
+  document.addEventListener('submit', function(e) {
+    if (e.target.id === 'spareForm') {
+      e.preventDefault();
+      // Show spinner / disable submit
+      setSubmitting(true);
 
-            // Submit button will be handled by event delegation
+  // Clear previous validation errors
+  clearValidationErrors(e.target);
+  const formData = new FormData(e.target);
+      const url = e.target.action;
+      const overrideMethod = e.target.querySelector('input[name="_method"]')?.value;
+      // If there's a method override (PUT/DELETE), send as POST so PHP parses form data correctly
+      const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
+      console.log('Submitting form to', url, 'with fetch method', fetchMethod, 'and override', overrideMethod);
 
-            // Clear all form fields
-            document.getElementById('spareForm').reset();
-
-            new bootstrap.Modal(document.getElementById('spareModal')).show();
-        });
-
-        // Form submission - using event delegation for dynamically created forms
-        document.addEventListener('submit', function(e) {
-            if (e.target.id === 'spareForm') {
-                e.preventDefault();
-                // Show spinner / disable submit
-                setSubmitting(true);
-
-                // Clear previous validation errors
-                clearValidationErrors(e.target);
-                const formData = new FormData(e.target);
-                const url = e.target.action;
-                const overrideMethod = e.target.querySelector('input[name="_method"]')?.value;
-                // If there's a method override (PUT/DELETE), send as POST so PHP parses form data correctly
-                const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
-                console.log('Submitting form to', url, 'with fetch method', fetchMethod, 'and override',
-                    overrideMethod);
-
-                fetch(url, {
-                        method: fetchMethod,
-                        body: formData,
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                'content'),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => {
-                        console.log('Response status:', response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Response data:', data);
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            setSubmitting(false);
-                            alert('Error: ' + (data.message || 'Unknown error'));
-                            if (data.errors) {
-                                console.error('Validation errors:', data.errors);
-                                // show inline validation messages
-                                showValidationErrors(e.target, data.errors);
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error submitting form:', error);
-                        setSubmitting(false);
-                        alert('Error submitting form');
-                    });
-            }
-        });
-
-        // Direct event listener for submit button
-        document.addEventListener('DOMContentLoaded', function() {
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Submit button clicked via event listener');
-
-                    const form = document.getElementById('spareForm');
-                    if (form) {
-                        console.log('Form found, submitting...');
-                        // Prefer requestSubmit when available (submits and triggers submit event listeners).
-                        if (typeof form.requestSubmit === 'function') {
-                            form.requestSubmit();
-                        } else {
-                            // Dispatch a bubbling, cancelable submit event so the document-level listener catches it
-                            form.dispatchEvent(new Event('submit', {
-                                bubbles: true,
-                                cancelable: true
-                            }));
-                        }
-                    } else {
-                        console.log('Form not found, using direct submission');
-                        handleFormSubmission();
-                    }
-                });
-            } else {
-                console.error('Submit button not found!');
-            }
-        });
-
-        // Direct form submission handler
-        function handleFormSubmission() {
-            const form = document.getElementById('spareForm');
-            if (!form) {
-                console.error('No form found for submission');
-                return;
-            }
-
-            console.log('Handling form submission directly');
-            setSubmitting(true);
-            const formData = new FormData(form);
-            const url = form.action;
-            const overrideMethod = form.querySelector('input[name="_method"]')?.value;
-            const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
-            console.log('Direct submit to', url, 'using fetch method', fetchMethod, 'override', overrideMethod);
-
-            console.log('URL:', url);
-            console.log('Method:', method);
-            console.log('Form data:', Object.fromEntries(formData));
-
-            fetch(url, {
-                    method: fetchMethod,
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        setSubmitting(false);
-                        alert('Error: ' + (data.message || 'Unknown error'));
-                        if (data.errors) {
-                            console.error('Validation errors:', data.errors);
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting form:', error);
-                    setSubmitting(false);
-                    alert('Error submitting form');
-                });
+    fetch(url, {
+      method: fetchMethod,
+      body: formData,
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json();
+    })
+      .then(data => {
+      console.log('Response data:', data);
+      if (data.success) {
+        location.reload();
+      } else {
+        setSubmitting(false);
+        alert('Error: ' + (data.message || 'Unknown error'));
+        if (data.errors) {
+          console.error('Validation errors:', data.errors);
+          // show inline validation messages
+          showValidationErrors(e.target, data.errors);
         }
+      }
+    })
+    .catch(error => {
+      console.error('Error submitting form:', error);
+      setSubmitting(false);
+      alert('Error submitting form');
+    });
+    }
+  });
 
-        // Toggle submit button and spinner
-        function setSubmitting(isSubmitting) {
-            const btn = document.getElementById('submitBtn');
-            const spinner = document.getElementById('loadingSpinner');
-            if (!btn) return;
-            btn.disabled = !!isSubmitting;
-            if (spinner) {
-                spinner.style.display = isSubmitting ? 'inline-block' : 'none';
-            }
+  // Direct event listener for submit button
+  document.addEventListener('DOMContentLoaded', function() {
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Submit button clicked via event listener');
+        
+        const form = document.getElementById('spareForm');
+          if (form) {
+          console.log('Form found, submitting...');
+          // Prefer requestSubmit when available (submits and triggers submit event listeners).
+          if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+          } else {
+            // Dispatch a bubbling, cancelable submit event so the document-level listener catches it
+            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+          }
+        } else {
+          console.log('Form not found, using direct submission');
+          handleFormSubmission();
         }
+      });
+    } else {
+      console.error('Submit button not found!');
+    }
+  });
 
-        // Clear previous validation errors inside a form
-        function clearValidationErrors(form) {
-            const inputs = form.querySelectorAll('.is-invalid');
-            inputs.forEach(i => i.classList.remove('is-invalid'));
-            const feedbacks = form.querySelectorAll('.invalid-feedback');
-            feedbacks.forEach(f => f.textContent = '');
+  // Direct form submission handler
+  function handleFormSubmission() {
+    const form = document.getElementById('spareForm');
+    if (!form) {
+      console.error('No form found for submission');
+      return;
+    }
+    
+    console.log('Handling form submission directly');
+    setSubmitting(true);
+  const formData = new FormData(form);
+  const url = form.action;
+  const overrideMethod = form.querySelector('input[name="_method"]')?.value;
+  const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
+  console.log('Direct submit to', url, 'using fetch method', fetchMethod, 'override', overrideMethod);
+    
+    console.log('URL:', url);
+    console.log('Method:', method);
+    console.log('Form data:', Object.fromEntries(formData));
+    
+    fetch(url, {
+      method: fetchMethod,
+      body: formData,
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Response data:', data);
+      if (data.success) {
+        location.reload();
+      } else {
+        setSubmitting(false);
+        alert('Error: ' + (data.message || 'Unknown error'));
+        if (data.errors) {
+          console.error('Validation errors:', data.errors);
         }
+      }
+    })
+    .catch(error => {
+      console.error('Error submitting form:', error);
+      setSubmitting(false);
+      alert('Error submitting form');
+    });
+  }
 
-        // Show validation errors returned from server: { fieldName: [messages] }
-        function showValidationErrors(form, errors) {
-            Object.keys(errors).forEach(field => {
-                const input = form.querySelector(`[name="${field}"]`);
-                const messages = errors[field];
-                if (input) {
-                    input.classList.add('is-invalid');
-                    const fb = input.closest('.mb-3')?.querySelector('.invalid-feedback') || form.querySelector(
-                        '.invalid-feedback');
-                    if (fb) fb.textContent = messages.join(' ');
-                } else {
-                    // fallback: log
-                    console.warn('No input found for validation field:', field, messages);
-                }
-            });
-        }
+  // Toggle submit button and spinner
+  function setSubmitting(isSubmitting) {
+    const btn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('loadingSpinner');
+    if (!btn) return;
+    btn.disabled = !!isSubmitting;
+    if (spinner) {
+      spinner.style.display = isSubmitting ? 'inline-block' : 'none';
+    }
+  }
 
+  // Clear previous validation errors inside a form
+  function clearValidationErrors(form) {
+    const inputs = form.querySelectorAll('.is-invalid');
+    inputs.forEach(i => i.classList.remove('is-invalid'));
+    const feedbacks = form.querySelectorAll('.invalid-feedback');
+    feedbacks.forEach(f => f.textContent = '');
+  }
 
-        function showNotification(message, type = 'info') {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className =
-                `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
-            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-            notification.innerHTML = `
+  // Show validation errors returned from server: { fieldName: [messages] }
+  function showValidationErrors(form, errors) {
+    Object.keys(errors).forEach(field => {
+      const input = form.querySelector(`[name="${field}"]`);
+      const messages = errors[field];
+      if (input) {
+        input.classList.add('is-invalid');
+        const fb = input.closest('.mb-3')?.querySelector('.invalid-feedback') || form.querySelector('.invalid-feedback');
+        if (fb) fb.textContent = messages.join(' ');
+      } else {
+        // fallback: log
+        console.warn('No input found for validation field:', field, messages);
+      }
+    });
+  }
+
+  
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
       ${message}
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-            document.body.appendChild(notification);
+    document.body.appendChild(notification);
 
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 5000);
-        }
-    </script>
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
+  }
+  
+  </script>
 @endpush

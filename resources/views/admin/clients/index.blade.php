@@ -90,9 +90,9 @@
           <td >{{ $client->id }}</td>
           <td>
             <div class="d-flex align-items-center">
-              {{-- <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
+              <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
                 {{ substr($client->client_name ?? 'N', 0, 1) }}
-              </div> --}}
+              </div>
               <div>
                 <div class="fw-bold">{{ $client->client_name ?? 'No Client Name' }}</div>
               </div>
@@ -232,24 +232,72 @@
             console.log('Response data:', data);
             if (data.success) {
                 const client = data.client;
+                const stats = data.stats;
                 
                 modalBody.innerHTML = `
-                    <div class="row">
+                    <div class="row" style="color: var(--text-primary);">
                         <div class="col-md-6">
-                            <h6 class="fw-bold mb-3">Client Information</h6>
-                            <div class="mb-2"><strong>Name:</strong> <span class="text-secondary">${client.client_name || 'N/A'}</span></div>
-                            <div class="mb-2"><strong>Contact Person:</strong> <span class="text-secondary">${client.contact_person || 'N/A'}</span></div>
-                            <div class="mb-2"><strong>Type:</strong> <span class="badge bg-primary">Client</span></div>
-                            <div class="mb-2"><strong>Status:</strong> <span class="badge bg-${client.status === 'active' ? 'success' : 'danger'}">${client.status ? client.status.charAt(0).toUpperCase() + client.status.slice(1) : 'Inactive'}</span></div>
+                            <h6 style="color: var(--text-primary);">Client Information</h6>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Name:</strong> <span style="color: var(--text-secondary);">${client.client_name || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Contact Person:</strong> <span style="color: var(--text-secondary);">${client.contact_person || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Type:</strong> 
+                                <span class="badge bg-primary">
+                                    Client
+                                </span>
+                            </p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Status:</strong> 
+                                <span class="badge bg-${client.status === 'active' ? 'success' : 'danger'}">
+                                    ${client.status ? client.status.charAt(0).toUpperCase() + client.status.slice(1) : 'Inactive'}
+                                </span>
+                            </p>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="fw-bold mb-3">Contact Information</h6>
-                            <div class="mb-2"><strong>Email:</strong> <span class="text-secondary">${client.email || 'N/A'}</span></div>
-                            <div class="mb-2"><strong>Phone:</strong> <span class="text-secondary">${client.phone || 'N/A'}</span></div>
-                            <div class="mb-2"><strong>City:</strong> <span class="text-secondary">${client.city || 'N/A'}</span></div>
-                            <div class="mb-2"><strong>State:</strong> <span class="text-secondary">${client.state || 'N/A'}</span></div>
-                            <div class="mb-2"><strong>Pincode:</strong> <span class="text-secondary">${client.pincode || 'N/A'}</span></div>
-                            <div class="mb-2"><strong>Address:</strong> <span class="text-secondary">${client.address || 'N/A'}</span></div>
+                            <h6 style="color: var(--text-primary);">Contact Information</h6>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Email:</strong> <span style="color: var(--text-secondary);">${client.email || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Phone:</strong> <span style="color: var(--text-secondary);">${client.phone || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">City:</strong> <span style="color: var(--text-secondary);">${client.city || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">State:</strong> <span style="color: var(--text-secondary);">${client.state || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Pincode:</strong> <span style="color: var(--text-secondary);">${client.pincode || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Address:</strong> <span style="color: var(--text-secondary);">${client.address || 'N/A'}</span></p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 style="color: var(--text-primary);">Complaint Statistics</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="card" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; border: 1px solid var(--border-primary);">
+                                        <div class="card-body text-center">
+                                            <h5 style="color: white;">${stats.total_complaints}</h5>
+                                            <small style="color: rgba(255,255,255,0.9);">Total Complaints</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: 1px solid var(--border-primary);">
+                                        <div class="card-body text-center">
+                                            <h5 style="color: white;">${stats.pending_complaints}</h5>
+                                            <small style="color: rgba(255,255,255,0.9);">Pending</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: 1px solid var(--border-primary);">
+                                        <div class="card-body text-center">
+                                            <h5 style="color: white;">${stats.resolved_complaints}</h5>
+                                            <small style="color: rgba(255,255,255,0.9);">Resolved</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: 1px solid var(--border-primary);">
+                                        <div class="card-body text-center">
+                                            <h5 style="color: white;">${stats.overdue_complaints}</h5>
+                                            <small style="color: rgba(255,255,255,0.9);">Overdue</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;

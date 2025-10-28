@@ -70,12 +70,12 @@
           <td>{{ $employee->id }}</td>
           <td>
             <div class="d-flex align-items-center">
-              {{-- <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
+              <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
                 {{ substr($employee->user->username ?? 'E', 0, 1) }}
-              </div> --}}
+              </div>
               <div>
                 <div class="fw-bold">{{ $employee->user->username ?? 'N/A' }}</div>
-                {{-- <small class="text-muted">ID: {{ $employee->id }}</small> --}}
+                <small class="text-muted">ID: {{ $employee->id }}</small>
               </div>
             </div>
           </td>
