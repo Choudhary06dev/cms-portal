@@ -8,6 +8,9 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Models\ComplaintSpare;
 use App\Models\Spare;
+use App\Models\SpareApprovalPerforma;
+use App\Models\ComplaintAttachment;
+use App\Models\ComplaintLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -103,6 +106,13 @@ class ComplaintController extends Controller
      */
     public function store(Request $request)
     {
+        // Debug: Log the request data
+        \Log::info('Complaint creation request', [
+            'all_data' => $request->all(),
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type')
+        ]);
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
@@ -120,6 +130,9 @@ class ComplaintController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Validation failed', [
+                'errors' => $validator->errors()->toArray()
+            ]);
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();

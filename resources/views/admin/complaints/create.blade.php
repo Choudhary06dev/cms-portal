@@ -34,7 +34,7 @@
                 <div class="mb-3">
                   <label for="title" class="form-label text-white">Complaint Title <span class="text-danger">*</span></label>
                   <input type="text" class="form-control @error('title') is-invalid @enderror" 
-                         id="title" name="title" value="" autocomplete="off" required>
+                         id="title" name="title" value="{{ old('title') }}" autocomplete="off" required>
                   @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -49,7 +49,7 @@
                     <option value="">Select Client</option>
                     @if(isset($clients) && $clients->count() > 0)
                       @foreach($clients as $client)
-                        <option value="{{ $client->id }}">{{ $client->client_name }}</option>
+                        <option value="{{ $client->id }}" {{ (string)old('client_id') === (string)$client->id ? 'selected' : '' }}>{{ $client->client_name }}</option>
                       @endforeach
                     @else
                       <option value="" disabled>No clients available</option>
@@ -85,11 +85,11 @@
                   <select class="form-select @error('priority') is-invalid @enderror" 
                           id="priority" name="priority" required>
                     <option value="">Select Priority</option>
-                    <option value="low">Low - Can wait</option>
-                    <option value="medium">Medium - Normal</option>
-                    <option value="high">High - Important</option>
-                    <option value="urgent">Urgent - Critical</option>
-                    <option value="emergency">Emergency - Immediate</option>
+                    <option value="low" {{ old('priority')=='low' ? 'selected' : '' }}>Low - Can wait</option>
+                    <option value="medium" {{ old('priority')=='medium' ? 'selected' : '' }}>Medium - Normal</option>
+                    <option value="high" {{ old('priority')=='high' ? 'selected' : '' }}>High - Important</option>
+                    <option value="urgent" {{ old('priority')=='urgent' ? 'selected' : '' }}>Urgent - Critical</option>
+                    <option value="emergency" {{ old('priority')=='emergency' ? 'selected' : '' }}>Emergency - Immediate</option>
                   </select>
                   @error('priority')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -107,7 +107,7 @@
                     <option value="">Select Employee (Optional)</option>
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}">{{ $employee->user->username }} - {{ $employee->user->name }}</option>
+                        <option value="{{ $employee->id }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->user->username }} - {{ $employee->user->name }}</option>
                       @endforeach
                     @else
                       <option value="" disabled>No employees available</option>
@@ -124,9 +124,9 @@
                   <label for="status" class="form-label text-white">Status</label>
                   <select class="form-select @error('status') is-invalid @enderror" 
                           id="status" name="status">
-                    <option value="new">New</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="in_progress">In Progress</option>
+                    <option value="new" {{ old('status','new')=='new' ? 'selected' : '' }}>New</option>
+                    <option value="assigned" {{ old('status')=='assigned' ? 'selected' : '' }}>Assigned</option>
+                    <option value="in_progress" {{ old('status')=='in_progress' ? 'selected' : '' }}>In Progress</option>
                   </select>
                   @error('status')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -145,7 +145,7 @@
                             name="spare_parts[0][spare_id]" required>
                       <option value="">Select Product</option>
                       @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
-                        <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}">
+                        <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}" {{ (string)old('spare_parts.0.spare_id') === (string)$spare->id ? 'selected' : '' }}>
                           {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
                         </option>
                       @endforeach
@@ -157,7 +157,7 @@
                   <div class="col-md-4">
                     <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
                     <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                           name="spare_parts[0][quantity]" min="1" required>
+                           name="spare_parts[0][quantity]" min="1" value="{{ old('spare_parts.0.quantity') }}" required>
                     @error('spare_parts.0.quantity')
                       <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -175,7 +175,7 @@
                 <div class="mb-3">
                   <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
                   <textarea class="form-control @error('description') is-invalid @enderror" 
-                            id="description" name="description" rows="4" autocomplete="off" required></textarea>
+                            id="description" name="description" rows="4" autocomplete="off" required>{{ old('description') }}</textarea>
                   @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -266,59 +266,29 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Clear form fields on page load
-    function clearFields() {
-        const inputs = document.querySelectorAll('input[type="text"], textarea');
-        inputs.forEach(input => {
-            if (input.value === '') {
-                input.value = '';
-                input.setAttribute('value', '');
-            }
-        });
-        
-        const selects = document.querySelectorAll('select');
-        selects.forEach(select => {
-            if (select.selectedIndex === 0) {
-                select.selectedIndex = 0;
-            }
-        });
-    }
-    
-    // Clear fields only once on page load
-    clearFields();
-    
-    // Clear fields on focus if they have old values
-    const inputs = document.querySelectorAll('input[type="text"], textarea');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            if (this.value) {
-                this.value = '';
-            }
-        });
-    });
-});
-
 // Validate form submission
-document.querySelector('form').addEventListener('submit', function(e) {
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form[action="{{ route('admin.complaints.store') }}"]');
+  if (!form) return;
+  form.addEventListener('submit', function(e) {
     const spareSelect = document.querySelector('select[name="spare_parts[0][spare_id]"]');
     const quantityInput = document.querySelector('input[name="spare_parts[0][quantity]"]');
-    
+    if (!spareSelect || !quantityInput) return;
     if (!spareSelect.value || !quantityInput.value || parseInt(quantityInput.value) <= 0) {
         e.preventDefault();
         alert('Please select a spare part and enter quantity.');
         return false;
     }
-    
-    // Check stock availability
-    const stock = parseInt(spareSelect.options[spareSelect.selectedIndex].dataset.stock);
+    const selectedOption = spareSelect.options[spareSelect.selectedIndex];
+    const stockAttr = selectedOption ? selectedOption.getAttribute('data-stock') : null;
+    const stock = stockAttr ? parseInt(stockAttr) : 0;
     const requestedQty = parseInt(quantityInput.value);
-    
     if (requestedQty > stock) {
         e.preventDefault();
         alert(`Insufficient stock. Available: ${stock}, Requested: ${requestedQty}`);
         return false;
     }
+  });
 });
 </script>
 @endpush

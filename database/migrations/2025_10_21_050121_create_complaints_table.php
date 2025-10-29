@@ -21,6 +21,13 @@ return new class extends Migration
             $table->unsignedBigInteger('assigned_employee_id')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->timestamp('closed_at')->nullable();
+            
+            // Spare part columns
+            $table->foreignId('spare_id')->nullable()->constrained('spares');
+            $table->integer('spare_quantity')->nullable();
+            $table->unsignedBigInteger('spare_used_by')->nullable();
+            $table->timestamp('spare_used_at')->nullable();
+            
             $table->timestamps();
         });
     }
