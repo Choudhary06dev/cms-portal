@@ -13,14 +13,23 @@ return new class extends Migration
     {
         Schema::create('spares', function (Blueprint $table) {
             $table->id();
+            // Product metadata
+            $table->string('product_code', 50)->nullable();
+            $table->string('brand_name', 100)->nullable();
+            $table->string('product_nature', 100)->nullable();
             $table->string('item_name', 150);
-            $table->enum('category', ['technical', 'service', 'billing', 'sanitary', 'electric', 'kitchen', 'plumbing', 'other']);
+            // Match current DB category values
+            $table->enum('category', ['electrical', 'plumbing', 'kitchen', 'general', 'tools', 'consumables']);
             $table->string('unit', 50)->nullable();
             $table->decimal('unit_price', 10, 2)->nullable();
-            $table->integer('stock_quantity')->default(0);
+            // Stock metrics
+            $table->integer('total_received_quantity')->default(0);
+            $table->integer('issued_quantity')->default(0);
+            $table->integer('stock_quantity')->default(0); // balance quantity for quick reads
             $table->integer('threshold_level')->default(10);
             $table->string('supplier', 255)->nullable();
             $table->text('description')->nullable();
+            $table->timestamp('last_stock_in_at')->nullable();
             $table->timestamp('last_updated')->useCurrent();
             $table->timestamps();
         });

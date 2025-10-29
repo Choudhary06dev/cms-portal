@@ -30,21 +30,32 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="part_name" class="form-label text-white">Part Name <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control @error('part_name') is-invalid @enderror" 
-                         id="part_name" name="part_name" value="{{ old('part_name') }}" required>
-                  @error('part_name')
+                  <label for="item_name" class="form-label text-white">Item Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control @error('item_name') is-invalid @enderror" 
+                         id="item_name" name="item_name" value="{{ old('item_name') }}" required>
+                  @error('item_name')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
               </div>
               
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label for="part_number" class="form-label text-white">Part Number</label>
-                  <input type="text" class="form-control @error('part_number') is-invalid @enderror" 
-                         id="part_number" name="part_number" value="{{ old('part_number') }}">
-                  @error('part_number')
+                  <label for="product_code" class="form-label text-white">Product Code</label>
+                  <input type="text" class="form-control @error('product_code') is-invalid @enderror" 
+                         id="product_code" name="product_code" value="{{ old('product_code') }}">
+                  @error('product_code')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="brand_name" class="form-label text-white">Brand Name</label>
+                  <input type="text" class="form-control @error('brand_name') is-invalid @enderror" 
+                         id="brand_name" name="brand_name" value="{{ old('brand_name') }}">
+                  @error('brand_name')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -58,7 +69,7 @@
                   <select class="form-select @error('category') is-invalid @enderror" 
                           id="category" name="category" required>
                     <option value="">Select Category</option>
-                    @foreach(App\Models\Complaint::getCategories() as $key => $label)
+                    @foreach(App\Models\Spare::getCategories() as $key => $label)
                     <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                   </select>
@@ -67,8 +78,68 @@
                   @enderror
                 </div>
               </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="product_nature" class="form-label text-white">Product Nature</label>
+                  <input type="text" class="form-control @error('product_nature') is-invalid @enderror" 
+                         id="product_nature" name="product_nature" value="{{ old('product_nature') }}">
+                  @error('product_nature')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="unit" class="form-label text-white">Unit</label>
+                  <input type="text" class="form-control @error('unit') is-invalid @enderror" 
+                         id="unit" name="unit" value="{{ old('unit') }}">
+                  @error('unit')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
               
               <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="unit_price" class="form-label text-white">Unit Price</label>
+                  <input type="number" step="0.01" class="form-control @error('unit_price') is-invalid @enderror" 
+                         id="unit_price" name="unit_price" value="{{ old('unit_price') }}">
+                  @error('unit_price')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="total_received_quantity" class="form-label text-white">Total Received Quantity</label>
+                  <input type="number" class="form-control @error('total_received_quantity') is-invalid @enderror" 
+                         id="total_received_quantity" name="total_received_quantity" value="{{ old('total_received_quantity', 0) }}">
+                  @error('total_received_quantity')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="issued_quantity" class="form-label text-white">Issued Quantity</label>
+                  <input type="number" class="form-control @error('issued_quantity') is-invalid @enderror" 
+                         id="issued_quantity" name="issued_quantity" value="{{ old('issued_quantity', 0) }}">
+                  @error('issued_quantity')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="stock_quantity" class="form-label text-white">Stock Quantity <span class="text-danger">*</span></label>
                   <input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" 
@@ -83,10 +154,10 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="min_stock_level" class="form-label text-white">Minimum Stock Level</label>
-                  <input type="number" class="form-control @error('min_stock_level') is-invalid @enderror" 
-                         id="min_stock_level" name="min_stock_level" value="{{ old('min_stock_level', 0) }}">
-                  @error('min_stock_level')
+                  <label for="threshold_level" class="form-label text-white">Threshold Level <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control @error('threshold_level') is-invalid @enderror" 
+                         id="threshold_level" name="threshold_level" value="{{ old('threshold_level', 10) }}" required>
+                  @error('threshold_level')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -107,24 +178,10 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="supplier" class="form-label text-white">Supplier</label>
-                  <input type="text" class="form-control @error('supplier') is-invalid @enderror" 
-                         id="supplier" name="supplier" value="{{ old('supplier') }}">
-                  @error('supplier')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-              
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="status" class="form-label text-white">Status</label>
-                  <select class="form-select @error('status') is-invalid @enderror" 
-                          id="status" name="status">
-                    <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                  </select>
-                  @error('status')
+                  <label for="last_stock_in_at" class="form-label text-white">Last Stock In Date</label>
+                  <input type="datetime-local" class="form-control @error('last_stock_in_at') is-invalid @enderror" 
+                         id="last_stock_in_at" name="last_stock_in_at" value="{{ old('last_stock_in_at') }}">
+                  @error('last_stock_in_at')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>

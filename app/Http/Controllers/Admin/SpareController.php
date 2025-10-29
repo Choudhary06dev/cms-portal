@@ -85,13 +85,19 @@ class SpareController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
-            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
+            'product_code' => 'nullable|string|max:50',
+            'brand_name' => 'nullable|string|max:100',
+            'product_nature' => 'nullable|string|max:100',
+            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
             'unit' => 'nullable|string|max:50',
-            'price' => 'nullable|numeric|min:0',
+            'unit_price' => 'nullable|numeric|min:0',
+            'total_received_quantity' => 'nullable|integer|min:0',
+            'issued_quantity' => 'nullable|integer|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'threshold_level' => 'required|integer|min:0',
             'supplier' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'last_stock_in_at' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -108,13 +114,19 @@ class SpareController extends Controller
 
         $spare = Spare::create([
             'item_name' => $request->item_name,
+            'product_code' => $request->product_code,
+            'brand_name' => $request->brand_name,
+            'product_nature' => $request->product_nature,
             'category' => $request->category,
             'unit' => $request->unit,
-            'unit_price' => $request->price,
+            'unit_price' => $request->unit_price,
+            'total_received_quantity' => $request->total_received_quantity ?? $request->stock_quantity,
+            'issued_quantity' => $request->issued_quantity ?? 0,
             'stock_quantity' => $request->stock_quantity,
             'threshold_level' => $request->threshold_level,
             'supplier' => $request->supplier,
             'description' => $request->description,
+            'last_stock_in_at' => $request->last_stock_in_at,
         ]);
 
         // Log initial stock
@@ -146,20 +158,26 @@ class SpareController extends Controller
     {
         if (request()->ajax()) {
             // Return JSON for modal
-            return response()->json([
-                'id' => $spare->id,
-                'name' => $spare->item_name,
-                'category' => $spare->category,
-                'unit' => $spare->unit,
-                'price' => $spare->unit_price,
-                'stock_quantity' => $spare->stock_quantity,
-                'threshold_level' => $spare->threshold_level,
-                'supplier' => $spare->supplier,
-                'description' => $spare->description,
-                'updated_at' => $spare->updated_at ? $spare->updated_at->format('M d, Y H:i') : 'N/A',
-                'status' => $spare->stock_quantity > 0 ? 'in_stock' : 'out_of_stock',
-                'stock_status' => $spare->stock_quantity <= $spare->threshold_level ? 'low_stock' : 'normal',
-            ]);
+        return response()->json([
+            'id' => $spare->id,
+            'name' => $spare->item_name,
+            'product_code' => $spare->product_code,
+            'brand_name' => $spare->brand_name,
+            'product_nature' => $spare->product_nature,
+            'category' => $spare->category,
+            'unit' => $spare->unit,
+            'price' => $spare->unit_price,
+            'total_received_quantity' => $spare->total_received_quantity,
+            'issued_quantity' => $spare->issued_quantity,
+            'stock_quantity' => $spare->stock_quantity,
+            'threshold_level' => $spare->threshold_level,
+            'supplier' => $spare->supplier,
+            'description' => $spare->description,
+            'last_stock_in_at' => $spare->last_stock_in_at ? $spare->last_stock_in_at->format('M d, Y H:i') : 'N/A',
+            'updated_at' => $spare->updated_at ? $spare->updated_at->format('M d, Y H:i') : 'N/A',
+            'status' => $spare->stock_quantity > 0 ? 'in_stock' : 'out_of_stock',
+            'stock_status' => $spare->stock_quantity <= $spare->threshold_level ? 'low_stock' : 'normal',
+        ]);
         }
 
         $spare->load(['stockLogs', 'complaintSpares.complaint.client', 'approvalItems.performa']);
@@ -203,13 +221,19 @@ class SpareController extends Controller
         return response()->json([
             'id' => $spare->id,
             'name' => $spare->item_name,
+            'product_code' => $spare->product_code,
+            'brand_name' => $spare->brand_name,
+            'product_nature' => $spare->product_nature,
             'category' => $spare->category,
             'unit' => $spare->unit,
             'price' => $spare->unit_price,
+            'total_received_quantity' => $spare->total_received_quantity,
+            'issued_quantity' => $spare->issued_quantity,
             'stock_quantity' => $spare->stock_quantity,
             'threshold_level' => $spare->threshold_level,
             'supplier' => $spare->supplier ?? '',
             'description' => $spare->description ?? '',
+            'last_stock_in_at' => $spare->last_stock_in_at,
             'status' => $spare->stock_quantity > 0 ? 'active' : 'inactive',
         ]);
     }
@@ -221,13 +245,19 @@ class SpareController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
-            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
+            'product_code' => 'nullable|string|max:50',
+            'brand_name' => 'nullable|string|max:100',
+            'product_nature' => 'nullable|string|max:100',
+            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
             'unit' => 'nullable|string|max:50',
-            'price' => 'nullable|numeric|min:0',
+            'unit_price' => 'nullable|numeric|min:0',
+            'total_received_quantity' => 'nullable|integer|min:0',
+            'issued_quantity' => 'nullable|integer|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'threshold_level' => 'required|integer|min:0',
             'supplier' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'last_stock_in_at' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -244,13 +274,19 @@ class SpareController extends Controller
 
         $spare->update([
             'item_name' => $request->item_name,
+            'product_code' => $request->product_code,
+            'brand_name' => $request->brand_name,
+            'product_nature' => $request->product_nature,
             'category' => $request->category,
             'unit' => $request->unit,
-            'unit_price' => $request->price,
+            'unit_price' => $request->unit_price,
+            'total_received_quantity' => $request->total_received_quantity,
+            'issued_quantity' => $request->issued_quantity,
             'stock_quantity' => $request->stock_quantity,
             'threshold_level' => $request->threshold_level,
             'supplier' => $request->supplier,
             'description' => $request->description,
+            'last_stock_in_at' => $request->last_stock_in_at,
         ]);
 
         if (request()->ajax()) {
@@ -515,7 +551,7 @@ class SpareController extends Controller
 
             case 'change_category':
                 $validator = Validator::make($request->all(), [
-                    'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
+                    'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
                 ]);
                 
                 if ($validator->fails()) {
