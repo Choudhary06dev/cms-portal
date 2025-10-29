@@ -90,6 +90,9 @@
               <button class="btn btn-outline-warning btn-sm" onclick="editSpare({{ $spare->id }})" title="Edit">
                 <i data-feather="edit"></i>
               </button>
+              <button class="btn btn-outline-primary btn-sm" onclick="printSpare({{ $spare->id }})" title="Print Spare Part Details">
+                <i data-feather="printer"></i>
+              </button>
               <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare({{ $spare->id }})" title="Delete">
                 <i data-feather="trash-2"></i>
               </button>
@@ -340,6 +343,38 @@
   .status-discontinued {
     background: rgba(245, 158, 11, 0.2);
     color: #f59e0b;
+  }
+
+  /* Print button styling */
+  #printSparesBtn {
+    transition: all 0.3s ease;
+  }
+
+  #printSparesBtn:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+
+  /* Action buttons styling */
+  .btn-group .btn {
+    margin-right: 2px;
+  }
+
+  .btn-group .btn:last-child {
+    margin-right: 0;
+  }
+
+  /* Print button in actions */
+  .btn-outline-primary {
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
   }
 </style>
 @endpush
@@ -954,5 +989,197 @@
       }
     }, 5000);
   }
+
+  // Print Functions
+  function printSpare(spareId) {
+    console.log('Printing spare ID:', spareId);
+    
+    // Load spare details for printing
+    fetch(`/admin/spares/${spareId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Create print content
+        const printContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Spare Part Details - ${data.name || 'N/A'}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+              .details { margin: 20px 0; }
+              .row { display: flex; margin: 10px 0; }
+              .label { font-weight: bold; width: 200px; }
+              .value { flex: 1; }
+              .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Spare Part Details</h1>
+              <p>Generated on: ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <div class="details">
+              <div class="row">
+                <div class="label">Product Code:</div>
+                <div class="value">${data.product_code || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Brand Name:</div>
+                <div class="value">${data.brand_name || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Product Name:</div>
+                <div class="value">${data.name || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Product Nature:</div>
+                <div class="value">${data.product_nature || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Category:</div>
+                <div class="value">${data.category || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Unit:</div>
+                <div class="value">${data.unit || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Total Received:</div>
+                <div class="value">${data.total_received_quantity || '0'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Issued Quantity:</div>
+                <div class="value">${data.issued_quantity || '0'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Balance Quantity:</div>
+                <div class="value">${data.stock_quantity || '0'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Threshold Level:</div>
+                <div class="value">${data.threshold_level || '0'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Supplier:</div>
+                <div class="value">${data.supplier || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Last Stock In:</div>
+                <div class="value">${data.last_stock_in_at || 'N/A'}</div>
+              </div>
+              <div class="row">
+                <div class="label">Description:</div>
+                <div class="value">${data.description || 'N/A'}</div>
+              </div>
+            </div>
+            
+            <div class="footer">
+              <p>This document was generated from CMS Portal</p>
+            </div>
+          </body>
+          </html>
+        `;
+        
+        // Open print window
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        
+        // Wait for content to load then print
+        printWindow.onload = function() {
+          printWindow.print();
+          printWindow.close();
+        };
+      })
+      .catch(error => {
+        console.error('Error loading spare details for print:', error);
+        showNotification('Error loading spare details for printing', 'error');
+      });
+  }
+
+  // Print all spares list
+  function printAllSpares() {
+    console.log('Printing all spares list');
+    
+    // Get current table data
+    const table = document.querySelector('.table-responsive table');
+    if (!table) {
+      showNotification('No data to print', 'error');
+      return;
+    }
+    
+    // Create print content
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Spare Parts List - ${new Date().toLocaleDateString()}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; font-weight: bold; }
+          .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Spare Parts Inventory Report</h1>
+          <p>Generated on: ${new Date().toLocaleString()}</p>
+        </div>
+        
+        ${table.outerHTML}
+        
+        <div class="footer">
+          <p>This document was generated from CMS Portal</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // Open print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+      printWindow.print();
+      printWindow.close();
+    };
+  }
+
+  // Add event listener for print button
+  document.addEventListener('DOMContentLoaded', function() {
+    const printBtn = document.getElementById('printSparesBtn');
+    if (printBtn) {
+      printBtn.addEventListener('click', function() {
+        printAllSpares();
+      });
+    }
+  });
 </script>
 @endpush
