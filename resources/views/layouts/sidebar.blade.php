@@ -171,7 +171,7 @@
       <i data-feather="alert-circle" class="me-2"></i> Complaints
     </a>
     <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}">
-      <i data-feather="package" class="me-2"></i> Spare Parts
+      <i data-feather="package" class="me-2"></i> Products
     </a>
     <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') ? 'active' : '' }}">
       <i data-feather="check-circle" class="me-2"></i> Approvals

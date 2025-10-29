@@ -144,7 +144,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::resource('complaints', AdminComplaintController::class);
         Route::post('complaints/{complaint}/assign', [AdminComplaintController::class, 'assign'])->name('complaints.assign');
         Route::post('complaints/{complaint}/update-status', [AdminComplaintController::class, 'updateStatus'])->name('complaints.update-status');
-        Route::post('complaints/{complaint}/add-notes', [AdminComplaintController::class, 'addNotes'])->name('complaints.add-notes');
+        Route::post('complaints/{complaint}/add-spare-parts', [AdminComplaintController::class, 'addSpareParts'])->name('complaints.add-spare-parts');
         Route::get('complaints/{complaint}/print-slip', [AdminComplaintController::class, 'printSlip'])->name('complaints.print-slip');
     });
 
