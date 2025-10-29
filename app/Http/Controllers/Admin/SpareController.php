@@ -83,18 +83,21 @@ class SpareController extends Controller
      */
     public function store(Request $request)
     {
+        $categoryKeys = implode(',', array_keys(Spare::getCategories()));
+        $dbCategories = implode(',', Spare::getCanonicalCategories());
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
             'product_nature' => 'nullable|string|max:100',
-            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
+            // Accept both UI keys and canonical DB enum values
+            'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
             'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
             'issued_quantity' => 'nullable|integer|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'threshold_level' => 'required|integer|min:0',
+            'stock_quantity' => 'nullable|integer|min:0',
+            'threshold_level' => 'nullable|integer|min:0',
             'supplier' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'last_stock_in_at' => 'nullable|date',
@@ -112,18 +115,21 @@ class SpareController extends Controller
                 ->withInput();
         }
 
+        // Normalize category to canonical DB enum values
+        $normalizedCategory = Spare::normalizeCategory($request->category);
+
         $spare = Spare::create([
             'item_name' => $request->item_name,
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'product_nature' => $request->product_nature,
-            'category' => $request->category,
+            'category' => $normalizedCategory,
             'unit' => $request->unit,
             'unit_price' => $request->unit_price,
-            'total_received_quantity' => $request->total_received_quantity ?? $request->stock_quantity,
-            'issued_quantity' => $request->issued_quantity ?? 0,
-            'stock_quantity' => $request->stock_quantity,
-            'threshold_level' => $request->threshold_level,
+            'total_received_quantity' => (int)($request->total_received_quantity ?? $request->stock_quantity ?? 0),
+            'issued_quantity' => (int)($request->issued_quantity ?? 0),
+            'stock_quantity' => (int)($request->stock_quantity ?? 0),
+            'threshold_level' => (int)($request->threshold_level ?? 0),
             'supplier' => $request->supplier,
             'description' => $request->description,
             'last_stock_in_at' => $request->last_stock_in_at,
@@ -243,12 +249,15 @@ class SpareController extends Controller
      */
     public function update(Request $request, Spare $spare)
     {
+        $categoryKeys = implode(',', array_keys(Spare::getCategories()));
+        $dbCategories = implode(',', Spare::getCanonicalCategories());
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
             'product_nature' => 'nullable|string|max:100',
-            'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
+            // Accept both UI keys and canonical DB enum values
+            'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
             'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
@@ -272,18 +281,34 @@ class SpareController extends Controller
                 ->withInput();
         }
 
+        // Compute safe values
+        $newTotalReceived = $request->has('total_received_quantity')
+            ? (int) $request->total_received_quantity
+            : $spare->total_received_quantity;
+
+        $newIssued = $request->has('issued_quantity')
+            ? (int) $request->issued_quantity
+            : $spare->issued_quantity;
+
+        // If stock_quantity not explicitly provided but totals changed, auto-balance
+        $newStock = $request->has('stock_quantity')
+            ? (int) $request->stock_quantity
+            : (($request->has('total_received_quantity') || $request->has('issued_quantity'))
+                ? max($newTotalReceived - $newIssued, 0)
+                : $spare->stock_quantity);
+
         $spare->update([
             'item_name' => $request->item_name,
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'product_nature' => $request->product_nature,
-            'category' => $request->category,
+            'category' => Spare::normalizeCategory($request->category),
             'unit' => $request->unit,
             'unit_price' => $request->unit_price,
-            'total_received_quantity' => $request->total_received_quantity,
-            'issued_quantity' => $request->issued_quantity,
-            'stock_quantity' => $request->stock_quantity,
-            'threshold_level' => $request->threshold_level,
+            'total_received_quantity' => $newTotalReceived,
+            'issued_quantity' => $newIssued,
+            'stock_quantity' => $newStock,
+            'threshold_level' => $request->has('threshold_level') ? (int) $request->threshold_level : $spare->threshold_level,
             'supplier' => $request->supplier,
             'description' => $request->description,
             'last_stock_in_at' => $request->last_stock_in_at,
@@ -550,15 +575,19 @@ class SpareController extends Controller
                 break;
 
             case 'change_category':
+                $categoryKeys = implode(',', array_keys(Spare::getCategories()));
+                $dbCategories = implode(',', Spare::getCanonicalCategories());
                 $validator = Validator::make($request->all(), [
-                    'category' => 'required|in:electrical,plumbing,kitchen,general,tools,consumables',
+                    // Accept both UI keys and canonical DB enum values
+                    'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
                 ]);
                 
                 if ($validator->fails()) {
                     return redirect()->back()->withErrors($validator);
                 }
                 
-                Spare::whereIn('id', $spareIds)->update(['category' => $request->category]);
+                $normalized = Spare::normalizeCategory($request->category);
+                Spare::whereIn('id', $spareIds)->update(['category' => $normalized]);
                 $message = 'Category changed for selected spare parts successfully.';
                 break;
 

@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Models\ComplaintSpare;
 use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
+use App\Models\SpareApprovalItem;
 use App\Models\ComplaintAttachment;
 use App\Models\ComplaintLog;
 use Illuminate\Support\Facades\DB;
@@ -197,9 +198,7 @@ class ComplaintController extends Controller
                 throw new \Exception("Spare part not found: {$part['spare_id']}");
             }
 
-            if (!$spare->isStockSufficient($part['quantity'])) {
-                throw new \Exception("Insufficient stock for {$spare->item_name}. Available: {$spare->stock_quantity}, Required: {$part['quantity']}");
-            }
+            // Do not enforce stock at request time; stock will be checked at approval
 
             // Create complaint spare record
             ComplaintSpare::create([
@@ -210,16 +209,7 @@ class ComplaintController extends Controller
                 'used_at' => now(),
             ]);
 
-            // Deduct stock automatically
-            $stockDeducted = $spare->removeStock(
-                $part['quantity'],
-                "Used for complaint #{$complaint->getTicketNumberAttribute()}",
-                $complaint->id
-            );
-            
-            if (!$stockDeducted) {
-                throw new \Exception("Failed to deduct stock for {$spare->item_name}");
-            }
+            // No stock deduction at complaint creation; happens on approval
 
             $totalCost += $spare->unit_price * $part['quantity'];
             $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";
@@ -252,6 +242,20 @@ class ComplaintController extends Controller
                 'status' => 'pending',
                 'remarks' => 'Auto-generated approval for complaint: ' . $complaint->title,
             ]);
+            
+            // Create approval items from requested spare parts so quantities appear in approval view
+            if (!empty($request->spare_parts) && is_array($request->spare_parts)) {
+                foreach ($request->spare_parts as $part) {
+                    if (!empty($part['spare_id']) && !empty($part['quantity'])) {
+                        SpareApprovalItem::create([
+                            'performa_id' => $approval->id,
+                            'spare_id' => (int)$part['spare_id'],
+                            'quantity_requested' => (int)$part['quantity'],
+                            'reason' => 'Requested from complaint creation',
+                        ]);
+                    }
+                }
+            }
             
             \Log::info('Approval created successfully', [
                 'approval_id' => $approval->id,
@@ -382,22 +386,15 @@ class ComplaintController extends Controller
             'closed_at' => $request->status === 'closed' ? now() : null,
         ]);
 
-        // Update product (spare) selection: restore old stock, replace with new, deduct new stock
+        // Update product (spare) selection: replace selection only; no stock movement here
         try {
             DB::beginTransaction();
 
             $currentEmployee = Employee::where('user_id', auth()->id())->first();
 
-            // Restore stock for existing complaint spares and remove them
+            // Remove existing complaint spares without stock adjustment
             $existingSpares = $complaint->spareParts()->with('spare')->get();
             foreach ($existingSpares as $existing) {
-                if ($existing->spare) {
-                    $existing->spare->addStock(
-                        $existing->quantity,
-                        "Restored from complaint update #{$complaint->getTicketNumberAttribute()}",
-                        $complaint->id
-                    );
-                }
                 $existing->delete();
             }
 
@@ -407,11 +404,9 @@ class ComplaintController extends Controller
             if (!$spare) {
                 throw new \Exception('Selected product not found.');
             }
-            if (!$spare->isStockSufficient($part['quantity'])) {
-                throw new \Exception("Insufficient stock for {$spare->item_name}. Available: {$spare->stock_quantity}, Required: {$part['quantity']}");
-            }
+            // Do not enforce stock at request time; approval will enforce
 
-            // Create record and deduct stock
+            // Create record only (no stock deduction here)
             ComplaintSpare::create([
                 'complaint_id' => $complaint->id,
                 'spare_id' => $spare->id,
@@ -419,16 +414,6 @@ class ComplaintController extends Controller
                 'used_by' => $currentEmployee?->id ?? Employee::first()->id,
                 'used_at' => now(),
             ]);
-
-            $stockDeducted = $spare->removeStock(
-                (int)$part['quantity'],
-                "Used for complaint update #{$complaint->getTicketNumberAttribute()}",
-                $complaint->id
-            );
-            
-            if (!$stockDeducted) {
-                throw new \Exception("Failed to deduct stock for {$spare->item_name}");
-            }
 
             // Log change
             if ($currentEmployee) {
@@ -834,10 +819,6 @@ class ComplaintController extends Controller
                     throw new \Exception("Spare part not found: {$part['spare_id']}");
                 }
 
-                if (!$spare->isStockSufficient($part['quantity'])) {
-                    throw new \Exception("Insufficient stock for {$spare->item_name}. Available: {$spare->stock_quantity}, Required: {$part['quantity']}");
-                }
-
                 // Create complaint spare record
                 $complaintSpare = ComplaintSpare::create([
                     'complaint_id' => $complaint->id,
@@ -847,12 +828,7 @@ class ComplaintController extends Controller
                     'used_at' => now(),
                 ]);
 
-                // Deduct stock automatically
-                $spare->removeStock(
-                    $part['quantity'],
-                    "Used for complaint #{$complaint->getTicketNumberAttribute()}",
-                    $complaint->id
-                );
+                // No stock deduction here; happens on approval
 
                 $totalCost += $spare->unit_price * $part['quantity'];
                 $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";

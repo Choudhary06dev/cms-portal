@@ -28,7 +28,6 @@ class Spare extends Model
         'last_stock_in_at',
         'last_updated',
     ];
-
     protected $casts = [
         'unit_price' => 'decimal:2',
         'total_received_quantity' => 'integer',
@@ -69,13 +68,46 @@ class Spare extends Model
     public static function getCategories(): array
     {
         return [
-            'electrical' => 'Electrical',
-            'plumbing' => 'Plumbing',
+            'technical' => 'Technical',
+            'service' => 'Service',
+            'billing' => 'Billing',
+            'sanitary' => 'Sanitary',
+            'electric' => 'Electric',
             'kitchen' => 'Kitchen',
-            'general' => 'General',
-            'tools' => 'Tools',
-            'consumables' => 'Consumables',
+            'plumbing' => 'Plumbing',
+            'other' => 'Other',
         ];
+    }
+
+    /**
+     * Canonical DB categories (enum values in `spares` table)
+     */
+    public static function getCanonicalCategories(): array
+    {
+        return ['electrical', 'plumbing', 'kitchen', 'general', 'tools', 'consumables'];
+    }
+
+    /**
+     * Normalize any UI category key to canonical DB value
+     */
+    public static function normalizeCategory(string $category): string
+    {
+        $map = [
+            'electric' => 'electrical',
+            'sanitary' => 'plumbing',
+            'technical' => 'general',
+            'service' => 'consumables',
+            'billing' => 'consumables',
+            'other' => 'general',
+            // direct passthroughs
+            'kitchen' => 'kitchen',
+            'plumbing' => 'plumbing',
+            'electrical' => 'electrical',
+            'general' => 'general',
+            'tools' => 'tools',
+            'consumables' => 'consumables',
+        ];
+        return $map[$category] ?? $category;
     }
 
     /**
@@ -185,26 +217,6 @@ class Spare extends Model
     }
 
     /**
-     * Get balance quantity (alias of stock_quantity for clarity)
-     */
-    public function getBalanceQuantityAttribute(): int
-    {
-        return (int) $this->stock_quantity;
-    }
-
-    /**
-     * Get utilization percentage based on issued vs total received
-     */
-    public function getUtilizationPercentAttribute(): float
-    {
-        if ($this->total_received_quantity <= 0) {
-            return 0.0;
-        }
-        $percent = ($this->issued_quantity / $this->total_received_quantity) * 100;
-        return round($percent, 2);
-    }
-
-    /**
      * Get formatted unit price
      */
     public function getFormattedUnitPriceAttribute(): string
@@ -221,11 +233,35 @@ class Spare extends Model
     }
 
     /**
+     * Percentage of utilized stock based on cumulative issued vs received
+     */
+    public function getUtilizationPercentAttribute(): float
+    {
+        $totalReceived = (int)($this->total_received_quantity ?? 0);
+        if ($totalReceived <= 0) {
+            return 0.0;
+        }
+        $issued = (int)($this->issued_quantity ?? 0);
+        $percent = ($issued / $totalReceived) * 100.0;
+        // Clamp between 0 and 100 for display sanity
+        if ($percent < 0) {
+            return 0.0;
+        }
+        if ($percent > 100) {
+            return 100.0;
+        }
+        return round($percent, 2);
+    }
+
+    /**
      * Add stock
      */
     public function addStock(int $quantity, string $remarks = null, int $referenceId = null): void
     {
         $this->stock_quantity += $quantity;
+        // Track cumulative received
+        $this->total_received_quantity = (int)($this->total_received_quantity ?? 0) + $quantity;
+        $this->last_stock_in_at = now();
         $this->last_updated = now();
         $this->save();
 
@@ -239,6 +275,29 @@ class Spare extends Model
     }
 
     /**
+     * Return stock back to inventory (undo issued) without affecting total received
+     */
+    public function returnStock(int $quantity, string $remarks = null, int $referenceId = null): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+        $this->stock_quantity += $quantity;
+        // Decrease issued to reflect return, never below zero
+        $this->issued_quantity = max(0, (int)($this->issued_quantity ?? 0) - $quantity);
+        $this->last_updated = now();
+        $this->save();
+
+        // Log the stock change
+        $this->stockLogs()->create([
+            'change_type' => 'in',
+            'quantity' => $quantity,
+            'reference_id' => $referenceId,
+            'remarks' => $remarks ?? 'Returned to stock',
+        ]);
+    }
+
+    /**
      * Remove stock
      */
     public function removeStock(int $quantity, string $remarks = null, int $referenceId = null): bool
@@ -248,6 +307,8 @@ class Spare extends Model
         }
 
         $this->stock_quantity -= $quantity;
+        // Track cumulative issued
+        $this->issued_quantity = max(0, (int)($this->issued_quantity ?? 0) + $quantity);
         $this->last_updated = now();
         $saved = $this->save();
 

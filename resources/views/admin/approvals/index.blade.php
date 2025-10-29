@@ -294,7 +294,8 @@
               <thead>
                 <tr>
                   <th style="color: var(--text-primary);">Spare Part</th>
-                  <th style="color: var(--text-primary);">Quantity</th>
+                  <th style="color: var(--text-primary);">Quantity Requested</th>
+                  ${approval.status === 'pending' ? '<th style="color: var(--text-primary);">Quantity Approve</th>' : '<th style="color: var(--text-primary);">Quantity Approved</th>'}
                 </tr>
               </thead>
               <tbody>
@@ -302,14 +303,62 @@
                   <tr style="color: var(--text-primary);">
                     <td style="color: var(--text-secondary);">${item.spare_name}</td>
                     <td style="color: var(--text-secondary);">${item.quantity_requested}</td>
+                    <td style="max-width:160px;">
+                      ${approval.status === 'pending' 
+                        ? `<input type="number" min="0" class="form-control form-control-sm" name="items[${item.id}][quantity_approved]" value="${item.quantity_approved ?? item.quantity_requested}">`
+                        : `<span style='color: var(--text-secondary);'>${item.quantity_approved ?? item.quantity_requested}</span>`}
+                    </td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
           </div>
+          ${approval.status === 'pending' ? `
+            <div class="d-flex justify-content-end mt-2">
+              <button class="btn btn-success" onclick="submitApprovedQuantities(${approval.id})">
+                Approve Selected Quantities
+              </button>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
+  }
+
+  function submitApprovedQuantities(approvalId) {
+    const inputs = document.querySelectorAll('#approvalDetailsModalBody input[name^="items["]');
+    const payload = { items: {}, remarks: '' };
+    inputs.forEach(input => {
+      const match = input.name.match(/items\[(\d+)\]\[quantity_approved\]/);
+      if (match) {
+        const itemId = match[1];
+        payload.items[itemId] = { quantity_approved: parseInt(input.value || '0', 10) };
+      }
+    });
+
+    fetch(`/admin/approvals/${approvalId}/approve`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showSuccess('Approval approved successfully!');
+        location.reload();
+      } else {
+        showError(data.message || 'Failed to approve request');
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      showError('Error approving request');
+    });
   }
 
   function approveRequest(approvalId) {
