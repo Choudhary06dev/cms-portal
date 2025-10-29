@@ -172,20 +172,24 @@
                             </td>
                             <td>{{ $complaint->created_at->format('M d, Y') }}</td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-outline-info btn-sm"
-                                        onclick="viewComplaint({{ $complaint->id }})" title="View Details">
-                                        <i data-feather="eye"></i>
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm"
-                                        onclick="editComplaint({{ $complaint->id }})" title="Edit">
-                                        <i data-feather="edit"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteComplaint({{ $complaint->id }})" title="Delete">
-                                        <i data-feather="trash-2"></i>
-                                    </button>
-                                </div>
+                                @if(in_array($complaint->status, ['resolved','closed']))
+                                    <span class="badge bg-success">Resolved</span>
+                                @else
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-info btn-sm"
+                                            onclick="viewComplaint({{ $complaint->id }})" title="View Details">
+                                            <i data-feather="eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-warning btn-sm"
+                                            onclick="editComplaint({{ $complaint->id }})" title="Edit">
+                                            <i data-feather="edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm"
+                                            onclick="deleteComplaint({{ $complaint->id }})" title="Delete">
+                                            <i data-feather="trash-2"></i>
+                                        </button>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @empty
