@@ -66,7 +66,7 @@ class EmployeeController extends Controller
 
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username',
-            'email' => 'required|email|max:150|unique:users,email',
+            'email' => 'nullable|email|max:150|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:6|confirmed',
             'department' => 'required|string|max:100',
@@ -76,6 +76,7 @@ class EmployeeController extends Controller
             'leave_quota' => 'nullable|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
             'status' => 'nullable|in:active,inactive',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
 
         if ($validator->fails()) {
@@ -96,12 +97,12 @@ class EmployeeController extends Controller
             DB::beginTransaction();
             \Log::info('Starting employee creation transaction');
 
-            // Create user first (without phone - phone is stored in employee record)
+            // Create user first (phone is stored on employee)
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role_id' => 2, // Default employee role
+                'role_id' => $request->role_id ?? 2, // Use selected role or default to Employee
                 'status' => $request->status ?? 'active',
                 'theme' => 'light',
             ]);
