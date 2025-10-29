@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class EmployeeController extends Controller
@@ -58,7 +59,7 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         // Log incoming request data for debugging
-        \Log::info('Employee create request:', [
+        Log::info('Employee create request:', [
             'all_data' => $request->all(),
             'method' => $request->method(),
             'content_type' => $request->header('Content-Type'),
@@ -80,7 +81,7 @@ class EmployeeController extends Controller
         ]);
 
         if ($validator->fails()) {
-            \Log::error('Validation failed:', $validator->errors()->toArray());
+            Log::error('Validation failed:', $validator->errors()->toArray());
             
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -95,7 +96,7 @@ class EmployeeController extends Controller
 
         try {
             DB::beginTransaction();
-            \Log::info('Starting employee creation transaction');
+            Log::info('Starting employee creation transaction');
 
             // Create user first (phone is stored on employee)
             $user = User::create([
@@ -106,7 +107,7 @@ class EmployeeController extends Controller
                 'status' => $request->status ?? 'active',
                 'theme' => 'light',
             ]);
-            \Log::info('User created successfully with ID: ' . $user->id);
+            Log::info('User created successfully with ID: ' . $user->id);
 
             // Create employee record
             $employee = Employee::create([
@@ -119,10 +120,10 @@ class EmployeeController extends Controller
                 'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
             ]);
-            \Log::info('Employee created successfully with ID: ' . $employee->id);
+            Log::info('Employee created successfully with ID: ' . $employee->id);
 
             DB::commit();
-            \Log::info('Transaction committed successfully');
+            Log::info('Transaction committed successfully');
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -137,8 +138,8 @@ class EmployeeController extends Controller
 
         } catch (Exception $e) {
             DB::rollBack();
-            \Log::error('Error creating employee: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Error creating employee: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -283,11 +284,11 @@ class EmployeeController extends Controller
             // Find employee by ID instead of using route model binding
             $employee = Employee::findOrFail($id);
             
-            \Log::info('Attempting to soft delete employee ID: ' . $employee->id);
+            Log::info('Attempting to soft delete employee ID: ' . $employee->id);
             
             // Soft delete - no need to check for related records as soft delete preserves them
             $employee->delete(); // This will now soft delete due to SoftDeletes trait
-            \Log::info('Employee soft deleted successfully for ID: ' . $employee->id);
+            Log::info('Employee soft deleted successfully for ID: ' . $employee->id);
 
             // Check if request expects JSON response
             if (request()->ajax() || request()->wantsJson() || request()->header('Accept') === 'application/json') {
@@ -301,8 +302,8 @@ class EmployeeController extends Controller
                 ->with('success', 'Employee deleted successfully.');
 
         } catch (Exception $e) {
-            \Log::error('Error deleting employee ID ' . ($employee->id ?? $id) . ': ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Error deleting employee ID ' . ($employee->id ?? $id) . ': ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             
             if (request()->ajax() || request()->wantsJson() || request()->header('Accept') === 'application/json') {
                 return response()->json([

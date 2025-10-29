@@ -3,6 +3,33 @@
 @section('title', 'Create New Complaint — CMS Admin')
 
 @section('content')
+<!-- Flash Messages -->
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  <strong>Success!</strong> {{ session('success') }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <strong>Error!</strong> {{ session('error') }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <strong>Validation Errors:</strong>
+  <ul class="mb-0">
+    @foreach($errors->all() as $error)
+    <li>{{ $error }}</li>
+    @endforeach
+  </ul>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <!-- PAGE HEADER -->
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
@@ -142,9 +169,9 @@
                   <div class="col-md-8">
                     <label class="form-label text-white">Product <span class="text-danger">*</span></label>
                     <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
-                            name="spare_parts[0][spare_id]" required>
+                            name="spare_parts[0][spare_id]" id="spare_select" required>
                       <option value="">Select Product</option>
-                      @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
+                      @foreach(\App\Models\Spare::orderBy('item_name')->get() as $spare)
                         <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}" {{ (string)old('spare_parts.0.spare_id') === (string)$spare->id ? 'selected' : '' }}>
                           {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
                         </option>
@@ -157,7 +184,8 @@
                   <div class="col-md-4">
                     <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
                     <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                           name="spare_parts[0][quantity]" min="1" value="{{ old('spare_parts.0.quantity') }}" required>
+                           name="spare_parts[0][quantity]" id="quantity_input" min="1" value="{{ old('spare_parts.0.quantity') }}" required>
+                    <div id="stock_warning" class="text-warning mt-1" style="display: none; font-size: 0.875rem;"></div>
                     @error('spare_parts.0.quantity')
                       <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -165,7 +193,7 @@
                 </div>
                 
                 <div class="alert alert-info mt-3">
-                  <strong>Note:</strong> Stock will be automatically deducted when you create the complaint.
+                  <strong>Note:</strong> Stock will be checked and deducted during approval process. If quantity exceeds available stock, it will be automatically adjusted.
                 </div>
               </div>
             </div>
@@ -266,29 +294,65 @@
 
 @push('scripts')
 <script>
-// Validate form submission
+// Stock validation and auto-adjustment
 document.addEventListener('DOMContentLoaded', function() {
-  const form = document.querySelector('form[action="{{ route('admin.complaints.store') }}"]');
-  if (!form) return;
-  form.addEventListener('submit', function(e) {
-    const spareSelect = document.querySelector('select[name="spare_parts[0][spare_id]"]');
-    const quantityInput = document.querySelector('input[name="spare_parts[0][quantity]"]');
-    if (!spareSelect || !quantityInput) return;
-    if (!spareSelect.value || !quantityInput.value || parseInt(quantityInput.value) <= 0) {
+  const spareSelect = document.getElementById('spare_select');
+  const quantityInput = document.getElementById('quantity_input');
+  const stockWarning = document.getElementById('stock_warning');
+  
+  if (!spareSelect || !quantityInput) return;
+
+  function updateStockWarning() {
+    if (!spareSelect.value) {
+      stockWarning.style.display = 'none';
+      return;
+    }
+
+    const selectedOption = spareSelect.options[spareSelect.selectedIndex];
+    const stock = selectedOption ? parseInt(selectedOption.getAttribute('data-stock') || 0) : 0;
+    const requestedQty = parseInt(quantityInput.value) || 0;
+
+    if (requestedQty > stock && stock > 0) {
+      // Auto-adjust quantity to available stock
+      quantityInput.value = stock;
+      stockWarning.textContent = `Insufficient stock! Quantity adjusted to available stock: ${stock}`;
+      stockWarning.style.display = 'block';
+      stockWarning.className = 'text-warning mt-1';
+    } else if (stock === 0) {
+      stockWarning.textContent = 'Warning: This product has zero stock available.';
+      stockWarning.style.display = 'block';
+      stockWarning.className = 'text-danger mt-1';
+    } else {
+      stockWarning.style.display = 'none';
+    }
+  }
+
+  // Update warning when product or quantity changes
+  spareSelect.addEventListener('change', updateStockWarning);
+  quantityInput.addEventListener('input', updateStockWarning);
+  quantityInput.addEventListener('change', updateStockWarning);
+
+  // Form submission validation
+  const form = document.querySelector('form[action*="complaints.store"]');
+  if (form) {
+    console.log('Form found, attaching submit listener');
+    form.addEventListener('submit', function(e) {
+      console.log('Form submit event triggered');
+      console.log('Spare ID:', spareSelect.value);
+      console.log('Quantity:', quantityInput.value);
+      
+      if (!spareSelect.value || !quantityInput.value || parseInt(quantityInput.value) <= 0) {
         e.preventDefault();
         alert('Please select a spare part and enter quantity.');
         return false;
-    }
-    const selectedOption = spareSelect.options[spareSelect.selectedIndex];
-    const stockAttr = selectedOption ? selectedOption.getAttribute('data-stock') : null;
-    const stock = stockAttr ? parseInt(stockAttr) : 0;
-    const requestedQty = parseInt(quantityInput.value);
-    if (requestedQty > stock) {
-        e.preventDefault();
-        alert(`Insufficient stock. Available: ${stock}, Requested: ${requestedQty}`);
-        return false;
-    }
-  });
+      }
+      
+      console.log('Form validation passed, submitting...');
+      // Let form submit naturally
+    });
+  } else {
+    console.error('Form not found!');
+  }
 });
 </script>
 @endpush
