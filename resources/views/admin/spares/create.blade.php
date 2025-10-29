@@ -128,7 +128,7 @@
                 </div>
               </div>
               
-              <!-- <div class="col-md-4">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="issued_quantity" class="form-label text-white">Issued Quantity</label>
                   <input type="number" class="form-control @error('issued_quantity') is-invalid @enderror" 
@@ -137,9 +137,9 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
-              </div> -->
+              </div>
               
-              <!-- <div class="col-md-4">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="stock_quantity" class="form-label text-white">Stock Quantity <span class="text-danger">*</span></label>
                   <input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" 
@@ -149,7 +149,7 @@
                   @enderror
                 </div>
               </div>
-            </div> -->
+            </div>
 
             <div class="row">
               <div class="col-md-6">

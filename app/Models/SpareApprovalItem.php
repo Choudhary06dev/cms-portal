@@ -15,7 +15,13 @@ class SpareApprovalItem extends Model
         'performa_id',
         'spare_id',
         'quantity_requested',
+        'quantity_approved',
         'reason',
+    ];
+
+    protected $casts = [
+        'quantity_requested' => 'integer',
+        'quantity_approved' => 'integer',
     ];
 
     /**

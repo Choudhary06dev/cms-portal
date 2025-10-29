@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('performa_id');
             $table->unsignedBigInteger('spare_id');
             $table->integer('quantity_requested');
+            $table->integer('quantity_approved')->nullable();
             $table->text('reason')->nullable();
             $table->timestamps();
 

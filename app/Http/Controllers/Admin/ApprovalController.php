@@ -158,6 +158,35 @@ class ApprovalController extends Controller
             'items.spare'
         ]);
 
+        // If no approval items exist, backfill from complaint spare parts so UI can show requested rows
+        if ($approval->items->isEmpty() && $approval->complaint) {
+            try {
+                // Try to use complaint spareParts relationship if present
+                $approval->complaint->loadMissing(['spareParts.spare']);
+                if ($approval->complaint->relationLoaded('spareParts') && $approval->complaint->spareParts->count() > 0) {
+                    foreach ($approval->complaint->spareParts as $sp) {
+                        \App\Models\SpareApprovalItem::firstOrCreate(
+                            [
+                                'performa_id' => $approval->id,
+                                'spare_id' => $sp->spare_id,
+                            ],
+                            [
+                                'quantity_requested' => (int)($sp->quantity ?? 1),
+                                'reason' => 'Auto-imported from complaint spare usage',
+                            ]
+                        );
+                    }
+                    // Reload items after backfill
+                    $approval->load(['items.spare']);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Failed to backfill approval items in show()', [
+                    'approval_id' => $approval->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         // Return JSON for AJAX requests
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
@@ -175,8 +204,10 @@ class ApprovalController extends Controller
                     'approved_by_name' => $approval->approvedBy->user->username ?? null,
                     'items' => $approval->items->map(function($item) {
                         return [
+                            'id' => $item->id,
                             'spare_name' => $item->spare->item_name ?? 'N/A',
-                            'quantity_requested' => $item->quantity_requested,
+                            'quantity_requested' => (int)$item->quantity_requested,
+                            'quantity_approved' => $item->quantity_approved !== null ? (int)$item->quantity_approved : null,
                             'unit_price' => $item->spare->unit_price ?? 0
                         ];
                     })
@@ -210,7 +241,15 @@ class ApprovalController extends Controller
             return redirect()->back()->withErrors($validator);
         }
 
-        // Check if all items are available
+        // Map of approved quantities from request (if provided per item)
+        $approvedInput = collect($request->input('items', []))
+            ->mapWithKeys(function($data, $key) {
+                $id = (int)$key;
+                $qty = isset($data['quantity_approved']) ? (int)$data['quantity_approved'] : null;
+                return [$id => $qty];
+            });
+
+        // Check if all items are available (use approved qty if provided, else requested)
         $unavailableItems = [];
         foreach ($approval->items as $item) {
             // Get spare directly to avoid relationship issues
@@ -222,8 +261,12 @@ class ApprovalController extends Controller
                 continue;
             }
             
-            // Check stock availability directly
-            if ($spare->stock_quantity < $item->quantity_requested) {
+            $qtyToUse = $approvedInput->get($item->id) !== null
+                ? max(0, (int)$approvedInput->get($item->id))
+                : (int)$item->quantity_requested;
+
+            // Check stock availability directly against the intended approval quantity
+            if ($spare->stock_quantity < $qtyToUse) {
                 $unavailableItems[] = $spare->item_name;
             }
         }
@@ -255,12 +298,19 @@ class ApprovalController extends Controller
                 'remarks' => $request->remarks,
             ]);
 
-            // Deduct stock for each item
+            // Deduct approved quantities now (no prior deduction at complaint stage)
             foreach ($approval->items as $item) {
                 $spare = \App\Models\Spare::find($item->spare_id);
                 if ($spare) {
+                    $qtyToUse = $approvedInput->get($item->id) !== null
+                        ? max(0, (int)$approvedInput->get($item->id))
+                        : (int)$item->quantity_requested;
+
+                    // Persist approved quantity on the item for accurate display/reporting
+                    $item->update(['quantity_approved' => $qtyToUse]);
+                    // Deduct exactly the approved quantity
                     $spare->removeStock(
-                        $item->quantity_requested,
+                        $qtyToUse,
                         "Approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
                         $approval->complaint_id
                     );
@@ -426,10 +476,12 @@ class ApprovalController extends Controller
                                 'remarks' => $request->remarks,
                             ]);
 
-                            // Deduct stock
+                            // Deduct requested quantity as approved in bulk
                             foreach ($approval->items as $item) {
+                                $approvedQty = (int)$item->quantity_requested;
+                                $item->update(['quantity_approved' => $approvedQty]);
                                 $item->spare->removeStock(
-                                    $item->quantity_requested,
+                                    $approvedQty,
                                     "Bulk approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
                                     $approval->complaint_id
                                 );
