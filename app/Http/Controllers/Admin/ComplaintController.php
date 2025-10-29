@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Complaint;
 use App\Models\Client;
 use App\Models\Employee;
-use App\Models\ComplaintLog;
-use App\Models\ComplaintAttachment;
-use App\Models\SpareApprovalPerforma;
+use App\Models\ComplaintSpare;
+use App\Models\Spare;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -26,7 +26,7 @@ class ComplaintController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Complaint::with(['client', 'assignedEmployee.user', 'attachments']);
+        $query = Complaint::with(['client', 'assignedEmployee.user', 'attachments', 'spareParts.spare']);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -114,6 +114,9 @@ class ComplaintController extends Controller
             'status' => 'required|in:new,assigned,in_progress,resolved,closed',
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
+            'spare_parts' => 'required|array|min:1',
+            'spare_parts.*.spare_id' => 'required_with:spare_parts|exists:spares,id',
+            'spare_parts.*.quantity' => 'required_with:spare_parts|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -122,15 +125,19 @@ class ComplaintController extends Controller
                 ->withInput();
         }
 
-        $complaint = Complaint::create([
-            'title' => $request->title,
-            'client_id' => $request->client_id,
-            'category' => $request->category,
-            'priority' => $request->priority,
-            'description' => $request->description,
-            'assigned_employee_id' => $request->assigned_employee_id,
-            'status' => $request->status,
-        ]);
+        // Start database transaction
+        DB::beginTransaction();
+        
+        try {
+            $complaint = Complaint::create([
+                'title' => $request->title,
+                'client_id' => $request->client_id,
+                'category' => $request->category,
+                'priority' => $request->priority,
+                'description' => $request->description,
+                'assigned_employee_id' => $request->assigned_employee_id,
+                'status' => $request->status,
+            ]);
 
         // Handle file attachments
         if ($request->hasFile('attachments')) {
@@ -159,6 +166,59 @@ class ComplaintController extends Controller
                 'action_by' => $currentEmployee->id,
                 'action' => 'created',
                 'remarks' => 'Complaint created',
+            ]);
+        }
+
+        // Handle spare parts (required)
+        $totalCost = 0;
+        $usedParts = [];
+
+        foreach ($request->spare_parts as $part) {
+            if (empty($part['spare_id']) || empty($part['quantity'])) {
+                continue; // Skip empty entries
+            }
+
+            $spare = Spare::find($part['spare_id']);
+            
+            if (!$spare) {
+                throw new \Exception("Spare part not found: {$part['spare_id']}");
+            }
+
+            if (!$spare->isStockSufficient($part['quantity'])) {
+                throw new \Exception("Insufficient stock for {$spare->item_name}. Available: {$spare->stock_quantity}, Required: {$part['quantity']}");
+            }
+
+            // Create complaint spare record
+            ComplaintSpare::create([
+                'complaint_id' => $complaint->id,
+                'spare_id' => $spare->id,
+                'quantity' => $part['quantity'],
+                'used_by' => $currentEmployee ? $currentEmployee->id : Employee::first()->id,
+                'used_at' => now(),
+            ]);
+
+            // Deduct stock automatically
+            $stockDeducted = $spare->removeStock(
+                $part['quantity'],
+                "Used for complaint #{$complaint->getTicketNumberAttribute()}",
+                $complaint->id
+            );
+            
+            if (!$stockDeducted) {
+                throw new \Exception("Failed to deduct stock for {$spare->item_name}");
+            }
+
+            $totalCost += $spare->unit_price * $part['quantity'];
+            $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";
+        }
+
+        // Log spare parts usage if any were added
+        if (!empty($usedParts) && $currentEmployee) {
+            ComplaintLog::create([
+                'complaint_id' => $complaint->id,
+                'action_by' => $currentEmployee->id,
+                'action' => 'spare_parts_added',
+                'remarks' => 'Added spare parts during creation: ' . implode(', ', $usedParts) . '. Total cost: PKR ' . number_format($totalCost, 2),
             ]);
         }
 
@@ -192,8 +252,20 @@ class ComplaintController extends Controller
             ]);
         }
 
+        // Commit the transaction
+        DB::commit();
+
         return redirect()->route('admin.complaints.index')
             ->with('success', 'Complaint created successfully.');
+            
+        } catch (\Exception $e) {
+            // Rollback the transaction on any error
+            DB::rollBack();
+            
+            return redirect()->back()
+                ->with('error', 'Failed to create complaint: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**
@@ -201,23 +273,43 @@ class ComplaintController extends Controller
      */
     public function show(Complaint $complaint)
     {
-        $complaint->load([
-            'client',
-            'assignedEmployee.user',
-            'attachments',
-            'logs.actionBy',
-            'spareParts.spare',
-            'spareApprovals.items.spare'
-        ]);
-
-        if (request()->ajax() || request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'complaint' => $complaint
+        try {
+            $complaint->load([
+                'client',
+                'assignedEmployee.user',
+                'attachments',
+                'logs.actionBy',
+                'spareParts.spare',
+                'spareParts.usedBy',
+                'spareApprovals.items.spare'
             ]);
-        }
 
-        return view('admin.complaints.show', compact('complaint'));
+            if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => true,
+                    'complaint' => $complaint
+                ]);
+            }
+
+            return view('admin.complaints.show', compact('complaint'));
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Error in ComplaintController@show: ' . $e->getMessage(), [
+                'complaint_id' => $complaint->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return JSON error for AJAX requests
+            if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error loading complaint details: ' . $e->getMessage()
+                ], 500);
+            }
+
+            // For regular requests, redirect back with error
+            return redirect()->back()->with('error', 'Error loading complaint details: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -225,6 +317,8 @@ class ComplaintController extends Controller
      */
     public function edit(Complaint $complaint)
     {
+        $complaint->load(['spareParts.spare']);
+        
         $clients = Client::orderBy('client_name')->get();
         $employees = Employee::whereHas('user', function($q) {
             $q->where('status', 'active');
@@ -249,6 +343,10 @@ class ComplaintController extends Controller
             'status' => 'required|in:new,assigned,in_progress,resolved,closed',
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
+            // Product (spare) update requirements: single selection required
+            'spare_parts' => 'required|array|min:1',
+            'spare_parts.0.spare_id' => 'required|exists:spares,id',
+            'spare_parts.0.quantity' => 'required|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -270,6 +368,70 @@ class ComplaintController extends Controller
             'status' => $request->status,
             'closed_at' => $request->status === 'closed' ? now() : null,
         ]);
+
+        // Update product (spare) selection: restore old stock, replace with new, deduct new stock
+        try {
+            DB::beginTransaction();
+
+            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+
+            // Restore stock for existing complaint spares and remove them
+            $existingSpares = $complaint->spareParts()->with('spare')->get();
+            foreach ($existingSpares as $existing) {
+                if ($existing->spare) {
+                    $existing->spare->addStock(
+                        $existing->quantity,
+                        "Restored from complaint update #{$complaint->getTicketNumberAttribute()}",
+                        $complaint->id
+                    );
+                }
+                $existing->delete();
+            }
+
+            // Add the new selection (single box form)
+            $part = $request->spare_parts[0];
+            $spare = Spare::find($part['spare_id']);
+            if (!$spare) {
+                throw new \Exception('Selected product not found.');
+            }
+            if (!$spare->isStockSufficient($part['quantity'])) {
+                throw new \Exception("Insufficient stock for {$spare->item_name}. Available: {$spare->stock_quantity}, Required: {$part['quantity']}");
+            }
+
+            // Create record and deduct stock
+            ComplaintSpare::create([
+                'complaint_id' => $complaint->id,
+                'spare_id' => $spare->id,
+                'quantity' => (int)$part['quantity'],
+                'used_by' => $currentEmployee?->id ?? Employee::first()->id,
+                'used_at' => now(),
+            ]);
+
+            $stockDeducted = $spare->removeStock(
+                (int)$part['quantity'],
+                "Used for complaint update #{$complaint->getTicketNumberAttribute()}",
+                $complaint->id
+            );
+            
+            if (!$stockDeducted) {
+                throw new \Exception("Failed to deduct stock for {$spare->item_name}");
+            }
+
+            // Log change
+            if ($currentEmployee) {
+                ComplaintLog::create([
+                    'complaint_id' => $complaint->id,
+                    'action_by' => $currentEmployee->id,
+                    'action' => 'spare_parts_updated',
+                    'remarks' => "Updated product to {$spare->item_name} (Qty: {$part['quantity']})",
+                ]);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to update product/quantity: ' . $e->getMessage())->withInput();
+        }
 
         // Handle new file attachments
         if ($request->hasFile('attachments')) {
@@ -621,6 +783,87 @@ class ComplaintController extends Controller
         }
 
         return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Add spare parts to complaint with automatic stock deduction
+     */
+    public function addSpareParts(Request $request, Complaint $complaint)
+    {
+        $validator = Validator::make($request->all(), [
+            'spare_parts' => 'required|array|min:1',
+            'spare_parts.*.spare_id' => 'required|exists:spares,id',
+            'spare_parts.*.quantity' => 'required|integer|min:1',
+            'remarks' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+            if (!$currentEmployee) {
+                throw new \Exception('Employee record not found');
+            }
+
+            $totalCost = 0;
+            $usedParts = [];
+
+            foreach ($request->spare_parts as $part) {
+                $spare = Spare::find($part['spare_id']);
+                
+                if (!$spare) {
+                    throw new \Exception("Spare part not found: {$part['spare_id']}");
+                }
+
+                if (!$spare->isStockSufficient($part['quantity'])) {
+                    throw new \Exception("Insufficient stock for {$spare->item_name}. Available: {$spare->stock_quantity}, Required: {$part['quantity']}");
+                }
+
+                // Create complaint spare record
+                $complaintSpare = ComplaintSpare::create([
+                    'complaint_id' => $complaint->id,
+                    'spare_id' => $spare->id,
+                    'quantity' => $part['quantity'],
+                    'used_by' => $currentEmployee->id,
+                    'used_at' => now(),
+                ]);
+
+                // Deduct stock automatically
+                $spare->removeStock(
+                    $part['quantity'],
+                    "Used for complaint #{$complaint->getTicketNumberAttribute()}",
+                    $complaint->id
+                );
+
+                $totalCost += $spare->unit_price * $part['quantity'];
+                $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";
+            }
+
+            // Log the spare parts usage
+            ComplaintLog::create([
+                'complaint_id' => $complaint->id,
+                'action_by' => $currentEmployee->id,
+                'action' => 'spare_parts_added',
+                'remarks' => 'Added spare parts: ' . implode(', ', $usedParts) . '. Total cost: PKR ' . number_format($totalCost, 2) . ($request->remarks ? '. Remarks: ' . $request->remarks : ''),
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', 'Spare parts added successfully. Total cost: PKR ' . number_format($totalCost, 2));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Failed to add spare parts: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**

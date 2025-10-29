@@ -18,52 +18,91 @@
 
     <!-- FILTERS -->
     <div class="card-glass mb-4">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <input type="text" class="form-control" placeholder="Search complaints...">
-            </div>
-            <div class="col-md-2">
-                <select class="form-select">
-                    <option value="">All Status</option>
-                    <option value="new">New</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select">
-                    <option value="">All Priority</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select">
-                    <option value="">All Categories</option>
-                    <option value="technical">Technical</option>
-                    <option value="service">Service</option>
-                    <option value="billing">Billing</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-light btn-sm">
-                        <i data-feather="filter" class="me-1"></i>Apply
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm">
-                        <i data-feather="x" class="me-1"></i>Clear
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm">
-                        <i data-feather="download" class="me-1"></i>Export
-                    </button>
+        <form method="GET" action="{{ route('admin.complaints.index') }}">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="search" placeholder="Search complaints..." 
+                           value="{{ request('search') }}">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="status">
+                        <option value="">All Status</option>
+                        <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
+                        <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                        <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                        <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                        <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="priority">
+                        <option value="">All Priority</option>
+                        <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
+                        <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
+                        <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
+                        <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        <option value="technical" {{ request('category') == 'technical' ? 'selected' : '' }}>Technical</option>
+                        <option value="service" {{ request('category') == 'service' ? 'selected' : '' }}>Service</option>
+                        <option value="billing" {{ request('category') == 'billing' ? 'selected' : '' }}>Billing</option>
+                        <option value="sanitary" {{ request('category') == 'sanitary' ? 'selected' : '' }}>Sanitary</option>
+                        <option value="electric" {{ request('category') == 'electric' ? 'selected' : '' }}>Electric</option>
+                        <option value="kitchen" {{ request('category') == 'kitchen' ? 'selected' : '' }}>Kitchen</option>
+                        <option value="plumbing" {{ request('category') == 'plumbing' ? 'selected' : '' }}>Plumbing</option>
+                        <option value="other" {{ request('category') == 'other' ? 'selected' : '' }}>Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i data-feather="filter" class="me-1"></i>Apply
+                        </button>
+                        <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i data-feather="x" class="me-1"></i>Clear
+                        </a>
+                        <button type="button" class="btn btn-outline-primary btn-sm">
+                            <i data-feather="download" class="me-1"></i>Export
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+            
+            <!-- Additional Filters Row -->
+            <div class="row g-3 mt-2">
+                <div class="col-md-3">
+                    <select class="form-select" name="client_id">
+                        <option value="">All Clients</option>
+                        @foreach($clients as $client)
+                        <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                            {{ $client->client_name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="assigned_employee_id">
+                        <option value="">All Employees</option>
+                        @foreach($employees as $employee)
+                        <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
+                            {{ $employee->user->username }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" name="date_from" 
+                           value="{{ request('date_from') }}" placeholder="From Date">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" name="date_to" 
+                           value="{{ request('date_to') }}" placeholder="To Date">
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- COMPLAINTS TABLE -->
@@ -79,6 +118,8 @@
                         <th>Priority</th>
                         <th>Status</th>
                         <th>Assigned To</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
                         <th>Created</th>
                         <th>Actions</th>
                     </tr>
@@ -109,6 +150,26 @@
                                 </span>
                             </td>
                             <td>{{ $complaint->assignedEmployee->user->username ?? 'Unassigned' }}</td>
+                            <td>
+                                @if($complaint->spareParts->count() > 0)
+                                    <div class="small">
+                                        @foreach($complaint->spareParts as $sparePart)
+                                            <div class="mb-1">
+                                                <span>{{ $sparePart->spare->item_name ?? 'N/A' }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-muted">No parts used</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($complaint->spareParts->count() > 0)
+                                    {{ $complaint->spareParts->sum('quantity') }}
+                                @else
+                                    0
+                                @endif
+                            </td>
                             <td>{{ $complaint->created_at->format('M d, Y') }}</td>
                             <td>
                                 <div class="btn-group" role="group">
@@ -129,7 +190,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-4">
+                            <td colspan="11" class="text-center py-4">
                                 <i data-feather="alert-circle" class="feather-lg mb-2"></i>
                                 <div>No complaints found</div>
                             </td>

@@ -99,19 +99,6 @@
             </div>
 
             <div class="row">
-              <div class="col-12">
-                <div class="mb-3">
-                  <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
-                  <textarea class="form-control @error('description') is-invalid @enderror" 
-                            id="description" name="description" rows="4" autocomplete="off" required></textarea>
-                  @error('description')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="assigned_employee_id" class="form-label text-white">Assign Employee</label>
@@ -142,6 +129,54 @@
                     <option value="in_progress">In Progress</option>
                   </select>
                   @error('status')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <!-- Spare Parts Section -->
+            <div class="row mt-1">
+              <div class="col-12">                
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-8">
+                    <label class="form-label text-white">Product <span class="text-danger">*</span></label>
+                    <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
+                            name="spare_parts[0][spare_id]" required>
+                      <option value="">Select Product</option>
+                      @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
+                        <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}">
+                          {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('spare_parts.0.spare_id')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
+                           name="spare_parts[0][quantity]" min="1" required>
+                    @error('spare_parts.0.quantity')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                  <strong>Note:</strong> Stock will be automatically deducted when you create the complaint.
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
+                  <textarea class="form-control @error('description') is-invalid @enderror" 
+                            id="description" name="description" rows="4" autocomplete="off" required></textarea>
+                  @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -262,6 +297,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+});
+
+// Validate form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const spareSelect = document.querySelector('select[name="spare_parts[0][spare_id]"]');
+    const quantityInput = document.querySelector('input[name="spare_parts[0][quantity]"]');
+    
+    if (!spareSelect.value || !quantityInput.value || parseInt(quantityInput.value) <= 0) {
+        e.preventDefault();
+        alert('Please select a spare part and enter quantity.');
+        return false;
+    }
+    
+    // Check stock availability
+    const stock = parseInt(spareSelect.options[spareSelect.selectedIndex].dataset.stock);
+    const requestedQty = parseInt(quantityInput.value);
+    
+    if (requestedQty > stock) {
+        e.preventDefault();
+        alert(`Insufficient stock. Available: ${stock}, Requested: ${requestedQty}`);
+        return false;
+    }
 });
 </script>
 @endpush

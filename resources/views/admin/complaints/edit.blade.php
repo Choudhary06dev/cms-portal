@@ -93,18 +93,7 @@
               </div>
             </div>
 
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-3">
-                  <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
-                  <textarea class="form-control @error('description') is-invalid @enderror" 
-                            id="description" name="description" rows="4" required>{{ old('description', $complaint->description) }}</textarea>
-                  @error('description')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-            </div>
+            
 
             <div class="row">
               <div class="col-md-6">
@@ -138,6 +127,53 @@
                     <option value="closed" {{ old('status', $complaint->status) == 'closed' ? 'selected' : '' }}>Closed</option>
                   </select>
                   @error('status')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <!-- Spare Parts Section -->
+            <div class="row mt-1">
+              <div class="col-12">                
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-8">
+                    <label class="form-label text-white">Product <span class="text-danger">*</span></label>
+                    <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
+                            name="spare_parts[0][spare_id]" required>
+                      <option value="">Select Product</option>
+                      @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
+                        <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}"
+                                {{ old('spare_parts.0.spare_id', $complaint->spareParts->first()?->spare_id) == $spare->id ? 'selected' : '' }}>
+                          {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('spare_parts.0.spare_id')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
+                           name="spare_parts[0][quantity]" min="1" 
+                           value="{{ old('spare_parts.0.quantity', $complaint->spareParts->first()?->quantity) }}" required>
+                    @error('spare_parts.0.quantity')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description moved below product section -->
+            <div class="row mt-3">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
+                  <textarea class="form-control @error('description') is-invalid @enderror" 
+                            id="description" name="description" rows="4" required>{{ old('description', $complaint->description) }}</textarea>
+                  @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>

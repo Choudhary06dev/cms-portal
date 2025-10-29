@@ -249,15 +249,31 @@ class Spare extends Model
 
         $this->stock_quantity -= $quantity;
         $this->last_updated = now();
-        $this->save();
+        $saved = $this->save();
+
+        if (!$saved) {
+            \Log::error('Failed to save stock reduction', [
+                'spare_id' => $this->id,
+                'quantity' => $quantity,
+                'new_stock' => $this->stock_quantity
+            ]);
+            return false;
+        }
 
         // Log the stock change
-        $this->stockLogs()->create([
-            'change_type' => 'out',
-            'quantity' => $quantity,
-            'reference_id' => $referenceId,
-            'remarks' => $remarks,
-        ]);
+        try {
+            $this->stockLogs()->create([
+                'change_type' => 'out',
+                'quantity' => $quantity,
+                'reference_id' => $referenceId,
+                'remarks' => $remarks,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create stock log', [
+                'spare_id' => $this->id,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return true;
     }
