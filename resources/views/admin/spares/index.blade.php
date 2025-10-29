@@ -84,39 +84,40 @@
           <td>{{ $spare->last_stock_in_at ? $spare->last_stock_in_at->format('d M Y h:i A') : 'N/A' }}</td>
           <td>
             <div class="btn-group" role="group">
-              <button class="btn btn-outline-info btn-sm" onclick="viewSpare({{ $spare->id }})" title="View Details">
+              <button class="btn btn-outline-info btn-sm" onclick="viewSpare('{{ $spare->id }}')" title="View Details">
                 <i data-feather="eye"></i>
               </button>
-              <button class="btn btn-outline-warning btn-sm" onclick="editSpare({{ $spare->id }})" title="Edit">
+              <button class="btn btn-outline-warning btn-sm" onclick="editSpare('{{ $spare->id }}')" title="Edit">
                 <i data-feather="edit"></i>
               </button>
-              <button class="btn btn-outline-primary btn-sm" onclick="printSpare({{ $spare->id }})" title="Print Spare Part Details">
+              <button class="btn btn-outline-primary btn-sm" onclick="printSpare('{{ $spare->id }}')" title="Print Spare Part Details">
                 <i data-feather="printer"></i>
               </button>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare({{ $spare->id }})" title="Delete">
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare('{{ $spare->id }}')" title="Delete">
                 <i data-feather="trash-2"></i>
               </button>
             </div>
           </td>
-        </tr>
-@empty
-<tr>
-  <td colspan="12" class="text-center py-4">
-    <i data-feather="package" class="feather-lg mb-2"></i>
-    <div>No spare parts found</div>
-  </td>
-</tr>
-@endforelse
-</tbody>
-</table>
-</div>
 
-<!-- PAGINATION -->
-<div class="d-flex justify-content-center mt-3">
-  <div>
-    {{ $spares->links() }}
+        </tr>
+        @empty
+        <tr>
+          <td colspan="12" class="text-center py-4">
+            <i data-feather="package" class="feather-lg mb-2"></i>
+            <div>No spare parts found</div>
+          </td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
   </div>
-</div>
+
+  <!-- PAGINATION -->
+  <div class="d-flex justify-content-center mt-3">
+    <div>
+      {{ $spares->links() }}
+    </div>
+  </div>
 </div>
 
 <!-- Spare Part Modal -->
@@ -993,7 +994,7 @@
   // Print Functions
   function printSpare(spareId) {
     console.log('Printing spare ID:', spareId);
-    
+
     // Load spare details for printing
     fetch(`/admin/spares/${spareId}`, {
         headers: {
@@ -1097,12 +1098,12 @@
           </body>
           </html>
         `;
-        
+
         // Open print window
         const printWindow = window.open('', '_blank');
         printWindow.document.write(printContent);
         printWindow.document.close();
-        
+
         // Wait for content to load then print
         printWindow.onload = function() {
           printWindow.print();
@@ -1118,14 +1119,14 @@
   // Print all spares list
   function printAllSpares() {
     console.log('Printing all spares list');
-    
+
     // Get current table data
     const table = document.querySelector('.table-responsive table');
     if (!table) {
       showNotification('No data to print', 'error');
       return;
     }
-    
+
     // Create print content
     const printContent = `
       <!DOCTYPE html>
@@ -1159,12 +1160,12 @@
       </body>
       </html>
     `;
-    
+
     // Open print window
     const printWindow = window.open('', '_blank');
     printWindow.document.write(printContent);
     printWindow.document.close();
-    
+
     // Wait for content to load then print
     printWindow.onload = function() {
       printWindow.print();
