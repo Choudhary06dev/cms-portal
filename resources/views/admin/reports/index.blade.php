@@ -30,7 +30,9 @@
       </div>
       <h4 class="text-white mb-1">Complaints Report</h4>
       <p class="text-muted mb-3">View complaint statistics and trends</p>
-      <a href="{{ route('admin.reports.complaints') }}" class="btn btn-outline-primary btn-sm">View Report</a>
+      <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#complaintsReportModal" onclick="loadComplaintsReport()">
+        View Report
+      </button>
     </div>
   </div>
   
@@ -204,11 +206,98 @@
     </div>
   </form>
 </div>
+
+<!-- Complaints Report Modal -->
+<div class="modal fade" id="complaintsReportModal" tabindex="-1" aria-labelledby="complaintsReportModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content card-glass">
+      <div class="modal-header">
+        <h5 class="modal-title text-white" id="complaintsReportModalLabel">
+          <i data-feather="alert-circle" class="me-2"></i>Complaints Report
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="complaintsReportModalBody">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="text-white mt-3">Loading report data...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
   feather.replace();
+
+  // Load Complaints Report in Modal
+  function loadComplaintsReport() {
+    const modalBody = document.getElementById('complaintsReportModalBody');
+    if (!modalBody) return;
+    
+    // Show loading
+    modalBody.innerHTML = `
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-white mt-3">Loading report data...</p>
+      </div>
+    `;
+    
+    // Fetch report data
+    const dateFrom = new Date();
+    dateFrom.setMonth(dateFrom.getMonth() - 1);
+    const dateTo = new Date();
+    
+    const params = new URLSearchParams({
+      date_from: dateFrom.toISOString().split('T')[0],
+      date_to: dateTo.toISOString().split('T')[0],
+      group_by: 'status'
+    });
+    
+    fetch(`{{ route('admin.reports.complaints') }}?${params.toString()}`, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html'
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to load report');
+      return response.text();
+    })
+    .then(html => {
+      // Extract content from the response
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const cardBody = doc.querySelector('.card-glass .card-body');
+      
+      if (cardBody) {
+        // Create a clean modal-friendly version
+        modalBody.innerHTML = cardBody.innerHTML;
+      } else {
+        // Fallback: try to find any content
+        const body = doc.querySelector('body');
+        modalBody.innerHTML = body ? body.innerHTML : '<div class="alert alert-warning">No data available</div>';
+      }
+      
+      // Re-initialize feather icons
+      feather.replace();
+    })
+    .catch(error => {
+      console.error('Error loading complaints report:', error);
+      modalBody.innerHTML = `
+        <div class="alert alert-danger">
+          <strong>Error!</strong> Failed to load report data. Please try again.
+          <br><small>${error.message}</small>
+        </div>
+      `;
+    });
+  }
 
   // Export All functionality
   document.addEventListener('DOMContentLoaded', function() {

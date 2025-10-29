@@ -10,9 +10,9 @@
       <h2 class=" mb-2">Spare Parts Management</h2>
       <p class="text-light">Manage inventory and spare parts</p>
     </div>
-    <button id="addSpareBtn" class="btn btn-accent">
+    <a href="{{ route('admin.spares.create') }}" class="btn btn-accent">
       <i class="fas fa-plus me-2"></i>Add Spare Part
-    </button>
+    </a>
   </div>
 </div>
 
@@ -87,9 +87,9 @@
               <button class="btn btn-outline-info btn-sm" onclick="viewSpare('{{ $spare->id }}')" title="View Details">
                 <i data-feather="eye"></i>
               </button>
-              <button class="btn btn-outline-warning btn-sm" onclick="editSpare('{{ $spare->id }}')" title="Edit">
+              <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-outline-warning btn-sm" title="Edit">
                 <i data-feather="edit"></i>
-              </button>
+              </a>
               <button class="btn btn-outline-primary btn-sm" onclick="printSpare('{{ $spare->id }}')" title="Print Spare Part Details">
                 <i data-feather="printer"></i>
               </button>
@@ -100,128 +100,44 @@
           </td>
 
         </tr>
-        @empty
-        <tr>
-          <td colspan="12" class="text-center py-4">
-            <i data-feather="package" class="feather-lg mb-2"></i>
-            <div>No spare parts found</div>
-          </td>
-        </tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
-
-  <!-- PAGINATION -->
-  <div class="d-flex justify-content-center mt-3">
-    <div>
-      {{ $spares->links() }}
-    </div>
-  </div>
+@empty
+<tr>
+  <td colspan="12" class="text-center py-4">
+    <i data-feather="package" class="feather-lg mb-2"></i>
+    <div>No spare parts found</div>
+  </td>
+</tr>
+@endforelse
+</tbody>
+</table>
 </div>
 
-<!-- Spare Part Modal -->
+<!-- PAGINATION -->
+<div class="d-flex justify-content-center mt-3">
+  <div>
+    {{ $spares->links() }}
+  </div>
+</div>
+</div>
+
+<!-- View Modal (for viewing spare details only) -->
 <div class="modal fade" id="spareModal" tabindex="-1" aria-labelledby="spareModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content card-glass">
       <div class="modal-header">
-        <h5 class="modal-title " id="spareModalLabel">Add Spare Part</h5>
+        <h5 class="modal-title" id="spareModalLabel">View Spare Part</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="modalBody">
-        <form id="spareForm" method="POST" autocomplete="off" novalidate>
-          @csrf
-          <div id="methodField"></div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="item_name" class="form-label">Name <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="item_name" name="item_name" required autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label for="product_code" class="form-label">Product Code</label>
-              <input type="text" class="form-control" id="product_code" name="product_code" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label for="brand_name" class="form-label">Brand Name</label>
-              <input type="text" class="form-control" id="brand_name" name="brand_name" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
-              <select class="form-select" id="category" name="category" required>
-                <option value="">Select Category</option>
-                @foreach(App\Models\Spare::getCategories() as $key => $label)
-                <option value="{{ $key }}">{{ $label }}</option>
-                @endforeach
-              </select>
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="product_nature" class="form-label">Product Nature</label>
-              <input type="text" class="form-control" id="product_nature" name="product_nature" autocomplete="off" placeholder="Enter product nature">
-              <div class="invalid-feedback"></div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="unit" class="form-label">Unit</label>
-              <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="stock_quantity" class="form-label">Stock Quantity <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="total_received_quantity" class="form-label">Total Received Quantity</label>
-              <input type="number" class="form-control" id="total_received_quantity" name="total_received_quantity" min="0" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="issued_quantity" class="form-label">Issued Quantity</label>
-              <input type="number" class="form-control" id="issued_quantity" name="issued_quantity" min="0" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="threshold_level" class="form-label">Threshold Level <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" id="threshold_level" name="threshold_level" min="0" required autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="supplier" class="form-label">Supplier</label>
-              <input type="text" class="form-control" id="supplier" name="supplier" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="last_stock_in_at" class="form-label">Last Stock In Date</label>
-              <input type="datetime-local" class="form-control" id="last_stock_in_at" name="last_stock_in_at" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-
-            <div class="col-12 mb-3">
-              <label for="description" class="form-label">Description</label>
-              <textarea class="form-control" id="description" name="description" rows="3" autocomplete="off"></textarea>
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-        </form>
+        <!-- Content will be populated by viewSpare function -->
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-accent" id="submitBtn">
-          <span id="submitText">Add Spare Part</span>
-          <span id="loadingSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
-        </button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
+
 @endsection
 
 @push('styles')
@@ -424,12 +340,6 @@
 
           modalLabel.textContent = 'View Spare Part';
 
-          // Hide the form inside modal body
-          const spareForm = modalBody.querySelector('#spareForm');
-          if (spareForm) {
-            spareForm.style.display = 'none';
-          }
-
           console.log('Modal body found:', modalBody);
 
           modalBody.innerHTML = `
@@ -470,15 +380,8 @@
           const modal = new bootstrap.Modal(modalElement);
           modal.show();
           console.log('Modal shown');
-
-          // Hide modal footer for view mode after modal is shown
-          setTimeout(() => {
-            const modalFooter = document.querySelector('.modal-footer');
-            if (modalFooter) {
-              modalFooter.style.display = 'none';
-              console.log('Modal footer hidden');
-            }
-          }, 100);
+          
+          // Footer remains visible with Close button
         }, 100);
       })
       .catch(error => {
@@ -487,151 +390,6 @@
       });
   }
 
-  function editSpare(spareId) {
-    console.log('Editing spare ID:', spareId);
-
-    // Load spare data for editing
-    fetch(`/admin/spares/${spareId}/edit-data`, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        credentials: 'same-origin'
-      })
-      .then(response => {
-        console.log('Edit response status:', response.status);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Edit data received:', data);
-        // Reset modal to form mode
-        document.getElementById('spareModalLabel').textContent = 'Edit Spare Part';
-
-        // Show modal footer for edit mode
-        const modalFooter = document.querySelector('.modal-footer');
-        modalFooter.style.display = 'block';
-
-        // Reset modal body to original form structure
-        const modalBody = document.getElementById('modalBody');
-        modalBody.innerHTML = `
-          <form id="spareForm" method="POST" autocomplete="off" novalidate>
-            @csrf
-            <div id="methodField"></div>
-            <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="item_name" class="form-label">Name <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="item_name" name="item_name" required autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label for="product_code" class="form-label">Product Code</label>
-              <input type="text" class="form-control" id="product_code" name="product_code" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label for="brand_name" class="form-label">Brand Name</label>
-              <input type="text" class="form-control" id="brand_name" name="brand_name" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            
-            <div class="col-md-6 mb-3">
-              <label for="category" class="form-label ">Category <span class="text-danger">*</span></label>
-              <select class="form-select" id="category" name="category" required>
-                <option value="">Select Category</option>
-                @foreach(App\Models\Spare::getCategories() as $key => $label)
-                <option value="{{ $key }}">{{ $label }}</option>
-                @endforeach
-              </select>
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="product_nature" class="form-label ">Product Nature</label>
-              <input type="text" class="form-control" id="product_nature" name="product_nature" autocomplete="off" placeholder="Enter product nature">
-              <div class="invalid-feedback"></div>
-            </div>
-            
-            
-            <div class="col-md-6 mb-3">
-              <label for="unit" class="form-label ">Unit</label>
-              <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            
-            <div class="col-md-6 mb-3">
-              <label for="stock_quantity" class="form-label ">Stock Quantity <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="total_received_quantity" class="form-label ">Total Received Quantity</label>
-              <input type="number" class="form-control" id="total_received_quantity" name="total_received_quantity" min="0" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="issued_quantity" class="form-label ">Issued Quantity</label>
-              <input type="number" class="form-control" id="issued_quantity" name="issued_quantity" min="0" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            
-            <div class="col-md-6 mb-3">
-              <label for="threshold_level" class="form-label ">Threshold Level <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" id="threshold_level" name="threshold_level" min="0" required autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            
-            <div class="col-md-6 mb-3">
-              <label for="supplier" class="form-label ">Supplier</label>
-              <input type="text" class="form-control" id="supplier" name="supplier" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="last_stock_in_at" class="form-label ">Last Stock In Date</label>
-              <input type="datetime-local" class="form-control" id="last_stock_in_at" name="last_stock_in_at" autocomplete="off">
-              <div class="invalid-feedback"></div>
-            </div>
-            
-            <div class="col-12 mb-3">
-              <label for="description" class="form-label ">Description</label>
-              <textarea class="form-control" id="description" name="description" rows="3" autocomplete="off"></textarea>
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-          </form>
-        `;
-
-        // Configure form after it's created
-        document.getElementById('spareForm').action = `/admin/spares/${spareId}`;
-        document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
-        document.getElementById('submitText').textContent = 'Update Spare Part';
-
-        // Submit button will be handled by event delegation
-
-        // Populate form fields with data
-        document.getElementById('item_name').value = data.name || '';
-        document.getElementById('product_code').value = data.product_code || '';
-        document.getElementById('brand_name').value = data.brand_name || '';
-        document.getElementById('category').value = data.category || '';
-        document.getElementById('product_nature').value = data.product_nature || '';
-        document.getElementById('unit').value = data.unit || '';
-        document.getElementById('stock_quantity').value = data.stock_quantity || '';
-        document.getElementById('total_received_quantity').value = data.total_received_quantity || '';
-        document.getElementById('issued_quantity').value = data.issued_quantity || '';
-        document.getElementById('threshold_level').value = data.threshold_level || '';
-        document.getElementById('supplier').value = data.supplier || '';
-        document.getElementById('last_stock_in_at').value = data.last_stock_in_at || '';
-        document.getElementById('description').value = data.description || '';
-
-        new bootstrap.Modal(document.getElementById('spareModal')).show();
-      })
-      .catch(error => {
-        console.error('Error loading spare data:', error);
-        alert('Error loading spare data');
-      });
-  }
 
   function deleteSpare(spareId) {
     if (confirm('Are you sure you want to delete this spare part?')) {
@@ -689,287 +447,7 @@
     }
   }
 
-  // Add Spare Button
-  document.getElementById('addSpareBtn')?.addEventListener('click', function() {
-    // Reset modal to form mode
-    document.getElementById('spareModalLabel').textContent = 'Add Spare Part';
-    document.getElementById('spareForm').style.display = 'block';
-    document.getElementById('spareForm').action = '/admin/spares';
-    document.getElementById('methodField').innerHTML = '';
-    document.getElementById('submitText').textContent = 'Add Spare Part';
-
-    // Show modal footer for add mode
-    const modalFooter = document.querySelector('.modal-footer');
-    modalFooter.style.display = 'block';
-
-    // Reset modal body to original form structure
-    const modalBody = document.getElementById('modalBody');
-    modalBody.innerHTML = `
-      <form id="spareForm" method="POST" autocomplete="off" novalidate>
-        @csrf
-        <div id="methodField"></div>
-        <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="item_name" class="form-label">Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="item_name" name="item_name" required autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label for="product_code" class="form-label">Product Code</label>
-          <input type="text" class="form-control" id="product_code" name="product_code" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        <div class="col-md-3 mb-3">
-          <label for="brand_name" class="form-label">Brand Name</label>
-          <input type="text" class="form-control" id="brand_name" name="brand_name" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        
-        <div class="col-md-6 mb-3">
-          <label for="category" class="form-label ">Category <span class="text-danger">*</span></label>
-          <select class="form-select" id="category" name="category" required>
-            <option value="">Select Category</option>
-            @foreach(App\Models\Spare::getCategories() as $key => $label)
-            <option value="{{ $key }}">{{ $label }}</option>
-            @endforeach
-          </select>
-          <div class="invalid-feedback"></div>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="product_nature" class="form-label ">Product Nature</label>
-          <input type="text" class="form-control" id="product_nature" name="product_nature" autocomplete="off" placeholder="Enter product nature">
-          <div class="invalid-feedback"></div>
-        </div>
-        
-        <div class="col-md-6 mb-3">
-          <label for="unit" class="form-label ">Unit</label>
-          <input type="text" class="form-control" id="unit" name="unit" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        
-        <div class="col-md-6 mb-3">
-          <label for="stock_quantity" class="form-label ">Stock Quantity <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="total_received_quantity" class="form-label ">Total Received Quantity</label>
-          <input type="number" class="form-control" id="total_received_quantity" name="total_received_quantity" min="0" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="issued_quantity" class="form-label ">Issued Quantity</label>
-          <input type="number" class="form-control" id="issued_quantity" name="issued_quantity" min="0" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        
-        <div class="col-md-6 mb-3">
-          <label for="threshold_level" class="form-label ">Threshold Level <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" id="threshold_level" name="threshold_level" min="0" required autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        
-        <div class="col-md-6 mb-3">
-          <label for="supplier" class="form-label ">Supplier</label>
-          <input type="text" class="form-control" id="supplier" name="supplier" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="last_stock_in_at" class="form-label ">Last Stock In Date</label>
-          <input type="datetime-local" class="form-control" id="last_stock_in_at" name="last_stock_in_at" autocomplete="off">
-          <div class="invalid-feedback"></div>
-        </div>
-        
-        <div class="col-12 mb-3">
-          <label for="description" class="form-label ">Description</label>
-          <textarea class="form-control" id="description" name="description" rows="3" autocomplete="off"></textarea>
-          <div class="invalid-feedback"></div>
-        </div>
-      </div>
-      </form>
-    `;
-
-    // Configure form after it's created
-    document.getElementById('spareForm').action = '/admin/spares';
-    document.getElementById('methodField').innerHTML = '';
-    document.getElementById('submitText').textContent = 'Add Spare Part';
-
-    // Submit button will be handled by event delegation
-
-    // Clear all form fields
-    document.getElementById('spareForm').reset();
-
-    new bootstrap.Modal(document.getElementById('spareModal')).show();
-  });
-
-  // Form submission - using event delegation for dynamically created forms
-  document.addEventListener('submit', function(e) {
-    if (e.target.id === 'spareForm') {
-      e.preventDefault();
-      // Show spinner / disable submit
-      setSubmitting(true);
-
-      // Clear previous validation errors
-      clearValidationErrors(e.target);
-      const formData = new FormData(e.target);
-      const url = e.target.action;
-      const overrideMethod = e.target.querySelector('input[name="_method"]')?.value;
-      // If there's a method override (PUT/DELETE), send as POST so PHP parses form data correctly
-      const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
-      console.log('Submitting form to', url, 'with fetch method', fetchMethod, 'and override', overrideMethod);
-
-      fetch(url, {
-          method: fetchMethod,
-          body: formData,
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-          }
-        })
-        .then(response => {
-          console.log('Response status:', response.status);
-          return response.json();
-        })
-        .then(data => {
-          console.log('Response data:', data);
-          if (data.success) {
-            location.reload();
-          } else {
-            setSubmitting(false);
-            alert('Error: ' + (data.message || 'Unknown error'));
-            if (data.errors) {
-              console.error('Validation errors:', data.errors);
-              // show inline validation messages
-              showValidationErrors(e.target, data.errors);
-            }
-          }
-        })
-        .catch(error => {
-          console.error('Error submitting form:', error);
-          setSubmitting(false);
-          alert('Error submitting form');
-        });
-    }
-  });
-
-  // Direct event listener for submit button
-  document.addEventListener('DOMContentLoaded', function() {
-    const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn) {
-      submitBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log('Submit button clicked via event listener');
-
-        const form = document.getElementById('spareForm');
-        if (form) {
-          console.log('Form found, submitting...');
-          // Prefer requestSubmit when available (submits and triggers submit event listeners).
-          if (typeof form.requestSubmit === 'function') {
-            form.requestSubmit();
-          } else {
-            // Dispatch a bubbling, cancelable submit event so the document-level listener catches it
-            form.dispatchEvent(new Event('submit', {
-              bubbles: true,
-              cancelable: true
-            }));
-          }
-        } else {
-          console.log('Form not found, using direct submission');
-          handleFormSubmission();
-        }
-      });
-    } else {
-      console.error('Submit button not found!');
-    }
-  });
-
-  // Direct form submission handler
-  function handleFormSubmission() {
-    const form = document.getElementById('spareForm');
-    if (!form) {
-      console.error('No form found for submission');
-      return;
-    }
-
-    console.log('Handling form submission directly');
-    setSubmitting(true);
-    const formData = new FormData(form);
-    const url = form.action;
-    const overrideMethod = form.querySelector('input[name="_method"]')?.value;
-    const fetchMethod = overrideMethod ? 'POST' : (overrideMethod || 'POST');
-    console.log('Direct submit to', url, 'using fetch method', fetchMethod, 'override', overrideMethod);
-
-    console.log('URL:', url);
-    console.log('Method:', method);
-    console.log('Form data:', Object.fromEntries(formData));
-
-    fetch(url, {
-        method: fetchMethod,
-        body: formData,
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        }
-      })
-      .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-      })
-      .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-          location.reload();
-        } else {
-          setSubmitting(false);
-          alert('Error: ' + (data.message || 'Unknown error'));
-          if (data.errors) {
-            console.error('Validation errors:', data.errors);
-          }
-        }
-      })
-      .catch(error => {
-        console.error('Error submitting form:', error);
-        setSubmitting(false);
-        alert('Error submitting form');
-      });
-  }
-
-  // Toggle submit button and spinner
-  function setSubmitting(isSubmitting) {
-    const btn = document.getElementById('submitBtn');
-    const spinner = document.getElementById('loadingSpinner');
-    if (!btn) return;
-    btn.disabled = !!isSubmitting;
-    if (spinner) {
-      spinner.style.display = isSubmitting ? 'inline-block' : 'none';
-    }
-  }
-
-  // Clear previous validation errors inside a form
-  function clearValidationErrors(form) {
-    const inputs = form.querySelectorAll('.is-invalid');
-    inputs.forEach(i => i.classList.remove('is-invalid'));
-    const feedbacks = form.querySelectorAll('.invalid-feedback');
-    feedbacks.forEach(f => f.textContent = '');
-  }
-
-  // Show validation errors returned from server: { fieldName: [messages] }
-  function showValidationErrors(form, errors) {
-    Object.keys(errors).forEach(field => {
-      const input = form.querySelector(`[name="${field}"]`);
-      const messages = errors[field];
-      if (input) {
-        input.classList.add('is-invalid');
-        const fb = input.closest('.mb-3')?.querySelector('.invalid-feedback') || form.querySelector('.invalid-feedback');
-        if (fb) fb.textContent = messages.join(' ');
-      } else {
-        // fallback: log
-        console.warn('No input found for validation field:', field, messages);
-      }
-    });
-  }
+  // Create/Edit functionality moved to separate create.blade.php and edit.blade.php files
 
 
   function showNotification(message, type = 'info') {

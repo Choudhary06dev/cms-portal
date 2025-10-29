@@ -36,33 +36,33 @@
           <div class="row mb-4">
             <div class="col-md-3">
               <div class="card bg-primary text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['total_complaints'] ?? 0 }}</h5>
-                  <p class="card-text">Total Complaints</p>
+                <div class="card-body text-center">
+                  <h4 class="mb-0">{{ $summary['total_complaints'] ?? 0 }}</h4>
+                  <small>Total Complaints</small>
                 </div>
               </div>
             </div>
             <div class="col-md-3">
               <div class="card bg-success text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['resolved_complaints'] ?? 0 }}</h5>
-                  <p class="card-text">Resolved</p>
+                <div class="card-body text-center">
+                  <h4 class="mb-0">{{ $summary['resolved_complaints'] ?? 0 }}</h4>
+                  <small>Resolved</small>
                 </div>
               </div>
             </div>
             <div class="col-md-3">
               <div class="card bg-warning text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['pending_complaints'] ?? 0 }}</h5>
-                  <p class="card-text">Pending</p>
+                <div class="card-body text-center">
+                  <h4 class="mb-0">{{ $summary['pending_complaints'] ?? 0 }}</h4>
+                  <small>Pending</small>
                 </div>
               </div>
             </div>
             <div class="col-md-3">
               <div class="card bg-info text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ round($summary['avg_resolution_time'] ?? 0, 1) }}h</h5>
-                  <p class="card-text">Avg Resolution Time</p>
+                <div class="card-body text-center">
+                  <h4 class="mb-0">{{ round($summary['avg_resolution_time'] ?? 0, 1) }}h</h4>
+                  <small>Avg Resolution Time</small>
                 </div>
               </div>
             </div>
@@ -83,35 +83,45 @@
           <div class="row">
             <div class="col-12">
               <div class="table-responsive">
-                <table class="table table-striped">
-                  <thead>
+                <table class="table table-striped table-hover">
+                  <thead class="table-dark">
                     <tr>
-                      <th>{{ ucfirst($groupBy) }}</th>
-                      <th>Count</th>
-                      <th>Percentage</th>
+                      <th>{{ ucfirst($groupBy === 'type' ? 'Category' : str_replace('_', ' ', $groupBy)) }}</th>
+                      <th class="text-center">Count</th>
+                      <th class="text-center">Percentage</th>
                     </tr>
                   </thead>
                   <tbody>
-                    @foreach($data as $item)
+                    @forelse($data as $item)
                     <tr>
                       <td>
                         @if($groupBy === 'employee' && isset($item->assignedEmployee))
                           {{ $item->assignedEmployee->user->username ?? 'Unknown' }}
                         @elseif($groupBy === 'client' && isset($item->client))
-                          {{ $item->client->client_name }}
+                          {{ $item->client->client_name ?? 'Unknown' }}
+                        @elseif($groupBy === 'type')
+                          {{ ucfirst($item->category ?? 'Unknown') }}
                         @else
-                          {{ ucfirst($item->{$groupBy} ?? $item->category ?? $item->status ?? $item->priority ?? 'Unknown') }}
+                          {{ ucfirst(str_replace('_', ' ', $item->{$groupBy} ?? 'Unknown')) }}
                         @endif
                       </td>
-                      <td>{{ $item->count }}</td>
+                      <td>{{ $item->count ?? 0 }}</td>
                       <td>
                         @php
-                          $percentage = $summary['total_complaints'] > 0 ? round(($item->count / $summary['total_complaints']) * 100, 1) : 0;
+                          $total = $summary['total_complaints'] ?? 1;
+                          $percentage = $total > 0 ? round(($item->count / $total) * 100, 1) : 0;
                         @endphp
                         {{ $percentage }}%
                       </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                      <td colspan="3" class="text-center text-muted py-4">
+                        <i data-feather="inbox" class="feather-lg mb-2"></i>
+                        <div>No complaints found for the selected period.</div>
+                      </td>
+                    </tr>
+                    @endforelse
                   </tbody>
                 </table>
               </div>
@@ -123,9 +133,12 @@
     </div>
   </div>
 </div>
+@endsection
 
-
+@push('scripts')
 <script>
+feather.replace();
+
 function exportReport(format) {
   // Show loading state
   const buttons = document.querySelectorAll('button[onclick*="exportReport"]');
@@ -210,4 +223,4 @@ function showNotification(message, type = 'info') {
   }, 5000);
 }
 </script>
-@endsection
+@endpush

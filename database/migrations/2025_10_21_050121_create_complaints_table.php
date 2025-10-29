@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed'])->default('new');
             $table->unsignedBigInteger('assigned_employee_id')->nullable();
-            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
+            $table->enum('priority', ['low', 'medium', 'high', 'urgent', 'emergency'])->default('medium');
             $table->timestamp('closed_at')->nullable();
             
             // Spare part columns

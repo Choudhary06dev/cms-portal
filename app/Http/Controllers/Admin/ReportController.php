@@ -330,8 +330,12 @@ class ReportController extends Controller
             ]);
         }
 
+        // Ensure dates are properly formatted and include time for full day coverage
+        $dateFromStart = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+        $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
+        
         // Use a base query and clone it for each computation to avoid mutation side-effects
-        $baseQuery = Complaint::whereBetween('created_at', [$dateFrom, $dateTo]);
+        $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
         $query = (clone $baseQuery)->with(['client', 'assignedEmployee.user']);
 
         // Generate report data based on group_by
@@ -355,18 +359,26 @@ class ReportController extends Controller
                 break;
 
             case 'employee':
-                $data = (clone $baseQuery)->selectRaw('assigned_employee_id, COUNT(*) as count')
+                $data = (clone $baseQuery)
                     ->whereNotNull('assigned_employee_id')
+                    ->selectRaw('assigned_employee_id, COUNT(*) as count')
                     ->groupBy('assigned_employee_id')
-                    ->with('assignedEmployee.user')
-                    ->get();
+                    ->get()
+                    ->map(function($item) {
+                        $item->assignedEmployee = \App\Models\Employee::with('user')->find($item->assigned_employee_id);
+                        return $item;
+                    });
                 break;
 
             case 'client':
-                $data = (clone $baseQuery)->selectRaw('client_id, COUNT(*) as count')
+                $data = (clone $baseQuery)
+                    ->selectRaw('client_id, COUNT(*) as count')
                     ->groupBy('client_id')
-                    ->with('client')
-                    ->get();
+                    ->get()
+                    ->map(function($item) {
+                        $item->client = \App\Models\Client::find($item->client_id);
+                        return $item;
+                    });
                 break;
 
             default:

@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ComplaintController extends Controller
 {
@@ -108,7 +109,7 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         // Debug: Log the request data
-        \Log::info('Complaint creation request', [
+        Log::info('Complaint creation request', [
             'all_data' => $request->all(),
             'method' => $request->method(),
             'content_type' => $request->header('Content-Type')
@@ -131,7 +132,7 @@ class ComplaintController extends Controller
         ]);
 
         if ($validator->fails()) {
-            \Log::error('Validation failed', [
+            Log::error('Validation failed', [
                 'errors' => $validator->errors()->toArray()
             ]);
             return redirect()->back()
@@ -187,8 +188,13 @@ class ComplaintController extends Controller
         $totalCost = 0;
         $usedParts = [];
 
+        if (empty($request->spare_parts) || !is_array($request->spare_parts)) {
+            throw new \Exception("No spare parts provided");
+        }
+
         foreach ($request->spare_parts as $part) {
             if (empty($part['spare_id']) || empty($part['quantity'])) {
+                Log::warning('Skipping empty spare part entry', ['part' => $part]);
                 continue; // Skip empty entries
             }
 
@@ -198,21 +204,45 @@ class ComplaintController extends Controller
                 throw new \Exception("Spare part not found: {$part['spare_id']}");
             }
 
+            // Get employee ID for used_by
+            $usedByEmployeeId = $currentEmployee ? $currentEmployee->id : (Employee::first()?->id);
+            if (!$usedByEmployeeId) {
+                throw new \Exception("No employee found to assign as used_by. Please create an employee first.");
+            }
+
             // Do not enforce stock at request time; stock will be checked at approval
 
             // Create complaint spare record
-            ComplaintSpare::create([
-                'complaint_id' => $complaint->id,
-                'spare_id' => $spare->id,
-                'quantity' => $part['quantity'],
-                'used_by' => $currentEmployee ? $currentEmployee->id : Employee::first()->id,
-                'used_at' => now(),
-            ]);
+            try {
+                ComplaintSpare::create([
+                    'complaint_id' => $complaint->id,
+                    'spare_id' => $spare->id,
+                    'quantity' => (int)$part['quantity'],
+                    'used_by' => $usedByEmployeeId,
+                    'used_at' => now(),
+                ]);
+                Log::info('ComplaintSpare created', [
+                    'complaint_id' => $complaint->id,
+                    'spare_id' => $spare->id,
+                    'quantity' => $part['quantity']
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to create ComplaintSpare', [
+                    'complaint_id' => $complaint->id,
+                    'spare_id' => $spare->id,
+                    'error' => $e->getMessage()
+                ]);
+                throw $e;
+            }
 
             // No stock deduction at complaint creation; happens on approval
 
             $totalCost += $spare->unit_price * $part['quantity'];
             $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";
+        }
+
+        if (empty($usedParts)) {
+            throw new \Exception("No valid spare parts were added to the complaint");
         }
 
         // Log spare parts usage if any were added
@@ -231,7 +261,7 @@ class ComplaintController extends Controller
             $requestedBy = $currentEmployee ? $currentEmployee->id : \App\Models\Employee::first()->id;
             
             if (!$requestedBy) {
-                \Log::error('No employee found to assign as requested_by');
+                Log::error('No employee found to assign as requested_by');
                 return redirect()->route('admin.complaints.index')
                     ->with('error', 'Complaint created but approval could not be generated. Please create an employee first.');
             }
@@ -257,13 +287,13 @@ class ComplaintController extends Controller
                 }
             }
             
-            \Log::info('Approval created successfully', [
+            Log::info('Approval created successfully', [
                 'approval_id' => $approval->id,
                 'complaint_id' => $complaint->id,
                 'requested_by' => $requestedBy
             ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to create approval', [
+            Log::error('Failed to create approval', [
                 'complaint_id' => $complaint->id,
                 'error' => $e->getMessage()
             ]);
@@ -311,7 +341,7 @@ class ComplaintController extends Controller
             return view('admin.complaints.show', compact('complaint'));
         } catch (\Exception $e) {
             // Log the error for debugging
-            \Log::error('Error in ComplaintController@show: ' . $e->getMessage(), [
+            Log::error('Error in ComplaintController@show: ' . $e->getMessage(), [
                 'complaint_id' => $complaint->id,
                 'trace' => $e->getTraceAsString()
             ]);
