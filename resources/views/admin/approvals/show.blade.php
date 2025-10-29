@@ -133,8 +133,6 @@
                                                 <th>Quantity Approved</th>
                                                 @endif
                                                 <th>Available Stock</th>
-                                                <th>Unit Price</th>
-                                                <th>Total Cost</th>
                                                 <th>Reason</th>
                                             </tr>
                                         </thead>
@@ -144,19 +142,10 @@
                                                 <td>{{ $item->spare->item_name ?? 'N/A' }}</td>
                                                 <td>{{ $item->quantity_requested }}</td>
                                                 <td style="max-width:160px;">
-                                                    @if($approval->status === 'pending')
-                                                      <input type="number" min="0" class="form-control form-control-sm" name="items[{{ $item->id }}][quantity_approved]" value="{{ old('items.' . $item->id . '.quantity_approved', $item->quantity_approved ?? $item->quantity_requested) }}">
-                                                      <small class="text-muted">Set the quantity to approve</small>
-                                                    @else
                                                       {{ $item->quantity_approved ?? $item->quantity_requested }}
-                                                    @endif
                                                 </td>
                                                 <td>{{ $item->spare->stock_quantity ?? 0 }}</td>
-                                                <td>PKR {{ number_format($item->spare->unit_price ?? 0, 2) }}</td>
-                                                <td>
-                                                    @php($approvedQty = $item->quantity_approved ?? $item->quantity_requested)
-                                                    PKR {{ number_format(($item->spare->unit_price ?? 0) * $approvedQty, 2) }}
-                                                </td>
+                                                
                                                 <td>{{ $item->reason ?? 'N/A' }}</td>
                                             </tr>
                                             @empty
@@ -165,24 +154,8 @@
                                             </tr>
                                             @endforelse
                                         </tbody>
-                                        <tfoot>
-                                            <tr class="table-primary">
-                                                <th colspan="4">Total Estimated Cost:</th>
-                                                <th>
-                                                    @php($sum = $approval->items->sum(fn($i) => ($i->spare->unit_price ?? 0) * (($i->quantity_approved ?? $i->quantity_requested))))
-                                                    PKR {{ number_format($sum, 2) }}
-                                                </th>
-                                                <th colspan="2"></th>
-                                            </tr>
-                                        </tfoot>
+                                      
                                     </table>
-                                    @if($approval->status === 'pending')
-                                    <div class="d-flex justify-content-end mt-3">
-                                        <button type="submit" class="btn btn-success">
-                                            Approve Selected Quantities
-                                        </button>
-                                    </div>
-                                    @endif
                                 </form>
                             </div>
                         </div>
