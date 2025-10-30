@@ -35,54 +35,99 @@
           <!-- SLA Summary -->
           <div class="row mb-4">
             <div class="col-md-2">
-              <div class="card bg-primary text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['total_complaints'] ?? 0 }}</h5>
-                  <p class="card-text">Total Complaints</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon blue">
+                    <i data-feather="file-text"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['total_complaints'] ?? 0 }}</h3>
+                    <p>Total Complaints</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-2">
-              <div class="card bg-success text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['within_sla'] ?? 0 }}</h5>
-                  <p class="card-text">Within SLA</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon green">
+                    <i data-feather="check-circle"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['within_sla'] ?? 0 }}</h3>
+                    <p>Within SLA</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-2">
-              <div class="card bg-danger text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['breached_sla'] ?? 0 }}</h5>
-                  <p class="card-text">SLA Breached</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon red">
+                    <i data-feather="alert-circle"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['breached_sla'] ?? 0 }}</h3>
+                    <p>SLA Breached</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-2">
-              <div class="card bg-warning text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['critical_urgent'] ?? 0 }}</h5>
-                  <p class="card-text">Critical</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon yellow">
+                    <i data-feather="zap"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['critical_urgent'] ?? 0 }}</h3>
+                    <p>Critical</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-2">
-              <div class="card bg-info text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['sla_compliance_rate'] ?? 0 }}%</h5>
-                  <p class="card-text">Compliance Rate</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon cyan">
+                    <i data-feather="shield"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['sla_compliance_rate'] ?? 0 }}%</h3>
+                    <p>Compliance Rate</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-2">
-              <div class="card bg-secondary text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ round($summary['average_resolution_time'] ?? 0, 1) }}h</h5>
-                  <p class="card-text">Avg Resolution</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon gray">
+                    <i data-feather="clock"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ round($summary['average_resolution_time'] ?? 0, 1) }}h</h3>
+                    <p>Avg Resolution</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <style>
+            .stats-card { background: rgba(255,255,255,0.04); border-radius: 12px; border:1px solid rgba(255,255,255,0.06); margin-bottom:1rem; transition:all 0.25s ease; backdrop-filter: blur(8px); }
+            .stats-card:hover { transform: translateY(-6px); box-shadow: 0 12px 24px rgba(0,0,0,0.25); background: rgba(255,255,255,0.06); }
+            .stats-card-body { padding:0.8rem 1rem; display:flex; align-items:center; gap:0.9rem; }
+            .stats-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+            .stats-icon.blue { background: rgba(59,130,246,0.18); color:#3b82f6; }
+            .stats-icon.green { background: rgba(34,197,94,0.12); color:#22c55e; }
+            .stats-icon.red { background: rgba(239,68,68,0.12); color:#ef4444; }
+            .stats-icon.yellow { background: rgba(234,179,8,0.12); color:#eab308; }
+            .stats-icon.cyan { background: rgba(56,189,248,0.12); color:#38bdf8; }
+            .stats-icon.gray { background: rgba(148,163,184,0.08); color:#94a3b8; }
+            .stats-info h3 { margin:0; color:#fff; font-size:1.1rem; font-weight:700; }
+            .stats-info p { margin:0.2rem 0 0; color: rgba(255,255,255,0.7); font-size:0.82rem; }
+          </style>
 
           <!-- Report Period -->
           <div class="row mb-4">

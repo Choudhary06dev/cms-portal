@@ -35,38 +35,71 @@
           <!-- Report Summary -->
           <div class="row mb-4">
             <div class="col-md-3">
-              <div class="card bg-primary text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['total_spares'] ?? 0 }}</h5>
-                  <p class="card-text">Total Spare Parts</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon blue">
+                    <i data-feather="package"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['total_spares'] ?? 0 }}</h3>
+                    <p>Total Spare Parts</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card bg-success text-white">
-                <div class="card-body">
-                  <h5 class="card-title">₹{{ number_format($summary['total_consumption'] ?? 0, 2) }}</h5>
-                  <p class="card-text">Total Consumption</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon green">
+                    <i data-feather="dollar-sign"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>₹{{ number_format($summary['total_consumption'] ?? 0, 2) }}</h3>
+                    <p>Total Consumption</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card bg-warning text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['low_stock_items'] ?? 0 }}</h5>
-                  <p class="card-text">Low Stock Items</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon yellow">
+                    <i data-feather="alert-triangle"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['low_stock_items'] ?? 0 }}</h3>
+                    <p>Low Stock Items</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card bg-danger text-white">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $summary['out_of_stock_items'] ?? 0 }}</h5>
-                  <p class="card-text">Out of Stock</p>
+              <div class="stats-card">
+                <div class="stats-card-body">
+                  <div class="stats-icon red">
+                    <i data-feather="x-circle"></i>
+                  </div>
+                  <div class="stats-info">
+                    <h3>{{ $summary['out_of_stock_items'] ?? 0 }}</h3>
+                    <p>Out of Stock</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <style>
+            .stats-card { background: rgba(255,255,255,0.04); border-radius: 12px; border:1px solid rgba(255,255,255,0.06); margin-bottom:1rem; transition:all 0.25s ease; backdrop-filter: blur(8px); }
+            .stats-card:hover { transform: translateY(-6px); box-shadow: 0 12px 24px rgba(0,0,0,0.25); background: rgba(255,255,255,0.06); }
+            .stats-card-body { padding:1rem 1.25rem; display:flex; align-items:center; gap:1rem; }
+            .stats-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+            .stats-icon.blue { background: rgba(59,130,246,0.18); color:#3b82f6; }
+            .stats-icon.green { background: rgba(34,197,94,0.12); color:#22c55e; }
+            .stats-icon.yellow { background: rgba(234,179,8,0.12); color:#eab308; }
+            .stats-icon.red { background: rgba(239,68,68,0.12); color:#ef4444; }
+            .stats-info h3 { margin:0; color:#fff; font-size:1.4rem; font-weight:700; }
+            .stats-info p { margin:0.25rem 0 0; color: rgba(255,255,255,0.7); font-size:0.88rem; }
+          </style>
 
           <!-- Report Period -->
           <div class="row mb-4">
