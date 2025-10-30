@@ -11,21 +11,18 @@
       <p class="text-light">View spare parts inventory and usage statistics</p>
     </div>
     <div class="d-flex gap-2">
+      <a class="btn btn-outline-light" href="{{ route('admin.reports.spares.print', request()->query()) }}" target="_blank">
+        <i data-feather="printer" class="me-2"></i>Print Report
+      </a>
       <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
         <i data-feather="arrow-left" class="me-2"></i>Back to Reports
       </a>
-      <button class="btn btn-accent" onclick="exportReport('pdf')">
-        <i data-feather="download" class="me-2"></i>Export PDF
-      </button>
-      <button class="btn btn-outline-info" onclick="exportReport('excel')">
-        <i data-feather="file-text" class="me-2"></i>Export Excel
-      </button>
     </div>
   </div>
 </div>
 
 <!-- REPORT CONTENT -->
-<div class="card-glass">
+<div id="report-print-area" class="card-glass">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white">
       <i data-feather="package" class="me-2"></i>Spare Parts Report
@@ -124,7 +121,6 @@
                       <th>Category</th>
                       <th>Total Used</th>
                       <th>Usage Count</th>
-                      <th>Total Cost</th>
                       <th>Current Stock</th>
                       <th>Stock Status</th>
                     </tr>
@@ -134,9 +130,9 @@
                     <tr>
                       <td>
                         <div>
-                          <strong>{{ $spareData['spare']->part_name }}</strong>
-                          @if($spareData['spare']->part_number)
-                            <br><small class="text-muted">#{{ $spareData['spare']->part_number }}</small>
+                          <strong>{{ $spareData['spare']->item_name }}</strong>
+                          @if($spareData['spare']->product_code)
+                            <br><small class="text-muted">#{{ $spareData['spare']->product_code }}</small>
                           @endif
                         </div>
                       </td>
@@ -148,9 +144,6 @@
                       </td>
                       <td>
                         <span class="badge bg-secondary">{{ $spareData['usage_count'] }}</span>
-                      </td>
-                      <td>
-                        <span class="badge bg-success">₹{{ number_format($spareData['total_cost'], 2) }}</span>
                       </td>
                       <td>
                         <span class="badge bg-info">{{ $spareData['current_stock'] }}</span>
@@ -178,71 +171,24 @@
 </div>
 
 
-<script>
-function exportReport(format) {
-  // Show loading state
-  const buttons = document.querySelectorAll('button[onclick*="exportReport"]');
-  buttons.forEach(btn => {
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
-    btn.disabled = true;
-  });
-  feather.replace();
-
-  // Get current URL parameters
-  const url = new URL(window.location);
-  const params = new URLSearchParams(url.search);
-  params.set('format', format);
-  
-  // Make export request
-  fetch(`/admin/reports/download/spares/${format}?${params.toString()}`)
-    .then(response => {
-      if (response.ok) {
-        if (format === 'json') {
-          return response.json();
-        } else {
-          return response.json();
-        }
-      }
-      throw new Error('Export failed');
-    })
-    .then(data => {
-      if (format === 'json') {
-        // Download JSON file
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `spares_report_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(downloadUrl);
-      } else {
-        // Show message for PDF/Excel
-        alert(data.message || 'Export completed');
-      }
-      
-      // Show success notification
-      showNotification(`${format.toUpperCase()} export completed successfully!`, 'success');
-    })
-    .catch(error => {
-      console.error('Export error:', error);
-      showNotification('Export failed: ' + error.message, 'error');
-    })
-    .finally(() => {
-      // Reset buttons
-      buttons.forEach(btn => {
-        const originalText = btn.innerHTML.includes('PDF') ? 
-          '<i data-feather="download" class="me-2"></i>Export PDF' :
-          '<i data-feather="file-text" class="me-2"></i>Export Excel';
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      });
-      feather.replace();
-    });
+@push('styles')
+<style>
+  @media print {
+    @page { size: A5 portrait; margin: 10mm; }
+    body * { visibility: hidden !important; }
+    #report-print-area, #report-print-area * { visibility: visible !important; }
+    #report-print-area { position: absolute; left: 0; top: 0; width: 100%; max-width: 700px; }
+    .topbar, .sidebar { display: none !important; }
+    .card-glass .btn, .btn { display: none !important; }
+    html, body { font-size: 11px; }
+    .table { font-size: 11px; }
+  }
 }
+</style>
+@endpush
 
+<script>
+function printReport(){ window.print(); }
 function showNotification(message, type = 'info') {
   // Create notification element
   const notification = document.createElement('div');
