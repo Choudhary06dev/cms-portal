@@ -52,9 +52,7 @@
           <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-secondary btn-sm">
             <i data-feather="x" class="me-1"></i>Clear
           </a>
-          <button type="button" class="btn btn-outline-primary btn-sm">
-            <i data-feather="download" class="me-1"></i>Export
-          </button>
+          
         </div>
       </div>
     </div>

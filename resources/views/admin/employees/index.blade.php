@@ -40,9 +40,7 @@
         <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
           <i data-feather="x" class="me-1"></i>Clear
         </button>
-        <button class="btn btn-outline-primary btn-sm" id="exportBtn">
-          <i data-feather="download" class="me-1"></i>Export
-        </button>
+        
       </div>
     </div>
   </div>
@@ -245,32 +243,7 @@
     });
   });
   
-  // Export functionality
-  document.getElementById('exportBtn').addEventListener('click', function() {
-    // Simple CSV export
-    const rows = document.querySelectorAll('#employeesTable tbody tr:not([style*="display: none"])');
-    let csv = 'ID,Employee,Department,Position,Status,Hire Date\n';
-    
-    rows.forEach(row => {
-      const cells = row.cells;
-      const id = cells[0].textContent;
-      const employee = cells[1].textContent.split('\n')[0].trim();
-      const department = cells[2].textContent;
-      const position = cells[3].textContent;
-      const status = cells[4].textContent;
-      const hireDate = cells[5].textContent;
-      
-      csv += `"${id}","${employee}","${department}","${position}","${status}","${hireDate}"\n`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'employees.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  });
+  
   
   // Delete employee function
   let currentDeleteEmployeeId = null;

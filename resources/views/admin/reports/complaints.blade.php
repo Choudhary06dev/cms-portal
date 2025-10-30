@@ -17,12 +17,7 @@
       <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
         <i data-feather="arrow-left" class="me-2"></i>Back to Reports
       </a>
-      <button class="btn btn-accent" onclick="exportReport('pdf')">
-        <i data-feather="download" class="me-2"></i>Export PDF
-      </button>
-      <button class="btn btn-outline-info" onclick="exportReport('excel')">
-        <i data-feather="file-text" class="me-2"></i>Export Excel
-      </button>
+      
     </div>
   </div>
 </div>
@@ -237,70 +232,6 @@
 @push('scripts')
 <script>
 feather.replace();
-
-function exportReport(format) {
-  // Show loading state
-  const buttons = document.querySelectorAll('button[onclick*="exportReport"]');
-  buttons.forEach(btn => {
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
-    btn.disabled = true;
-  });
-  feather.replace();
-
-  // Get current URL parameters
-  const url = new URL(window.location);
-  const params = new URLSearchParams(url.search);
-  params.set('format', format);
-  
-  // Make export request
-  fetch(`/admin/reports/download/complaints/${format}?${params.toString()}`)
-    .then(response => {
-      if (response.ok) {
-        if (format === 'json') {
-          return response.json();
-        } else {
-          return response.json();
-        }
-      }
-      throw new Error('Export failed');
-    })
-    .then(data => {
-      if (format === 'json') {
-        // Download JSON file
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `complaints_report_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(downloadUrl);
-      } else {
-        // Show message for PDF/Excel
-        alert(data.message || 'Export completed');
-      }
-      
-      // Show success notification
-      showNotification(`${format.toUpperCase()} export completed successfully!`, 'success');
-    })
-    .catch(error => {
-      console.error('Export error:', error);
-      showNotification('Export failed: ' + error.message, 'error');
-    })
-    .finally(() => {
-      // Reset buttons
-      buttons.forEach(btn => {
-        const originalText = btn.innerHTML.includes('PDF') ? 
-          '<i data-feather="download" class="me-2"></i>Export PDF' :
-          '<i data-feather="file-text" class="me-2"></i>Export Excel';
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      });
-      feather.replace();
-    });
-}
 
 function showNotification(message, type = 'info') {
   // Create notification element

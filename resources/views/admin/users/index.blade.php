@@ -45,9 +45,7 @@
         <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
           <i data-feather="x" class="me-1"></i>Clear
         </button>
-        <button class="btn btn-outline-primary btn-sm" id="exportBtn">
-          <i data-feather="download" class="me-1"></i>Export
-        </button>
+        
       </div>
     </div>
   </div>
@@ -167,9 +165,7 @@
   });
 
   // Export functionality
-  document.getElementById('exportBtn')?.addEventListener('click', function() {
-    window.location.href = '{{ route("admin.users.export") }}';
-  });
+  
 
   // Delete user function
   function deleteUser(userId) {
