@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ComplaintController as AdminComplaintController;
@@ -14,6 +17,7 @@ use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
 use App\Http\Controllers\Admin\SlaController as AdminSlaController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\Frontend\DashboardController as FrontendDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,15 +25,11 @@ use App\Http\Controllers\SearchController;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('login');
+    return Auth::check() ? redirect()->route('admin.dashboard') : redirect()->route('login');
 });
 
 Route::get('/admin', function () {
-    return auth()->check()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('login');
+    return redirect()->route('admin.dashboard');
 });
 
 // Legacy redirects
@@ -37,10 +37,10 @@ Route::redirect('/login', '/admin/login');
 Route::redirect('/register', '/admin/register');
 Route::redirect('/admin/rdashboard', '/admin/dashboard');
 
-// Dashboard (for verified users)
-Route::get('/dashboard', [AdminDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// Default dashboard alias (post-login redirect) – admin only now
+Route::get('/dashboard', function () {
+    return Auth::check() ? redirect()->route('admin.dashboard') : redirect()->route('login');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -199,3 +199,5 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::get('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'contact'])->name('help.contact');
     Route::post('help/contact', [App\Http\Controllers\Admin\HelpController::class, 'submitTicket'])->name('help.submit-ticket');
 });
+
+

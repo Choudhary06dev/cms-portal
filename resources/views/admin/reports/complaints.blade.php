@@ -105,8 +105,8 @@
               <div class="alert alert-info">
                 <strong>Report Period:</strong> {{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }}
                 @if(isset($groupBy))
-                  <br>
-                  <strong>Grouped By:</strong> {{ ucfirst($groupBy) }}
+                <br>
+                <strong>Grouped By:</strong> {{ ucfirst($groupBy) }}
                 @endif
               </div>
             </div>
