@@ -126,7 +126,7 @@ class ReportController extends Controller
         // Prefer complaint_spares if exists; otherwise fallback to approved items
         if (Schema::hasTable('complaint_spares')) {
             return DB::table('complaint_spares')
-                ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
+            ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
                 ->sum(DB::raw('complaint_spares.quantity * spares.unit_price'));
         }
 

@@ -34,9 +34,9 @@
         
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="email" class="form-label text-white">Email <span class="text-danger">*</span></label>
+            <label for="email" class="form-label text-white">Email</label>
             <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                   id="email" name="email" value="{{ old('email') }}" required>
+                   id="email" name="email" value="{{ old('email') }}">
             @error('email')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -59,10 +59,17 @@
 
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="full_name" class="form-label text-white">Full Name</label>
-            <input type="text" class="form-control @error('full_name') is-invalid @enderror" 
-                   id="full_name" name="full_name" value="{{ old('full_name') }}">
-            @error('full_name')
+            <label for="role_id" class="form-label text-white">Role <span class="text-danger">*</span></label>
+            <select class="form-select @error('role_id') is-invalid @enderror" 
+                    id="role_id" name="role_id" required>
+              <option value="">Select a role</option>
+              @foreach($roles as $role)
+                <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                  {{ $role->role_name }}
+                </option>
+              @endforeach
+            </select>
+            @error('role_id')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
           </div>
@@ -90,25 +97,7 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="role_id" class="form-label text-white">Role <span class="text-danger">*</span></label>
-            <select class="form-select @error('role_id') is-invalid @enderror" 
-                    id="role_id" name="role_id" required>
-              <option value="">Select a role</option>
-              @foreach($roles as $role)
-                <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                  {{ $role->role_name }}
-                </option>
-              @endforeach
-            </select>
-            @error('role_id')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-      </div>
+      
 
       <div class="row">
         <div class="col-md-6">
@@ -124,41 +113,7 @@
             @enderror
           </div>
         </div>
-
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="address" class="form-label text-white">Address</label>
-            <textarea class="form-control @error('address') is-invalid @enderror" 
-                      id="address" name="address" rows="3">{{ old('address') }}</textarea>
-            @error('address')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="city" class="form-label text-white">City</label>
-            <input type="text" class="form-control @error('city') is-invalid @enderror" 
-                   id="city" name="city" value="{{ old('city') }}">
-            @error('city')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="country" class="form-label text-white">Country</label>
-            <input type="text" class="form-control @error('country') is-invalid @enderror" 
-                   id="country" name="country" value="{{ old('country') }}">
-            @error('country')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
+        <div class="col-md-6"></div>
       </div>
       
       <div class="d-flex justify-content-end gap-2 mt-4">
