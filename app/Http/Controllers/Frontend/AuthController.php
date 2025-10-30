@@ -37,7 +37,7 @@ class AuthController extends Controller
             'theme' => 'light',
         ]);
 
-        Auth::login($user);
+        Auth::guard('frontend')->login($user);
 
         return redirect()->route('frontend.home');
     }
