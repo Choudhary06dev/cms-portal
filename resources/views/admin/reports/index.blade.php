@@ -11,9 +11,6 @@
       <p class="text-light" >Generate comprehensive reports and analytics</p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-secondary">
-        <i data-feather="download" class="me-2"></i>Export All
-      </button>
       <button class="btn btn-accent">
         <i data-feather="refresh-cw" class="me-2"></i>Refresh Data
       </button>
@@ -22,7 +19,7 @@
 </div>
 
 <!-- REPORT CARDS -->
-<div class="row g-4 mb-4">
+<div class="row g-4 mb-4 justify-content-center">
   <div class="col-md-3">
     <div class="card-glass text-center">
       <div class="mb-3">
@@ -61,13 +58,15 @@
   <div class="col-md-3">
     <div class="card-glass text-center">
       <div class="mb-3">
-        <i data-feather="dollar-sign" class="feather-lg text-info"></i>
+        <i data-feather="briefcase" class="feather-lg text-secondary"></i>
       </div>
-      <h4 class="text-white mb-1">Financial Report</h4>
-      <p class="text-muted mb-3">Cost analysis and budgeting</p>
-      <a href="{{ route('admin.reports.financial') }}" class="btn btn-outline-info btn-sm">View Report</a>
+      <h4 class="text-white mb-1">Clients Report</h4>
+      <p class="text-muted mb-3">Clients listing and activity overview</p>
+      <a href="{{ route('admin.reports.clients') }}" class="btn btn-outline-secondary btn-sm">View Report</a>
     </div>
   </div>
+  
+  
 </div>
 
 <!-- QUICK STATS -->
@@ -184,7 +183,7 @@
           <option value="complaints">Complaints Report</option>
           <option value="employees">Employee Report</option>
           <option value="spares">Spare Parts Report</option>
-          <option value="financial">Financial Report</option>
+          
         </select>
       </div>
       <div class="col-md-3">
@@ -299,15 +298,7 @@
     });
   }
 
-  // Export All functionality
   document.addEventListener('DOMContentLoaded', function() {
-    const exportAllBtn = document.querySelector('.btn-outline-secondary');
-    if (exportAllBtn && exportAllBtn.textContent.includes('Export All')) {
-      exportAllBtn.addEventListener('click', function() {
-        exportAllReports();
-      });
-    }
-
     // Refresh Data functionality
     const refreshBtn = document.querySelector('.btn-accent');
     if (refreshBtn && refreshBtn.textContent.includes('Refresh Data')) {
@@ -325,39 +316,6 @@
       });
     }
   });
-
-  function exportAllReports() {
-    // Show loading state
-    const btn = document.querySelector('.btn-outline-secondary');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i data-feather="loader" class="me-2"></i>Exporting...';
-    btn.disabled = true;
-    feather.replace();
-
-    // Simulate export process
-    setTimeout(() => {
-      // Create a comprehensive report
-      const reportData = {
-        complaints: getComplaintsData(),
-        employees: getEmployeesData(),
-        spares: getSparesData(),
-        financial: getFinancialData(),
-        generated_at: new Date().toISOString(),
-        period: getCurrentPeriod()
-      };
-
-      // Download as JSON (you can implement PDF/Excel export later)
-      downloadReportAsJSON(reportData, 'comprehensive_report.json');
-      
-      // Reset button
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-      feather.replace();
-      
-      // Show success message
-      showNotification('All reports exported successfully!', 'success');
-    }, 2000);
-  }
 
   function refreshReportData() {
     // Show loading state
@@ -421,49 +379,13 @@
         return `${baseUrl}employees?${params.toString()}`;
       case 'spares':
         return `${baseUrl}spares?${params.toString()}`;
-      case 'financial':
-        return `${baseUrl}financial?${params.toString()}`;
+      
       default:
         return baseUrl;
     }
   }
 
-  function getComplaintsData() {
-    return @json($realData['complaints']);
-  }
-
-  function getEmployeesData() {
-    return @json($realData['employees']);
-  }
-
-  function getSparesData() {
-    return @json($realData['spares']);
-  }
-
-  function getFinancialData() {
-    return @json($realData['financial']);
-  }
-
-  function getCurrentPeriod() {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    return {
-      from: startOfMonth.toISOString().split('T')[0],
-      to: now.toISOString().split('T')[0]
-    };
-  }
-
-  function downloadReportAsJSON(data, filename) {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+  
 
   function showNotification(message, type = 'info') {
     // Create notification element

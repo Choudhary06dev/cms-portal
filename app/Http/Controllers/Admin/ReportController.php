@@ -460,6 +460,142 @@ class ReportController extends Controller
     }
 
     /**
+     * Generate clients report
+     */
+    public function clients(Request $request)
+    {
+        $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
+        $dateTo = $request->date_to ?? now()->format('Y-m-d');
+        $status = $request->status; // optional filter
+
+        $query = Client::query();
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $clients = $query->orderBy('created_at', 'desc')->get()->map(function($client) use ($dateFrom, $dateTo) {
+            $totalComplaints = Complaint::where('client_id', $client->id)
+                ->whereBetween('created_at', [$dateFrom, $dateTo])
+                ->count();
+            $resolvedComplaints = Complaint::where('client_id', $client->id)
+                ->whereBetween('created_at', [$dateFrom, $dateTo])
+                ->whereIn('status', ['resolved','closed'])
+                ->count();
+
+            return [
+                'client' => $client,
+                'total_complaints' => $totalComplaints,
+                'resolved_complaints' => $resolvedComplaints,
+            ];
+        });
+
+        $summary = [
+            'total_clients' => Client::count(),
+            'active_clients' => Client::where('status', 'active')->count(),
+            'complaints_this_period' => Complaint::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
+        ];
+
+        return view('admin.reports.clients', compact('clients', 'summary', 'dateFrom', 'dateTo', 'status'));
+    }
+
+    /** Printable versions - reuse data builders */
+    public function printComplaints(Request $request)
+    {
+        // Reuse complaints builder
+        $request2 = new Request($request->all());
+        // Set defaults
+        $request2->merge([
+            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
+            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
+            'group_by' => $request->group_by ?? 'status'
+        ]);
+        $built = $this->getComplaintsData($request2);
+        $dateFrom = $request2->get('date_from');
+        $dateTo = $request2->get('date_to');
+        $groupBy = $request2->get('group_by');
+        return view('admin.reports.print-complaints', [
+            'data' => $built['data'],
+            'summary' => $built['summary'],
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'groupBy' => $groupBy,
+        ]);
+    }
+
+    public function printEmployees(Request $request)
+    {
+        $request2 = new Request($request->all());
+        $request2->merge([
+            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
+            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
+        ]);
+        $built = $this->getEmployeesData($request2);
+        $dateFrom = $request2->get('date_from');
+        $dateTo = $request2->get('date_to');
+        $department = $request2->get('department');
+        return view('admin.reports.print-employees', [
+            'employees' => $built['data'],
+            'summary' => $built['summary'],
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'department' => $department,
+        ]);
+    }
+
+    public function printSpares(Request $request)
+    {
+        $request2 = new Request($request->all());
+        $request2->merge([
+            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
+            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
+        ]);
+        $built = $this->getSparesData($request2);
+        $dateFrom = $request2->get('date_from');
+        $dateTo = $request2->get('date_to');
+        $category = $request2->get('category');
+        return view('admin.reports.print-spares', [
+            'spares' => $built['data'],
+            'summary' => $built['summary'],
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'category' => $category,
+        ]);
+    }
+
+    public function printClients(Request $request)
+    {
+        $request2 = new Request($request->all());
+        $request2->merge([
+            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
+            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
+        ]);
+        // Reuse clients builder
+        $dateFrom = $request2->get('date_from');
+        $dateTo = $request2->get('date_to');
+        $status = $request2->get('status');
+        $query = Client::query();
+        if ($status) { $query->where('status', $status); }
+        $clients = $query->orderBy('created_at', 'desc')->get()->map(function($client) use ($dateFrom, $dateTo) {
+            $totalComplaints = Complaint::where('client_id', $client->id)
+                ->whereBetween('created_at', [$dateFrom, $dateTo])->count();
+            $resolvedComplaints = Complaint::where('client_id', $client->id)
+                ->whereBetween('created_at', [$dateFrom, $dateTo])
+                ->whereIn('status', ['resolved','closed'])->count();
+            return [
+                'client' => $client,
+                'total_complaints' => $totalComplaints,
+                'resolved_complaints' => $resolvedComplaints,
+            ];
+        });
+        $summary = [
+            'total_clients' => Client::count(),
+            'active_clients' => Client::where('status', 'active')->count(),
+            'complaints_this_period' => Complaint::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
+        ];
+        return view('admin.reports.print-clients', compact('clients','summary','dateFrom','dateTo','status'));
+    }
+
+    /**
      * Generate spare parts reports
      */
     public function spares(Request $request)
@@ -851,6 +987,130 @@ class ReportController extends Controller
             default:
                 throw new \Exception("Unknown report type: {$type}");
         }
+    }
+
+    /** Builders for export/print reuse */
+    private function getComplaintsData(Request $request): array
+    {
+        $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
+        $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+        $groupBy = $request->get('group_by', 'status');
+
+        $dateFromStart = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+        $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
+
+        $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
+        switch ($groupBy) {
+            case 'status':
+                $data = (clone $baseQuery)->selectRaw('status, COUNT(*) as count')->groupBy('status')->get();
+                break;
+            case 'type':
+                $data = (clone $baseQuery)->selectRaw('category, COUNT(*) as count')->groupBy('category')->get();
+                break;
+            case 'priority':
+                $data = (clone $baseQuery)->selectRaw('priority, COUNT(*) as count')->groupBy('priority')->get();
+                break;
+            case 'employee':
+                $data = (clone $baseQuery)->whereNotNull('assigned_employee_id')
+                    ->selectRaw('assigned_employee_id, COUNT(*) as count')->groupBy('assigned_employee_id')->get()
+                    ->map(function($item){ $item->assignedEmployee = Employee::with('user')->find($item->assigned_employee_id); return $item; });
+                break;
+            case 'client':
+                $data = (clone $baseQuery)->selectRaw('client_id, COUNT(*) as count')->groupBy('client_id')->get()
+                    ->map(function($item){ $item->client = Client::find($item->client_id); return $item; });
+                break;
+            default:
+                $data = (clone $baseQuery)->with(['client','assignedEmployee.user'])->get();
+        }
+
+        $summary = [
+            'total_complaints' => (clone $baseQuery)->count(),
+            'resolved_complaints' => (clone $baseQuery)->whereIn('status', ['resolved','closed'])->count(),
+            'pending_complaints' => (clone $baseQuery)->whereIn('status', ['new','assigned','in_progress'])->count(),
+            'avg_resolution_time' => (clone $baseQuery)->whereIn('status', ['resolved','closed'])->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')->value('avg_hours') ?? 0,
+        ];
+
+        return ['data' => $data, 'summary' => $summary];
+    }
+
+    private function getEmployeesData(Request $request): array
+    {
+        $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
+        $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+        $department = $request->get('department');
+
+        $query = Employee::with(['user','assignedComplaints' => function($q) use ($dateFrom, $dateTo){ $q->whereBetween('created_at', [$dateFrom, $dateTo]); }]);
+        if ($department) { $query->where('department', $department); }
+
+        $employees = $query->get()->map(function($employee){
+            $complaints = $employee->assignedComplaints; $resolved = $complaints->whereIn('status', ['resolved','closed']);
+            return [
+                'employee' => $employee,
+                'total_complaints' => $complaints->count(),
+                'resolved_complaints' => $resolved->count(),
+                'resolution_rate' => $complaints->count() > 0 ? round(($resolved->count() / $complaints->count()) * 100, 2) : 0,
+                'avg_resolution_time' => $resolved->avg(function($c){ return $c->created_at->diffInHours($c->updated_at); }) ?? 0,
+            ];
+        });
+
+        $summary = [
+            'total_employees' => $employees->count(),
+            'avg_resolution_rate' => $employees->avg('resolution_rate'),
+            'top_performer' => $employees->sortByDesc('resolution_rate')->first(),
+        ];
+
+        return ['data' => $employees, 'summary' => $summary];
+    }
+
+    private function getSparesData(Request $request): array
+    {
+        $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
+        $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+        $category = $request->get('category');
+
+        $query = Spare::query(); if ($category) { $query->where('category', $category); }
+        $spares = $query->with(['complaintSpares' => function($q) use ($dateFrom, $dateTo){ $q->whereBetween('used_at', [$dateFrom, $dateTo]); }])->get()->map(function($spare){
+            $usage = $spare->complaintSpares; $totalUsed = $usage->sum('quantity');
+            $totalCost = $usage->sum(function($item) use ($spare){ return $item->quantity * $spare->unit_price; });
+            return [
+                'spare' => $spare,
+                'total_used' => $totalUsed,
+                'total_cost' => $totalCost,
+                'usage_count' => $usage->count(),
+                'current_stock' => $spare->stock_quantity,
+                'stock_status' => $spare->getStockStatusAttribute(),
+            ];
+        });
+
+        $summary = [
+            'total_spares' => $spares->count(),
+            'total_consumption' => $spares->sum('total_cost'),
+            'low_stock_items' => $spares->where('stock_status', 'low_stock')->count(),
+            'out_of_stock_items' => $spares->where('stock_status', 'out_of_stock')->count(),
+        ];
+
+        return ['data' => $spares, 'summary' => $summary];
+    }
+
+    private function getFinancialData(Request $request): array
+    {
+        $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
+        $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+        $spareCosts = DB::table('complaint_spares')->join('spares','complaint_spares.spare_id','=','spares.id')
+            ->whereBetween('complaint_spares.used_at', [$dateFrom, $dateTo])
+            ->selectRaw('spares.category, SUM(complaint_spares.quantity * spares.unit_price) as total_cost')
+            ->groupBy('spares.category')->get();
+        $approvalCosts = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
+            ->where('status','approved')->get()->groupBy(function($a){ return $a->created_at->format('Y-m'); })
+            ->map(function($list){ return $list->count(); });
+        $summary = [
+            'total_spare_costs' => $spareCosts->sum('total_cost'),
+            'total_approvals' => SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
+            'approved_approvals' => SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])->where('status','approved')->count(),
+            'category_breakdown' => $spareCosts,
+            'monthly_approvals' => $approvalCosts,
+        ];
+        return ['data' => $summary, 'summary' => $summary];
     }
 
     /**

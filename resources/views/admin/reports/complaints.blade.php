@@ -11,6 +11,9 @@
       <p class="text-light">View complaint statistics and trends</p>
     </div>
     <div class="d-flex gap-2">
+      <a class="btn btn-outline-light" href="{{ route('admin.reports.complaints.print', request()->query()) }}" target="_blank">
+        <i data-feather="printer" class="me-2"></i>Print Report
+      </a>
       <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
         <i data-feather="arrow-left" class="me-2"></i>Back to Reports
       </a>
@@ -25,7 +28,7 @@
 </div>
 
 <!-- REPORT CONTENT -->
-<div class="card-glass">
+<div id="report-print-area" class="card-glass">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white">
       <i data-feather="alert-circle" class="me-2"></i>Complaints Report
@@ -214,6 +217,21 @@
     </div>
   </div>
 </div>
+@push('styles')
+<style>
+  @media print {
+    @page { size: A5 portrait; margin: 10mm; }
+    body * { visibility: hidden !important; }
+    #report-print-area, #report-print-area * { visibility: visible !important; }
+    #report-print-area { position: absolute; left: 0; top: 0; width: 100%; max-width: 700px; }
+    .topbar, .sidebar { display: none !important; }
+    .card-glass .btn, .btn { display: none !important; }
+    html, body { font-size: 11px; }
+    .table { font-size: 11px; }
+  }
+</style>
+@endpush
+
 @endsection
 
 @push('scripts')

@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\AdminController as AdminController;
 use App\Http\Controllers\Admin\ComplaintController as AdminComplaintController;
 use App\Http\Controllers\Admin\ComplaintCrudController as AdminComplaintCrudController;
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // 🏠 Dashboard
     // ===============================
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    // Notifications API
+    Route::get('/notifications/api', [AdminController::class, 'getNotifications'])->name('notifications.api');
     Route::get('/dashboard/chart-data', [AdminDashboardController::class, 'getChartData'])->name('dashboard.chart-data');
     Route::get('/dashboard/real-time-updates', [AdminDashboardController::class, 'getRealTimeUpdates'])->name('dashboard.real-time-updates');
     
@@ -161,6 +164,12 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::post('sla/{sla}/toggle-status', [AdminSlaController::class, 'toggleStatus'])->name('sla.toggle-status');
     Route::get('reports', [AdminReportController::class, 'index'])->middleware(['permission:reports.view'])->name('reports.index');
     Route::get('reports/complaints', [AdminReportController::class, 'complaints'])->middleware(['permission:reports.view'])->name('reports.complaints');
+    Route::get('reports/clients', [AdminReportController::class, 'clients'])->middleware(['permission:reports.view'])->name('reports.clients');
+    // Printable report routes
+    Route::get('reports/complaints/print', [AdminReportController::class, 'printComplaints'])->middleware(['permission:reports.view'])->name('reports.complaints.print');
+    Route::get('reports/employees/print', [AdminReportController::class, 'printEmployees'])->middleware(['permission:reports.view'])->name('reports.employees.print');
+    Route::get('reports/spares/print', [AdminReportController::class, 'printSpares'])->middleware(['permission:reports.view'])->name('reports.spares.print');
+    Route::get('reports/clients/print', [AdminReportController::class, 'printClients'])->middleware(['permission:reports.view'])->name('reports.clients.print');
     Route::get('reports/spares', [AdminReportController::class, 'spares'])->middleware(['permission:reports.view'])->name('reports.spares');
     Route::get('reports/employees', [AdminReportController::class, 'employees'])->middleware(['permission:reports.view'])->name('reports.employees');
     Route::get('reports/financial', [AdminReportController::class, 'financial'])->middleware(['permission:reports.view'])->name('reports.financial');
