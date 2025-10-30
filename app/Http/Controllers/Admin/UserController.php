@@ -116,9 +116,11 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username,' . $user->id,
             'email' => 'nullable|email|max:150|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'status' => 'required|in:active,inactive',
+            'theme' => 'nullable|in:auto,light,dark',
         ]);
 
         if ($validator->fails()) {
@@ -131,9 +133,14 @@ class UserController extends Controller
             $updateData = [
                 'username' => $request->username,
                 'email' => $request->email,
+                'phone' => $request->phone,
                 'role_id' => $request->role_id,
                 'status' => $request->status,
             ];
+
+            if ($request->filled('theme')) {
+                $updateData['theme'] = $request->theme;
+            }
 
             if ($request->filled('password')) {
                 $updateData['password'] = Hash::make($request->password);

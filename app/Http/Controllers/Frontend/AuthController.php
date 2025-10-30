@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers\Frontend;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+
+class AuthController extends Controller
+{
+    public function showLogin()
+    {
+        return view('frontend.auth.login');
+    }
+
+    public function showRegister()
+    {
+        return view('frontend.auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => ['required','string','max:100','unique:users,username'],
+            'email' => ['required','email','max:150','unique:users,email'],
+            'password' => ['required','string','min:6','confirmed'],
+        ]);
+
+        $user = User::create([
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role_id' => 2, // default to Employee/standard role if exists
+            'status' => 'active',
+            'theme' => 'light',
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->route('frontend.home');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::guard('frontend')->attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('frontend.home'));
+        }
+
+        return back()->withErrors([
+            'email' => 'Invalid credentials.',
+        ])->onlyInput('email');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::guard('frontend')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('frontend.home');
+    }
+}
+
+

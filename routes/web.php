@@ -15,23 +15,23 @@ use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
 use App\Http\Controllers\Admin\SlaController as AdminSlaController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\SearchController;
+// Frontend routes are defined in routes/frontend.php and loaded here
 
 /*
 |--------------------------------------------------------------------------
 | Default Routes
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('login');
-});
+require __DIR__.'/frontend.php';
 
 Route::get('/admin', function () {
     return auth()->check()
         ? redirect()->route('admin.dashboard')
         : redirect()->route('login');
 });
+
+// Public auth pages (distinct names to avoid clashing with Laravel auth)
+// Auth pages for frontend are in routes/frontend.php
 
 // Legacy redirects
 Route::redirect('/login', '/admin/login');

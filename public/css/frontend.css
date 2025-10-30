@@ -1,0 +1,20 @@
+/* Frontend Theme */
+:root{
+  --brand:#0ea5e9; /* sky-500 */
+  --brand-dark:#0284c7; /* sky-600 */
+  --text:#0f172a; /* slate-900 */
+  --muted:#64748b; /* slate-500 */
+  --bg:#f8fafc; /* slate-50 */
+}
+body{background:var(--bg); color:var(--text);} 
+.brand-gradient{background:linear-gradient(135deg,#0ea5e9,#6366f1);}
+.stat{display:flex;gap:.75rem;align-items:center}
+.stat .num{font-weight:700;font-size:1.5rem}
+.stat .label{color:var(--muted)}
+.feature-card{transition:transform .2s ease, box-shadow .2s ease}
+.feature-card:hover{transform:translateY(-2px); box-shadow:0 .5rem 1rem rgba(0,0,0,.08)}
+.testimonial{border-left:4px solid var(--brand); padding-left:1rem}
+.nav-link.active{color:var(--brand-dark)!important; font-weight:600}
+.btn-brand{background:var(--brand); border-color:var(--brand)}
+.btn-brand:hover{background:var(--brand-dark); border-color:var(--brand-dark)}
+
