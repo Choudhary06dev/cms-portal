@@ -494,6 +494,18 @@ body {
   color: #ffffff !important;
 }
 
+/* Ensure badge text is visible on light backgrounds in light theme */
+.theme-light .badge.bg-warning,
+.theme-light .badge.bg-info,
+.theme-light .badge.bg-light {
+  color: #1e293b !important; /* slate-800 for contrast */
+}
+
+/* Force black text for all Bootstrap background badge variants in light theme */
+.theme-light .badge[class*="bg-"] {
+  color: #000000 !important;
+}
+
 .theme-light .text-primary {
   color: #3b82f6 !important;
 }

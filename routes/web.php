@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\AdminController as AdminController;
 use App\Http\Controllers\Admin\ComplaintController as AdminComplaintController;
 use App\Http\Controllers\Admin\ComplaintCrudController as AdminComplaintCrudController;
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // 🏠 Dashboard
     // ===============================
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    // Notifications API
+    Route::get('/notifications/api', [AdminController::class, 'getNotifications'])->name('notifications.api');
     Route::get('/dashboard/chart-data', [AdminDashboardController::class, 'getChartData'])->name('dashboard.chart-data');
     Route::get('/dashboard/real-time-updates', [AdminDashboardController::class, 'getRealTimeUpdates'])->name('dashboard.real-time-updates');
     

@@ -54,7 +54,8 @@ class SlaController extends Controller
     public function create()
     {
         $users = User::where('status', 'active')->get();
-        $complaintTypes = Complaint::getComplaintTypes();
+        // Use dynamic categories instead of hardcoded complaint types
+        $complaintTypes = Complaint::getCategories();
 
         return view('admin.sla.create', compact('users', 'complaintTypes'));
     }
@@ -64,8 +65,9 @@ class SlaController extends Controller
      */
     public function store(Request $request)
     {
+        $allowedCategories = implode(',', array_keys(Complaint::getCategories()));
         $validator = Validator::make($request->all(), [
-            'complaint_type' => 'required|in:electric,sanitary,kitchen,general',
+            'complaint_type' => "required|in:{$allowedCategories}",
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
             'notify_to' => 'required|exists:users,id',
@@ -109,7 +111,8 @@ class SlaController extends Controller
     public function edit(SlaRule $sla)
     {
         $users = User::where('status', 'active')->get();
-        $complaintTypes = Complaint::getComplaintTypes();
+        // Use dynamic categories instead of hardcoded complaint types
+        $complaintTypes = Complaint::getCategories();
 
         return view('admin.sla.edit', compact('sla', 'users', 'complaintTypes'));
     }
@@ -119,8 +122,9 @@ class SlaController extends Controller
      */
     public function update(Request $request, SlaRule $sla)
     {
+        $allowedCategories = implode(',', array_keys(Complaint::getCategories()));
         $validator = Validator::make($request->all(), [
-            'complaint_type' => 'required|in:electric,sanitary,kitchen,general',
+            'complaint_type' => "required|in:{$allowedCategories}",
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
             'notify_to' => 'required|exists:users,id',
@@ -244,7 +248,7 @@ class SlaController extends Controller
         $period = $request->get('period', '30'); // days
 
         $performance = [];
-        $complaintTypes = Complaint::getComplaintTypes();
+        $complaintTypes = Complaint::getCategories();
 
         foreach ($complaintTypes as $type => $label) {
             $total = Complaint::where('category', $type)

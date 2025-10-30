@@ -386,40 +386,19 @@
 
     // Load notifications
     function loadNotifications() {
-      // Mock notifications for now
-      const mockNotifications = [
-        {
-          id: 1,
-          title: 'New Complaint',
-          message: 'A new complaint has been submitted',
-          type: 'info',
-          icon: 'alert-circle',
-          time: '2 minutes ago',
-          read: false
-        },
-        {
-          id: 2,
-          title: 'Low Stock Alert',
-          message: 'Spare parts running low',
-          type: 'warning',
-          icon: 'package',
-          time: '15 minutes ago',
-          read: false
-        },
-        {
-          id: 3,
-          title: 'Spare Parts Alert',
-          message: 'Spare parts stock low',
-          type: 'primary',
-          icon: 'check-circle',
-          time: '1 hour ago',
-          read: true
-        }
-      ];
-
-      const unreadCount = mockNotifications.filter(n => !n.read).length;
-      updateNotificationCount(unreadCount);
-      updateNotificationList(mockNotifications);
+      fetch('/admin/notifications/api', { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+        .then(res => res.json())
+        .then(data => {
+          const list = data.notifications || [];
+          const unread = typeof data.unread === 'number' ? data.unread : (list.filter(n => !n.read).length);
+          updateNotificationCount(unread);
+          updateNotificationList(list);
+        })
+        .catch(() => {
+          // On error, show no notifications to avoid mock data
+          updateNotificationCount(0);
+          updateNotificationList([]);
+        });
     }
 
     // Update notification count
@@ -450,7 +429,7 @@
         `;
       } else {
         listElement.innerHTML = notifications.map(notification => `
-          <a href="#" class="dropdown-item notification-item">
+          <a href="${notification.url || '#'}" class="dropdown-item notification-item">
             <div class="d-flex align-items-start">
               <div class="notification-icon me-3">
                 <i data-feather="${notification.icon || 'bell'}" class="text-${notification.type || 'primary'}"></i>

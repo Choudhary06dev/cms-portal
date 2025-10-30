@@ -283,4 +283,102 @@ class AdminController extends Controller
         
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Get latest notifications for the topbar dropdown
+     */
+    public function getNotifications(Request $request)
+    {
+        // Build a simple aggregated notification feed (max 10)
+        $notifications = collect();
+
+        // 1) New complaints today
+        $newComplaints = Complaint::with(['client'])
+            ->orderBy('created_at', 'desc')
+            ->whereDate('created_at', today())
+            ->limit(5)
+            ->get()
+            ->map(function($c) {
+                return [
+                    'id' => 'complaint-'.$c->id,
+                    'title' => 'New Complaint',
+                    'message' => ($c->client->client_name ?? 'Client').': '.$c->title,
+                    'type' => 'info',
+                    'icon' => 'alert-circle',
+                    'time' => $c->created_at->diffForHumans(),
+                    'read' => false,
+                    'url' => route('admin.complaints.show', $c->id),
+                ];
+            });
+
+        // 2) Pending approvals
+        $pendingApprovals = SpareApprovalPerforma::with(['complaint'])
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function($a) {
+                return [
+                    'id' => 'approval-'.$a->id,
+                    'title' => 'Approval Pending',
+                    'message' => 'Performa #'.$a->id.' awaiting action',
+                    'type' => 'warning',
+                    'icon' => 'check-circle',
+                    'time' => $a->created_at->diffForHumans(),
+                    'read' => false,
+                    'url' => route('admin.approvals.show', $a->id),
+                ];
+            });
+
+        // 3) Low stock spares
+        $lowStock = Spare::lowStock()
+            ->orderBy('stock_quantity', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function($s) {
+                return [
+                    'id' => 'spare-'.$s->id,
+                    'title' => 'Low Stock',
+                    'message' => $s->item_name.' stock at '.$s->stock_quantity,
+                    'type' => 'danger',
+                    'icon' => 'package',
+                    'time' => now()->diffForHumans(),
+                    'read' => false,
+                    'url' => route('admin.spares.show', $s->id),
+                ];
+            });
+
+        // 4) Overdue complaints
+        $overdue = Complaint::overdue()
+            ->with(['client'])
+            ->orderBy('created_at', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function($c) {
+                return [
+                    'id' => 'overdue-'.$c->id,
+                    'title' => 'Overdue Complaint',
+                    'message' => ($c->client->client_name ?? 'Client').': '.$c->title,
+                    'type' => 'danger',
+                    'icon' => 'clock',
+                    'time' => $c->created_at->diffForHumans(),
+                    'read' => false,
+                    'url' => route('admin.complaints.show', $c->id),
+                ];
+            });
+
+        $notifications = $notifications
+            ->merge($newComplaints)
+            ->merge($pendingApprovals)
+            ->merge($lowStock)
+            ->merge($overdue)
+            ->sortByDesc(function($n) { return strtotime($n['time']) ?: 0; })
+            ->values()
+            ->take(10);
+
+        return response()->json([
+            'unread' => $notifications->count(),
+            'notifications' => $notifications,
+        ]);
+    }
 }
