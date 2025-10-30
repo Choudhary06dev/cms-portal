@@ -95,9 +95,7 @@ class AdminController extends Controller
             'pending_complaints' => Complaint::pending()->count(),
             'resolved_complaints' => Complaint::completed()->count(),
             'total_clients' => Client::count(),
-            'active_employees' => Employee::whereHas('user', function($q) {
-                $q->where('status', 'active');
-            })->count(),
+            'active_employees' => Employee::where('status', 'active')->count(),
             'total_spares' => Spare::count(),
             'low_stock_items' => Spare::lowStock()->count(),
             'out_of_stock_items' => Spare::outOfStock()->count(),
@@ -127,16 +125,13 @@ class AdminController extends Controller
      */
     public function getEmployeePerformance()
     {
-        $employees = Employee::with('user')
-            ->whereHas('user', function($q) {
-                $q->where('status', 'active');
-            })
+        $employees = Employee::where('status', 'active')
             ->get()
             ->map(function($employee) {
                 $metrics = $employee->getPerformanceMetrics();
                 return [
                     'id' => $employee->id,
-                    'name' => $employee->getFullNameAttribute(),
+                    'name' => $employee->name,
                     'department' => $employee->department,
                     'total_complaints' => $metrics['total_complaints'],
                     'resolved_complaints' => $metrics['resolved_complaints'],

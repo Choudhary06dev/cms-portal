@@ -54,9 +54,7 @@ class ReportController extends Controller
             ],
             'employees' => [
                 'total' => \App\Models\Employee::count(),
-                'active' => \App\Models\Employee::whereHas('user', function($query) {
-                    $query->where('status', 'active');
-                })->count(),
+                'active' => \App\Models\Employee::where('status', 'active')->count(),
                 'on_leave' => \App\Models\EmployeeLeave::where('status', 'pending')->count(),
                 'avg_performance' => $this->getAverageEmployeePerformance()
             ],
@@ -155,9 +153,7 @@ class ReportController extends Controller
                 ->whereBetween('updated_at', [$startOfMonth, $now])
                 ->count(),
             'sla_compliance' => $this->calculateSlaCompliance(),
-            'active_employees' => Employee::whereHas('user', function($query) {
-                $query->where('status', 'active');
-            })->count(),
+            'active_employees' => Employee::where('status', 'active')->count(),
             'total_spares' => Spare::count(),
             'low_stock_items' => Spare::where('stock_quantity', '<=', DB::raw('threshold_level'))->count(),
             'out_of_stock_items' => Spare::where('stock_quantity', 0)->count(),
@@ -197,7 +193,7 @@ class ReportController extends Controller
         
         try {
             // Recent complaints
-            $recentComplaints = Complaint::with(['client', 'assignedEmployee.user'])
+            $recentComplaints = Complaint::with(['client', 'assignedEmployee'])
                 ->latest()
                 ->limit(3)
                 ->get();
@@ -214,7 +210,7 @@ class ReportController extends Controller
             }
             
             // Recent approvals
-            $recentApprovals = SpareApprovalPerforma::with(['requestedBy.user'])
+            $recentApprovals = SpareApprovalPerforma::with(['requestedBy'])
                 ->latest()
                 ->limit(2)
                 ->get();
@@ -223,7 +219,7 @@ class ReportController extends Controller
                 $activities->push([
                     'type' => 'approval',
                     'title' => 'Spare part approval',
-                    'description' => 'Requested by ' . ($approval->requestedBy->user->username ?? 'Unknown'),
+                'description' => 'Requested by ' . ($approval->requestedBy->name ?? 'Unknown'),
                     'time' => $approval->created_at->diffForHumans(),
                     'badge' => ucfirst($approval->status),
                     'badge_class' => $this->getApprovalBadgeClass($approval->status)
@@ -231,7 +227,7 @@ class ReportController extends Controller
             }
             
             // Recent employee activities
-            $recentLeaves = EmployeeLeave::with(['employee.user'])
+            $recentLeaves = EmployeeLeave::with(['employee'])
                 ->where('status', 'pending')
                 ->latest()
                 ->limit(1)
@@ -241,7 +237,7 @@ class ReportController extends Controller
                 $activities->push([
                     'type' => 'leave',
                     'title' => 'Employee leave request',
-                    'description' => ($leave->employee->user->username ?? 'Unknown') . ' requested leave',
+                'description' => ($leave->employee->name ?? 'Unknown') . ' requested leave',
                     'time' => $leave->created_at->diffForHumans(),
                     'badge' => 'Pending',
                     'badge_class' => 'warning'
@@ -336,7 +332,7 @@ class ReportController extends Controller
         
         // Use a base query and clone it for each computation to avoid mutation side-effects
         $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
-        $query = (clone $baseQuery)->with(['client', 'assignedEmployee.user']);
+        $query = (clone $baseQuery)->with(['client', 'assignedEmployee']);
 
         // Generate report data based on group_by
         switch ($groupBy) {
@@ -365,7 +361,7 @@ class ReportController extends Controller
                     ->groupBy('assigned_employee_id')
                     ->get()
                     ->map(function($item) {
-                        $item->assignedEmployee = \App\Models\Employee::with('user')->find($item->assigned_employee_id);
+                        $item->assignedEmployee = \App\Models\Employee::find($item->assigned_employee_id);
                         return $item;
                     });
                 break;
@@ -382,7 +378,7 @@ class ReportController extends Controller
                 break;
 
             default:
-                $data = (clone $baseQuery)->with(['client', 'assignedEmployee.user'])->get();
+                $data = (clone $baseQuery)->with(['client', 'assignedEmployee'])->get();
         }
 
         // Build summary metrics from clean clones of the base query
@@ -423,7 +419,7 @@ class ReportController extends Controller
             ]);
         }
 
-        $query = Employee::with(['user', 'assignedComplaints' => function($q) use ($dateFrom, $dateTo) {
+        $query = Employee::with(['assignedComplaints' => function($q) use ($dateFrom, $dateTo) {
             $q->whereBetween('created_at', [$dateFrom, $dateTo]);
         }]);
 
@@ -724,7 +720,7 @@ class ReportController extends Controller
 
         // Get complaints with SLA analysis
         $complaints = Complaint::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->with(['client', 'assignedEmployee.user'])
+            ->with(['client', 'assignedEmployee'])
             ->get()
             ->map(function($complaint) use ($slaRules) {
                 $ageInHours = $complaint->created_at->diffInHours(now());
@@ -804,9 +800,7 @@ class ReportController extends Controller
             'resolved_complaints' => Complaint::whereIn('status', ['resolved', 'closed'])->count(),
             'pending_complaints' => Complaint::pending()->count(),
             'overdue_complaints' => Complaint::overdue()->count(),
-            'total_employees' => Employee::whereHas('user', function($q) {
-                $q->where('status', 'active');
-            })->count(),
+            'total_employees' => Employee::where('status', 'active')->count(),
             'total_clients' => Client::count(),
             'total_spares' => Spare::count(),
             'low_stock_items' => Spare::lowStock()->count(),
@@ -844,9 +838,7 @@ class ReportController extends Controller
                 break;
 
             case 'employees':
-                $data = Employee::whereHas('user', function($q) {
-                    $q->where('status', 'active');
-                })
+                $data = Employee::where('status', 'active')
                 ->withCount(['assignedComplaints' => function($q) use ($period) {
                     $q->where('created_at', '>=', now()->subDays($period))
                       ->whereIn('status', ['resolved', 'closed']);
@@ -854,7 +846,7 @@ class ReportController extends Controller
                 ->get()
                 ->map(function($employee) {
                     return [
-                        'name' => $employee->getFullNameAttribute(),
+                        'name' => $employee->name,
                         'resolved' => $employee->assigned_complaints_count,
                     ];
                 });
@@ -1013,14 +1005,14 @@ class ReportController extends Controller
             case 'employee':
                 $data = (clone $baseQuery)->whereNotNull('assigned_employee_id')
                     ->selectRaw('assigned_employee_id, COUNT(*) as count')->groupBy('assigned_employee_id')->get()
-                    ->map(function($item){ $item->assignedEmployee = Employee::with('user')->find($item->assigned_employee_id); return $item; });
+                    ->map(function($item){ $item->assignedEmployee = Employee::find($item->assigned_employee_id); return $item; });
                 break;
             case 'client':
                 $data = (clone $baseQuery)->selectRaw('client_id, COUNT(*) as count')->groupBy('client_id')->get()
                     ->map(function($item){ $item->client = Client::find($item->client_id); return $item; });
                 break;
             default:
-                $data = (clone $baseQuery)->with(['client','assignedEmployee.user'])->get();
+                $data = (clone $baseQuery)->with(['client','assignedEmployee'])->get();
         }
 
         $summary = [

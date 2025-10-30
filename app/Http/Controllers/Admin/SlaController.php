@@ -97,7 +97,7 @@ class SlaController extends Controller
 
         // Get recent complaints for this SLA rule
         $recentComplaints = Complaint::where('category', $sla->complaint_type)
-            ->with(['client', 'assignedEmployee.user'])
+            ->with(['client', 'assignedEmployee'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
@@ -217,7 +217,7 @@ class SlaController extends Controller
 
         $breaches = Complaint::where('created_at', '>=', now()->subDays($period))
             ->whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->with(['client', 'assignedEmployee.user', 'slaRule'])
+            ->with(['client', 'assignedEmployee', 'slaRule'])
             ->get()
             ->filter(function($complaint) {
                 return $complaint->isSlaBreached();
@@ -228,7 +228,7 @@ class SlaController extends Controller
                     'client_name' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
                     'category' => $complaint->category,
                     'status' => $complaint->status,
-                    'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->user->username : 'Unassigned',
+                    'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->name : 'Unassigned',
                     'created_at' => $complaint->created_at,
                     'hours_overdue' => $complaint->getHoursOverdue(),
                     'sla_rule' => $complaint->slaRule ? $complaint->slaRule->max_resolution_time : null,
@@ -283,7 +283,7 @@ class SlaController extends Controller
 
         $alerts = Complaint::where('created_at', '>=', now()->subHours($hours))
             ->whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->with(['client', 'assignedEmployee.user', 'slaRule'])
+            ->with(['client', 'assignedEmployee', 'slaRule'])
             ->get()
             ->filter(function($complaint) {
                 return $complaint->isSlaBreached();
@@ -293,10 +293,10 @@ class SlaController extends Controller
                     'complaint_id' => $complaint->id,
                     'client_name' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
                     'category' => $complaint->category,
-                    'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->user->username : 'Unassigned',
+                    'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->name : 'Unassigned',
                     'hours_overdue' => $complaint->getHoursOverdue(),
                     'escalation_level' => $complaint->slaRule ? $complaint->slaRule->escalation_level : 1,
-                    'notify_to' => $complaint->slaRule ? $complaint->slaRule->notifyTo->username : null,
+            'notify_to' => $complaint->slaRule ? $complaint->slaRule->notifyTo->name : null,
                 ];
             })
             ->sortByDesc('hours_overdue')
@@ -332,7 +332,7 @@ class SlaController extends Controller
             'response_breached' => $complaint->isResponseTimeBreached($sla),
             'resolution_breached' => $complaint->isResolutionTimeBreached($sla),
             'escalation_level' => $sla->escalation_level,
-            'notify_to' => $sla->notifyTo->username,
+            'notify_to' => $sla->notifyTo->name,
         ];
 
         return response()->json($result);

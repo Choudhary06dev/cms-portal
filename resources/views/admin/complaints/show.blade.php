@@ -71,7 +71,7 @@
                   </tr>
                   <tr>
                     <td><strong>Assigned To:</strong></td>
-                    <td>{{ $complaint->assignedEmployee->user->username ?? 'Unassigned' }}</td>
+                    <td>{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}</td>
                   </tr>
                   <tr>
                     <td><strong>Created:</strong></td>
@@ -156,7 +156,7 @@
                         <td>{{ $sparePart->quantity }}</td>
                         <td>PKR {{ number_format($sparePart->spare->unit_price ?? 0, 2) }}</td>
                         <td>PKR {{ number_format($sparePart->getTotalCostAttribute(), 2) }}</td>
-                        <td>{{ $sparePart->usedBy->user->username ?? 'N/A' }}</td>
+                        <td>{{ $sparePart->usedBy->name ?? 'N/A' }}</td>
                         <td>{{ $sparePart->used_at->format('M d, Y H:i') }}</td>
                       </tr>
                       @endforeach

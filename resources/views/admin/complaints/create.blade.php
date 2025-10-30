@@ -134,7 +134,7 @@
                     <option value="">Select Employee (Optional)</option>
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->user->username }} - {{ $employee->user->name }}</option>
+                        <option value="{{ $employee->id }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
                       @endforeach
                     @else
                       <option value="" disabled>No employees available</option>

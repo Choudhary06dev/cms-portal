@@ -39,7 +39,7 @@
         <option value="">All Requesters</option>
           @foreach($employees as $employee)
           <option value="{{ $employee->id }}" {{ request('requested_by') == $employee->id ? 'selected' : '' }}>
-            {{ $employee->user->username }}
+            {{ $employee->name }}
           </option>
           @endforeach
       </select>
@@ -109,7 +109,7 @@
               {{ $approval->items->count() > 0 ? 'Spare Parts (' . $approval->items->count() . ' items)' : 'Spare Parts' }}
             </span>
           </td>
-          <td>{{ $approval->requestedBy->user->username ?? 'N/A' }}</td>
+          <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
           <td>
             <span class="status-badge status-{{ strtolower($approval->status) }}">
               {{ ucfirst($approval->status) }}

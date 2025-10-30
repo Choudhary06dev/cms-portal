@@ -83,7 +83,7 @@
           <td >{{ $rule->max_response_time }} hours</td>
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
           <td >{{ $rule->escalation_level }} hours</td>
-          <td >{{ $rule->notifyTo->username ?? 'N/A' }}</td>
+          <td >{{ $rule->notifyTo->name ?? 'N/A' }}</td>
           <td>
             <span class="status-badge status-{{ $rule->status ?? 'active' }}">
               {{ ucfirst($rule->status ?? 'active') }}

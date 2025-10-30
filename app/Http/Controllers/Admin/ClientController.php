@@ -119,7 +119,7 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
-        $client->load(['complaints.assignedEmployee.user', 'complaints.attachments']);
+        $client->load(['complaints.assignedEmployee', 'complaints.attachments']);
         
         // Get client statistics
         $stats = [
@@ -131,7 +131,7 @@ class ClientController extends Controller
 
         // Get recent complaints
         $recentComplaints = $client->complaints()
-            ->with(['assignedEmployee.user', 'attachments'])
+            ->with(['assignedEmployee', 'attachments'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
@@ -297,7 +297,7 @@ class ClientController extends Controller
      */
     public function getComplaints(Client $client, Request $request)
     {
-        $query = $client->complaints()->with(['assignedEmployee.user', 'attachments']);
+        $query = $client->complaints()->with(['assignedEmployee', 'attachments']);
 
         // Filter by status
         if ($request->has('status') && $request->status) {

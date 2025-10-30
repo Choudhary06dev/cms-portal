@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('name', 150);
+            $table->string('email', 150)->nullable()->unique();
             $table->string('department', 100)->nullable();
             $table->string('designation', 100)->nullable();
             $table->string('phone', 20)->nullable();
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->date('date_of_hire')->nullable();
             $table->integer('leave_quota')->default(30);
             $table->text('address')->nullable();
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }

@@ -1130,7 +1130,7 @@
                   <td>#{{ $approval->id }}</td>
                   <td>{{ $approval->complaint ? $approval->complaint->getTicketNumberAttribute() : 'N/A' }}</td>
                   <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
-                  <td>{{ $approval->requestedBy && $approval->requestedBy->user ? $approval->requestedBy->user->username : 'N/A' }}</td>
+                  <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
                   <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
                   <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
                   <td>

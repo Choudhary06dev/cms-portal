@@ -74,7 +74,7 @@
                 <table class="table table-borderless">
                   <tr>
                     <td class="text-white"><strong>Notify To:</strong></td>
-                    <td class="text-white">{{ $sla->notifyTo->username ?? 'Not Set' }}</td>
+                    <td class="text-white">{{ $sla->notifyTo->name ?? 'Not Set' }}</td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Created:</strong></td>

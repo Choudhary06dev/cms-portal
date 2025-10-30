@@ -7,7 +7,7 @@
         'overdue' => \App\Models\SpareApprovalPerforma::overdue()->count(),
     ];
     
-    $recentApprovals = \App\Models\SpareApprovalPerforma::with(['complaint.client', 'requestedBy.user'])
+    $recentApprovals = \App\Models\SpareApprovalPerforma::with(['complaint.client', 'requestedBy'])
         ->orderBy('created_at', 'desc')
         ->limit(5)
         ->get();

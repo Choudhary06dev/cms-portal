@@ -88,7 +88,7 @@
                         <option value="">All Employees</option>
                         @foreach($employees as $employee)
                         <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
-                            {{ $employee->user->username }}
+                            {{ $employee->name }}
                         </option>
                         @endforeach
                     </select>
@@ -149,7 +149,7 @@
                                     {{ ucfirst($complaint->status) }}
                                 </span>
                             </td>
-                            <td>{{ $complaint->assignedEmployee->user->username ?? 'Unassigned' }}</td>
+                            <td>{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}</td>
                             <td>
                                 @if($complaint->spareParts->count() > 0)
                                     <div class="small">
@@ -438,7 +438,7 @@
                             </div>
                             <div class="mb-3" style="color: var(--text-primary);">
                                 <span style="color: var(--text-muted);">Assigned To:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.assigned_employee ? complaint.assigned_employee.user.username : 'Unassigned'}</span>
+                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.assigned_employee ? complaint.assigned_employee.name : 'Unassigned'}</span>
                             </div>
                             <div class="mb-3" style="color: var(--text-primary);">
                                 <span style="color: var(--text-muted);">Created:</span>
