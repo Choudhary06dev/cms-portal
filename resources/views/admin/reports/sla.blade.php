@@ -188,7 +188,7 @@
                               {{ ucfirst($complaintData['complaint']->status) }}
                             </span>
                           </td>
-                          <td>{{ $complaintData['complaint']->assignedEmployee->user->username ?? 'Unassigned' }}</td>
+                          <td>{{ $complaintData['complaint']->assignedEmployee->name ?? 'Unassigned' }}</td>
                           <td>
                             <span class="badge bg-{{ $complaintData['age_hours'] > $complaintData['max_response_time'] ? 'danger' : 'success' }}">
                               {{ $complaintData['age_hours'] }}h

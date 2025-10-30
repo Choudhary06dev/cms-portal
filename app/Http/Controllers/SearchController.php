@@ -48,7 +48,7 @@ class SearchController extends Controller
         $results = [];
 
         // Search Complaints
-        $complaints = Complaint::with(['client', 'assignedEmployee.user'])
+        $complaints = Complaint::with(['client', 'assignedEmployee'])
             ->where(function($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
                   ->orWhere('description', 'like', "%{$query}%")
@@ -61,8 +61,8 @@ class SearchController extends Controller
                   ->orWhere('contact_person', 'like', "%{$query}%")
                   ->orWhere('email', 'like', "%{$query}%");
             })
-            ->orWhereHas('assignedEmployee.user', function($q) use ($query) {
-                $q->where('username', 'like', "%{$query}%")
+            ->orWhereHas('assignedEmployee', function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
                   ->orWhere('email', 'like', "%{$query}%");
             })
             ->limit(10)
@@ -156,15 +156,13 @@ class SearchController extends Controller
         }
 
         // Search Employees
-        $employees = Employee::with(['user'])
+        $employees = Employee::query()
             ->where(function($q) use ($query) {
                 $q->where('designation', 'like', "%{$query}%")
                   ->orWhere('department', 'like', "%{$query}%");
             })
-            ->orWhereHas('user', function($q) use ($query) {
-                $q->where('username', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%");
-            })
+            ->orWhere('name', 'like', "%{$query}%")
+            ->orWhere('email', 'like', "%{$query}%")
             ->limit(10)
             ->get();
 
@@ -178,10 +176,10 @@ class SearchController extends Controller
                 'items' => $employees->map(function($employee) {
                     return [
                         'id' => $employee->id,
-                        'title' => $employee->user->username ?? 'Unknown',
+                        'title' => $employee->name ?? 'Unknown',
                         'subtitle' => $employee->designation,
                         'description' => $employee->department,
-                        'status' => $employee->user->status === 'active' ? 'Active' : 'Inactive',
+                        'status' => ($employee->status === 'active') ? 'Active' : 'Inactive',
                         'url' => route('admin.employees.show', $employee->id),
                         'created_at' => $employee->created_at->format('M d, Y')
                     ];
@@ -221,7 +219,7 @@ class SearchController extends Controller
         }
 
         // Search Approvals
-        $approvals = SpareApprovalPerforma::with(['complaint', 'requestedBy.user'])
+        $approvals = SpareApprovalPerforma::with(['complaint', 'requestedBy'])
             ->where(function($q) use ($query) {
                 $q->where('status', 'like', "%{$query}%");
             })
@@ -229,8 +227,8 @@ class SearchController extends Controller
                 $q->where('title', 'like', "%{$query}%")
                   ->orWhere('description', 'like', "%{$query}%");
             })
-            ->orWhereHas('requestedBy.user', function($q) use ($query) {
-                $q->where('username', 'like', "%{$query}%")
+            ->orWhereHas('requestedBy', function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
                   ->orWhere('email', 'like', "%{$query}%");
             })
             ->limit(10)
@@ -248,7 +246,7 @@ class SearchController extends Controller
                         'id' => $approval->id,
                         'title' => 'Approval #' . $approval->id,
                         'subtitle' => $approval->complaint->getTicketNumberAttribute() ?? 'Unknown',
-                        'description' => $approval->requestedBy->user->username ?? 'Unknown',
+                        'description' => $approval->requestedBy->name ?? 'Unknown',
                         'status' => ucfirst($approval->status),
                         'url' => route('admin.approvals.show', $approval->id),
                         'created_at' => $approval->created_at->format('M d, Y')

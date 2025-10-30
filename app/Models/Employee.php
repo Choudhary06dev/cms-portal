@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -13,7 +12,8 @@ class Employee extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id',
+        'name',
+        'email',
         'department',
         'designation',
         'phone',
@@ -21,6 +21,7 @@ class Employee extends Model
         'date_of_hire',
         'leave_quota',
         'address',
+        'status',
     ];
 
     protected $casts = [
@@ -28,20 +29,10 @@ class Employee extends Model
         'date_of_hire' => 'date',
     ];
 
-    /**
-     * Get the user that owns the employee.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class)->withTrashed();
-    }
-
-    /**
-     * Get full name of the employee
-     */
+    // Derived name accessor retained for backwards compatibility
     public function getFullNameAttribute(): string
     {
-        return $this->user ? $this->user->username : 'Unknown Employee';
+        return $this->name ?? 'Unknown Employee';
     }
 
     /**
@@ -92,38 +83,7 @@ class Employee extends Model
         return $this->hasMany(ComplaintLog::class, 'action_by');
     }
 
-    /**
-     * Get employee's username
-     */
-    public function getUsernameAttribute(): string
-    {
-        return $this->user ? $this->user->username : 'Unknown';
-    }
-
-    /**
-     * Get employee's email
-     */
-    public function getEmailAttribute(): ?string
-    {
-        return $this->user ? $this->user->email : null;
-    }
-
-
-    /**
-     * Get employee's status
-     */
-    public function getStatusAttribute(): string
-    {
-        return $this->user ? $this->user->status : 'inactive';
-    }
-
-    /**
-     * Check if employee is active
-     */
-    public function isActive(): bool
-    {
-        return $this->user && $this->user->isActive();
-    }
+    // Removed username/email/status/user-dependent accessors
 
     /**
      * Get total leaves taken this year

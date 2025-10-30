@@ -35,7 +35,7 @@
     <tbody>
       @foreach($employees as $row)
       <tr>
-        <td>{{ $row['employee']->user->username ?? 'N/A' }}</td>
+        <td>{{ $row['employee']->name ?? 'N/A' }}</td>
         <td>{{ ucfirst($row['employee']->department ?? '-') }}</td>
         <td>{{ $row['total_complaints'] }}</td>
         <td>{{ $row['resolved_complaints'] }}</td>

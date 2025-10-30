@@ -144,7 +144,7 @@
         
         <div class="info-row">
             <div class="info-label">Assigned To:</div>
-            <div class="info-value">{{ $complaint->assignedEmployee->user->username ?? 'Unassigned' }}</div>
+            <div class="info-value">{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}</div>
         </div>
         
         <div class="info-row">

@@ -19,12 +19,12 @@
     <div class="col-md-4">
       <div class="text-center mb-4">
         <div class="avatar-lg mx-auto mb-3" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 48px;">
-          {{ substr($employee->user->username ?? 'E', 0, 1) }}
+          {{ substr($employee->name ?? 'E', 0, 1) }}
         </div>
-        <h4 class="text-white">{{ $employee->user->username ?? 'N/A' }}</h4>
+        <h4 class="text-white">{{ $employee->name ?? 'N/A' }}</h4>
         <p class="text-light">{{ $employee->designation ?? 'N/A' }}</p>
-        <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }}">
-          {{ ucfirst($employee->user->status ?? 'inactive') }}
+        <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}">
+          {{ ucfirst($employee->status ?? 'inactive') }}
         </span>
       </div>
     </div>
@@ -38,12 +38,8 @@
             <span class="text-white ms-2">{{ $employee->id }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Username:</span>
-            <span class="text-white ms-2">{{ $employee->user->username ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted">Email:</span>
-            <span class="text-white ms-2">{{ $employee->user->email ?? 'N/A' }}</span>
+            <span class="text-muted">Name:</span>
+            <span class="text-white ms-2">{{ $employee->name ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
             <span class="text-muted">Phone:</span>
@@ -62,13 +58,9 @@
             <span class="text-white ms-2">{{ $employee->designation ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Role:</span>
-            <span class="text-white ms-2">{{ $employee->user->role->role_name ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
             <span class="text-muted">Status:</span>
-            <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2">
-              {{ ucfirst($employee->user->status ?? 'inactive') }}
+            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2">
+              {{ ucfirst($employee->status ?? 'inactive') }}
             </span>
           </div>
           <div class="mb-3">

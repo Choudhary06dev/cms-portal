@@ -105,7 +105,7 @@
                     @foreach($employees as $emp)
                     <option value="{{ $emp->id }}" 
                             {{ old('assigned_employee_id', $complaint->assigned_employee_id) == $emp->id ? 'selected' : '' }}>
-                      {{ $emp->user->username ?? 'Employee #' . $emp->id }}
+                      {{ $emp->name ?? 'Employee #' . $emp->id }}
                     </option>
                     @endforeach
                   </select>

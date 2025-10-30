@@ -131,12 +131,12 @@
                       <td>
                         <div class="d-flex align-items-center">
                           <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
-                            <span class="text-white fw-bold">{{ substr($employeeData['employee']->user->username, 0, 1) }}</span>
+                            <span class="text-white fw-bold">{{ substr($employeeData['employee']->name, 0, 1) }}</span>
                           </div>
                           <div>
-                            <strong>{{ $employeeData['employee']->user->username }}</strong>
+                            <strong>{{ $employeeData['employee']->name }}</strong>
                             <br>
-                            <small class="text-muted">{{ $employeeData['employee']->user->email }}</small>
+                            <small class="text-muted">{{ $employeeData['employee']->email }}</small>
                           </div>
                         </div>
                       </td>

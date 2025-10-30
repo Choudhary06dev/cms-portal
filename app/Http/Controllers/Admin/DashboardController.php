@@ -28,13 +28,13 @@ class DashboardController extends Controller
         $stats = $this->getDashboardStats();
         
         // Get recent complaints
-        $recentComplaints = Complaint::with(['client', 'assignedEmployee.user'])
+        $recentComplaints = Complaint::with(['client', 'assignedEmployee'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
         // Get pending approvals
-        $pendingApprovals = SpareApprovalPerforma::with(['complaint.client', 'requestedBy.user', 'items.spare'])
+        $pendingApprovals = SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare'])
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->limit(5)
@@ -48,7 +48,7 @@ class DashboardController extends Controller
 
         // Get overdue complaints
         $overdueComplaints = Complaint::overdue()
-            ->with(['client', 'assignedEmployee.user'])
+            ->with(['client', 'assignedEmployee'])
             ->orderBy('created_at', 'asc')
             ->limit(10)
             ->get();
@@ -66,7 +66,7 @@ class DashboardController extends Controller
             ->toArray();
 
         // Get employee performance
-        $employeePerformance = Employee::with('user')
+        $employeePerformance = Employee::query()
             ->withCount(['assignedComplaints' => function($query) {
                 $query->where('created_at', '>=', now()->subDays(30));
             }])

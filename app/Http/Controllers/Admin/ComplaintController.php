@@ -31,7 +31,7 @@ class ComplaintController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Complaint::with(['client', 'assignedEmployee.user', 'attachments', 'spareParts.spare']);
+        $query = Complaint::with(['client', 'assignedEmployee', 'attachments', 'spareParts.spare']);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -82,9 +82,7 @@ class ComplaintController extends Controller
         $complaints = $query->orderBy('id', 'desc')->paginate(15);
         
         $clients = Client::orderBy('client_name')->get();
-        $employees = Employee::whereHas('user', function($q) {
-            $q->where('status', 'active');
-        })->with('user')->get();
+        $employees = Employee::where('status', 'active')->get();
 
         return view('admin.complaints.index', compact('complaints', 'clients', 'employees'));
     }
@@ -98,7 +96,7 @@ class ComplaintController extends Controller
         request()->session()->forget('_old_input');
         
         $clients = Client::where('status', 'active')->orderBy('client_name')->get();
-        $employees = Employee::with('user')->get();
+        $employees = Employee::all();
 
         return view('admin.complaints.create', compact('clients', 'employees'));
     }
@@ -173,7 +171,7 @@ class ComplaintController extends Controller
 
         // Log the complaint creation
         // Find the employee associated with the current user
-        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        $currentEmployee = Employee::first();
         
         if ($currentEmployee) {
             ComplaintLog::create([
@@ -323,7 +321,7 @@ class ComplaintController extends Controller
         try {
             $complaint->load([
                 'client',
-                'assignedEmployee.user',
+                'assignedEmployee',
                 'attachments',
                 'logs.actionBy',
                 'spareParts.spare',
@@ -367,9 +365,7 @@ class ComplaintController extends Controller
         $complaint->load(['spareParts.spare']);
         
         $clients = Client::orderBy('client_name')->get();
-        $employees = Employee::whereHas('user', function($q) {
-            $q->where('status', 'active');
-        })->with('user')->get();
+        $employees = Employee::where('status', 'active')->get();
 
         return view('admin.complaints.edit', compact('complaint', 'clients', 'employees'));
     }
@@ -420,7 +416,7 @@ class ComplaintController extends Controller
         try {
             DB::beginTransaction();
 
-            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+            $currentEmployee = Employee::first();
 
             // Remove existing complaint spares without stock adjustment
             $existingSpares = $complaint->spareParts()->with('spare')->get();
@@ -480,7 +476,7 @@ class ComplaintController extends Controller
 
         // Log status changes
         if ($oldStatus !== $request->status) {
-            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+            $currentEmployee = Employee::first();
             if ($currentEmployee) {
                 ComplaintLog::create([
                     'complaint_id' => $complaint->id,
@@ -495,10 +491,10 @@ class ComplaintController extends Controller
         if ($oldAssignedTo !== $request->assigned_employee_id) {
             $assignedEmployee = $request->assigned_employee_id ? Employee::find($request->assigned_employee_id) : null;
             $assignmentNote = $assignedEmployee 
-                ? "Assigned to {$assignedEmployee->user->full_name}"
+                ? "Assigned to {$assignedEmployee->name}"
                 : "Unassigned";
             
-            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+            $currentEmployee = Employee::first();
             if ($currentEmployee) {
                 ComplaintLog::create([
                     'complaint_id' => $complaint->id,
@@ -554,13 +550,13 @@ class ComplaintController extends Controller
             'status' => 'assigned',
         ]);
 
-        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        $currentEmployee = Employee::first();
         if ($currentEmployee) {
             ComplaintLog::create([
                 'complaint_id' => $complaint->id,
                 'action_by' => $currentEmployee->id,
                 'action' => 'assigned',
-                'remarks' => "Assigned to {$employee->user->full_name}. " . ($request->notes ?? ''),
+                'remarks' => "Assigned to {$employee->name}. " . ($request->notes ?? ''),
             ]);
         }
 
@@ -590,7 +586,7 @@ class ComplaintController extends Controller
             'closed_at' => $request->status === 'closed' ? now() : null,
         ]);
 
-        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        $currentEmployee = Employee::first();
         if ($currentEmployee) {
             ComplaintLog::create([
                 'complaint_id' => $complaint->id,
@@ -618,7 +614,7 @@ class ComplaintController extends Controller
                 ->withErrors($validator);
         }
 
-        $currentEmployee = Employee::where('user_id', auth()->id())->first();
+        $currentEmployee = Employee::first();
         if ($currentEmployee) {
             ComplaintLog::create([
                 'complaint_id' => $complaint->id,
@@ -690,7 +686,7 @@ class ComplaintController extends Controller
         $days = $request->get('days', 7);
 
         $overdue = Complaint::overdue($days)
-            ->with(['client', 'assignedEmployee.user'])
+            ->with(['client', 'assignedEmployee'])
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -710,7 +706,7 @@ class ComplaintController extends Controller
                 SUM(CASE WHEN status = "resolved" OR status = "closed" THEN 1 ELSE 0 END) as resolved_complaints,
                 AVG(CASE WHEN status = "resolved" OR status = "closed" THEN TIMESTAMPDIFF(HOUR, created_at, updated_at) ELSE NULL END) as avg_resolution_time')
             ->groupBy('assigned_employee_id')
-            ->with('assignedEmployee.user')
+            ->with('assignedEmployee')
             ->get();
 
         return response()->json($performance);
@@ -721,7 +717,7 @@ class ComplaintController extends Controller
      */
     public function printSlip(Complaint $complaint)
     {
-        $complaint->load(['client', 'assignedEmployee.user', 'attachments']);
+        $complaint->load(['client', 'assignedEmployee', 'attachments']);
         
         return view('admin.complaints.print-slip', compact('complaint'));
     }
@@ -834,7 +830,7 @@ class ComplaintController extends Controller
         try {
             DB::beginTransaction();
 
-            $currentEmployee = Employee::where('user_id', auth()->id())->first();
+            $currentEmployee = Employee::first();
             if (!$currentEmployee) {
                 throw new \Exception('Employee record not found');
             }
@@ -890,7 +886,7 @@ class ComplaintController extends Controller
      */
     public function export(Request $request)
     {
-        $query = Complaint::with(['client', 'assignedEmployee.user']);
+        $query = Complaint::with(['client', 'assignedEmployee']);
 
         // Apply same filters as index
         if ($request->has('search') && $request->search) {

@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
-use App\Models\User;
-use App\Models\Role;
+// Removed User and Role dependencies as employees no longer link to users
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -26,10 +25,9 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        $employees = Employee::with('user.role')->orderBy('id', 'desc')->paginate(10);
-        $roles = Role::all();
+        $employees = Employee::orderBy('id', 'desc')->paginate(10);
         
-        return view('admin.employees.index', compact('employees', 'roles'));
+        return view('admin.employees.index', compact('employees'));
     }
 
     /**
@@ -40,10 +38,7 @@ class EmployeeController extends Controller
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
         
-        $users = User::whereDoesntHave('employee')->get();
-        $roles = Role::all();
-        
-        $response = response()->view('admin.employees.create', compact('users', 'roles'));
+        $response = response()->view('admin.employees.create');
         
         // Add cache-busting headers
         $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -66,18 +61,16 @@ class EmployeeController extends Controller
         ]);
 
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:100|unique:users,username',
-            'email' => 'nullable|email|max:150|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:6|confirmed',
+            'name' => 'required|string|max:150',
+            'email' => 'nullable|email|max:150|unique:employees,email',
             'department' => 'required|string|max:100',
             'designation' => 'required|string|max:100',
+            'phone' => 'nullable|string|max:20',
             'biometric_id' => 'nullable|string|max:50|unique:employees',
             'date_of_hire' => 'nullable|date',
             'leave_quota' => 'nullable|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
             'status' => 'nullable|in:active,inactive',
-            'role_id' => 'nullable|exists:roles,id',
         ]);
 
         if ($validator->fails()) {
@@ -98,20 +91,10 @@ class EmployeeController extends Controller
             DB::beginTransaction();
             Log::info('Starting employee creation transaction');
 
-            // Create user first (phone is stored on employee)
-            $user = User::create([
-                'username' => $request->username,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role_id' => $request->role_id ?? 2, // Use selected role or default to Employee
-                'status' => $request->status ?? 'active',
-                'theme' => 'light',
-            ]);
-            Log::info('User created successfully with ID: ' . $user->id);
-
-            // Create employee record
+            // Create employee record (no user creation)
             $employee = Employee::create([
-                'user_id' => $user->id,
+                'name' => $request->name,
+                'email' => $request->email,
                 'department' => $request->department,
                 'designation' => $request->designation,
                 'phone' => $request->phone,
@@ -119,6 +102,7 @@ class EmployeeController extends Controller
                 'date_of_hire' => $request->date_of_hire,
                 'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
+                'status' => $request->status ?? 'active',
             ]);
             Log::info('Employee created successfully with ID: ' . $employee->id);
 
@@ -129,7 +113,7 @@ class EmployeeController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Employee created successfully.',
-                    'employee' => $employee->load('user')
+                    'employee' => $employee
                 ]);
             }
 
@@ -159,8 +143,6 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee)
     {
-        $employee->load('user.role');
-        
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -176,10 +158,7 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
-        $employee->load('user.role');
-        $roles = Role::all();
-        
-        return view('admin.employees.edit', compact('employee', 'roles'));
+        return view('admin.employees.edit', compact('employee'));
     }
 
     /**
@@ -188,11 +167,9 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:100|unique:users,username,' . $employee->user_id,
-            'email' => 'nullable|email|max:150|unique:users,email,' . $employee->user_id,
+            'name' => 'required|string|max:150',
+            'email' => 'nullable|email|max:150|unique:employees,email,' . $employee->id,
             'phone' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:6|confirmed',
-            'role_id' => 'required|exists:roles,id',
             'department' => 'required|string|max:100',
             'designation' => 'required|string|max:100',
             'biometric_id' => 'nullable|string|max:50|unique:employees,biometric_id,' . $employee->id,
@@ -217,26 +194,10 @@ class EmployeeController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update user
-            $updateUserData = [
-                'username' => $request->username,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'role_id' => $request->role_id,
-                'theme' => $request->theme ?? $employee->user->theme,
-            ];
-            
-            // Update status (default to active if not provided)
-            $updateUserData['status'] = $request->status ?? 'active';
-
-            if ($request->filled('password')) {
-                $updateUserData['password'] = Hash::make($request->password);
-            }
-
-            $employee->user->update($updateUserData);
-
             // Update employee
             $employee->update([
+                'name' => $request->name,
+                'email' => $request->email,
                 'department' => $request->department,
                 'designation' => $request->designation,
                 'phone' => $request->phone,
@@ -244,6 +205,7 @@ class EmployeeController extends Controller
                 'date_of_hire' => $request->date_of_hire,
                 'leave_quota' => $request->leave_quota,
                 'address' => $request->address,
+                'status' => $request->status,
             ]);
 
             DB::commit();
@@ -252,7 +214,7 @@ class EmployeeController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Employee updated successfully.',
-                    'employee' => $employee->load('user')
+                    'employee' => $employee
                 ]);
             }
 
@@ -322,8 +284,6 @@ class EmployeeController extends Controller
      */
     public function getEditData(Employee $employee)
     {
-        $employee->load('user.role');
-        
         return response()->json([
             'success' => true,
             'employee' => $employee
@@ -336,15 +296,14 @@ class EmployeeController extends Controller
     public function toggleStatus(Employee $employee)
     {
         try {
-            $newStatus = $employee->user->status === 'active' ? 'inactive' : 'active';
-            $employee->user->update(['status' => $newStatus]);
+            $newStatus = $employee->status === 'active' ? 'inactive' : 'active';
+            $employee->update(['status' => $newStatus]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Employee status updated successfully.',
                 'new_status' => $newStatus
             ]);
-
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
@@ -484,26 +443,19 @@ class EmployeeController extends Controller
         }
 
         try {
-            $employees = Employee::whereIn('id', $request->employee_ids)->with('user');
+            $employees = Employee::whereIn('id', $request->employee_ids);
             
             switch ($request->action) {
                 case 'delete':
-                    // Delete users (which will cascade to employees due to foreign key)
-                    foreach ($employees->get() as $employee) {
-                        $employee->user->delete();
-                    }
+                    $employees->delete();
                     $message = 'Selected employees deleted successfully.';
                     break;
                 case 'activate':
-                    $employees->get()->each(function ($employee) {
-                        $employee->user->update(['status' => 'active']);
-                    });
+                    $employees->update(['status' => 'active']);
                     $message = 'Selected employees activated successfully.';
                     break;
                 case 'deactivate':
-                    $employees->get()->each(function ($employee) {
-                        $employee->user->update(['status' => 'inactive']);
-                    });
+                    $employees->update(['status' => 'inactive']);
                     $message = 'Selected employees deactivated successfully.';
                     break;
             }

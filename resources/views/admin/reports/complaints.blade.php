@@ -134,7 +134,7 @@
                       <td>{{ $complaint->ticket_number ?? 'N/A' }}</td>
                       <td>{{ $complaint->title }}</td>
                       <td>{{ $complaint->client->client_name ?? $complaint->client_name ?? 'Unknown' }}</td>
-                      <td>{{ $complaint->assignedEmployee->user->username ?? $complaint->assigned_employee_name ?? 'Unassigned' }}</td>
+                      <td>{{ $complaint->assignedEmployee->name ?? $complaint->assigned_employee_name ?? 'Unassigned' }}</td>
                       <td class="text-center">
                         <span class="badge bg-{{ ($complaint->priority ?? '') === 'high' ? 'danger' : (($complaint->priority ?? '') === 'medium' ? 'warning' : 'secondary') }}">
                           {{ $complaint->priority_display ?? ucfirst($complaint->priority ?? 'N/A') }}
@@ -174,7 +174,7 @@
                     <tr>
                       <td>
                         @if($groupBy === 'employee' && isset($item->assignedEmployee))
-                          {{ $item->assignedEmployee->user->username ?? 'Unknown' }}
+                          {{ $item->assignedEmployee->name ?? 'Unknown' }}
                         @elseif($groupBy === 'client' && isset($item->client))
                           {{ $item->client->client_name ?? 'Unknown' }}
                         @elseif($groupBy === 'type')

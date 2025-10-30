@@ -46,11 +46,11 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Requested By:</strong></td>
-                                    <td>{{ $approval->requestedBy->user->username ?? 'N/A' }}</td>
+                                    <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Approved By:</strong></td>
-                                    <td>{{ $approval->approvedBy->user->username ?? 'N/A' }}</td>
+                                    <td>{{ $approval->approvedBy->name ?? 'N/A' }}</td>
                                 </tr>
                             </table>
                         </div>

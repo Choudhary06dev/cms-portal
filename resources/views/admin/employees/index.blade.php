@@ -69,10 +69,10 @@
           <td>
             <div class="d-flex align-items-center">
               {{-- <div class="avatar-sm me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">
-                {{ substr($employee->user->username ?? 'E', 0, 1) }}
+                {{ substr($employee->name ?? 'E', 0, 1) }}
               </div> --}}
               <div>
-                <div class="fw-bold">{{ $employee->user->username ?? 'N/A' }}</div>
+                <div class="fw-bold">{{ $employee->name ?? 'N/A' }}</div>
                 {{-- <small class="text-muted">ID: {{ $employee->id }}</small> --}}
               </div>
             </div>
@@ -81,8 +81,8 @@
           <td>{{ $employee->designation ?? 'N/A' }}</td>
           <td>{{ $employee->phone ?: 'N/A' }}</td>
           <td>
-            <span class="badge {{ $employee->user->status === 'active' ? 'bg-success' : 'bg-danger' }}">
-              {{ ucfirst($employee->user->status ?? 'inactive') }}
+            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}">
+              {{ ucfirst($employee->status ?? 'inactive') }}
             </span>
           </td>
           <td>{{ $employee->date_of_hire ? $employee->date_of_hire->format('M d, Y') : 'N/A' }}</td>

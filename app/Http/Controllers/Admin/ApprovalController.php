@@ -26,8 +26,8 @@ class ApprovalController extends Controller
     {
         $query = SpareApprovalPerforma::with([
             'complaint.client',
-            'requestedBy.user',
-            'approvedBy.user',
+            'requestedBy',
+            'approvedBy',
             'items.spare'
         ]);
 
@@ -39,9 +39,6 @@ class ApprovalController extends Controller
                   ->orWhereHas('client', function($clientQuery) use ($search) {
                       $clientQuery->where('client_name', 'like', "%{$search}%");
                   });
-            })->orWhereHas('requestedBy.user', function($q) use ($search) {
-                $q->where('username', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -72,9 +69,7 @@ class ApprovalController extends Controller
         $approvals = $query->orderBy('id', 'desc')->paginate(15);
         
         $complaints = Complaint::pending()->with('client')->get();
-        $employees = Employee::whereHas('user', function($q) {
-            $q->where('status', 'active');
-        })->with('user')->get();
+        $employees = Employee::where('status', 'active')->get();
 
         return view('admin.approvals.index', compact('approvals', 'complaints', 'employees'));
     }
@@ -85,7 +80,7 @@ class ApprovalController extends Controller
     public function create()
     {
         $complaints = Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->with(['client', 'assignedEmployee.user'])
+            ->with(['client', 'assignedEmployee'])
             ->get();
         
         $spares = Spare::all(); // Get all spares since status column might not exist
@@ -116,9 +111,13 @@ class ApprovalController extends Controller
             DB::beginTransaction();
 
             // Create approval performa
+            $requestedBy = Employee::first();
+            if (!$requestedBy) {
+                throw new \Exception('No employee exists to set as requester.');
+            }
             $approval = SpareApprovalPerforma::create([
                 'complaint_id' => $request->complaint_id,
-                'requested_by' => auth()->user()->employee->id,
+                'requested_by' => $requestedBy->id,
                 'status' => 'pending',
                 'remarks' => $request->remarks,
             ]);
@@ -153,8 +152,8 @@ class ApprovalController extends Controller
     {
         $approval->load([
             'complaint.client',
-            'requestedBy.user',
-            'approvedBy.user',
+            'requestedBy',
+            'approvedBy',
             'items.spare'
         ]);
 
@@ -200,8 +199,8 @@ class ApprovalController extends Controller
                     'complaint_id' => $approval->complaint_id,
                     'client_name' => $approval->complaint->client ? $approval->complaint->client->client_name : 'Deleted Client',
                     'complaint_title' => $approval->complaint->title ?? 'N/A',
-                    'requested_by_name' => $approval->requestedBy->user->username ?? 'N/A',
-                    'approved_by_name' => $approval->approvedBy->user->username ?? null,
+                    'requested_by_name' => $approval->requestedBy->name ?? 'N/A',
+                    'approved_by_name' => $approval->approvedBy->name ?? null,
                     'items' => $approval->items->map(function($item) {
                         return [
                             'id' => $item->id,
@@ -224,7 +223,7 @@ class ApprovalController extends Controller
     public function approve(Request $request, SpareApprovalPerforma $approval)
     {
         // Load relationships
-        $approval->load(['items.spare', 'complaint.client', 'requestedBy.user']);
+        $approval->load(['items.spare', 'complaint.client', 'requestedBy']);
         
         $validator = Validator::make($request->all(), [
             'remarks' => 'nullable|string',
@@ -286,7 +285,7 @@ class ApprovalController extends Controller
             DB::beginTransaction();
 
             // Update approval status
-            $employee = auth()->user()->employee ?? Employee::first();
+            $employee = Employee::first();
             if (!$employee) {
                 throw new \Exception('No employee record found');
             }
@@ -348,7 +347,7 @@ class ApprovalController extends Controller
     public function reject(Request $request, SpareApprovalPerforma $approval)
     {
         // Load relationships
-        $approval->load(['items.spare', 'complaint.client', 'requestedBy.user']);
+        $approval->load(['items.spare', 'complaint.client', 'requestedBy']);
         
         $validator = Validator::make($request->all(), [
             'remarks' => 'required|string',
@@ -367,7 +366,7 @@ class ApprovalController extends Controller
 
         try {
             // Resolve acting employee safely (same pattern as approve())
-            $employee = auth()->user()->employee ?? Employee::first();
+            $employee = Employee::first();
             if (!$employee) {
                 throw new \Exception('No employee record found');
             }
@@ -464,7 +463,7 @@ class ApprovalController extends Controller
                         }
 
                         if ($canApprove) {
-                            $employee = auth()->user()->employee ?? Employee::first();
+                            $employee = Employee::first();
                             if (!$employee) {
                                 throw new \Exception('No employee record found');
                             }
@@ -492,7 +491,7 @@ class ApprovalController extends Controller
                     break;
 
                 case 'reject':
-                    $employee = auth()->user()->employee ?? Employee::first();
+                    $employee = Employee::first();
                     if (!$employee) {
                         throw new \Exception('No employee record found');
                     }
@@ -542,8 +541,8 @@ class ApprovalController extends Controller
     {
         $query = SpareApprovalPerforma::with([
             'complaint.client',
-            'requestedBy.user',
-            'approvedBy.user',
+            'requestedBy',
+            'approvedBy',
             'items.spare'
         ]);
 
@@ -616,13 +615,13 @@ class ApprovalController extends Controller
                     $approval->id,
                     $approval->complaint->getTicketNumberAttribute(),
                     $approval->complaint->client ? $approval->complaint->client->client_name : 'Deleted Client',
-                    $approval->requestedBy->user->username ?? 'N/A',
+                    $approval->requestedBy->name ?? 'N/A',
                     ucfirst($approval->status),
                     $approval->items->count(),
                     'PKR ' . number_format($approval->getTotalEstimatedCostAttribute(), 2),
                     $approval->created_at->format('Y-m-d H:i:s'),
                     $approval->approved_at ? $approval->approved_at->format('Y-m-d H:i:s') : 'N/A',
-                    $approval->approvedBy->user->username ?? 'N/A',
+                    $approval->approvedBy->name ?? 'N/A',
                     $approval->remarks ?? 'N/A'
                 ]);
             }
