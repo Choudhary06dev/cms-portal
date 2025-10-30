@@ -491,7 +491,7 @@ class ReportController extends Controller
         }])->get()->map(function($spare) {
             $usage = $spare->complaintSpares;
             $totalUsed = $usage->sum('quantity');
-            $totalCost = $usage->sum(function($item) {
+            $totalCost = $usage->sum(function($item) use ($spare) {
                 return $item->quantity * $spare->unit_price;
             });
 
