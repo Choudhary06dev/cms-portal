@@ -12,6 +12,7 @@ use App\Models\EmployeeLeave;
 use App\Models\ReportsSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ReportController extends Controller
 {
@@ -122,9 +123,23 @@ class ReportController extends Controller
      */
     private function getTotalSpareCosts()
     {
-        return \DB::table('complaint_spares')
-            ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
-            ->sum(\DB::raw('complaint_spares.quantity * spares.unit_price'));
+        // Prefer complaint_spares if exists; otherwise fallback to approved items
+        if (Schema::hasTable('complaint_spares')) {
+            return DB::table('complaint_spares')
+                ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
+                ->sum(DB::raw('complaint_spares.quantity * spares.unit_price'));
+        }
+
+        // Fallback: use approved quantities from spare_approval_items joined to spares and approved performa
+        if (Schema::hasTable('spare_approval_items') && Schema::hasTable('spare_approval_performa')) {
+            return DB::table('spare_approval_items')
+                ->join('spares', 'spare_approval_items.spare_id', '=', 'spares.id')
+                ->join('spare_approval_performa', 'spare_approval_items.performa_id', '=', 'spare_approval_performa.id')
+                ->where('spare_approval_performa.status', 'approved')
+                ->sum(DB::raw('COALESCE(spare_approval_items.quantity_approved, 0) * spares.unit_price'));
+        }
+
+        return 0;
     }
 
     /**
