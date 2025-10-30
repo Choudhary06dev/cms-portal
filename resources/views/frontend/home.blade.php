@@ -23,7 +23,7 @@
     </div>
   </section>
 
-  <section class="row g-3">
+  <section id="features" class="row g-3">
     <div class="col-md-4">
       <div class="p-4 bg-white rounded shadow-sm h-100 feature-card">
         <h5 class="mb-2">Complaint Management</h5>

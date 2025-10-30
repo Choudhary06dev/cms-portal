@@ -20,6 +20,11 @@ class HomeController extends Controller
     {
         return view('frontend.contact');
     }
+
+    public function features()
+    {
+        return view('frontend.features');
+    }
 }
 
 
