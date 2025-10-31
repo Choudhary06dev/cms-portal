@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Frontend\HomeController as FrontendHomeController;
 use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
+use App\Http\Controllers\Frontend\AccountController as FrontendAccountController;
 
 Route::get('/', [FrontendHomeController::class, 'index'])->name('frontend.home');
 Route::get('/about', [FrontendHomeController::class, 'about'])->name('frontend.about');
@@ -14,5 +15,11 @@ Route::get('/register', [FrontendAuthController::class, 'showRegister'])->name('
 Route::post('/login', [FrontendAuthController::class, 'login'])->name('frontend.login.post');
 Route::post('/logout', [FrontendAuthController::class, 'logout'])->name('frontend.logout');
 Route::post('/register', [FrontendAuthController::class, 'register'])->name('frontend.register.post');
+
+// Authenticated frontend pages
+Route::middleware('auth:frontend')->group(function () {
+    Route::get('/account/profile', [FrontendAccountController::class, 'profile'])->name('frontend.profile');
+    Route::get('/account/settings', [FrontendAccountController::class, 'settings'])->name('frontend.settings');
+});
 
 
