@@ -8,6 +8,8 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Models\ComplaintSpare;
 use App\Models\Spare;
+use App\Models\ComplaintCategory;
+use Illuminate\Support\Facades\Schema;
 use App\Models\SpareApprovalPerforma;
 use App\Models\SpareApprovalItem;
 use App\Models\ComplaintAttachment;
@@ -83,8 +85,11 @@ class ComplaintController extends Controller
         
         $clients = Client::orderBy('client_name')->get();
         $employees = Employee::where('status', 'active')->get();
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
 
-        return view('admin.complaints.index', compact('complaints', 'clients', 'employees'));
+        return view('admin.complaints.index', compact('complaints', 'clients', 'employees', 'categories'));
     }
 
     /**
@@ -96,9 +101,17 @@ class ComplaintController extends Controller
         request()->session()->forget('_old_input');
         
         $clients = Client::where('status', 'active')->orderBy('client_name')->get();
-        $employees = Employee::all();
+        $employees = Employee::where('status', 'active')->orderBy('name')->get();
+        $departments = Employee::where('status', 'active')
+            ->whereNotNull('department')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
 
-        return view('admin.complaints.create', compact('clients', 'employees'));
+        return view('admin.complaints.create', compact('clients', 'employees', 'categories', 'departments'));
     }
 
     /**
@@ -116,8 +129,9 @@ class ComplaintController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            // Use canonical category keys defined in Complaint::getCategories()
-            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
+            // Allow any category string (column changed to VARCHAR)
+            'category' => 'required|string|max:100',
+            'department' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
@@ -146,6 +160,7 @@ class ComplaintController extends Controller
                 'title' => $request->title,
                 'client_id' => $request->client_id,
                 'category' => $request->category,
+                'department' => $request->department,
                 'priority' => $request->priority,
                 'description' => $request->description,
                 'assigned_employee_id' => $request->assigned_employee_id,
@@ -365,9 +380,17 @@ class ComplaintController extends Controller
         $complaint->load(['spareParts.spare']);
         
         $clients = Client::orderBy('client_name')->get();
-        $employees = Employee::where('status', 'active')->get();
+        $employees = Employee::where('status', 'active')->orderBy('name')->get();
+        $departments = Employee::where('status', 'active')
+            ->whereNotNull('department')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
 
-        return view('admin.complaints.edit', compact('complaint', 'clients', 'employees'));
+        return view('admin.complaints.edit', compact('complaint', 'clients', 'employees', 'categories', 'departments'));
     }
 
     /**
@@ -378,8 +401,9 @@ class ComplaintController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
-            // Use canonical category keys defined in Complaint::getCategories()
-            'category' => 'required|in:technical,service,billing,sanitary,electric,kitchen,plumbing,other',
+            // Allow any category string (column changed to VARCHAR)
+            'category' => 'required|string|max:100',
+            'department' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
@@ -405,6 +429,7 @@ class ComplaintController extends Controller
             'title' => $request->title,
             'client_id' => $request->client_id,
             'category' => $request->category,
+            'department' => $request->department,
             'priority' => $request->priority,
             'description' => $request->description,
             'assigned_employee_id' => $request->assigned_employee_id,

@@ -44,18 +44,15 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-select" name="category">
-                        <option value="">All Categories</option>
-                        <option value="technical" {{ request('category') == 'technical' ? 'selected' : '' }}>Technical</option>
-                        <option value="service" {{ request('category') == 'service' ? 'selected' : '' }}>Service</option>
-                        <option value="billing" {{ request('category') == 'billing' ? 'selected' : '' }}>Billing</option>
-                        <option value="sanitary" {{ request('category') == 'sanitary' ? 'selected' : '' }}>Sanitary</option>
-                        <option value="electric" {{ request('category') == 'electric' ? 'selected' : '' }}>Electric</option>
-                        <option value="kitchen" {{ request('category') == 'kitchen' ? 'selected' : '' }}>Kitchen</option>
-                        <option value="plumbing" {{ request('category') == 'plumbing' ? 'selected' : '' }}>Plumbing</option>
-                        <option value="other" {{ request('category') == 'other' ? 'selected' : '' }}>Other</option>
-                    </select>
+                    <input type="text" class="form-control" name="category" list="category_list" value="{{ request('category') }}" placeholder="Category (any)">
                 </div>
+                @if(isset($categories) && $categories->count() > 0)
+                <datalist id="category_list">
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat }}"></option>
+                    @endforeach
+                </datalist>
+                @endif
                 <div class="col-md-3">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-outline-light btn-sm">

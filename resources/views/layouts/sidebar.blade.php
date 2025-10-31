@@ -105,6 +105,9 @@
     .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
     .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
     .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; }
+    .nav-item-parent .nav-link { position: relative; }
+    .nav-arrow-btn:hover { opacity: 0.8; }
+    .nav-arrow-btn:focus { outline: none; box-shadow: none; }
     .text-muted { color: #94a3b8 !important; }
     .text-white { color: #ffffff !important; }
     .text-light { color: #cbd5e1 !important; }
@@ -167,9 +170,21 @@
     <a href="{{ route('admin.clients.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
       <i data-feather="briefcase" class="me-2"></i> Clients
     </a>
-    <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}">
-      <i data-feather="alert-circle" class="me-2"></i> Complaints
-    </a>
+    <div class="nav-item-parent mb-1">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') ? 'active' : '' }}">
+        <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
+          <i data-feather="alert-circle" class="me-2"></i> Complaints
+        </a>
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsSubmenu" aria-expanded="{{ request()->routeIs('admin.category.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
+        </button>
+      </div>
+      <div class="collapse {{ request()->routeIs('admin.category.*') ? 'show' : '' }}" id="complaintsSubmenu">
+        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-4 mb-1 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.05); margin-left: 8px; border-left: 2px solid rgba(59, 130, 246, 0.3);">
+          <i data-feather="tag" class="me-2"></i> Categories
+        </a>
+      </div>
+    </div>
     <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}">
       <i data-feather="package" class="me-2"></i> Products
     </a>
@@ -372,6 +387,28 @@
           const sidebar = document.querySelector('.sidebar');
           sidebar.style.display = sidebar.style.display === 'none' ? 'block' : 'none';
         });
+      }
+
+      // Handle Complaints submenu collapse/expand with arrow rotation
+      const complaintsSubmenu = document.getElementById('complaintsSubmenu');
+      const navArrow = document.querySelector('.nav-arrow');
+      const navArrowBtn = document.querySelector('.nav-arrow-btn');
+      
+      if (complaintsSubmenu && navArrow && navArrowBtn) {
+        complaintsSubmenu.addEventListener('show.bs.collapse', function() {
+          navArrow.style.transform = 'rotate(180deg)';
+        });
+        
+        complaintsSubmenu.addEventListener('hide.bs.collapse', function() {
+          navArrow.style.transform = 'rotate(0deg)';
+        });
+        
+        // Initialize arrow position based on current state
+        if (complaintsSubmenu.classList.contains('show')) {
+          navArrow.style.transform = 'rotate(180deg)';
+        } else {
+          navArrow.style.transform = 'rotate(0deg)';
+        }
       }
 
       // View all notifications

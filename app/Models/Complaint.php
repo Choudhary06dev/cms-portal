@@ -16,6 +16,7 @@ class Complaint extends Model
         'title',
         'client_id',
         'category',
+        'department',
         'priority',
         'description',
         'assigned_employee_id',
