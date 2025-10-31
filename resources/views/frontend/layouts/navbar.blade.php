@@ -29,6 +29,7 @@
             Home
           </a>
         </li>
+        @if(Auth::guard('frontend')->check())
         <li class="nav-item">
           <a class="nav-link px-3 {{ request()->routeIs('frontend.dashboard') ? 'active' : '' }}" href="{{ route('frontend.dashboard') }}">
             <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
@@ -37,6 +38,7 @@
             Dashboard
           </a>
         </li>
+        @endif
         <li class="nav-item">
           <a class="nav-link px-3 {{ request()->routeIs('frontend.about') ? 'active' : '' }}" href="{{ route('frontend.about') }}">
             <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
@@ -134,7 +136,14 @@
 <style>
   .navbar {
     transition: all 0.3s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    margin: 0 !important;
   }
+  /* Content spacing handled in layout main container, not body */
   
   .navbar-brand {
     transition: transform 0.3s ease;
@@ -182,6 +191,9 @@
     margin-top: 0.5rem;
     animation: fadeIn 0.3s ease;
   }
+
+  /* Hide collapsed container when not expanded to avoid empty box */
+  .navbar .collapse.navbar-collapse { margin: 0; padding: 0; }
   
   @keyframes fadeIn {
     from {

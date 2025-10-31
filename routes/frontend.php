@@ -8,7 +8,7 @@ Route::get('/', [FrontendHomeController::class, 'index'])->name('frontend.home')
 Route::get('/about', [FrontendHomeController::class, 'about'])->name('frontend.about');
 Route::get('/contact', [FrontendHomeController::class, 'contact'])->name('frontend.contact');
 Route::get('/features', [FrontendHomeController::class, 'features'])->name('frontend.features');
-Route::get('/dashboard', [FrontendHomeController::class, 'dashboard'])->name('frontend.dashboard');
+Route::get('/dashboard', [FrontendHomeController::class, 'dashboard'])->middleware('auth:frontend')->name('frontend.dashboard');
 Route::get('/login', [FrontendAuthController::class, 'showLogin'])->name('frontend.login');
 Route::get('/register', [FrontendAuthController::class, 'showRegister'])->name('frontend.register');
 Route::post('/login', [FrontendAuthController::class, 'login'])->name('frontend.login.post');
