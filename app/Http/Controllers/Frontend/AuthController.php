@@ -39,7 +39,7 @@ class AuthController extends Controller
 
         Auth::guard('frontend')->login($user);
 
-        return redirect()->route('frontend.home');
+        return redirect()->route('frontend.dashboard');
     }
 
     public function login(Request $request)
@@ -49,9 +49,10 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::guard('frontend')->attempt($credentials, $request->boolean('remember'))) {
+        // Disable "remember me" since users table has no remember_token column
+        if (Auth::guard('frontend')->attempt($credentials, false)) {
             $request->session()->regenerate();
-            return redirect()->route('frontend.home');
+            return redirect()->route('frontend.dashboard');
         }
 
         return back()->withErrors([

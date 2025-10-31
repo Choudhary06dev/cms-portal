@@ -28,12 +28,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
-        if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return redirect()->route('frontend.dashboard');
+        // Always direct backend (web guard) logins to the admin dashboard
+        return redirect()->route('admin.dashboard');
     }
 
     /**
