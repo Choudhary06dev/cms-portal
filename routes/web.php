@@ -150,6 +150,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('spares', AdminSpareController::class)->middleware(['permission:spares.view']);
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
+    Route::get('spares/{spare}/print-slip', [AdminSpareController::class, 'printSlip'])->middleware(['permission:spares.view'])->name('spares.print-slip');
     Route::resource('approvals', AdminApprovalController::class)->middleware(['permission:approvals.view']);
     Route::post('approvals/{approval}/approve', [AdminApprovalController::class, 'approve'])->middleware(['permission:approvals.view'])->name('approvals.approve');
     Route::post('approvals/{approval}/reject', [AdminApprovalController::class, 'reject'])->middleware(['permission:approvals.view'])->name('approvals.reject');

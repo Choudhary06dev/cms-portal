@@ -61,7 +61,7 @@ class SpareController extends Controller
             $query->where('unit_price', '<=', $request->price_to);
         }
 
-        $spares = $query->orderBy('id', 'desc')->paginate(15);
+        $spares = $query->with('stockLogs')->orderBy('id', 'desc')->paginate(15);
         $categories = Spare::getCategories();
 
         return view('admin.spares.index', compact('spares', 'categories'));
@@ -206,6 +206,16 @@ class SpareController extends Controller
             ->get();
 
         return view('admin.spares.show', compact('spare', 'stockMovement', 'recentLogs', 'usageStats'));
+    }
+
+    /**
+     * Print spare part slip
+     */
+    public function printSlip(Spare $spare)
+    {
+        $spare->load(['stockLogs', 'complaintSpares.complaint.client', 'approvalItems.performa']);
+        
+        return view('admin.spares.print-slip', compact('spare'));
     }
 
     /**

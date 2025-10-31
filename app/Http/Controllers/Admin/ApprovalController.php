@@ -26,6 +26,7 @@ class ApprovalController extends Controller
     {
         $query = SpareApprovalPerforma::with([
             'complaint.client',
+            'complaint.assignedEmployee',
             'requestedBy',
             'approvedBy',
             'items.spare'
@@ -47,9 +48,15 @@ class ApprovalController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by requested by
+        // Filter by requester or by complaint's assigned employee (using the same requested_by param)
         if ($request->has('requested_by') && $request->requested_by) {
-            $query->where('requested_by', $request->requested_by);
+            $employeeId = $request->requested_by;
+            $query->where(function($q) use ($employeeId) {
+                $q->where('requested_by', $employeeId)
+                  ->orWhereHas('complaint.assignedEmployee', function($qa) use ($employeeId) {
+                      $qa->where('id', $employeeId);
+                  });
+            });
         }
 
         // Filter by complaint

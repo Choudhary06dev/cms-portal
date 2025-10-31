@@ -233,7 +233,8 @@ class Spare extends Model
     }
 
     /**
-     * Percentage of utilized stock based on cumulative issued vs received
+     * Percentage of utilized stock based on current stock vs total received
+     * Shows what percentage has been used (total_received - current_stock) / total_received
      */
     public function getUtilizationPercentAttribute(): float
     {
@@ -241,8 +242,10 @@ class Spare extends Model
         if ($totalReceived <= 0) {
             return 0.0;
         }
-        $issued = (int)($this->issued_quantity ?? 0);
-        $percent = ($issued / $totalReceived) * 100.0;
+        $currentStock = (int)($this->stock_quantity ?? 0);
+        $usedStock = $totalReceived - $currentStock;
+        // Calculate utilization percentage (what has been used)
+        $percent = ($usedStock / $totalReceived) * 100.0;
         // Clamp between 0 and 100 for display sanity
         if ($percent < 0) {
             return 0.0;
@@ -251,6 +254,27 @@ class Spare extends Model
             return 100.0;
         }
         return round($percent, 2);
+    }
+
+    /**
+     * Get last stock out date from stock logs
+     */
+    public function getLastStockOutAttribute()
+    {
+        // Use eager loaded logs if available
+        if ($this->relationLoaded('stockLogs')) {
+            $lastOutLog = $this->stockLogs
+                ->where('change_type', 'out')
+                ->sortByDesc('created_at')
+                ->first();
+        } else {
+            $lastOutLog = $this->stockLogs()
+                ->where('change_type', 'out')
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
+        
+        return $lastOutLog ? $lastOutLog->created_at : null;
     }
 
     /**

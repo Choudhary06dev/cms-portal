@@ -18,13 +18,13 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <form method="GET" action="{{ route('admin.spares.index') }}">
+  <form id="sparesFiltersForm" method="GET" action="{{ route('admin.spares.index') }}">
     <div class="row g-3">
       <div class="col-md-4">
-        <input type="text" class="form-control" name="search" placeholder="Search spares..." value="{{ request('search') }}">
+        <input type="text" class="form-control" name="search" placeholder="Search spares..." value="{{ request('search') }}" oninput="submitSparesFilters()">
       </div>
       <div class="col-md-3">
-        <select class="form-select" name="category">
+        <select class="form-select" name="category" onchange="submitSparesFilters()">
           <option value="">All Categories</option>
           @foreach(App\Models\Spare::getCategories() as $key => $label)
           <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
@@ -32,18 +32,14 @@
         </select>
       </div>
       <div class="col-md-3">
-        <select class="form-select" name="stock_status">
+        <select class="form-select" name="stock_status" onchange="submitSparesFilters()">
           <option value="">All Status</option>
           <option value="in_stock" {{ request('stock_status') == 'in_stock' ? 'selected' : '' }}>In Stock</option>
           <option value="low_stock" {{ request('stock_status') == 'low_stock' ? 'selected' : '' }}>Low Stock</option>
           <option value="out_of_stock" {{ request('stock_status') == 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
         </select>
       </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-outline-light btn-sm w-100">
-          <i class="fas fa-filter me-1"></i>Filter
-        </button>
-      </div>
+      
     </div>
   </form>
 </div>
@@ -60,11 +56,12 @@
           <th>Product Name</th>
           <th>Product Nature</th>
           <th>Unit</th>
-          <th>Total Received</th>
-          <th>issued Quantity</th>
-          <th>Balance Quantity</th>
-          <th>%age Utilized</th>
-          <th>Last Stock In</th>
+          <th class="text-end">Total Received</th>
+          <th class="text-end">issued Quantity</th>
+          <th class="text-end">Balance Quantity</th>
+          <th class="text-end">%age Utilized</th>
+          <th>Stock Status</th>
+          <th>Last Stock Out</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -77,11 +74,29 @@
           <td>{{ $spare->item_name }}</td>
           <td>{{ $spare->product_nature ?? 'N/A' }}</td>
           <td>{{ $spare->unit ?? 'N/A' }}</td>
-          <td class="text-end"><span class="text-success">{{ number_format((int)($spare->total_received_quantity ?? 0), 2) }}</span></td>
-          <td class="text-end"><span class="text-danger">{{ number_format((int)($spare->issued_quantity ?? 0), 2) }}</span></td>
-          <td class="text-end">{{ number_format((int)($spare->stock_quantity ?? 0), 2) }}</td>
-          <td class="text-end">{{ number_format((float)($spare->utilization_percent ?? 0), 2) }}%</td>
-          <td>{{ $spare->last_stock_in_at ? $spare->last_stock_in_at->format('d M Y h:i A') : 'N/A' }}</td>
+          <td class="text-end"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
+          <td class="text-end"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
+          <td class="text-end">{{ number_format((float)($spare->stock_quantity ?? 0), 0) }}</td>
+          <td class="text-end">{{ number_format((float)($spare->utilization_percent ?? 0), 0) }}%</td>
+          <td>
+            @if(($spare->stock_quantity ?? 0) <= 0)
+              <span class="badge bg-danger">Out of Stock</span>
+            @elseif(($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0))
+              <span class="badge bg-warning text-dark">Low Stock</span>
+            @else
+              <span class="badge bg-success">In Stock</span>
+            @endif
+          </td>
+          <td>
+            @if(($spare->stock_quantity ?? 0) <= 0 && $spare->last_stock_out)
+              <span class="text-danger">{{ $spare->last_stock_out->format('d M Y h:i A') }}</span>
+              <small class="d-block text-muted">(Out of Stock)</small>
+            @elseif($spare->last_stock_out)
+              {{ $spare->last_stock_out->format('d M Y h:i A') }}
+            @else
+              <span class="text-muted">Never</span>
+            @endif
+          </td>
           <td>
             <div class="btn-group" role="group">
               <button class="btn btn-outline-info btn-sm" onclick="viewSpare('{{ $spare->id }}')" title="View Details">
@@ -90,9 +105,6 @@
               <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-outline-warning btn-sm" title="Edit">
                 <i data-feather="edit"></i>
               </a>
-              <button class="btn btn-outline-primary btn-sm" onclick="printSpare('{{ $spare->id }}')" title="Print Spare Part Details">
-                <i data-feather="printer"></i>
-              </button>
               <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare('{{ $spare->id }}')" title="Delete">
                 <i data-feather="trash-2"></i>
               </button>
@@ -102,7 +114,7 @@
         </tr>
 @empty
 <tr>
-  <td colspan="12" class="text-center py-4">
+  <td colspan="13" class="text-center py-4">
     <i data-feather="package" class="feather-lg mb-2"></i>
     <div>No spare parts found</div>
   </td>
@@ -133,6 +145,9 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <a href="#" class="btn btn-info" id="printSpareBtn" target="_blank" style="display: none;">
+          <i data-feather="printer"></i> Print Details
+        </a>
       </div>
     </div>
   </div>
@@ -301,6 +316,15 @@
   // Spare parts JavaScript loaded
   feather.replace();
 
+  // Debounced auto-submit for spares filters
+  let submitSparesFiltersTimeout = null;
+  function submitSparesFilters() {
+    const form = document.getElementById('sparesFiltersForm');
+    if (!form) return;
+    if (submitSparesFiltersTimeout) clearTimeout(submitSparesFiltersTimeout);
+    submitSparesFiltersTimeout = setTimeout(() => form.submit(), 300);
+  }
+
   // Spare Modal Functions
   function viewSpare(spareId) {
     console.log('Viewing spare ID:', spareId);
@@ -323,6 +347,13 @@
       })
       .then(data => {
         console.log('Received data:', data);
+
+        // Set print button
+        const printSpareBtn = document.getElementById('printSpareBtn');
+        if (printSpareBtn) {
+          printSpareBtn.href = `/admin/spares/${spareId}/print-slip`;
+          printSpareBtn.style.display = 'inline-block';
+        }
 
         // Wait for DOM to be ready
         setTimeout(() => {

@@ -20,23 +20,23 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <form method="GET" action="{{ route('admin.approvals.index') }}">
-  <div class="row g-3">
-    <div class="col-md-3">
+  <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-3">
         <input type="text" class="form-control" name="search" placeholder="Search approvals..." 
                value="{{ request('search') }}">
     </div>
-    <div class="col-md-2">
-        <select class="form-select" name="status">
-        <option value="">All Status</option>
+    <div class="col-6 col-md-2">
+        <select class="form-select" name="status" onchange="submitApprovalsFilters()">
+        <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
           <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
           <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
           <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
       </select>
     </div>
-    <div class="col-md-2">
-        <select class="form-select" name="requested_by">
-        <option value="">All Requesters</option>
+    <div class="col-6 col-md-3">
+        <select class="form-select" name="requested_by" onchange="submitApprovalsFilters()">
+        <option value="" {{ request('requested_by') ? '' : 'selected' }}>All Complaints</option>
           @foreach($employees as $employee)
           <option value="{{ $employee->id }}" {{ request('requested_by') == $employee->id ? 'selected' : '' }}>
             {{ $employee->name }}
@@ -44,37 +44,15 @@
           @endforeach
       </select>
     </div>
-      <div class="col-md-5">
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-outline-secondary btn-sm">
-            <i data-feather="filter" class="me-1"></i>Apply
-          </button>
-          <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i data-feather="x" class="me-1"></i>Clear
-          </a>
-          
-        </div>
-      </div>
+    <div class="col-6 col-md-2">
+      <input type="date" class="form-control" name="date_from" 
+             value="{{ request('date_from') }}" placeholder="From Date" onchange="submitApprovalsFilters()">
     </div>
-    
-    <!-- Date Range Filter -->
-    <div class="row g-3 mt-2">
-      <div class="col-md-3">
-        <input type="date" class="form-control" name="date_from" 
-               value="{{ request('date_from') }}" placeholder="From Date">
-      </div>
-      <div class="col-md-3">
-        <input type="date" class="form-control" name="date_to" 
-               value="{{ request('date_to') }}" placeholder="To Date">
-      </div>
-      <div class="col-md-6">
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-outline-info btn-sm">
-            <i data-feather="calendar" class="me-1"></i>Filter by Date
-          </button>
-        </div>
-      </div>
+    <div class="col-6 col-md-2">
+      <input type="date" class="form-control" name="date_to" 
+             value="{{ request('date_to') }}" placeholder="To Date" onchange="submitApprovalsFilters()">
     </div>
+  </div>
   </form>
   </div>
 </div>
@@ -86,11 +64,13 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Request</th>
-          <th>Type</th>
-          <th>Requested By</th>
+          <th>Complaint</th>
+          <th>Product Name</th>
+          <th>Quantity-Required</th>
+          <th>Quantity Approved</th>
+          <th>Assigned to</th>
           <th>Status</th>
-          <th>Requested</th>
+          <th>Complaint-Date</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -103,11 +83,14 @@
             <div class="text-muted small">{{ Str::limit($approval->remarks ?? 'No remarks', 50) }}</div>
           </td>
           <td>
-            <span class="type-badge type-spare">
-              {{ $approval->items->count() > 0 ? 'Spare Parts (' . $approval->items->count() . ' items)' : 'Spare Parts' }}
-            </span>
+            {{ optional($approval->items->first())->spare_name ?? 'N/A' }}
+            @if($approval->items->count() > 1)
+              <span class="text-muted small">(+{{ $approval->items->count() - 1 }} more)</span>
+            @endif
           </td>
-          <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
+          <td>{{ $approval->items->sum('quantity_requested') }}</td>
+          <td>{{ $approval->items->sum('quantity_approved') }}</td>
+          <td>{{ $approval->complaint->assignedEmployee->name ?? 'N/A' }}</td>
           <td>
             <span class="status-badge status-{{ strtolower($approval->status) }}">
               {{ ucfirst($approval->status) }}
@@ -132,7 +115,7 @@
         </tr>
           @empty
         <tr>
-          <td colspan="8" class="text-center py-4">
+          <td colspan="9" class="text-center py-4">
             <i data-feather="check-circle" class="feather-lg mb-2"></i>
             <div>No approval requests found</div>
           </td>
@@ -219,6 +202,15 @@
     location.reload();
   }
 
+  // Debounced auto-submit for filters to ensure reliable submission
+  let submitFiltersTimeout = null;
+  function submitApprovalsFilters() {
+    const form = document.getElementById('approvalsFiltersForm');
+    if (!form) return;
+    if (submitFiltersTimeout) clearTimeout(submitFiltersTimeout);
+    submitFiltersTimeout = setTimeout(() => form.submit(), 0);
+  }
+
   // Approval Functions
   function viewApproval(approvalId) {
     currentApprovalId = approvalId;
@@ -293,7 +285,7 @@
                 <tr>
                   <th style="color: var(--text-primary);">Spare Part</th>
                   <th style="color: var(--text-primary);">Quantity Requested</th>
-                  ${approval.status === 'pending' ? '<th style="color: var(--text-primary);">Quantity Approve</th>' : '<th style="color: var(--text-primary);">Quantity Approved</th>'}
+                  <th style="color: var(--text-primary);">Quantity Approved</th>
                 </tr>
               </thead>
               <tbody>
