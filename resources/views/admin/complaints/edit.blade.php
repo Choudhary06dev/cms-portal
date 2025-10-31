@@ -62,12 +62,13 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
-                  <select class="form-select @error('category') is-invalid @enderror" 
-                          id="category" name="category" required>
+                  <select id="category" name="category" class="form-select @error('category') is-invalid @enderror" required>
                     <option value="">Select Category</option>
-                    @foreach(App\Models\Complaint::getCategories() as $key => $label)
-                    <option value="{{ $key }}" {{ old('category', $complaint->category) == $key ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
+                    @if(isset($categories) && $categories->count() > 0)
+                      @foreach($categories as $cat)
+                        <option value="{{ $cat }}" {{ old('category', $complaint->category) == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                      @endforeach
+                    @endif
                   </select>
                   @error('category')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -98,12 +99,29 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
+                  <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
+                  <select id="department" name="department" class="form-select @error('department') is-invalid @enderror" required>
+                    <option value="">Select Department</option>
+                    @if(isset($departments) && $departments->count() > 0)
+                      @foreach($departments as $dep)
+                        <option value="{{ $dep }}" {{ old('department', $complaint->department) == $dep ? 'selected' : '' }}>{{ $dep }}</option>
+                      @endforeach
+                    @endif
+                  </select>
+                  @error('department')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
                   <label for="assigned_employee_id" class="form-label text-white">Assign Employee</label>
                   <select class="form-select @error('assigned_employee_id') is-invalid @enderror" 
                           id="assigned_employee_id" name="assigned_employee_id">
                     <option value="">Select Employee</option>
                     @foreach($employees as $emp)
-                    <option value="{{ $emp->id }}" 
+                    <option value="{{ $emp->id }}" data-department="{{ $emp->department }}"
                             {{ old('assigned_employee_id', $complaint->assigned_employee_id) == $emp->id ? 'selected' : '' }}>
                       {{ $emp->name ?? 'Employee #' . $emp->id }}
                     </option>
@@ -114,30 +132,28 @@
                   @enderror
                 </div>
               </div>
-              
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="status" class="form-label text-white">Status <span class="text-danger">*</span></label>
-                  <select class="form-select @error('status') is-invalid @enderror" 
-                          id="status" name="status" required>
-                    <option value="new" {{ old('status', $complaint->status) == 'new' ? 'selected' : '' }}>New</option>
-                    <option value="assigned" {{ old('status', $complaint->status) == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                    <option value="in_progress" {{ old('status', $complaint->status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                    <option value="resolved" {{ old('status', $complaint->status) == 'resolved' ? 'selected' : '' }}>Resolved</option>
-                    <option value="closed" {{ old('status', $complaint->status) == 'closed' ? 'selected' : '' }}>Closed</option>
-                  </select>
-                  @error('status')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
+
             </div>
 
             <!-- Spare Parts Section -->
             <div class="row mt-1">
               <div class="col-12">                
                 <div class="row g-2 align-items-end">
-                  <div class="col-md-8">
+                  <div class="col-md-3">
+                    <label for="status" class="form-label text-white">Status <span class="text-danger">*</span></label>
+                    <select class="form-select @error('status') is-invalid @enderror" 
+                            id="status" name="status" required>
+                      <option value="new" {{ old('status', $complaint->status) == 'new' ? 'selected' : '' }}>New</option>
+                      <option value="assigned" {{ old('status', $complaint->status) == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                      <option value="in_progress" {{ old('status', $complaint->status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                      <option value="resolved" {{ old('status', $complaint->status) == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                      <option value="closed" {{ old('status', $complaint->status) == 'closed' ? 'selected' : '' }}>Closed</option>
+                    </select>
+                    @error('status')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
+                  <div class="col-md-3">
                     <label class="form-label text-white">Product <span class="text-danger">*</span></label>
                     <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
                             name="spare_parts[0][spare_id]" required>
@@ -153,7 +169,7 @@
                       <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-md-6">
                     <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
                     <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
                            name="spare_parts[0][quantity]" min="1" 
@@ -165,6 +181,8 @@
                 </div>
               </div>
             </div>
+
+           
 
             <!-- Description moved below product section -->
             <div class="row mt-3">
@@ -259,6 +277,30 @@
   color: #fff !important;
 }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const departmentSelect = document.getElementById('department');
+  const employeeSelect = document.getElementById('assigned_employee_id');
+  function filterEmployees() {
+    if (!departmentSelect || !employeeSelect) return;
+    const dep = departmentSelect.value;
+    Array.from(employeeSelect.options).forEach(opt => {
+      if (!opt.value) return;
+      const od = opt.getAttribute('data-department') || '';
+      opt.hidden = dep && od !== dep;
+    });
+    const sel = employeeSelect.selectedOptions[0];
+    if (sel && sel.hidden) employeeSelect.value = '';
+  }
+  if (departmentSelect && employeeSelect) {
+    departmentSelect.addEventListener('change', filterEmployees);
+    filterEmployees();
+  }
+});
+</script>
 @endpush
 
 

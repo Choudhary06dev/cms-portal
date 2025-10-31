@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->foreignId('client_id')->constrained('clients');
-            $table->enum('category', ['technical', 'service', 'billing', 'sanitary', 'electric', 'kitchen', 'plumbing', 'other']);
+            $table->string('category', 100);
+            $table->string('department', 100)->nullable();
             $table->text('description')->nullable();
             $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed'])->default('new');
             $table->unsignedBigInteger('assigned_employee_id')->nullable();

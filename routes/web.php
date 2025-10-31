@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\SpareController as AdminSpareController;
 use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
 use App\Http\Controllers\Admin\SlaController as AdminSlaController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\SearchController;
 // Frontend routes are defined in routes/frontend.php and loaded here
 
@@ -144,6 +145,13 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::post('complaints/{complaint}/add-spare-parts', [AdminComplaintController::class, 'addSpareParts'])->name('complaints.add-spare-parts');
         Route::get('complaints/{complaint}/print-slip', [AdminComplaintController::class, 'printSlip'])->name('complaints.print-slip');
     });
+
+    // ===============================
+    // 📂 Complaint Categories
+    // ===============================
+    Route::resource('category', AdminCategoryController::class)
+        ->only(['index','store','update','destroy'])
+        ->middleware(['permission:complaints.view']);
 
     // ===============================
     // ⚙️ Spares, Approvals, SLA, Reports, Settings, Help

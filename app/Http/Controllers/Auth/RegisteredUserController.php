@@ -55,7 +55,13 @@ class RegisteredUserController extends Controller
 
             Auth::login($user);
 
-            return redirect(route('dashboard', absolute: false));
+            // Redirect to admin dashboard if coming from admin register
+            if (request()->is('admin/register') || request()->is('admin/*')) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            // Otherwise redirect to frontend dashboard
+            return redirect()->route('frontend.dashboard');
         } catch (\Exception $e) {
             \Log::error('User creation failed', [
                 'error' => $e->getMessage(),

@@ -1,7 +1,5 @@
 @extends('frontend.layouts.app')
-
 @section('title', 'Profile')
-
 @section('content')
   <div class="account-page">
   <div class="row g-4">
