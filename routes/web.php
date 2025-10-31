@@ -34,15 +34,8 @@ Route::get('/admin', function () {
 // Public auth pages (distinct names to avoid clashing with Laravel auth)
 // Auth pages for frontend are in routes/frontend.php
 
-// Legacy redirects
-Route::redirect('/login', '/admin/login');
-Route::redirect('/register', '/admin/register');
+// Legacy redirects (removed to allow frontend to own public paths)
 Route::redirect('/admin/rdashboard', '/admin/dashboard');
-
-// Default dashboard alias (post-login redirect) – admin only now
-Route::get('/dashboard', function () {
-    return Auth::check() ? redirect()->route('admin.dashboard') : redirect()->route('login');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------

@@ -51,7 +51,7 @@ class AuthController extends Controller
 
         if (Auth::guard('frontend')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('frontend.home'));
+            return redirect()->route('frontend.home');
         }
 
         return back()->withErrors([

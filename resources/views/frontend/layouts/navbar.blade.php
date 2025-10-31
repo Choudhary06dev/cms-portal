@@ -30,6 +30,14 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link px-3 {{ request()->routeIs('frontend.dashboard') ? 'active' : '' }}" href="{{ route('frontend.dashboard') }}">
+            <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+              <path d="M3 13h2V7H3v6zm4 0h2V3H7v10zm4 0h2V9h-2v4z"/>
+            </svg>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link px-3 {{ request()->routeIs('frontend.about') ? 'active' : '' }}" href="{{ route('frontend.about') }}">
             <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
               <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
