@@ -13,15 +13,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
-  <style>
-    html,body{margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    main{padding-top:90px}
-  </style>
+    <style>
+      html,body{margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    /* Fixed navbar spacer */
+    .nav-spacer{height:42px}
+    @media (max-width: 991.98px){ .nav-spacer{height:80px} }
+    </style>
 </head>
 <body>
   @include('frontend.layouts.navbar')
+    <div class="nav-spacer"></div>
 
-  <main class="py-5">
+    <main class="py-5">
     <div class="container">
       @yield('content')
     </div>
