@@ -162,18 +162,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="last_stock_in_at" class="form-label text-white">Last Stock In Date</label>
-                            <input type="datetime-local"
-                                class="form-control @error('last_stock_in_at') is-invalid @enderror"
-                                id="last_stock_in_at" name="last_stock_in_at"
-                                value="{{ old('last_stock_in_at', $spare->last_stock_in_at ? $spare->last_stock_in_at->format('Y-m-d\TH:i') : '') }}">
-                            @error('last_stock_in_at')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                    
                 </div>
 
                 <div class="row">

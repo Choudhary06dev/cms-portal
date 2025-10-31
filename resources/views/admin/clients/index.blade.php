@@ -18,21 +18,21 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <form method="GET" action="{{ route('admin.clients.index') }}">
+  <form id="clientsFiltersForm" method="GET" action="{{ route('admin.clients.index') }}">
   <div class="row g-3">
     <div class="col-md-3">
         <input type="text" class="form-control" name="search" placeholder="Search clients..." 
-               value="{{ request('search') }}">
+               value="{{ request('search') }}" oninput="submitClientsFilters()">
     </div>
     <div class="col-md-2">
-        <select class="form-select" name="status">
+        <select class="form-select" name="status" onchange="submitClientsFilters()">
         <option value="">All Status</option>
           <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
           <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
       </select>
     </div>
     <div class="col-md-2">
-        <select class="form-select" name="city">
+        <select class="form-select" name="city" onchange="submitClientsFilters()">
           <option value="">All Cities</option>
           <option value="karachi" {{ request('city') == 'karachi' ? 'selected' : '' }}>Karachi</option>
           <option value="lahore" {{ request('city') == 'lahore' ? 'selected' : '' }}>Lahore</option>
@@ -41,7 +41,7 @@
       </select>
     </div>
     <div class="col-md-2">
-        <select class="form-select" name="state">
+        <select class="form-select" name="state" onchange="submitClientsFilters()">
           <option value="">All States</option>
           <option value="sindh" {{ request('state') == 'sindh' ? 'selected' : '' }}>Sindh</option>
           <option value="punjab" {{ request('state') == 'punjab' ? 'selected' : '' }}>Punjab</option>
@@ -49,17 +49,7 @@
           <option value="balochistan" {{ request('state') == 'balochistan' ? 'selected' : '' }}>Balochistan</option>
       </select>
     </div>
-    <div class="col-md-3">
-      <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-outline-light btn-sm">
-          <i data-feather="filter" class="me-1"></i>Apply
-        </button>
-          <a href="{{ route('admin.clients.index') }}" class="btn btn-outline-secondary btn-sm">
-          <i data-feather="x" class="me-1"></i>Clear
-          </a>
-          
-      </div>
-    </div>
+    
   </div>
   </form>
 </div>
@@ -72,13 +62,12 @@
         <tr>
           <th >#</th>
           <th >Client</th>
-          <th >Type</th>
           <th >Email</th>
           <th >Phone</th>
-          <th >Location</th>
+          <th >City</th>
+          <th >Address</th>
           <th >Status</th>
           <th >Complaints</th>
-          <th >Created</th>
           <th >Actions</th>
         </tr>
       </thead>
@@ -96,21 +85,16 @@
               </div>
             </div>
           </td>
-          <td>
-            <span class="type-badge type-individual">
-              Client
-            </span>
-          </td>
           <td>{{ $client->email ?? 'N/A' }}</td>
           <td>{{ $client->phone ?? 'N/A' }}</td>
-          <td >{{ $client->city ?? 'N/A' }}</td>
+          <td>{{ $client->city ?? 'N/A' }}</td>
+          <td>{{ Str::limit($client->address ?? 'N/A', 40) }}</td>
           <td>
             <span class="status-badge status-{{ strtolower($client->status) }}">
               {{ ucfirst($client->status) }}
             </span>
           </td>
           <td >{{ $client->complaints_count ?? 0 }}</td>
-          <td >{{ $client->created_at->format('M d, Y') }}</td>
           <td>
             <div class="btn-group" role="group">
               <button class="btn btn-outline-info btn-sm" onclick="viewClient({{ $client->id }})" title="View Details">
@@ -127,7 +111,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="10" class="text-center py-4" >
+          <td colspan="9" class="text-center py-4" >
             <i data-feather="briefcase" class="feather-lg mb-2"></i>
             <div>No clients found</div>
           </td>
@@ -192,6 +176,15 @@
   feather.replace();
 
   let currentClientId = null;
+
+  // Debounced auto-submit for clients filters
+  let submitClientsFiltersTimeout = null;
+  function submitClientsFilters() {
+    const form = document.getElementById('clientsFiltersForm');
+    if (!form) return;
+    if (submitClientsFiltersTimeout) clearTimeout(submitClientsFiltersTimeout);
+    submitClientsFiltersTimeout = setTimeout(() => form.submit(), 300);
+  }
 
   // Client Functions
   function viewClient(clientId) {
