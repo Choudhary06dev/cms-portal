@@ -44,6 +44,11 @@
               Contact
             </a>
           </li>
+          <li class="mb-2">
+             <a class="text-white text-decoration-none hover-link" href="{{ route('frontend.features') }}">
+              Features
+            </a>
+          </li>
         </ul>
       </div>
 
