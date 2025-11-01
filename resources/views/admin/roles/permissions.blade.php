@@ -48,9 +48,14 @@
                   <input class="form-check-input" type="checkbox" 
                          id="{{ $module }}" 
                          name="permissions[]"
-                         value="{{ $module }}" {{ $hasPermission ? 'checked' : '' }}>
+                         value="{{ $module }}" 
+                         {{ ($role->id === 1 || $hasPermission) ? 'checked' : '' }}
+                         {{ $role->id === 1 ? 'disabled' : '' }}>
                   <label class="form-check-label" for="{{ $module }}">
                     {{ ucfirst($module) }}
+                    @if($role->id === 1)
+                      <span class="badge bg-success ms-2">Auto</span>
+                    @endif
                   </label>
                 </div>
               </div>
@@ -64,7 +69,13 @@
                   <h6 class="alert-heading">
                     <i data-feather="info" class="me-2"></i>Permission Summary
                   </h6>
-                  <p class="mb-2">This role currently has <strong>{{ $role->rolePermissions->count() }}</strong> permission sets configured.</p>
+                  <p class="mb-2">
+                    @if($role->id === 1)
+                      <strong>Admin Role:</strong> This role automatically has <strong>all {{ count($modules) }} permissions</strong> assigned.
+                    @else
+                      This role currently has <strong>{{ $role->rolePermissions->count() }}</strong> permission sets configured.
+                    @endif
+                  </p>
                   <small class="text-muted">
                     Users with this role will inherit all the permissions you configure here. 
                     Make sure to review each module carefully before saving.

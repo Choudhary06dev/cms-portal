@@ -65,6 +65,7 @@
           <th >Email</th>
           <th >Phone</th>
           <th >City</th>
+          <th >Sector</th>
           <th >Address</th>
           <th >Status</th>
           <th >Complaints</th>
@@ -88,6 +89,7 @@
           <td>{{ $client->email ?? 'N/A' }}</td>
           <td>{{ $client->phone ?? 'N/A' }}</td>
           <td>{{ $client->city ?? 'N/A' }}</td>
+          <td>{{ $client->sector ?? 'N/A' }}</td>
           <td>{{ Str::limit($client->address ?? 'N/A', 40) }}</td>
           <td>
             <span class="status-badge status-{{ strtolower($client->status) }}">
@@ -111,7 +113,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="9" class="text-center py-4" >
+          <td colspan="10" class="text-center py-4" >
             <i data-feather="briefcase" class="feather-lg mb-2"></i>
             <div>No clients found</div>
           </td>
@@ -216,7 +218,7 @@
     const paginationContainer = document.getElementById('clientsPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     fetch(`{{ route('admin.clients.index') }}?${params.toString()}`, {
@@ -250,7 +252,7 @@
     .catch(error => {
       console.error('Error loading clients:', error);
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
       }
     });
   }
@@ -334,6 +336,7 @@
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Email:</strong> <span style="color: var(--text-secondary);">${client.email || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Phone:</strong> <span style="color: var(--text-secondary);">${client.phone || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">City:</strong> <span style="color: var(--text-secondary);">${client.city || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Sector:</strong> <span style="color: var(--text-secondary);">${client.sector || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">State:</strong> <span style="color: var(--text-secondary);">${client.state || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Address:</strong> <span style="color: var(--text-secondary);">${client.address || 'N/A'}</span></p>
                         </div>
@@ -425,5 +428,206 @@
       form.submit();
     }
   }
+</script>
+@endpush
+
+<!-- Client Create Modal -->
+<div class="modal fade" id="clientCreateModal" tabindex="-1" aria-labelledby="clientCreateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="clientCreateModalLabel">Create New Client</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="clientCreateModalBody">
+        <form id="clientCreateForm" method="POST" autocomplete="off" novalidate>
+          @csrf
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="client_name_modal" class="form-label">Client Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="client_name_modal" name="client_name" required>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="contact_person_modal" class="form-label">Contact Person</label>
+                <input type="text" class="form-control" id="contact_person_modal" name="contact_person">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="phone_modal" class="form-label">Phone</label>
+                <input type="text" class="form-control" id="phone_modal" name="phone">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="email_modal" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email_modal" name="email">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="city_modal" class="form-label">City</label>
+                <input type="text" class="form-control" id="city_modal" name="city">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="sector_modal" class="form-label">Sector <span class="text-danger">*</span></label>
+                <select class="form-select" id="sector_modal" name="sector" required>
+                  <option value="">Select Sector</option>
+                  @foreach ($sectors as $sector)
+                    <option value="{{ $sector }}">{{ $sector }}</option>
+                  @endforeach
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="state_modal" class="form-label">State <span class="text-danger">*</span></label>
+                <select class="form-select" id="state_modal" name="state" required>
+                  <option value="">Select State</option>
+                  <option value="sindh">Sindh</option>
+                  <option value="punjab">Punjab</option>
+                  <option value="kpk">KPK</option>
+                  <option value="balochistan">Balochistan</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="status_modal" class="form-label">Status</label>
+                <select class="form-select" id="status_modal" name="status">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="mb-3">
+                <label for="address_modal" class="form-label">Address</label>
+                <textarea class="form-control" id="address_modal" name="address" rows="3"></textarea>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="clientCreateSubmit">
+          <span id="clientCreateText">Create Client</span>
+          <span id="clientCreateSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const addBtn = document.getElementById('addClientBtn');
+  const modal = new bootstrap.Modal(document.getElementById('clientCreateModal'));
+  const form = document.getElementById('clientCreateForm');
+  const submitBtn = document.getElementById('clientCreateSubmit');
+  const spinner = document.getElementById('clientCreateSpinner');
+
+  addBtn.addEventListener('click', function() {
+    clearForm(form);
+    modal.show();
+  });
+
+  submitBtn.addEventListener('click', function() {
+    clearValidationErrors(form);
+    submitBtn.disabled = true;
+    spinner.style.display = 'inline-block';
+
+    const fd = new FormData(form);
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    fetch("{{ route('admin.clients.store') }}", {
+      method: 'POST',
+      body: fd,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return { status: res.status, data: JSON.parse(text) };
+      } catch (err) {
+        throw new Error('Unexpected response: ' + text);
+      }
+    })
+    .then(result => {
+      if (result.data.success) {
+        location.reload();
+      } else {
+        if (result.data.errors) {
+          showValidationErrors(form, result.data.errors);
+        } else {
+          alert('Error: ' + (result.data.message || 'Unknown error'));
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Create client error:', err);
+      alert('Error creating client: ' + err.message);
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      spinner.style.display = 'none';
+    });
+  });
+
+  function clearForm(f) {
+    f.reset();
+    clearValidationErrors(f);
+  }
+
+  // reuse validation helpers from other views if available
+  function clearValidationErrors(form) {
+    const inputs = form.querySelectorAll('.is-invalid');
+    inputs.forEach(i => i.classList.remove('is-invalid'));
+    const feedbacks = form.querySelectorAll('.invalid-feedback');
+    feedbacks.forEach(f => f.textContent = '');
+  }
+
+  function showValidationErrors(form, errors) {
+    Object.keys(errors).forEach(field => {
+      const input = form.querySelector(`[name="${field}"]`);
+      const messages = errors[field];
+      if (input) {
+        input.classList.add('is-invalid');
+        const fb = input.closest('.mb-3')?.querySelector('.invalid-feedback') || form.querySelector('.invalid-feedback');
+        if (fb) fb.textContent = messages.join(' ');
+      }
+    });
+  }
+});
 </script>
 @endpush

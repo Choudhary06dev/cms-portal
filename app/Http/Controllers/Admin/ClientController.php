@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Complaint;
+use App\Models\Sector;
 use App\Traits\DatabaseTimeHelpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Schema;
 
 class ClientController extends Controller
 {
@@ -54,8 +56,12 @@ class ClientController extends Controller
         }
 
         $clients = $query->orderBy('id', 'desc')->paginate(15);
+        
+        $sectors = Schema::hasTable('sectors')
+            ? Sector::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
 
-        return view('admin.clients.index', compact('clients'));
+        return view('admin.clients.index', compact('clients', 'sectors'));
     }
 
     /**
@@ -66,7 +72,11 @@ class ClientController extends Controller
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
         
-        return view('admin.clients.create');
+        $sectors = Schema::hasTable('sectors')
+            ? Sector::where('status', 'active')->orderBy('name')->pluck('name', 'name')
+            : collect();
+        
+        return view('admin.clients.create', compact('sectors'));
     }
 
     /**
@@ -79,8 +89,9 @@ class ClientController extends Controller
             'contact_person' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:50',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:50',
+            'sector' => 'required|string|max:100' . (Schema::hasTable('sectors') ? '|exists:sectors,name' : ''),
             'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             'status' => 'required|in:active,inactive',
         ]);
@@ -165,7 +176,11 @@ class ClientController extends Controller
      */
     public function edit(Client $client)
     {
-        return view('admin.clients.edit', compact('client'));
+        $sectors = Schema::hasTable('sectors')
+            ? Sector::where('status', 'active')->orderBy('name')->pluck('name', 'name')
+            : collect();
+        
+        return view('admin.clients.edit', compact('client', 'sectors'));
     }
 
     /**
@@ -178,8 +193,9 @@ class ClientController extends Controller
             'contact_person' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:50',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:50',
+            'sector' => 'required|string|max:100' . (Schema::hasTable('sectors') ? '|exists:sectors,name' : ''),
             'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             'status' => 'required|in:active,inactive',
         ]);

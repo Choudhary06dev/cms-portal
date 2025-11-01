@@ -17,6 +17,50 @@ class Role extends Model
     ];
 
     /**
+     * Boot method to automatically assign all permissions to role_id = 1
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // After role is created or updated, if role_id is 1, assign all permissions
+        static::saved(function ($role) {
+            if ($role->id === 1) {
+                $modules = [
+                    'users',
+                    'roles',
+                    'employees',
+                    'clients',
+                    'complaints',
+                    'spares',
+                    'approvals',
+                    'reports',
+                    'sla',
+                ];
+
+                // Get existing permissions
+                $existingModules = $role->rolePermissions()->pluck('module_name')->toArray();
+
+                // Add missing permissions
+                foreach ($modules as $module) {
+                    if (!in_array($module, $existingModules)) {
+                        $role->rolePermissions()->updateOrCreate(
+                            [
+                                'role_id' => 1,
+                                'module_name' => $module,
+                            ],
+                            [
+                                'role_id' => 1,
+                                'module_name' => $module,
+                            ]
+                        );
+                    }
+                }
+            }
+        });
+    }
+
+    /**
      * Get the users for the role.
      */
     public function users(): HasMany

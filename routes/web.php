@@ -18,6 +18,9 @@ use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
 use App\Http\Controllers\Admin\SlaController as AdminSlaController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\SectorController as AdminSectorController;
+use App\Http\Controllers\Admin\DepartmentController as AdminDepartmentController;
+use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
 use App\Http\Controllers\SearchController;
 // Frontend routes are defined in routes/frontend.php and loaded here
 
@@ -105,10 +108,15 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // 👨‍💼 Employee Management
     // ===============================
     Route::middleware(['permission:employees.view'])->group(function () {
+        // Extra AJAX/helper routes (must come BEFORE resource routes to avoid conflicts)
+        Route::get('employees/designations', [AdminEmployeeController::class, 'getDesignationsByDepartment'])->name('employees.designations');
+        Route::get('employees/export', [AdminEmployeeController::class, 'export'])->name('employees.export');
+        Route::post('employees/bulk-action', [AdminEmployeeController::class, 'bulkAction'])->name('employees.bulk-action');
+        
         // Resource routes
         Route::resource('employees', AdminEmployeeController::class)->except(['destroy']);
         
-        // Extra AJAX/helper routes
+        // Employee-specific routes (must come AFTER resource routes)
         Route::get('employees/{employee}/edit-data', [AdminEmployeeController::class, 'getEditData'])->name('employees.edit-data');
         Route::post('employees/{employee}/toggle-status', [AdminEmployeeController::class, 'toggleStatus'])->name('employees.toggle-status');
         Route::get('employees/{employee}/leaves', [AdminEmployeeController::class, 'getLeaves'])->name('employees.leaves');
@@ -116,8 +124,6 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::post('employees/{employee}/leaves/{leave}/approve', [AdminEmployeeController::class, 'approveLeave'])->name('employees.approve-leave');
         Route::post('employees/{employee}/leaves/{leave}/reject', [AdminEmployeeController::class, 'rejectLeave'])->name('employees.reject-leave');
         Route::get('employees/{employee}/performance', [AdminEmployeeController::class, 'getPerformance'])->name('employees.performance');
-        Route::post('employees/bulk-action', [AdminEmployeeController::class, 'bulkAction'])->name('employees.bulk-action');
-        Route::get('employees/export', [AdminEmployeeController::class, 'export'])->name('employees.export');
     });
     
     // Delete routes
@@ -152,6 +158,27 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::resource('category', AdminCategoryController::class)
         ->only(['index','store','update','destroy'])
         ->middleware(['permission:complaints.view']);
+
+    // ===============================
+    // 🏢 Sectors
+    // ===============================
+    Route::resource('sector', AdminSectorController::class)
+        ->only(['index','store','update','destroy'])
+        ->middleware(['permission:clients.view']);
+
+    // ===============================
+    // 🏢 Departments
+    // ===============================
+    Route::resource('department', AdminDepartmentController::class)
+        ->only(['index','store','update','destroy'])
+        ->middleware(['permission:employees.view']);
+
+    // ===============================
+    // 🏢 Designations
+    // ===============================
+    Route::resource('designation', AdminDesignationController::class)
+        ->only(['index','store','update','destroy'])
+        ->middleware(['permission:employees.view']);
 
     // ===============================
     // ⚙️ Spares, Approvals, SLA, Reports, Settings, Help

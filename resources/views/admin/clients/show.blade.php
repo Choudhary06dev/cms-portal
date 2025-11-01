@@ -67,6 +67,14 @@
                     <td class="text-white">{{ $client->city ?? 'N/A' }}</td>
                   </tr>
                   <tr>
+                    <td class="text-white"><strong>Sector:</strong></td>
+                    <td class="text-white">{{ $client->sector ?? 'N/A' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-white"><strong>State:</strong></td>
+                    <td class="text-white">{{ $client->state ?? 'N/A' }}</td>
+                  </tr>
+                  <tr>
                     <td class="text-white"><strong>Total Complaints:</strong></td>
                     <td>
                       <span class="badge bg-primary">{{ $client->complaints->count() }} complaints</span>

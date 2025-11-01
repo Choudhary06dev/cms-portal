@@ -83,18 +83,35 @@
             </div>
 
             <div class="row">
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="city" class="form-label text-white">City</label>
+                  <label for="city" class="form-label text-white">City <span class="text-danger">*</span></label>
                   <input type="text" class="form-control @error('city') is-invalid @enderror" 
-                         id="city" name="city" value="{{ old('city', '') }}" autocomplete="off">
+                         id="city" name="city" value="{{ old('city', '') }}" autocomplete="off" required>
                   @error('city')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
               </div>
               
-              <div class="col-md-4">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="sector" class="form-label text-white">Sector <span class="text-danger">*</span></label>
+                  <select class="form-select @error('sector') is-invalid @enderror" id="sector" name="sector" required>
+                    <option value="">Select Sector</option>
+                    @foreach ($sectors as $sectorName)
+                      <option value="{{ $sectorName }}" {{ old('sector') == $sectorName ? 'selected' : '' }}>{{ $sectorName }}</option>
+                    @endforeach
+                  </select>
+                  @error('sector')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
                 <div class="mb-3">
                   <label for="state" class="form-label text-white">State <span class="text-danger">*</span></label>
                   <select class="form-select @error('state') is-invalid @enderror" 
@@ -112,7 +129,7 @@
                 </div>
               </div>
               
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <div class="mb-3">
                   <label for="status" class="form-label text-white">Status</label>
                   <select class="form-select @error('status') is-invalid @enderror" 
@@ -130,9 +147,9 @@
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label for="address" class="form-label text-white">Address</label>
+                  <label for="address" class="form-label text-white">Address <span class="text-danger">*</span></label>
                   <textarea class="form-control @error('address') is-invalid @enderror" 
-                            id="address" name="address" rows="3" autocomplete="off">{{ old('address', '') }}</textarea>
+                            id="address" name="address" rows="3" autocomplete="off" required>{{ old('address', '') }}</textarea>
                   @error('address')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
