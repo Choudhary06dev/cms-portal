@@ -18,14 +18,14 @@
 
     <!-- FILTERS -->
     <div class="card-glass mb-4">
-        <form method="GET" action="{{ route('admin.complaints.index') }}">
+        <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
             <div class="row g-3">
                 <div class="col-md-3">
                     <input type="text" class="form-control" name="search" placeholder="Search complaints..." 
-                           value="{{ request('search') }}">
+                           value="{{ request('search') }}" oninput="submitComplaintsFilters()">
                 </div>
                 <div class="col-md-2">
-                    <select class="form-select" name="status">
+                    <select class="form-select" name="status" onchange="submitComplaintsFilters()">
                         <option value="">All Status</option>
                         <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
                         <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
@@ -35,7 +35,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-select" name="priority">
+                    <select class="form-select" name="priority" onchange="submitComplaintsFilters()">
                         <option value="">All Priority</option>
                         <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
                         <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
@@ -44,32 +44,22 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" class="form-control" name="category" list="category_list" value="{{ request('category') }}" placeholder="Category (any)">
+                    <select name="category" class="form-select" onchange="submitComplaintsFilters()">
+                        <option value="">All Categories</option>
+                        @if(isset($categories) && $categories->count() > 0)
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                            @endforeach
+                        @endif
+                    </select>
                 </div>
-                @if(isset($categories) && $categories->count() > 0)
-                <datalist id="category_list">
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat }}"></option>
-                    @endforeach
-                </datalist>
-                @endif
-                <div class="col-md-3">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-outline-light btn-sm">
-                            <i data-feather="filter" class="me-1"></i>Apply
-                        </button>
-                        <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary btn-sm">
-                            <i data-feather="x" class="me-1"></i>Clear
-                        </a>
-                        
-                    </div>
-                </div>
+                <div class="col-md-3"></div>
             </div>
             
             <!-- Additional Filters Row -->
             <div class="row g-3 mt-2">
                 <div class="col-md-3">
-                    <select class="form-select" name="client_id">
+                    <select class="form-select" name="client_id" onchange="submitComplaintsFilters()">
                         <option value="">All Clients</option>
                         @foreach($clients as $client)
                         <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
@@ -79,7 +69,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select class="form-select" name="assigned_employee_id">
+                    <select class="form-select" name="assigned_employee_id" onchange="submitComplaintsFilters()">
                         <option value="">All Employees</option>
                         @foreach($employees as $employee)
                         <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
@@ -90,11 +80,11 @@
                 </div>
                 <div class="col-md-3">
                     <input type="date" class="form-control" name="date_from" 
-                           value="{{ request('date_from') }}" placeholder="From Date">
+                           value="{{ request('date_from') }}" placeholder="From Date" onchange="submitComplaintsFilters()">
                 </div>
                 <div class="col-md-3">
                     <input type="date" class="form-control" name="date_to" 
-                           value="{{ request('date_to') }}" placeholder="To Date">
+                           value="{{ request('date_to') }}" placeholder="To Date" onchange="submitComplaintsFilters()">
                 </div>
             </div>
         </form>
@@ -347,6 +337,15 @@
 @push('scripts')
     <script>
         feather.replace();
+
+        // Debounced auto-submit for complaints filters
+        let submitComplaintsFiltersTimeout = null;
+        function submitComplaintsFilters() {
+            const form = document.getElementById('complaintsFiltersForm');
+            if (!form) return;
+            if (submitComplaintsFiltersTimeout) clearTimeout(submitComplaintsFiltersTimeout);
+            submitComplaintsFiltersTimeout = setTimeout(() => form.submit(), 300);
+        }
 
         // Complaint Functions
         function viewComplaint(complaintId) {

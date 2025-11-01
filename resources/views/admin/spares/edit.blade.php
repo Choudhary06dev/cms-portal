@@ -68,13 +68,11 @@
                         <div class="mb-3">
                             <label for="category" class="form-label text-white">Category <span
                                     class="text-danger">*</span></label>
-                            <select class="form-select @error('category') is-invalid @enderror" id="category"
-                                name="category" required>
+                            <select class="form-select @error('category') is-invalid @enderror" id="category" name="category" required>
                                 <option value="">Select Category</option>
-                                @foreach (App\Models\Spare::getCanonicalCategories() as $key)
-                                    <option value="{{ $key }}"
-                                        {{ old('category', $spare->category) == $key ? 'selected' : '' }}>
-                                        {{ ucwords(str_replace('_', ' ', $key)) }}</option>
+                                @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::where('status','active')->orderBy('name')->pluck('name') : collect())
+                                @foreach ($catOptions as $key)
+                                    <option value="{{ $key }}" {{ old('category', $spare->category) == $key ? 'selected' : '' }}>{{ $key }}</option>
                                 @endforeach
                             </select>
                             @error('category')
