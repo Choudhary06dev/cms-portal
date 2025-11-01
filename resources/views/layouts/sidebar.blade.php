@@ -180,7 +180,7 @@
         </button>
       </div>
       <div class="collapse {{ request()->routeIs('admin.category.*') ? 'show' : '' }}" id="complaintsSubmenu">
-        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-4 mb-1 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.05); margin-left: 8px; border-left: 2px solid rgba(59, 130, 246, 0.3);">
+        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="tag" class="me-2"></i> Categories
         </a>
       </div>

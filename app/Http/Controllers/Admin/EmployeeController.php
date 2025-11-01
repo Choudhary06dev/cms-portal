@@ -23,9 +23,32 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the employees.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $employees = Employee::orderBy('id', 'desc')->paginate(10);
+        $query = Employee::query();
+
+        // Search functionality
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('designation', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by department
+        if ($request->has('department') && $request->department) {
+            $query->where('department', 'like', "%{$request->department}%");
+        }
+
+        // Filter by status
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+
+        $employees = $query->orderBy('id', 'desc')->paginate(10);
         
         return view('admin.employees.index', compact('employees'));
     }
