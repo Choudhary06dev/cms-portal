@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Spare;
 use App\Models\SpareStockLog;
 use App\Models\ComplaintSpare;
+use App\Models\ComplaintCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Schema;
 
 class SpareController extends Controller
 {
@@ -72,7 +74,9 @@ class SpareController extends Controller
      */
     public function create()
     {
-        $categories = Spare::getCategories();
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
         $units = Spare::getUnits();
         
         return view('admin.spares.create', compact('categories', 'units'));
@@ -83,15 +87,21 @@ class SpareController extends Controller
      */
     public function store(Request $request)
     {
+        // Get categories from ComplaintCategory table
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')->toArray()
+            : [];
         $categoryKeys = implode(',', array_keys(Spare::getCategories()));
         $dbCategories = implode(',', Spare::getCanonicalCategories());
+        $allowedCategories = implode(',', array_merge($categories, array_keys(Spare::getCategories()), Spare::getCanonicalCategories()));
+        
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
             'product_nature' => 'nullable|string|max:100',
-            // Accept both UI keys and canonical DB enum values
-            'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
+            // Accept categories from ComplaintCategory table and legacy categories
+            'category' => 'required|string',
             'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
@@ -115,8 +125,16 @@ class SpareController extends Controller
                 ->withInput();
         }
 
-        // Normalize category to canonical DB enum values
-        $normalizedCategory = Spare::normalizeCategory($request->category);
+        // Validate category is from allowed list
+        if (!in_array($request->category, array_merge($categories, array_keys(Spare::getCategories()), Spare::getCanonicalCategories()))) {
+            return redirect()->back()
+                ->withErrors(['category' => 'The selected category is invalid.'])
+                ->withInput();
+        }
+
+        // Use category as is (from ComplaintCategory table)
+        // Since category is now a string column, we can save any value directly
+        $normalizedCategory = $request->category;
 
         $spare = Spare::create([
             'item_name' => $request->item_name,
@@ -223,7 +241,9 @@ class SpareController extends Controller
      */
     public function edit(Spare $spare)
     {
-        $categories = Spare::getCategories();
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
         $units = Spare::getUnits();
         
         return view('admin.spares.edit', compact('spare', 'categories', 'units'));
@@ -259,15 +279,20 @@ class SpareController extends Controller
      */
     public function update(Request $request, Spare $spare)
     {
+        // Get categories from ComplaintCategory table
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')->toArray()
+            : [];
         $categoryKeys = implode(',', array_keys(Spare::getCategories()));
         $dbCategories = implode(',', Spare::getCanonicalCategories());
+        
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
             'product_nature' => 'nullable|string|max:100',
-            // Accept both UI keys and canonical DB enum values
-            'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
+            // Accept categories from ComplaintCategory table and legacy categories
+            'category' => 'required|string',
             'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
@@ -291,6 +316,18 @@ class SpareController extends Controller
                 ->withInput();
         }
 
+        // Validate category is from allowed list
+        $allAllowedCategories = array_merge($categories, array_keys(Spare::getCategories()), Spare::getCanonicalCategories());
+        if (!in_array($request->category, $allAllowedCategories)) {
+            return redirect()->back()
+                ->withErrors(['category' => 'The selected category is invalid.'])
+                ->withInput();
+        }
+
+        // Use category as is (from ComplaintCategory table)
+        // Since category is now a string column, we can save any value directly
+        $normalizedCategory = $request->category;
+
         // Compute safe values
         $newTotalReceived = $request->has('total_received_quantity')
             ? (int) $request->total_received_quantity
@@ -312,7 +349,7 @@ class SpareController extends Controller
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'product_nature' => $request->product_nature,
-            'category' => Spare::normalizeCategory($request->category),
+            'category' => $normalizedCategory,
             'unit' => $request->unit,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => $newTotalReceived,

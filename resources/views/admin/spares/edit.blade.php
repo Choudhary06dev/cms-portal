@@ -70,10 +70,11 @@
                                     class="text-danger">*</span></label>
                             <select class="form-select @error('category') is-invalid @enderror" id="category" name="category" required>
                                 <option value="">Select Category</option>
-                                @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::where('status','active')->orderBy('name')->pluck('name') : collect())
-                                @foreach ($catOptions as $key)
-                                    <option value="{{ $key }}" {{ old('category', $spare->category) == $key ? 'selected' : '' }}>{{ $key }}</option>
-                                @endforeach
+                                @if(isset($categories) && $categories->count() > 0)
+                                    @foreach ($categories as $cat)
+                                        <option value="{{ $cat }}" {{ old('category', $spare->category) == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                    @endforeach
+                                @endif
                             </select>
                             @error('category')
                                 <div class="invalid-feedback">{{ $message }}</div>
