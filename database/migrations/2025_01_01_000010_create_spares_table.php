@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('brand_name', 100)->nullable();
             $table->string('product_nature', 100)->nullable();
             $table->string('item_name', 150);
-            // Category can be any string value (from ComplaintCategory table)
+            // Category from complaint_categories table
             $table->string('category', 100);
             $table->string('unit', 50)->nullable();
             $table->decimal('unit_price', 10, 2)->nullable();

@@ -64,7 +64,9 @@ class SpareController extends Controller
         }
 
         $spares = $query->with('stockLogs')->orderBy('id', 'desc')->paginate(15);
-        $categories = Spare::getCategories();
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
 
         return view('admin.spares.index', compact('spares', 'categories'));
     }
@@ -141,7 +143,7 @@ class SpareController extends Controller
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'product_nature' => $request->product_nature,
-            'category' => $normalizedCategory,
+            'category' => $request->category,
             'unit' => $request->unit,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => (int)($request->total_received_quantity ?? $request->stock_quantity ?? 0),
@@ -622,19 +624,18 @@ class SpareController extends Controller
                 break;
 
             case 'change_category':
-                $categoryKeys = implode(',', array_keys(Spare::getCategories()));
-                $dbCategories = implode(',', Spare::getCanonicalCategories());
+                $validCategories = Schema::hasTable('complaint_categories')
+                    ? ComplaintCategory::where('status', 'active')->pluck('name')->toArray()
+                    : [];
                 $validator = Validator::make($request->all(), [
-                    // Accept both UI keys and canonical DB enum values
-                    'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
+                    'category' => 'required|string|max:100' . (!empty($validCategories) ? '|in:' . implode(',', $validCategories) : ''),
                 ]);
                 
                 if ($validator->fails()) {
                     return redirect()->back()->withErrors($validator);
                 }
                 
-                $normalized = Spare::normalizeCategory($request->category);
-                Spare::whereIn('id', $spareIds)->update(['category' => $normalized]);
+                Spare::whereIn('id', $spareIds)->update(['category' => $request->category]);
                 $message = 'Category changed for selected spare parts successfully.';
                 break;
 
