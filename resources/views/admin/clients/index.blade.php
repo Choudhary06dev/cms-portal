@@ -34,10 +34,11 @@
     <div class="col-md-2">
         <select class="form-select" name="city" onchange="submitClientsFilters()">
           <option value="">All Cities</option>
-          <option value="karachi" {{ request('city') == 'karachi' ? 'selected' : '' }}>Karachi</option>
-          <option value="lahore" {{ request('city') == 'lahore' ? 'selected' : '' }}>Lahore</option>
-          <option value="islamabad" {{ request('city') == 'islamabad' ? 'selected' : '' }}>Islamabad</option>
-          <option value="other" {{ request('city') == 'other' ? 'selected' : '' }}>Other</option>
+          @if(isset($cities) && $cities->count() > 0)
+            @foreach ($cities as $city)
+              <option value="{{ $city->name }}" {{ request('city') == $city->name ? 'selected' : '' }}>{{ $city->name }}</option>
+            @endforeach
+          @endif
       </select>
     </div>
     <div class="col-md-2">

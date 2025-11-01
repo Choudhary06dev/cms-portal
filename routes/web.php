@@ -134,15 +134,19 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::delete('employees/{employee}', [AdminEmployeeController::class, 'destroy'])->name('employees.destroy');
     });
 
-    // ===============================
-    // 👥 Clients
-    // ===============================
-    Route::middleware(['permission:clients.view'])->group(function () {
-        Route::resource('clients', AdminClientController::class);
-        Route::post('clients/{client}/toggle-status', [AdminClientController::class, 'toggleStatus'])->name('clients.toggle-status');
-        Route::get('clients/{client}/complaints', [AdminClientController::class, 'getComplaints'])->name('clients.complaints');
-        Route::get('clients/export', [AdminClientController::class, 'export'])->name('clients.export');
-    });
+        // ===============================
+        // 👥 Clients
+        // ===============================
+        Route::middleware(['permission:clients.view'])->group(function () {
+            // Extra AJAX/helper routes (must come BEFORE resource routes to avoid conflicts)
+            Route::get('clients/sectors', [AdminClientController::class, 'getSectorsByCity'])->name('clients.sectors');
+            Route::get('clients/export', [AdminClientController::class, 'export'])->name('clients.export');
+            
+            // Resource routes
+            Route::resource('clients', AdminClientController::class);
+            Route::post('clients/{client}/toggle-status', [AdminClientController::class, 'toggleStatus'])->name('clients.toggle-status');
+            Route::get('clients/{client}/complaints', [AdminClientController::class, 'getComplaints'])->name('clients.complaints');
+        });
     
     // ===============================
     // 🛠 Complaints
