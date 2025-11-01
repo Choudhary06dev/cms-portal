@@ -21,8 +21,8 @@
         <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search complaints..." 
-                           value="{{ request('search') }}" oninput="handleComplaintsSearchInput()">
+                    <input type="text" class="form-control" name="search" placeholder="Search complaints..." 
+                           value="{{ request('search') }}">
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" name="status" onchange="submitComplaintsFilters()">
@@ -44,7 +44,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" class="form-control" name="category" list="category_list" value="{{ request('category') }}" placeholder="Category (any)" oninput="handleComplaintsSearchInput()">
+                    <input type="text" class="form-control" name="category" list="category_list" value="{{ request('category') }}" placeholder="Category (any)">
                 </div>
                 @if(isset($categories) && $categories->count() > 0)
                 <datalist id="category_list">
@@ -53,6 +53,17 @@
                     @endforeach
                 </datalist>
                 @endif
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i data-feather="filter" class="me-1"></i>Apply
+                        </button>
+                        <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i data-feather="x" class="me-1"></i>Clear
+                        </a>
+                        
+                    </div>
+                </div>
             </div>
             
             <!-- Additional Filters Row -->
@@ -336,102 +347,6 @@
 @push('scripts')
     <script>
         feather.replace();
-
-        // Debounced search input handler
-        let complaintsSearchTimeout = null;
-        function handleComplaintsSearchInput() {
-            if (complaintsSearchTimeout) clearTimeout(complaintsSearchTimeout);
-            complaintsSearchTimeout = setTimeout(() => {
-                loadComplaints();
-            }, 500);
-        }
-
-        // Auto-submit for select filters
-        function submitComplaintsFilters() {
-            loadComplaints();
-        }
-
-        // Load Complaints via AJAX
-        function loadComplaints(url = null) {
-            const form = document.getElementById('complaintsFiltersForm');
-            if (!form) return;
-            
-            const formData = new FormData(form);
-            const params = new URLSearchParams();
-            
-            if (url) {
-                const urlObj = new URL(url, window.location.origin);
-                urlObj.searchParams.forEach((value, key) => {
-                    params.append(key, value);
-                });
-            } else {
-                for (const [key, value] of formData.entries()) {
-                    if (value) {
-                        params.append(key, value);
-                    }
-                }
-            }
-
-            const tbody = document.getElementById('complaintsTableBody');
-            const paginationContainer = document.getElementById('complaintsPagination');
-            
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
-            }
-
-            fetch(`{{ route('admin.complaints.index') }}?${params.toString()}`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'text/html',
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const newTbody = doc.querySelector('#complaintsTableBody');
-                const newPagination = doc.querySelector('#complaintsPagination');
-                
-                if (newTbody && tbody) {
-                    tbody.innerHTML = newTbody.innerHTML;
-                    feather.replace();
-                }
-                
-                if (newPagination && paginationContainer) {
-                    paginationContainer.innerHTML = newPagination.innerHTML;
-                }
-
-                const newUrl = `{{ route('admin.complaints.index') }}?${params.toString()}`;
-                window.history.pushState({path: newUrl}, '', newUrl);
-            })
-            .catch(error => {
-                console.error('Error loading complaints:', error);
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
-                }
-            });
-        }
-
-        // Handle pagination clicks
-        document.addEventListener('click', function(e) {
-            const paginationLink = e.target.closest('#complaintsPagination a');
-            if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
-                e.preventDefault();
-                loadComplaints(paginationLink.href);
-            }
-        });
-
-        // Handle browser back/forward buttons
-        window.addEventListener('popstate', function(e) {
-            if (e.state && e.state.path) {
-                loadComplaints(e.state.path);
-            } else {
-                loadComplaints();
-            }
-        });
 
         // Complaint Functions
         function viewComplaint(complaintId) {
