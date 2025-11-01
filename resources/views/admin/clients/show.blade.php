@@ -1,23 +1,23 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Client Details — CMS Admin')
+@section('title', 'Complainant Details — CMS Admin')
 
 @section('content')
 <!-- PAGE HEADER -->
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h2 class="text-white mb-2">Client Details</h2>
-      <p class="text-light">View and manage client information</p>
+      <h2 class="text-white mb-2">Complainant Details</h2>
+      <p class="text-light">View and manage Complainant information</p>
     </div>
   </div>
 </div>
 
-<!-- CLIENT INFORMATION -->
+<!-- Complainant INFORMATION -->
 <div class="card-glass">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white">
-      <i data-feather="user" class="me-2"></i>Client Details: {{ $client->client_name }}
+      <i data-feather="user" class="me-2"></i>Complainant Details: {{ $client->client_name }}
     </h5>
   </div>
   <div class="card-body">
@@ -27,7 +27,7 @@
                 <h6 class="text-white fw-bold">Basic Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td class="text-white"><strong>Client Name:</strong></td>
+                    <td class="text-white"><strong>Complainant Name:</strong></td>
                     <td class="text-white">{{ $client->client_name }}</td>
                   </tr>
                   <tr>
@@ -93,48 +93,6 @@
             </div>
           </div>
 
-          <!-- Statistics -->
-          @if(isset($stats))
-          <div class="row">
-            <div class="col-12">
-              <h6 class="text-muted">Client Statistics</h6>
-              <div class="row">
-                <div class="col-md-3">
-                  <div class="card bg-primary text-white">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ $stats['total_complaints'] ?? 0 }}</h5>
-                      <p class="card-text">Total Complaints</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="card bg-success text-white">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ $stats['resolved_complaints'] ?? 0 }}</h5>
-                      <p class="card-text">Resolved</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="card bg-warning text-white">
-                    <div class="card-title">{{ $stats['pending_complaints'] ?? 0 }}</h5>
-                      <p class="card-text">Pending</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="card bg-danger text-white">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ $stats['overdue_complaints'] ?? 0 }}</h5>
-                      <p class="card-text">Overdue</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          @endif
-
           <!-- Recent Complaints -->
           @if(isset($recentComplaints) && $recentComplaints->count() > 0)
           <div class="row mt-4">
@@ -180,7 +138,7 @@
             <div class="col-12">
               <div class="d-flex justify-content-between">
                 <a href="{{ route('admin.clients.index') }}" class="btn btn-secondary">
-                  <i data-feather="arrow-left"></i> Back to Clients
+                  <i data-feather="arrow-left"></i> Back to Complainant
                 </a>
                
               </div>
@@ -192,3 +150,11 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+  });
+</script>
+@endpush

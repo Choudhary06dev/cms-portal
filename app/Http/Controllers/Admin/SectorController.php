@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Sector;
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
@@ -15,13 +16,17 @@ class SectorController extends Controller
     {
         if (!Schema::hasTable('sectors')) {
             $sectors = new LengthAwarePaginator([], 0, 15);
-            return view('admin.sector.index', compact('sectors'))
+            $cities = collect();
+            return view('admin.sector.index', compact('sectors', 'cities'))
                 ->with('error', 'Run migrations to create sectors table.');
         }
 
         // Show all sectors; status column indicates active/inactive
-        $sectors = Sector::orderBy('name', 'asc')->paginate(15);
-        return view('admin.sector.index', compact('sectors'));
+        $sectors = Sector::with('city')->orderBy('name', 'asc')->paginate(15);
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        return view('admin.sector.index', compact('sectors', 'cities'));
     }
 
     public function store(Request $request)
@@ -30,10 +35,21 @@ class SectorController extends Controller
             return back()->with('error', 'Run migrations to create sectors table (php artisan migrate).');
         }
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:sectors,name,NULL,id,status,active',
+            'city_id' => 'required|exists:cities,id',
+            'name' => 'required|string|max:100',
             'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
+        
+        // Check uniqueness: same sector name can exist for different cities
+        $exists = Sector::where('name', $request->name)
+            ->where('city_id', $request->city_id)
+            ->where('status', 'active')
+            ->exists();
+            
+        if ($exists) {
+            return back()->withErrors(['name' => 'The sector name has already been taken for this city.'])->withInput();
+        }
         Sector::create($validated);
         return back()->with('success', 'Sector created');
     }
@@ -48,20 +64,22 @@ class SectorController extends Controller
             $sector = Sector::findOrFail($id);
             
             $rules = [
+                'city_id' => 'required|exists:cities,id',
                 'name' => 'required|string|max:100',
                 'description' => 'nullable|string',
                 'status' => 'required|in:active,inactive',
             ];
             
             // Only validate uniqueness if name changed and check against active sectors only
-            if ($request->name !== $sector->name) {
+            if ($request->name !== $sector->name || $request->city_id != $sector->city_id) {
                 $exists = Sector::where('name', $request->name)
+                    ->where('city_id', $request->city_id)
                     ->where('status', 'active')
                     ->where('id', '!=', $id)
                     ->exists();
                 
                 if ($exists) {
-                    return back()->withErrors(['name' => 'The name has already been taken.'])->withInput();
+                    return back()->withErrors(['name' => 'The name has already been taken for this city.'])->withInput();
                 }
             }
             

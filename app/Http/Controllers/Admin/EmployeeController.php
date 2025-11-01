@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Designation;
+use App\Models\City;
+use App\Models\Sector;
 // Removed User and Role dependencies as employees no longer link to users
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +53,7 @@ class EmployeeController extends Controller
             $query->where('status', $request->status);
         }
 
-        $employees = $query->orderBy('id', 'desc')->paginate(10);
+        $employees = $query->with(['city', 'sector'])->orderBy('id', 'desc')->paginate(10);
         
         return view('admin.employees.index', compact('employees'));
     }
@@ -68,7 +70,11 @@ class EmployeeController extends Controller
             ? Department::where('status', 'active')->orderBy('name')->get()
             : collect();
         
-        $response = response()->view('admin.employees.create', compact('departments'));
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        $response = response()->view('admin.employees.create', compact('departments', 'cities'));
         
         // Add cache-busting headers
         $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -110,6 +116,8 @@ class EmployeeController extends Controller
             'date_of_hire' => 'nullable|date',
             'leave_quota' => 'nullable|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'status' => 'nullable|in:active,inactive',
         ]);
 
@@ -142,6 +150,8 @@ class EmployeeController extends Controller
                 'date_of_hire' => $request->date_of_hire,
                 'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
+                'city_id' => $request->city_id,
+                'sector_id' => $request->sector_id,
                 'status' => $request->status ?? 'active',
             ]);
             Log::info('Employee created successfully with ID: ' . $employee->id);
@@ -183,6 +193,8 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee)
     {
+        $employee->load(['city', 'sector']);
+        
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -202,7 +214,11 @@ class EmployeeController extends Controller
             ? Department::where('status', 'active')->orderBy('name')->get()
             : collect();
         
-        return view('admin.employees.edit', compact('employee', 'departments'));
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        return view('admin.employees.edit', compact('employee', 'departments', 'cities'));
     }
 
     /**
@@ -259,6 +275,64 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Get sectors by city (AJAX)
+     */
+    public function getSectorsByCity(Request $request)
+    {
+        if (!Schema::hasTable('sectors')) {
+            return response()->json(['sectors' => []]);
+        }
+
+        $cityId = $request->input('city_id');
+        
+        // If city_name is provided instead of city_id, find the city
+        if ($request->has('city_name') && $request->city_name && !$cityId) {
+            $city = City::where('name', $request->city_name)->first();
+            if ($city) {
+                $cityId = $city->id;
+            }
+        }
+
+        // Convert to integer if it's a string
+        if ($cityId) {
+            $cityId = (int) $cityId;
+        }
+
+        if (!$cityId || $cityId <= 0) {
+            Log::info('No valid city ID provided', [
+                'city_id' => $request->input('city_id'),
+                'city_name' => $request->input('city_name'),
+                'all_request' => $request->all()
+            ]);
+            return response()->json(['sectors' => []]);
+        }
+
+        // Check if city exists
+        $city = City::find($cityId);
+        if (!$city) {
+            Log::warning('City not found', ['city_id' => $cityId]);
+            return response()->json(['sectors' => []]);
+        }
+
+        // Explicitly filter by city_id - ensure only sectors for this city are returned
+        $sectors = Sector::where('city_id', '=', $cityId)
+            ->where('status', '=', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        
+        // Log all sectors in database for debugging (remove in production)
+        $allSectors = Sector::select('id', 'name', 'city_id', 'status')->get();
+        Log::info('Sectors fetched', [
+            'requested_city_id' => $cityId,
+            'city_name' => $city->name,
+            'filtered_sectors_count' => $sectors->count(),
+            'all_sectors_in_db' => $allSectors->toArray()
+        ]);
+        
+        return response()->json(['sectors' => $sectors]);
+    }
+
+    /**
      * Update the specified employee in storage.
      */
     public function update(Request $request, Employee $employee)
@@ -283,6 +357,8 @@ class EmployeeController extends Controller
             'date_of_hire' => 'nullable|date',
             'leave_quota' => 'required|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -312,6 +388,8 @@ class EmployeeController extends Controller
                 'date_of_hire' => $request->date_of_hire,
                 'leave_quota' => $request->leave_quota,
                 'address' => $request->address,
+                'city_id' => $request->city_id,
+                'sector_id' => $request->sector_id,
                 'status' => $request->status,
             ]);
 

@@ -1,17 +1,17 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Clients Management — CMS Admin')
+@section('title', 'Complainant Management — CMS Admin')
 
 @section('content')
 <!-- PAGE HEADER -->
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h2 class="text-white mb-2" >Clients Management</h2>
-      <p class="text-light" >Manage client information and relationships</p>
+      <h2 class="text-white mb-2" >Complainant Management</h2>
+      <p class="text-light" >Manage Complainant information and relationships</p>
     </div>
     <a href="{{ route('admin.clients.create') }}" class="btn btn-accent">
-      <i data-feather="plus" class="me-2"></i>Add Client
+      <i data-feather="plus" class="me-2"></i>Add Complainant
     </a>
   </div>
 </div>
@@ -61,7 +61,7 @@
       <thead>
         <tr>
           <th >#</th>
-          <th >Client</th>
+          <th >Complainant</th>
           <th >Email</th>
           <th >Phone</th>
           <th >City</th>
@@ -115,7 +115,7 @@
         <tr>
           <td colspan="10" class="text-center py-4" >
             <i data-feather="briefcase" class="feather-lg mb-2"></i>
-            <div>No clients found</div>
+            <div>No Complainant found</div>
           </td>
         </tr>
         @endforelse
@@ -148,36 +148,11 @@
 </style>
 @endpush
 
-<!-- Client Modal -->
-<div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="clientModalLabel">Client Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="clientModalBody">
-                <!-- Client details will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-warning" id="editClientBtn" style="display: none;">
-                    <i class="fas fa-edit"></i> Edit Client
-                </button>
-                <button type="button" class="btn btn-danger" id="deleteClientBtn" style="display: none;">
-                    <i class="fas fa-trash"></i> Delete Client
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 @push('scripts')
 <script>
   feather.replace();
-
-  let currentClientId = null;
 
   // Debounced search input handler
   let clientsSearchTimeout = null;
@@ -277,123 +252,8 @@
 
   // Client Functions
   function viewClient(clientId) {
-    currentClientId = clientId;
-    
-    // Show only view button
-    document.getElementById('editClientBtn').style.display = 'none';
-    document.getElementById('deleteClientBtn').style.display = 'none';
-    
-    // Show loading state
-    const modalBody = document.getElementById('clientModalBody');
-    modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-    
-    // Get CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    
-    // Fetch client data
-    fetch(`/admin/clients/${clientId}`, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        credentials: 'same-origin'
-    })
-        .then(response => {
-            console.log('Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            if (data.success) {
-                const client = data.client;
-                const stats = data.stats;
-                
-                modalBody.innerHTML = `
-                    <div class="row" style="color: var(--text-primary);">
-                        <div class="col-md-6">
-                            <h6 style="color: var(--text-primary);">Client Information</h6>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Name:</strong> <span style="color: var(--text-secondary);">${client.client_name || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Contact Person:</strong> <span style="color: var(--text-secondary);">${client.contact_person || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Type:</strong> 
-                                <span class="type-badge type-individual">
-                                    Client
-                                </span>
-                            </p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Status:</strong> 
-                                <span class="badge bg-${client.status === 'active' ? 'success' : 'danger'}">
-                                    ${client.status ? client.status.charAt(0).toUpperCase() + client.status.slice(1) : 'Inactive'}
-                                </span>
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 style="color: var(--text-primary);">Contact Information</h6>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Email:</strong> <span style="color: var(--text-secondary);">${client.email || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Phone:</strong> <span style="color: var(--text-secondary);">${client.phone || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">City:</strong> <span style="color: var(--text-secondary);">${client.city || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Sector:</strong> <span style="color: var(--text-secondary);">${client.sector || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">State:</strong> <span style="color: var(--text-secondary);">${client.state || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Address:</strong> <span style="color: var(--text-secondary);">${client.address || 'N/A'}</span></p>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <h6 style="color: var(--text-primary);">Complaint Statistics</h6>
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="card" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; border: 1px solid var(--border-primary);">
-                                        <div class="card-body text-center">
-                                            <h5 style="color: white;">${stats.total_complaints}</h5>
-                                            <small style="color: rgba(255,255,255,0.9);">Total Complaints</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: 1px solid var(--border-primary);">
-                                        <div class="card-body text-center">
-                                            <h5 style="color: white;">${stats.pending_complaints}</h5>
-                                            <small style="color: rgba(255,255,255,0.9);">Pending</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: 1px solid var(--border-primary);">
-                                        <div class="card-body text-center">
-                                            <h5 style="color: white;">${stats.resolved_complaints}</h5>
-                                            <small style="color: rgba(255,255,255,0.9);">Resolved</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: 1px solid var(--border-primary);">
-                                        <div class="card-body text-center">
-                                            <h5 style="color: white;">${stats.overdue_complaints}</h5>
-                                            <small style="color: rgba(255,255,255,0.9);">Overdue</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.getElementById('clientModalLabel').textContent = 'Client Details';
-                new bootstrap.Modal(document.getElementById('clientModal')).show();
-            } else {
-                modalBody.innerHTML = '<div class="alert alert-danger">Error: ' + (data.message || 'Unknown error occurred') + '</div>';
-                new bootstrap.Modal(document.getElementById('clientModal')).show();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            modalBody.innerHTML = '<div class="alert alert-danger">Error loading client details: ' + error.message + '</div>';
-            new bootstrap.Modal(document.getElementById('clientModal')).show();
-        });
+    // Redirect to show page
+    window.location.href = `/admin/clients/${clientId}`;
   }
 
   function editClient(clientId) {
@@ -431,117 +291,7 @@
 </script>
 @endpush
 
-<!-- Client Create Modal -->
-<div class="modal fade" id="clientCreateModal" tabindex="-1" aria-labelledby="clientCreateModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="clientCreateModalLabel">Create New Client</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="clientCreateModalBody">
-        <form id="clientCreateForm" method="POST" autocomplete="off" novalidate>
-          @csrf
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="client_name_modal" class="form-label">Client Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="client_name_modal" name="client_name" required>
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="contact_person_modal" class="form-label">Contact Person</label>
-                <input type="text" class="form-control" id="contact_person_modal" name="contact_person">
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="phone_modal" class="form-label">Phone</label>
-                <input type="text" class="form-control" id="phone_modal" name="phone">
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="email_modal" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email_modal" name="email">
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="city_modal" class="form-label">City</label>
-                <input type="text" class="form-control" id="city_modal" name="city">
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="sector_modal" class="form-label">Sector <span class="text-danger">*</span></label>
-                <select class="form-select" id="sector_modal" name="sector" required>
-                  <option value="">Select Sector</option>
-                  @foreach ($sectors as $sector)
-                    <option value="{{ $sector }}">{{ $sector }}</option>
-                  @endforeach
-                </select>
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="state_modal" class="form-label">State <span class="text-danger">*</span></label>
-                <select class="form-select" id="state_modal" name="state" required>
-                  <option value="">Select State</option>
-                  <option value="sindh">Sindh</option>
-                  <option value="punjab">Punjab</option>
-                  <option value="kpk">KPK</option>
-                  <option value="balochistan">Balochistan</option>
-                  <option value="other">Other</option>
-                </select>
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="status_modal" class="form-label">Status</label>
-                <select class="form-select" id="status_modal" name="status">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12">
-              <div class="mb-3">
-                <label for="address_modal" class="form-label">Address</label>
-                <textarea class="form-control" id="address_modal" name="address" rows="3"></textarea>
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="clientCreateSubmit">
-          <span id="clientCreateText">Create Client</span>
-          <span id="clientCreateSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none"></span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 @push('scripts')
 <script>

@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\SlaController as AdminSlaController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\SectorController as AdminSectorController;
+use App\Http\Controllers\Admin\CityController as AdminCityController;
 use App\Http\Controllers\Admin\DepartmentController as AdminDepartmentController;
 use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
 use App\Http\Controllers\SearchController;
@@ -110,6 +111,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::middleware(['permission:employees.view'])->group(function () {
         // Extra AJAX/helper routes (must come BEFORE resource routes to avoid conflicts)
         Route::get('employees/designations', [AdminEmployeeController::class, 'getDesignationsByDepartment'])->name('employees.designations');
+        Route::get('employees/sectors', [AdminEmployeeController::class, 'getSectorsByCity'])->name('employees.sectors');
         Route::get('employees/export', [AdminEmployeeController::class, 'export'])->name('employees.export');
         Route::post('employees/bulk-action', [AdminEmployeeController::class, 'bulkAction'])->name('employees.bulk-action');
         
@@ -164,7 +166,14 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('sector', AdminSectorController::class)
         ->only(['index','store','update','destroy'])
-        ->middleware(['permission:clients.view']);
+        ->middleware(['permission:employees.view']);
+
+    // ===============================
+    // 🏢 Cities
+    // ===============================
+    Route::resource('city', AdminCityController::class)
+        ->only(['index','store','update','destroy'])
+        ->middleware(['permission:employees.view']);
 
     // ===============================
     // 🏢 Departments
@@ -186,6 +195,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::resource('spares', AdminSpareController::class)->middleware(['permission:spares.view']);
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::get('spares/{spare}/print-slip', [AdminSpareController::class, 'printSlip'])->middleware(['permission:spares.view'])->name('spares.print-slip');
+    Route::post('spares/{spare}/add-stock', [AdminSpareController::class, 'addStock'])->middleware(['permission:spares.view'])->name('spares.add-stock');
     Route::resource('approvals', AdminApprovalController::class)->middleware(['permission:approvals.view']);
     Route::post('approvals/{approval}/approve', [AdminApprovalController::class, 'approve'])->middleware(['permission:approvals.view'])->name('approvals.approve');
     Route::post('approvals/{approval}/reject', [AdminApprovalController::class, 'reject'])->middleware(['permission:approvals.view'])->name('approvals.reject');

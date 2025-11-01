@@ -67,6 +67,14 @@
             <span class="text-muted">Hire Date:</span>
             <span class="text-white ms-2">{{ $employee->date_of_hire ? $employee->date_of_hire->format('M d, Y') : 'N/A' }}</span>
           </div>
+          <div class="mb-3">
+            <span class="text-muted">City:</span>
+            <span class="text-white ms-2">{{ $employee->city ? $employee->city->name : 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Sector:</span>
+            <span class="text-white ms-2">{{ $employee->sector ? $employee->sector->name : 'N/A' }}</span>
+          </div>
         </div>
       </div>
       

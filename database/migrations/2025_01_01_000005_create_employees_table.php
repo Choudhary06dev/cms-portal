@@ -22,9 +22,24 @@ return new class extends Migration
             $table->date('date_of_hire')->nullable();
             $table->integer('leave_quota')->default(30);
             $table->text('address')->nullable();
+            // Add city_id and sector_id columns (nullable for existing installations)
+            $table->unsignedBigInteger('city_id')->nullable()->after('address');
+            $table->unsignedBigInteger('sector_id')->nullable()->after('city_id');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
+        
+        // Add foreign key constraints only if cities and sectors tables exist
+        if (Schema::hasTable('cities')) {
+            Schema::table('employees', function (Blueprint $table) {
+                $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
+            });
+        }
+        if (Schema::hasTable('sectors')) {
+            Schema::table('employees', function (Blueprint $table) {
+                $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
+            });
+        }
     }
 
     /**

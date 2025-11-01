@@ -95,18 +95,8 @@
         </div>
         
         <div class="info-row">
-            <div class="info-label">Product Nature:</div>
-            <div class="info-value">{{ $spare->product_nature ?? 'N/A' }}</div>
-        </div>
-        
-        <div class="info-row">
             <div class="info-label">Category:</div>
             <div class="info-value">{{ ucfirst($spare->category ?? 'N/A') }}</div>
-        </div>
-        
-        <div class="info-row">
-            <div class="info-label">Unit:</div>
-            <div class="info-value">{{ $spare->unit ?? 'N/A' }}</div>
         </div>
         
         <div class="info-row">
