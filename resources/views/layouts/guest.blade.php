@@ -18,202 +18,204 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f8f9fa;
             min-height: 100vh;
+            color: #212529;
         }
         
         .auth-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+            overflow: hidden;
         }
         
         .auth-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px 20px 0 0;
-            padding: 2rem;
+            background: #ffffff;
+            padding: 1.5rem 2rem 1rem;
             text-align: center;
-            color: white;
+            border-bottom: 1px solid #e9ecef;
         }
         
         .auth-form {
-            padding: 2rem;
+            padding: 1.5rem 2rem;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .logo {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: #212529;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        
+        .auth-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 0.375rem;
+        }
+        
+        .auth-header p {
+            font-size: 0.8125rem;
+            color: #6c757d;
         }
         
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
         
         .form-label {
             display: block;
-            font-weight: 600;
-            color: #374151;
+            font-weight: 500;
+            color: #212529;
             margin-bottom: 0.5rem;
             font-size: 0.875rem;
         }
         
         .form-input {
             width: 100%;
-            padding: 0.875rem 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #f9fafb;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            color: #212529;
         }
         
         .form-input:focus {
             outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #212529;
+            box-shadow: 0 0 0 3px rgba(33, 37, 41, 0.05);
+        }
+        
+        .form-input::placeholder {
+            color: #adb5bd;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #212529;
             border: none;
-            padding: 0.875rem 2rem;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 0.9375rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            background: #000000;
         }
         
-        .btn-secondary {
-            background: transparent;
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 0.875rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
+        .btn-primary:active {
+            transform: translateY(1px);
         }
         
         .error-message {
-            color: #ef4444;
-            font-size: 0.875rem;
+            color: #dc3545;
+            font-size: 0.8125rem;
             margin-top: 0.5rem;
         }
         
-        .floating-shapes {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
+        .text-link {
+            color: #212529;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
         
-        .shape {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
+        .text-link:hover {
+            text-decoration: underline;
         }
         
-        .shape:nth-child(1) {
-            width: 80px;
-            height: 80px;
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
+        .form-checkbox {
+            width: 1rem;
+            height: 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            cursor: pointer;
         }
         
-        .shape:nth-child(2) {
-            width: 120px;
-            height: 120px;
-            top: 60%;
-            right: 10%;
-            animation-delay: 2s;
+        .form-checkbox:checked {
+            background: #212529;
+            border-color: #212529;
         }
         
-        .shape:nth-child(3) {
-            width: 60px;
-            height: 60px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 4s;
+        .status-message {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
+        .status-message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
         }
         
-        .logo-container {
-            text-align: center;
-            margin-bottom: 2rem;
+        .top-nav {
+            background: #ffffff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 0;
         }
         
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: inline-flex;
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 2rem;
-            font-weight: bold;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .nav-logo {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #212529;
         }
     </style>
 </head>
 
 <body>
-    <!-- Floating Background Shapes -->
-    <div class="floating-shapes">
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
-    </div>
-
     <!-- Top Navigation Bar -->
-    <nav class="bg-white/10 backdrop-blur-md border-b border-white/20 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-center items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="flex items-center">
-                            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-white font-bold text-sm">CMS</span>
-                            </div>
-                            <span class="text-white font-semibold text-lg">Complaint Management System</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <nav class="top-nav">
+        <div class="nav-content">
+            <div class="nav-logo">CMS - Complaint Management System</div>
         </div>
     </nav>
 
     <!-- Page Content -->
-    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
+    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-4 sm:pt-0" style="min-height: calc(100vh - 73px); padding: 1rem 0;">
         <div class="w-full sm:max-w-md">
             <div class="auth-container">
                 <div class="auth-header">
@@ -221,14 +223,14 @@
                         <div class="logo">CMS</div>
                     </div>
                     @if(request()->routeIs('login'))
-                        <h1 class="text-2xl font-bold mb-2">Welcome Back</h1>
-                        <p class="text-sm opacity-90">Sign in to your account</p>
+                        <h1>Welcome Back</h1>
+                        <p>Sign in to your account</p>
                     @elseif(request()->routeIs('register'))
-                        <h1 class="text-2xl font-bold mb-2">Join Us Today</h1>
-                        <p class="text-sm opacity-90">Create your account</p>
+                        <h1>Create Account</h1>
+                        <p>Sign up to get started</p>
                     @else
-                        <h1 class="text-2xl font-bold mb-2">Welcome</h1>
-                        <p class="text-sm opacity-90">Access your account</p>
+                        <h1>Welcome</h1>
+                        <p>Access your account</p>
                     @endif
                 </div>
                 

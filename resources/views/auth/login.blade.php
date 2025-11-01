@@ -1,7 +1,7 @@
 <x-guest-layout>
     <!-- Session Status -->
     @if (session('status'))
-        <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+        <div class="status-message success">
             {{ session('status') }}
         </div>
     @endif
@@ -32,34 +32,33 @@
         </div>
 
         <!-- Remember Me -->
-        <div class="form-group">
-            <label for="remember_me" class="flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ml-2 text-sm text-gray-600">Remember me</span>
-            </label>
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <input id="remember_me" type="checkbox" class="form-checkbox" name="remember">
+            <label for="remember_me" style="font-size: 0.875rem; color: #6c757d; cursor: pointer; margin: 0;">Remember me</label>
         </div>
 
         <div class="form-group">
             <button type="submit" class="btn-primary">
-                <i data-feather="log-in" class="inline w-4 h-4 mr-2"></i>Sign In
+                <i data-feather="log-in" class="inline w-4 h-4"></i>
+                Sign In
             </button>
         </div>
 
-        <div class="text-center">
+        <div style="text-align: center; margin-top: 1rem;">
             @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="text-sm text-gray-600 hover:text-gray-800">
+                <a href="{{ route('password.request') }}" class="text-link">
                     Forgot your password?
                 </a>
             @endif
         </div>
 
-        <div class="text-center mt-4">
-            <p class="text-sm text-gray-600">
-                Don't have an account? 
-                <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
-                    Sign up here
-                </a>
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e9ecef;">
+            <p style="font-size: 0.875rem; color: #6c757d; margin-bottom: 0.5rem;">
+                Don't have an account?
             </p>
+            <a href="{{ route('register') }}" class="text-link" style="font-weight: 600;">
+                Sign up here
+            </a>
         </div>
     </form>
 </x-guest-layout>

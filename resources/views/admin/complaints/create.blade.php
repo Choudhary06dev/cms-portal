@@ -174,9 +174,9 @@
                     <label for="status" class="form-label text-white">Status</label>
                     <select class="form-select @error('status') is-invalid @enderror" 
                             id="status" name="status">
-                      <option value="new" {{ old('status','new')=='new' ? 'selected' : '' }}>New</option>
-                      <option value="assigned" {{ old('status')=='assigned' ? 'selected' : '' }}>Assigned</option>
-                      <option value="in_progress" {{ old('status')=='in_progress' ? 'selected' : '' }}>In Progress</option>
+                      @foreach(\App\Models\Complaint::getStatuses() as $statusValue => $statusLabel)
+                        <option value="{{ $statusValue }}" {{ old('status','new')==$statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+                      @endforeach
                     </select>
                     @error('status')
                       <div class="invalid-feedback">{{ $message }}</div>

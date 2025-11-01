@@ -143,11 +143,9 @@
                     <label for="status" class="form-label text-white">Status <span class="text-danger">*</span></label>
                     <select class="form-select @error('status') is-invalid @enderror" 
                             id="status" name="status" required>
-                      <option value="new" {{ old('status', $complaint->status) == 'new' ? 'selected' : '' }}>New</option>
-                      <option value="assigned" {{ old('status', $complaint->status) == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                      <option value="in_progress" {{ old('status', $complaint->status) == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                      <option value="resolved" {{ old('status', $complaint->status) == 'resolved' ? 'selected' : '' }}>Resolved</option>
-                      <option value="closed" {{ old('status', $complaint->status) == 'closed' ? 'selected' : '' }}>Closed</option>
+                      @foreach(\App\Models\Complaint::getStatuses() as $statusValue => $statusLabel)
+                        <option value="{{ $statusValue }}" {{ old('status', $complaint->status) == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+                      @endforeach
                     </select>
                     @error('status')
                       <div class="invalid-feedback">{{ $message }}</div>

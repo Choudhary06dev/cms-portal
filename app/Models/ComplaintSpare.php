@@ -11,6 +11,8 @@ class ComplaintSpare extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'complaint_spares';
+
     protected $fillable = [
         'complaint_id',
         'spare_id',

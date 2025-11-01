@@ -321,14 +321,13 @@ class ReportController extends Controller
     }
 
     /**
-     * Generate complaint reports
+     * Generate SUB-DIVISION WISE PERFORMANCE report
      */
     public function complaints(Request $request)
     {
         // Set default values if not provided
         $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
         $dateTo = $request->date_to ?? now()->format('Y-m-d');
-        $groupBy = $request->group_by ?? 'status';
         $format = $request->format ?? 'html';
 
         // Validate only if parameters are provided
@@ -336,7 +335,6 @@ class ReportController extends Controller
             $request->validate([
                 'date_from' => 'date',
                 'date_to' => 'date|after_or_equal:date_from',
-                'group_by' => 'nullable|in:status,type,priority,employee,client',
                 'format' => 'nullable|in:html,pdf,excel',
             ]);
         }
@@ -345,72 +343,136 @@ class ReportController extends Controller
         $dateFromStart = \Carbon\Carbon::parse($dateFrom)->startOfDay();
         $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
         
-        // Use a base query and clone it for each computation to avoid mutation side-effects
+        // Get actual categories from ComplaintCategory table
+        $actualCategories = \App\Models\ComplaintCategory::where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name')
+            ->toArray();
+        
+        // Also get categories from complaints table that might not be in ComplaintCategory
+        $complaintCategories = Complaint::whereNotNull('category')
+            ->whereBetween('created_at', [$dateFromStart, $dateToEnd])
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->toArray();
+        
+        // Merge and remove duplicates
+        $allCategories = array_unique(array_merge($actualCategories, $complaintCategories));
+        sort($allCategories);
+        
+        // Map categories to report format
+        $categories = [];
+        foreach ($allCategories as $cat) {
+            // Use the category name as key
+            $key = strtolower(str_replace([' ', '&', '-', '(', ')'], ['_', '', '_', '', ''], $cat));
+            $categories[$key] = $cat;
+        }
+        
+        // If still no categories, use default structure for demonstration
+        if (empty($categories)) {
+            $categories = [
+                'electric' => 'Electric',
+                'plumbing' => 'Plumbing',
+                'general' => 'General',
+                'kitchen' => 'Kitchen',
+                'barrak_damages' => 'Barrak Damages',
+            ];
+        }
+        
+        // Row categories/statuses - based on complaint statuses from Complaint model
+        $rows = \App\Models\Complaint::getStatuses();
+        
+        // Base query for all complaints in date range
         $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
-        $query = (clone $baseQuery)->with(['client', 'assignedEmployee']);
-
-        // Generate report data based on group_by
-        switch ($groupBy) {
-            case 'status':
-                $data = (clone $baseQuery)->selectRaw('status, COUNT(*) as count')
-                    ->groupBy('status')
-                    ->get();
-                break;
-
-            case 'type':
-                $data = (clone $baseQuery)->selectRaw('category, COUNT(*) as count')
-                    ->groupBy('category')
-                    ->get();
-                break;
-
-            case 'priority':
-                $data = (clone $baseQuery)->selectRaw('priority, COUNT(*) as count')
-                    ->groupBy('priority')
-                    ->get();
-                break;
-
-            case 'employee':
-                $data = (clone $baseQuery)
-                    ->whereNotNull('assigned_employee_id')
-                    ->selectRaw('assigned_employee_id, COUNT(*) as count')
-                    ->groupBy('assigned_employee_id')
-                    ->get()
-                    ->map(function($item) {
-                        $item->assignedEmployee = \App\Models\Employee::find($item->assigned_employee_id);
-                        return $item;
-                    });
-                break;
-
-            case 'client':
-                $data = (clone $baseQuery)
-                    ->selectRaw('client_id, COUNT(*) as count')
-                    ->groupBy('client_id')
-                    ->get()
-                    ->map(function($item) {
-                        $item->client = \App\Models\Client::find($item->client_id);
-                        return $item;
-                    });
-                break;
-
-            default:
-                $data = (clone $baseQuery)->with(['client', 'assignedEmployee'])->get();
+        
+        // Initialize report data structure
+        $reportData = [];
+        $categoryTotals = [];
+        $rowTotals = [];
+        $grandTotal = 0;
+        
+        // Process each category from actual database
+        foreach ($categories as $catKey => $catName) {
+            $categoryTotals[$catKey] = 0;
+            
+            // Query for this specific category
+            $catQuery = (clone $baseQuery)->where('category', $catName);
+            
+            // Eager load relationships safely
+            try {
+                $catComplaints = $catQuery->with(['spareParts', 'spareApprovals', 'client'])->get();
+            } catch (\Exception $e) {
+                // If relationships fail, load without them
+                \Log::warning('Failed to eager load relationships: ' . $e->getMessage());
+                $catComplaints = $catQuery->with(['client'])->get();
+            }
+            $catTotal = $catComplaints->count();
+            $categoryTotals[$catKey] = $catTotal;
+            $grandTotal += $catTotal;
+            
+            // Process each row for this category
+            foreach ($rows as $rowKey => $rowName) {
+                if (!isset($reportData[$rowKey])) {
+                    $reportData[$rowKey] = ['name' => $rowName, 'categories' => []];
+                    $rowTotals[$rowKey] = 0;
+                }
+                
+                $count = 0;
+                
+                // Row mapping logic - based on complaint status
+                if ($rowKey === 'new') {
+                    $count = $catComplaints->where('status', 'new')->count();
+                } elseif ($rowKey === 'assigned') {
+                    $count = $catComplaints->where('status', 'assigned')->count();
+                } elseif ($rowKey === 'in_progress') {
+                    $count = $catComplaints->where('status', 'in_progress')->count();
+                } elseif ($rowKey === 'resolved') {
+                    $count = $catComplaints->where('status', 'resolved')->count();
+                } elseif ($rowKey === 'closed') {
+                    $count = $catComplaints->where('status', 'closed')->count();
+                }
+                
+                $percentage = $catTotal > 0 ? round(($count / $catTotal) * 100, 1) : 0;
+                
+                $reportData[$rowKey]['categories'][$catKey] = [
+                    'count' => $count,
+                    'percentage' => $percentage,
+                ];
+                
+                $rowTotals[$rowKey] += $count;
+            }
         }
-
-        // Build summary metrics from clean clones of the base query
-        $summary = [
-            'total_complaints' => (clone $baseQuery)->count(),
-            'resolved_complaints' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])->count(),
-            'pending_complaints' => (clone $baseQuery)->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
-            'avg_resolution_time' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])
-                ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')
-                ->value('avg_hours') ?? 0,
+        
+        // Add Total row
+        $reportData['total'] = ['name' => 'Total', 'categories' => []];
+        foreach ($categories as $catKey => $catName) {
+            $reportData['total']['categories'][$catKey] = [
+                'count' => $categoryTotals[$catKey],
+                'percentage' => $grandTotal > 0 ? round(($categoryTotals[$catKey] / $grandTotal) * 100, 1) : 0,
+            ];
+        }
+        
+        // Prepare data for view
+        $data = [
+            'reportData' => $reportData,
+            'categories' => $categories,
+            'rows' => $rows,
+            'categoryTotals' => $categoryTotals,
+            'grandTotal' => $grandTotal,
+            'rowTotals' => $rowTotals,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
         ];
-
-        if ($format === 'html') {
-            return view('admin.reports.complaints', compact('data', 'summary', 'dateFrom', 'dateTo', 'groupBy'));
-        } else {
-            return $this->exportReport('complaints', $data, $summary, $format);
+        
+        // Export based on format
+        if ($format === 'excel') {
+            return $this->exportToExcelReport($data);
+        } elseif ($format === 'pdf') {
+            return $this->exportToPDFReport($data);
         }
+        
+        return view('admin.reports.complaints', $data);
     }
 
     /**
@@ -512,98 +574,23 @@ class ReportController extends Controller
     /** Printable versions - reuse data builders */
     public function printComplaints(Request $request)
     {
-        // Reuse complaints builder
-        $request2 = new Request($request->all());
-        // Set defaults
-        $request2->merge([
-            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
-            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
-            'group_by' => $request->group_by ?? 'status'
-        ]);
-        $built = $this->getComplaintsData($request2);
-        $dateFrom = $request2->get('date_from');
-        $dateTo = $request2->get('date_to');
-        $groupBy = $request2->get('group_by');
-        return view('admin.reports.print-complaints', [
-            'data' => $built['data'],
-            'summary' => $built['summary'],
-            'dateFrom' => $dateFrom,
-            'dateTo' => $dateTo,
-            'groupBy' => $groupBy,
-        ]);
+        // Redirect to the new complaints report with print format
+        return $this->complaints($request);
     }
 
     public function printEmployees(Request $request)
     {
-        $request2 = new Request($request->all());
-        $request2->merge([
-            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
-            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
-        ]);
-        $built = $this->getEmployeesData($request2);
-        $dateFrom = $request2->get('date_from');
-        $dateTo = $request2->get('date_to');
-        $department = $request2->get('department');
-        return view('admin.reports.print-employees', [
-            'employees' => $built['data'],
-            'summary' => $built['summary'],
-            'dateFrom' => $dateFrom,
-            'dateTo' => $dateTo,
-            'department' => $department,
-        ]);
+        return redirect()->route('admin.reports.employees', $request->query());
     }
 
     public function printSpares(Request $request)
     {
-        $request2 = new Request($request->all());
-        $request2->merge([
-            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
-            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
-        ]);
-        $built = $this->getSparesData($request2);
-        $dateFrom = $request2->get('date_from');
-        $dateTo = $request2->get('date_to');
-        $category = $request2->get('category');
-        return view('admin.reports.print-spares', [
-            'spares' => $built['data'],
-            'summary' => $built['summary'],
-            'dateFrom' => $dateFrom,
-            'dateTo' => $dateTo,
-            'category' => $category,
-        ]);
+        return redirect()->route('admin.reports.spares', $request->query());
     }
 
     public function printClients(Request $request)
     {
-        $request2 = new Request($request->all());
-        $request2->merge([
-            'date_from' => $request->date_from ?? now()->subMonth()->format('Y-m-d'),
-            'date_to' => $request->date_to ?? now()->format('Y-m-d'),
-        ]);
-        // Reuse clients builder
-        $dateFrom = $request2->get('date_from');
-        $dateTo = $request2->get('date_to');
-        $status = $request2->get('status');
-        $query = Client::query();
-        if ($status) { $query->where('status', $status); }
-        $clients = $query->orderBy('created_at', 'desc')->get()->map(function($client) use ($dateFrom, $dateTo) {
-            $totalComplaints = Complaint::where('client_id', $client->id)
-                ->whereBetween('created_at', [$dateFrom, $dateTo])->count();
-            $resolvedComplaints = Complaint::where('client_id', $client->id)
-                ->whereBetween('created_at', [$dateFrom, $dateTo])
-                ->whereIn('status', ['resolved','closed'])->count();
-            return [
-                'client' => $client,
-                'total_complaints' => $totalComplaints,
-                'resolved_complaints' => $resolvedComplaints,
-            ];
-        });
-        $summary = [
-            'total_clients' => Client::count(),
-            'active_clients' => Client::where('status', 'active')->count(),
-            'complaints_this_period' => Complaint::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
-        ];
-        return view('admin.reports.print-clients', compact('clients','summary','dateFrom','dateTo','status'));
+        return redirect()->route('admin.reports.clients', $request->query());
     }
 
     /**
@@ -633,30 +620,50 @@ class ReportController extends Controller
             $query->where('category', $category);
         }
 
-        $spares = $query->with(['complaintSpares' => function($q) use ($dateFrom, $dateTo) {
-            $q->whereBetween('used_at', [$dateFrom, $dateTo]);
-        }])->get()->map(function($spare) {
-            $usage = $spare->complaintSpares;
-            $totalUsed = $usage->sum('quantity');
-            $totalCost = $usage->sum(function($item) use ($spare) {
-                return $item->quantity * $spare->unit_price;
-            });
+        // Eager load complaint spares safely
+        try {
+            $spares = $query->with(['complaintSpares' => function($q) use ($dateFrom, $dateTo) {
+                $q->whereBetween('used_at', [$dateFrom, $dateTo]);
+            }])->get()->map(function($spare) use ($dateFrom, $dateTo) {
+                $usage = $spare->complaintSpares ?? collect();
+                $totalUsed = $usage->sum('quantity') ?? 0;
+                $totalCost = $usage->sum(function($item) use ($spare) {
+                    return ($item->quantity ?? 0) * ($spare->unit_price ?? 0);
+                }) ?? 0;
 
-            return [
-                'spare' => $spare,
-                'total_used' => $totalUsed,
-                'total_cost' => $totalCost,
-                'usage_count' => $usage->count(),
-                'current_stock' => $spare->stock_quantity,
-                'stock_status' => $spare->getStockStatusAttribute(),
-            ];
-        });
+                return [
+                    'spare' => $spare,
+                    'total_used' => $totalUsed,
+                    'total_cost' => $totalCost,
+                    'usage_count' => $usage->count() ?? 0,
+                    'current_stock' => $spare->stock_quantity ?? 0,
+                    'stock_status' => method_exists($spare, 'getStockStatusAttribute') ? $spare->getStockStatusAttribute() : 'in_stock',
+                ];
+            });
+        } catch (\Exception $e) {
+            // If relationship fails, load without it
+            \Log::warning('Failed to load complaint spares: ' . $e->getMessage());
+            $spares = $query->get()->map(function($spare) {
+                return [
+                    'spare' => $spare,
+                    'total_used' => 0,
+                    'total_cost' => 0,
+                    'usage_count' => 0,
+                    'current_stock' => $spare->stock_quantity ?? 0,
+                    'stock_status' => method_exists($spare, 'getStockStatusAttribute') ? $spare->getStockStatusAttribute() : 'in_stock',
+                ];
+            });
+        }
 
         $summary = [
             'total_spares' => $spares->count(),
-            'total_consumption' => $spares->sum('total_cost'),
-            'low_stock_items' => $spares->where('stock_status', 'low_stock')->count(),
-            'out_of_stock_items' => $spares->where('stock_status', 'out_of_stock')->count(),
+            'total_usage_count' => $spares->sum('usage_count'),
+            'low_stock_items' => $spares->filter(function($item) {
+                return ($item['current_stock'] ?? 0) <= ($item['spare']->threshold_level ?? 0) && ($item['current_stock'] ?? 0) > 0;
+            })->count(),
+            'out_of_stock_items' => $spares->filter(function($item) {
+                return ($item['current_stock'] ?? 0) <= 0;
+            })->count(),
         ];
 
         if ($format === 'html') {
@@ -895,7 +902,70 @@ class ReportController extends Controller
     }
 
     /**
-     * Export report to PDF
+     * Export SUB-DIVISION WISE PERFORMANCE report to PDF
+     */
+    private function exportToPDFReport($data)
+    {
+        // For now, redirect to print view or return HTML that can be printed
+        // In production, you would use DomPDF or similar library
+        return view('admin.reports.complaints-pdf', $data);
+    }
+
+    /**
+     * Export SUB-DIVISION WISE PERFORMANCE report to Excel
+     */
+    private function exportToExcelReport($data)
+    {
+        // TODO: Implement Excel export using Laravel Excel
+        // For now, return a simple CSV
+        $filename = "sub_division_wise_performance_" . now()->format('Y-m-d_H-i-s') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            
+            // Write header row - categories + Total
+            $headerRow = ['Description'];
+            foreach ($data['categories'] as $catName) {
+                $headerRow[] = $catName . ' - Qty';
+                $headerRow[] = $catName . ' - %age';
+            }
+            $headerRow[] = 'Total - Qty';
+            $headerRow[] = 'Total - %age';
+            fputcsv($file, $headerRow);
+            
+            // Write data rows
+            foreach ($data['reportData'] as $rowKey => $row) {
+                $rowData = [$row['name']];
+                
+                // Add category columns (count and percentage)
+                foreach ($data['categories'] as $catKey => $catName) {
+                    $count = $row['categories'][$catKey]['count'] ?? 0;
+                    $percentage = $row['categories'][$catKey]['percentage'] ?? 0;
+                    $rowData[] = $count;
+                    $rowData[] = $percentage . '%';
+                }
+                
+                // Add Grand Total columns
+                $rowGrandTotal = array_sum(array_column($row['categories'], 'count'));
+                $rowGrandPercent = $data['grandTotal'] > 0 ? round(($rowGrandTotal / $data['grandTotal'] * 100), 1) : 0;
+                $rowData[] = $rowGrandTotal;
+                $rowData[] = $rowGrandPercent . '%';
+                
+                fputcsv($file, $rowData);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export report to PDF (legacy method for other reports)
      */
     private function exportToPDF($type, $data, $summary)
     {
@@ -913,7 +983,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Export report to Excel
+     * Export report to Excel (legacy method for other reports)
      */
     private function exportToExcel($type, $data, $summary)
     {
@@ -1091,7 +1161,7 @@ class ReportController extends Controller
 
         $summary = [
             'total_spares' => $spares->count(),
-            'total_consumption' => $spares->sum('total_cost'),
+            'total_usage_count' => $spares->sum('usage_count'),
             'low_stock_items' => $spares->where('stock_status', 'low_stock')->count(),
             'out_of_stock_items' => $spares->where('stock_status', 'out_of_stock')->count(),
         ];

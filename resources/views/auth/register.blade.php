@@ -1,66 +1,65 @@
 <x-guest-layout>
-    <div style="max-width: 420px; margin: 32px auto; background: rgba(15,23,42,0.6); border:1px solid rgba(59,130,246,0.2); border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(2,6,23,0.4);">
-    <form method="POST" action="{{ route('register') }}" style="margin:0;">
+    <form method="POST" action="{{ route('register') }}">
         @csrf
 
         <!-- Username -->
-        <div class="form-group" style="margin-bottom:12px;">
-            <label for="username" class="form-label">
-                <i data-feather="user" class="inline w-4 h-4 mr-2"></i>Username
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="username" class="form-label" style="margin-bottom: 0.375rem; font-size: 0.8125rem;">
+                <i data-feather="user" class="inline w-3.5 h-3.5 mr-1.5"></i>Username
             </label>
-            <input id="username" class="form-input" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username" placeholder="Choose a username" style="width:100%; padding:.55rem .75rem; font-size:.92rem; border-radius:8px;" />
+            <input id="username" class="form-input" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username" placeholder="Choose a username" style="padding: 0.625rem 0.875rem; font-size: 0.875rem;" />
             @error('username')
-                <div class="error-message" style="color:#ef4444; font-size:.82rem; margin-top:6px;">{{ $message }}</div>
+                <div class="error-message" style="margin-top: 0.375rem; font-size: 0.75rem;">{{ $message }}</div>
             @enderror
         </div>
 
         <!-- Email Address -->
-        <div class="form-group" style="margin-bottom:12px;">
-            <label for="email" class="form-label">
-                <i data-feather="mail" class="inline w-4 h-4 mr-2"></i>Email Address
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="email" class="form-label" style="margin-bottom: 0.375rem; font-size: 0.8125rem;">
+                <i data-feather="mail" class="inline w-3.5 h-3.5 mr-1.5"></i>Email Address
             </label>
-            <input id="email" class="form-input" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email" style="width:100%; padding:.55rem .75rem; font-size:.92rem; border-radius:8px;" />
+            <input id="email" class="form-input" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email" style="padding: 0.625rem 0.875rem; font-size: 0.875rem;" />
             @error('email')
-                <div class="error-message" style="color:#ef4444; font-size:.82rem; margin-top:6px;">{{ $message }}</div>
+                <div class="error-message" style="margin-top: 0.375rem; font-size: 0.75rem;">{{ $message }}</div>
             @enderror
         </div>
 
         <!-- Password -->
-        <div class="form-group" style="margin-bottom:12px;">
-            <label for="password" class="form-label">
-                <i data-feather="lock" class="inline w-4 h-4 mr-2"></i>Password
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="password" class="form-label" style="margin-bottom: 0.375rem; font-size: 0.8125rem;">
+                <i data-feather="lock" class="inline w-3.5 h-3.5 mr-1.5"></i>Password
             </label>
-            <input id="password" class="form-input" type="password" name="password" required autocomplete="new-password" placeholder="Create a password" style="width:100%; padding:.55rem .75rem; font-size:.92rem; border-radius:8px;" />
+            <input id="password" class="form-input" type="password" name="password" required autocomplete="new-password" placeholder="Create a password" style="padding: 0.625rem 0.875rem; font-size: 0.875rem;" />
             @error('password')
-                <div class="error-message" style="color:#ef4444; font-size:.82rem; margin-top:6px;">{{ $message }}</div>
+                <div class="error-message" style="margin-top: 0.375rem; font-size: 0.75rem;">{{ $message }}</div>
             @enderror
         </div>
 
         <!-- Confirm Password -->
-        <div class="form-group" style="margin-bottom:16px;">
-            <label for="password_confirmation" class="form-label">
-                <i data-feather="lock" class="inline w-4 h-4 mr-2"></i>Confirm Password
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="password_confirmation" class="form-label" style="margin-bottom: 0.375rem; font-size: 0.8125rem;">
+                <i data-feather="lock" class="inline w-3.5 h-3.5 mr-1.5"></i>Confirm Password
             </label>
-            <input id="password_confirmation" class="form-input" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" style="width:100%; padding:.55rem .75rem; font-size:.92rem; border-radius:8px;" />
+            <input id="password_confirmation" class="form-input" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" style="padding: 0.625rem 0.875rem; font-size: 0.875rem;" />
             @error('password_confirmation')
-                <div class="error-message" style="color:#ef4444; font-size:.82rem; margin-top:6px;">{{ $message }}</div>
+                <div class="error-message" style="margin-top: 0.375rem; font-size: 0.75rem;">{{ $message }}</div>
             @enderror
         </div>
 
-        <div class="form-group" style="margin-bottom:8px;">
-            <button type="submit" class="btn-primary" style="width:100%; padding:.6rem 1rem; font-size:.95rem; border-radius:8px;">
-                <i data-feather="user-plus" class="inline w-4 h-4 mr-2"></i>Create Account
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <button type="submit" class="btn-primary" style="padding: 0.625rem 1.25rem; font-size: 0.875rem;">
+                <i data-feather="user-plus" class="inline w-3.5 h-3.5"></i>
+                Create Account
             </button>
         </div>
 
-        <div class="text-center" style="margin-top:10px;">
-            <p class="text-sm text-gray-600" style="font-size:.9rem;">
-                Already have an account? 
-                <a href="{{ route('login') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
-                    Sign in here
-                </a>
+        <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
+            <p style="font-size: 0.8125rem; color: #6c757d; margin-bottom: 0.375rem;">
+                Already have an account?
             </p>
+            <a href="{{ route('login') }}" class="text-link" style="font-weight: 600; font-size: 0.8125rem;">
+                Sign in here
+            </a>
         </div>
     </form>
-    </div>
 </x-guest-layout>
