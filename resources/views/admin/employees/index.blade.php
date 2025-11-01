@@ -18,32 +18,25 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <div class="row g-3">
-    <div class="col-md-3">
-      <input type="text" class="form-control" placeholder="Search employees..." id="searchInput">
+  <form id="employeesFiltersForm" method="GET" action="{{ route('admin.employees.index') }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search employees..." 
+             value="{{ request('search') }}" oninput="handleEmployeesSearchInput()">
     </div>
-    <div class="col-md-2">
-      <input type="text" class="form-control" placeholder="Filter by department..." id="departmentFilter">
+    <div class="col-6 col-md-3">
+      <input type="text" class="form-control" name="department" placeholder="Department" 
+             value="{{ request('department') }}" oninput="handleEmployeesSearchInput()">
     </div>
-    <div class="col-md-2">
-      <select class="form-select" id="statusFilter">
-        <option value="">All Status</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
+    <div class="col-6 col-md-3">
+      <select class="form-select" name="status" onchange="submitEmployeesFilters()">
+        <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
+        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
       </select>
     </div>
-    <div class="col-md-3">
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary btn-sm" id="applyFilters">
-          <i data-feather="filter" class="me-1"></i>Apply
-        </button>
-        <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
-          <i data-feather="x" class="me-1"></i>Clear
-        </button>
-        
-      </div>
-    </div>
   </div>
+  </form>
 </div>
 
 <!-- EMPLOYEES TABLE -->
@@ -62,7 +55,7 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="employeesTableBody">
         @forelse($employees as $employee)
         <tr>
           <td>{{ $employee->id }}</td>
@@ -113,7 +106,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-center mt-4">
+  <div class="d-flex justify-content-center mt-4" id="employeesPagination">
     <div>
       {{ $employees->links() }}
     </div>
@@ -172,75 +165,100 @@
 <script>
   feather.replace();
   
-  // Search functionality
-  document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#employeesTable tbody tr');
+  // Debounced search input handler
+  let employeesSearchTimeout = null;
+  function handleEmployeesSearchInput() {
+    if (employeesSearchTimeout) clearTimeout(employeesSearchTimeout);
+    employeesSearchTimeout = setTimeout(() => {
+      loadEmployees();
+    }, 500);
+  }
+
+  // Auto-submit for select filters
+  function submitEmployeesFilters() {
+    loadEmployees();
+  }
+
+  // Load Employees via AJAX
+  function loadEmployees(url = null) {
+    const form = document.getElementById('employeesFiltersForm');
+    if (!form) return;
     
-    rows.forEach(row => {
-      const username = row.cells[1].textContent.toLowerCase();
-      const department = row.cells[2].textContent.toLowerCase();
-      const position = row.cells[3].textContent.toLowerCase();
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    
+    if (url) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.forEach((value, key) => {
+        params.append(key, value);
+      });
+    } else {
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+    }
+
+    const tbody = document.getElementById('employeesTableBody');
+    const paginationContainer = document.getElementById('employeesPagination');
+    
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+    }
+
+    fetch(`{{ route('admin.employees.index') }}?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
       
-      if (username.includes(searchTerm) || department.includes(searchTerm) || position.includes(searchTerm)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
+      const newTbody = doc.querySelector('#employeesTableBody');
+      const newPagination = doc.querySelector('#employeesPagination');
+      
+      if (newTbody && tbody) {
+        tbody.innerHTML = newTbody.innerHTML;
+        feather.replace();
+      }
+      
+      if (newPagination && paginationContainer) {
+        paginationContainer.innerHTML = newPagination.innerHTML;
+      }
+
+      const newUrl = `{{ route('admin.employees.index') }}?${params.toString()}`;
+      window.history.pushState({path: newUrl}, '', newUrl);
+    })
+    .catch(error => {
+      console.error('Error loading employees:', error);
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
       }
     });
+  }
+
+  // Handle pagination clicks
+  document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('#employeesPagination a');
+    if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+      e.preventDefault();
+      loadEmployees(paginationLink.href);
+    }
   });
-  
-  // Filter functionality
-  document.getElementById('applyFilters').addEventListener('click', function() {
-    const departmentFilter = document.getElementById('departmentFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
-    const rows = document.querySelectorAll('#employeesTable tbody tr');
-    
-    rows.forEach(row => {
-      let showRow = true;
-      
-      // Department filter
-      if (departmentFilter) {
-        const department = row.cells[2].textContent.toLowerCase();
-        if (!department.includes(departmentFilter.toLowerCase())) {
-          showRow = false;
-        }
-      }
-      
-      // Status filter
-      if (statusFilter) {
-        const statusBadge = row.querySelector('.badge');
-        if (!statusBadge || !statusBadge.textContent.toLowerCase().includes(statusFilter)) {
-          showRow = false;
-        }
-      }
-      
-      // Search filter
-      if (searchTerm) {
-        const username = row.cells[1].textContent.toLowerCase();
-        const department = row.cells[2].textContent.toLowerCase();
-        const position = row.cells[3].textContent.toLowerCase();
-        if (!username.includes(searchTerm) && !department.includes(searchTerm) && !position.includes(searchTerm)) {
-          showRow = false;
-        }
-      }
-      
-      row.style.display = showRow ? '' : 'none';
-    });
-  });
-  
-  // Clear filters
-  document.getElementById('clearFilters').addEventListener('click', function() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('departmentFilter').value = '';
-    document.getElementById('statusFilter').value = '';
-    
-    const rows = document.querySelectorAll('#employeesTable tbody tr');
-    rows.forEach(row => {
-      row.style.display = '';
-    });
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.path) {
+      loadEmployees(e.state.path);
+    } else {
+      loadEmployees();
+    }
   });
   
   

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\Department;
+use App\Models\Designation;
 // Removed User and Role dependencies as employees no longer link to users
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Exception;
 
 class EmployeeController extends Controller
@@ -23,9 +26,32 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the employees.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $employees = Employee::orderBy('id', 'desc')->paginate(10);
+        $query = Employee::query();
+
+        // Search functionality
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('designation', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by department
+        if ($request->has('department') && $request->department) {
+            $query->where('department', 'like', "%{$request->department}%");
+        }
+
+        // Filter by status
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+
+        $employees = $query->orderBy('id', 'desc')->paginate(10);
         
         return view('admin.employees.index', compact('employees'));
     }
@@ -38,7 +64,11 @@ class EmployeeController extends Controller
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
         
-        $response = response()->view('admin.employees.create');
+        $departments = Schema::hasTable('departments')
+            ? Department::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        $response = response()->view('admin.employees.create', compact('departments'));
         
         // Add cache-busting headers
         $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -60,11 +90,21 @@ class EmployeeController extends Controller
             'content_type' => $request->header('Content-Type'),
         ]);
 
+        $departmentRule = 'required|string|max:100';
+        $designationRule = 'required|string|max:100';
+        
+        if (Schema::hasTable('departments')) {
+            $departmentRule .= '|exists:departments,name';
+        }
+        if (Schema::hasTable('designations')) {
+            $designationRule .= '|exists:designations,name';
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
             'email' => 'nullable|email|max:150|unique:employees,email',
-            'department' => 'required|string|max:100',
-            'designation' => 'required|string|max:100',
+            'department' => $departmentRule,
+            'designation' => $designationRule,
             'phone' => 'nullable|string|max:20',
             'biometric_id' => 'nullable|string|max:50|unique:employees',
             'date_of_hire' => 'nullable|date',
@@ -158,7 +198,64 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
-        return view('admin.employees.edit', compact('employee'));
+        $departments = Schema::hasTable('departments')
+            ? Department::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        return view('admin.employees.edit', compact('employee', 'departments'));
+    }
+
+    /**
+     * Get designations by department (AJAX)
+     */
+    public function getDesignationsByDepartment(Request $request)
+    {
+        if (!Schema::hasTable('designations')) {
+            return response()->json(['designations' => []]);
+        }
+
+        $departmentId = $request->input('department_id');
+        
+        // If department_name is provided instead of department_id, find the department
+        if ($request->has('department_name') && $request->department_name && !$departmentId) {
+            $department = Department::where('name', $request->department_name)->first();
+            if ($department) {
+                $departmentId = $department->id;
+            }
+        }
+
+        // Convert to integer if it's a string
+        if ($departmentId) {
+            $departmentId = (int) $departmentId;
+        }
+
+        if (!$departmentId || $departmentId <= 0) {
+            Log::info('No valid department ID provided', [
+                'department_id' => $request->input('department_id'),
+                'department_name' => $request->input('department_name')
+            ]);
+            return response()->json(['designations' => []]);
+        }
+
+        // Check if department exists
+        $department = Department::find($departmentId);
+        if (!$department) {
+            Log::warning('Department not found', ['department_id' => $departmentId]);
+            return response()->json(['designations' => []]);
+        }
+
+        $designations = Designation::where('department_id', $departmentId)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        
+        Log::info('Designations fetched', [
+            'department_id' => $departmentId,
+            'department_name' => $department->name,
+            'count' => $designations->count()
+        ]);
+        
+        return response()->json(['designations' => $designations]);
     }
 
     /**
@@ -166,12 +263,22 @@ class EmployeeController extends Controller
      */
     public function update(Request $request, Employee $employee)
     {
+        $departmentRule = 'required|string|max:100';
+        $designationRule = 'required|string|max:100';
+        
+        if (Schema::hasTable('departments')) {
+            $departmentRule .= '|exists:departments,name';
+        }
+        if (Schema::hasTable('designations')) {
+            $designationRule .= '|exists:designations,name';
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
             'email' => 'nullable|email|max:150|unique:employees,email,' . $employee->id,
             'phone' => 'nullable|string|max:20',
-            'department' => 'required|string|max:100',
-            'designation' => 'required|string|max:100',
+            'department' => $departmentRule,
+            'designation' => $designationRule,
             'biometric_id' => 'nullable|string|max:50|unique:employees,biometric_id,' . $employee->id,
             'date_of_hire' => 'nullable|date',
             'leave_quota' => 'required|integer|min:0|max:365',

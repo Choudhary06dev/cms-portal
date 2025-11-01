@@ -10,9 +10,9 @@
       <h2 class="text-white mb-2" >Clients Management</h2>
       <p class="text-light" >Manage client information and relationships</p>
     </div>
-    <button id="addClientBtn" class="btn btn-accent" data-bs-toggle="modal" data-bs-target="#clientCreateModal">
+    <a href="{{ route('admin.clients.create') }}" class="btn btn-accent">
       <i data-feather="plus" class="me-2"></i>Add Client
-    </button>
+    </a>
   </div>
 </div>
 
@@ -338,7 +338,6 @@
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">City:</strong> <span style="color: var(--text-secondary);">${client.city || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Sector:</strong> <span style="color: var(--text-secondary);">${client.sector || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">State:</strong> <span style="color: var(--text-secondary);">${client.state || 'N/A'}</span></p>
-                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Pincode:</strong> <span style="color: var(--text-secondary);">${client.pincode || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Address:</strong> <span style="color: var(--text-secondary);">${client.address || 'N/A'}</span></p>
                         </div>
                     </div>
@@ -478,30 +477,26 @@
           <div class="row">
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="address_modal" class="form-label">Address <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="address_modal" name="address" rows="3" required></textarea>
+                <label for="city_modal" class="form-label">City</label>
+                <input type="text" class="form-control" id="city_modal" name="city">
                 <div class="invalid-feedback"></div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="city_modal" class="form-label">City <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="city_modal" name="city" required>
-                <div class="invalid-feedback"></div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12">
-              <div class="mb-3">
                 <label for="sector_modal" class="form-label">Sector <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="sector_modal" name="sector" required>
+                <select class="form-select" id="sector_modal" name="sector" required>
+                  <option value="">Select Sector</option>
+                  @foreach ($sectors as $sector)
+                    <option value="{{ $sector }}">{{ $sector }}</option>
+                  @endforeach
+                </select>
                 <div class="invalid-feedback"></div>
               </div>
             </div>
           </div>
           <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
               <div class="mb-3">
                 <label for="state_modal" class="form-label">State <span class="text-danger">*</span></label>
                 <select class="form-select" id="state_modal" name="state" required>
@@ -515,23 +510,22 @@
                 <div class="invalid-feedback"></div>
               </div>
             </div>
-            <div class="col-md-4">
-              <div class="mb-3">
-                <label for="pincode_modal" class="form-label">Pincode <small class="text-muted">(4 digits only)</small></label>
-                <input type="tel" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="form-control" 
-                       id="pincode_modal" name="pincode" placeholder="1234" 
-                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
-                <div class="invalid-feedback"></div>
-                <div class="form-text text-muted">Enter exactly 4 digits</div>
-              </div>
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
               <div class="mb-3">
                 <label for="status_modal" class="form-label">Status</label>
                 <select class="form-select" id="status_modal" name="status">
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="mb-3">
+                <label for="address_modal" class="form-label">Address</label>
+                <textarea class="form-control" id="address_modal" name="address" rows="3"></textarea>
                 <div class="invalid-feedback"></div>
               </div>
             </div>

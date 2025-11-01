@@ -18,37 +18,29 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <div class="row g-3">
-    <div class="col-md-3">
-      <input type="text" class="form-control" placeholder="Search users..." id="searchInput">
+  <form id="usersFiltersForm" method="GET" action="{{ route('admin.users.index') }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search users..." 
+             value="{{ request('search') }}" oninput="handleUsersSearchInput()">
     </div>
-    <div class="col-md-2">
-      <select class="form-select" id="roleFilter">
-        <option value="">All Roles</option>
+    <div class="col-6 col-md-3">
+      <select class="form-select" name="role_id" onchange="submitUsersFilters()">
+        <option value="" {{ request('role_id') ? '' : 'selected' }}>All Roles</option>
         @foreach($roles as $role)
-        <option value="{{ $role->id }}">{{ $role->role_name }}</option>
+        <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>{{ $role->role_name }}</option>
         @endforeach
       </select>
     </div>
-    <div class="col-md-2">
-      <select class="form-select" id="statusFilter">
-        <option value="">All Status</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
+    <div class="col-6 col-md-3">
+      <select class="form-select" name="status" onchange="submitUsersFilters()">
+        <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
+        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
       </select>
     </div>
-    <div class="col-md-3">
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary btn-sm" id="applyFilters">
-          <i data-feather="filter" class="me-1"></i>Apply
-        </button>
-        <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
-          <i data-feather="x" class="me-1"></i>Clear
-        </button>
-        
-      </div>
-    </div>
   </div>
+  </form>
 </div>
 
 <!-- USERS TABLE -->
@@ -65,7 +57,7 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="usersTableBody">
         @forelse($users as $user)
         <tr>
           <td>{{ $user->id }}</td>
@@ -105,7 +97,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="7" class="text-center py-4">
+          <td colspan="6" class="text-center py-4">
             <i data-feather="users" class="feather-lg mb-2"></i>
             <div>No users found</div>
           </td>
@@ -116,7 +108,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-center mt-3">
+  <div class="d-flex justify-content-center mt-3" id="usersPagination">
     <div>
       {{ $users->links() }}
     </div>
@@ -128,40 +120,100 @@
 <script>
   feather.replace();
 
-  // Restore filter values from URL parameters
-  document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('search')) {
-      document.getElementById('searchInput').value = urlParams.get('search');
-    }
-    if (urlParams.get('role_id')) {
-      document.getElementById('roleFilter').value = urlParams.get('role_id');
-    }
-    if (urlParams.get('status')) {
-      document.getElementById('statusFilter').value = urlParams.get('status');
-    }
-  });
+  // Debounced search input handler
+  let usersSearchTimeout = null;
+  function handleUsersSearchInput() {
+    if (usersSearchTimeout) clearTimeout(usersSearchTimeout);
+    usersSearchTimeout = setTimeout(() => {
+      loadUsers();
+    }, 500);
+  }
 
-  // Filter functionality
-  document.getElementById('applyFilters')?.addEventListener('click', function() {
-    const search = document.getElementById('searchInput').value;
-    const role = document.getElementById('roleFilter').value;
-    const status = document.getElementById('statusFilter').value;
+  // Auto-submit for select filters
+  function submitUsersFilters() {
+    loadUsers();
+  }
+
+  // Load Users via AJAX
+  function loadUsers(url = null) {
+    const form = document.getElementById('usersFiltersForm');
+    if (!form) return;
     
+    const formData = new FormData(form);
     const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (role) params.append('role_id', role);
-    if (status) params.append('status', status);
     
-    window.location.href = '{{ route("admin.users.index") }}?' + params.toString();
+    if (url) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.forEach((value, key) => {
+        params.append(key, value);
+      });
+    } else {
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+    }
+
+    const tbody = document.getElementById('usersTableBody');
+    const paginationContainer = document.getElementById('usersPagination');
+    
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+    }
+
+    fetch(`{{ route('admin.users.index') }}?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      const newTbody = doc.querySelector('#usersTableBody');
+      const newPagination = doc.querySelector('#usersPagination');
+      
+      if (newTbody && tbody) {
+        tbody.innerHTML = newTbody.innerHTML;
+        feather.replace();
+      }
+      
+      if (newPagination && paginationContainer) {
+        paginationContainer.innerHTML = newPagination.innerHTML;
+      }
+
+      const newUrl = `{{ route('admin.users.index') }}?${params.toString()}`;
+      window.history.pushState({path: newUrl}, '', newUrl);
+    })
+    .catch(error => {
+      console.error('Error loading users:', error);
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+      }
+    });
+  }
+
+  // Handle pagination clicks
+  document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('#usersPagination a');
+    if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+      e.preventDefault();
+      loadUsers(paginationLink.href);
+    }
   });
 
-  document.getElementById('clearFilters')?.addEventListener('click', function() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('roleFilter').value = '';
-    document.getElementById('statusFilter').value = '';
-    window.location.href = '{{ route("admin.users.index") }}';
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.path) {
+      loadUsers(e.state.path);
+    } else {
+      loadUsers();
+    }
   });
 
   // Export functionality

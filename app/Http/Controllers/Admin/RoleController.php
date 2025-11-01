@@ -34,14 +34,6 @@ class RoleController extends Controller
 
         $roles = $query->orderBy('id', 'desc')->paginate(15);
 
-        // Return JSON for AJAX requests
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'roles' => $roles->items()
-            ]);
-        }
-
         return view('admin.roles.index', compact('roles'));
     }
 
@@ -225,6 +217,35 @@ class RoleController extends Controller
         }
 
         try {
+            // Special handling for role_id = 1 (Admin) - always has all permissions
+            if ($role->id === 1) {
+                $allModules = [
+                    'users',
+                    'roles',
+                    'employees',
+                    'clients',
+                    'complaints',
+                    'spares',
+                    'approvals',
+                    'reports',
+                    'sla',
+                ];
+                
+                // Clear existing permissions
+                $role->rolePermissions()->delete();
+                
+                // Assign all permissions automatically
+                foreach ($allModules as $module) {
+                    $role->rolePermissions()->create([
+                        'module_name' => $module,
+                    ]);
+                }
+                
+                return redirect()->back()
+                    ->with('success', 'Admin role automatically has all permissions assigned.');
+            }
+
+            // For other roles, update permissions normally
             // Clear existing permissions
             $role->rolePermissions()->delete();
 

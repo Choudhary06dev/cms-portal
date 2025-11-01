@@ -55,6 +55,7 @@
           <th>Product Code</th>
           <th>Brand Name</th>
           <th>Product Name</th>
+          <th>Category</th>
           <th>Product Nature</th>
           <th>Unit</th>
           <th class="text-end">Total Received</th>
@@ -73,6 +74,9 @@
           <td>{{ $spare->product_code ?? 'N/A' }}</td>
           <td>{{ $spare->brand_name ?? 'N/A' }}</td>
           <td>{{ $spare->item_name }}</td>
+          <td>
+            <span class="badge bg-info">{{ ucfirst($spare->category ?? 'N/A') }}</span>
+          </td>
           <td>{{ $spare->product_nature ?? 'N/A' }}</td>
           <td>{{ $spare->unit ?? 'N/A' }}</td>
           <td class="text-end"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
@@ -115,7 +119,7 @@
         </tr>
 @empty
 <tr>
-  <td colspan="13" class="text-center py-4">
+  <td colspan="14" class="text-center py-4">
     <i data-feather="package" class="feather-lg mb-2"></i>
     <div>No spare parts found</div>
   </td>

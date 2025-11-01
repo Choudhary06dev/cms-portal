@@ -138,9 +138,9 @@ class ComplaintController extends Controller
             'status' => 'required|in:new,assigned,in_progress,resolved,closed',
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
-            'spare_parts' => 'required|array|min:1',
-            'spare_parts.*.spare_id' => 'required_with:spare_parts|exists:spares,id',
-            'spare_parts.*.quantity' => 'required_with:spare_parts|integer|min:1',
+            'spare_parts' => 'nullable|array',
+            'spare_parts.*.spare_id' => 'nullable|exists:spares,id',
+            'spare_parts.*.quantity' => 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -197,19 +197,17 @@ class ComplaintController extends Controller
             ]);
         }
 
-        // Handle spare parts (required)
+        // Handle spare parts (optional)
         $totalCost = 0;
         $usedParts = [];
 
-        if (empty($request->spare_parts) || !is_array($request->spare_parts)) {
-            throw new \Exception("No spare parts provided");
-        }
-
-        foreach ($request->spare_parts as $part) {
-            if (empty($part['spare_id']) || empty($part['quantity'])) {
-                Log::warning('Skipping empty spare part entry', ['part' => $part]);
-                continue; // Skip empty entries
-            }
+        // Only process spare parts if provided
+        if (!empty($request->spare_parts) && is_array($request->spare_parts)) {
+            foreach ($request->spare_parts as $part) {
+                if (empty($part['spare_id']) || empty($part['quantity'])) {
+                    Log::warning('Skipping empty spare part entry', ['part' => $part]);
+                    continue; // Skip empty entries
+                }
 
             $spare = Spare::find($part['spare_id']);
             
@@ -250,12 +248,9 @@ class ComplaintController extends Controller
 
             // No stock deduction at complaint creation; happens on approval
 
-            $totalCost += $spare->unit_price * $part['quantity'];
-            $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";
-        }
-
-        if (empty($usedParts)) {
-            throw new \Exception("No valid spare parts were added to the complaint");
+                $totalCost += $spare->unit_price * $part['quantity'];
+                $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";
+            }
         }
 
         // Log spare parts usage if any were added
@@ -268,48 +263,95 @@ class ComplaintController extends Controller
             ]);
         }
 
-        // Create approval performa for the complaint
-        try {
-            // Get any employee as fallback if current user doesn't have employee record
-            $requestedBy = $currentEmployee ? $currentEmployee->id : \App\Models\Employee::first()->id;
-            
-            if (!$requestedBy) {
-                Log::error('No employee found to assign as requested_by');
-                return redirect()->route('admin.complaints.index')
-                    ->with('error', 'Complaint created but approval could not be generated. Please create an employee first.');
-            }
-            
-            $approval = SpareApprovalPerforma::create([
-                'complaint_id' => $complaint->id,
-                'requested_by' => $requestedBy,
-                'status' => 'pending',
-                'remarks' => 'Auto-generated approval for complaint: ' . $complaint->title,
-            ]);
-            
-            // Create approval items from requested spare parts so quantities appear in approval view
-            if (!empty($request->spare_parts) && is_array($request->spare_parts)) {
+        // Create approval performa for the complaint (only if spare parts are provided)
+        // Auto-approve if stock is available
+        if (!empty($request->spare_parts) && is_array($request->spare_parts)) {
+            try {
+                // Get any employee as fallback if current user doesn't have employee record
+                $requestedBy = $currentEmployee ? $currentEmployee->id : \App\Models\Employee::first()->id;
+                
+                if (!$requestedBy) {
+                    Log::error('No employee found to assign as requested_by');
+                    return redirect()->route('admin.complaints.index')
+                        ->with('error', 'Complaint created but approval could not be generated. Please create an employee first.');
+                }
+                
+                // Check stock availability for all items before creating approval
+                $canAutoApprove = true;
+                $unavailableItems = [];
                 foreach ($request->spare_parts as $part) {
                     if (!empty($part['spare_id']) && !empty($part['quantity'])) {
-                        SpareApprovalItem::create([
-                            'performa_id' => $approval->id,
-                            'spare_id' => (int)$part['spare_id'],
-                            'quantity_requested' => (int)$part['quantity'],
-                            'reason' => 'Requested from complaint creation',
-                        ]);
+                        $spare = Spare::find($part['spare_id']);
+                        if ($spare) {
+                            $requestedQty = (int)$part['quantity'];
+                            if ($spare->stock_quantity < $requestedQty) {
+                                $canAutoApprove = false;
+                                $unavailableItems[] = $spare->item_name . ' (Requested: ' . $requestedQty . ', Available: ' . $spare->stock_quantity . ')';
+                            }
+                        } else {
+                            $canAutoApprove = false;
+                            $unavailableItems[] = 'Unknown Spare (ID: ' . $part['spare_id'] . ')';
+                        }
                     }
                 }
+                
+                // Create approval with status based on stock availability
+                $approvalStatus = $canAutoApprove ? 'approved' : 'pending';
+                $approvedBy = $canAutoApprove ? $requestedBy : null;
+                $approvedAt = $canAutoApprove ? now() : null;
+                
+                $approval = SpareApprovalPerforma::create([
+                    'complaint_id' => $complaint->id,
+                    'requested_by' => $requestedBy,
+                    'status' => $approvalStatus,
+                    'approved_by' => $approvedBy,
+                    'approved_at' => $approvedAt,
+                    'remarks' => $canAutoApprove 
+                        ? 'Auto-approved for complaint: ' . $complaint->title 
+                        : 'Auto-generated approval for complaint: ' . $complaint->title . (count($unavailableItems) > 0 ? ' - Stock insufficient: ' . implode(', ', $unavailableItems) : ''),
+                ]);
+                
+                // Create approval items and deduct stock if auto-approved
+                foreach ($request->spare_parts as $part) {
+                    if (!empty($part['spare_id']) && !empty($part['quantity'])) {
+                        $spare = Spare::find($part['spare_id']);
+                        $requestedQty = (int)$part['quantity'];
+                        
+                        // Set approved quantity equal to requested if auto-approved
+                        $approvedQty = $canAutoApprove ? $requestedQty : null;
+                        
+                        $item = SpareApprovalItem::create([
+                            'performa_id' => $approval->id,
+                            'spare_id' => (int)$part['spare_id'],
+                            'quantity_requested' => $requestedQty,
+                            'quantity_approved' => $approvedQty,
+                            'reason' => 'Requested from complaint creation',
+                        ]);
+                        
+                        // Deduct stock if auto-approved
+                        if ($canAutoApprove && $spare) {
+                            $spare->removeStock(
+                                $requestedQty,
+                                "Auto-approved for complaint #{$complaint->getTicketNumberAttribute()}",
+                                $complaint->id
+                            );
+                        }
+                    }
+                }
+                
+                Log::info('Approval created successfully', [
+                    'approval_id' => $approval->id,
+                    'complaint_id' => $complaint->id,
+                    'requested_by' => $requestedBy,
+                    'status' => $approvalStatus,
+                    'auto_approved' => $canAutoApprove,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to create approval', [
+                    'complaint_id' => $complaint->id,
+                    'error' => $e->getMessage()
+                ]);
             }
-            
-            Log::info('Approval created successfully', [
-                'approval_id' => $approval->id,
-                'complaint_id' => $complaint->id,
-                'requested_by' => $requestedBy
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to create approval', [
-                'complaint_id' => $complaint->id,
-                'error' => $e->getMessage()
-            ]);
         }
 
         // Commit the transaction

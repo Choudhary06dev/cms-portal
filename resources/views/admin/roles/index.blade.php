@@ -18,29 +18,14 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <div class="row g-3">
-    <div class="col-md-4">
-      <input type="text" class="form-control" placeholder="Search roles..." id="searchInput">
-    </div>
-    <div class="col-md-3">
-      <select class="form-select" id="statusFilter">
-        <option value="">All Status</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-light btn-sm" id="applyFilters">
-          <i data-feather="filter" class="me-1"></i>Apply
-        </button>
-        <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
-          <i data-feather="x" class="me-1"></i>Clear
-        </button>
-        
-      </div>
+  <form id="rolesFiltersForm" method="GET" action="{{ route('admin.roles.index') }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search roles..." 
+             value="{{ request('search') }}" oninput="handleRolesSearchInput()">
     </div>
   </div>
+  </form>
 </div>
 
 <!-- ROLES TABLE -->
@@ -58,7 +43,7 @@
           <th class="text-white">Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="rolesTableBody">
         @forelse($roles as $role)
         <tr>
           <td>{{ $role->id }}</td>
@@ -112,7 +97,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-center mt-3">
+  <div class="d-flex justify-content-center mt-3" id="rolesPagination">
     <div>
       {{ $roles->links() }}
     </div>
@@ -124,22 +109,100 @@
 <script>
   feather.replace();
 
-  // Filter functionality
-  document.getElementById('applyFilters')?.addEventListener('click', function() {
-    const search = document.getElementById('searchInput').value;
-    const status = document.getElementById('statusFilter').value;
+  // Debounced search input handler
+  let rolesSearchTimeout = null;
+  function handleRolesSearchInput() {
+    if (rolesSearchTimeout) clearTimeout(rolesSearchTimeout);
+    rolesSearchTimeout = setTimeout(() => {
+      loadRoles();
+    }, 500);
+  }
+
+  // Auto-submit for select filters
+  function submitRolesFilters() {
+    loadRoles();
+  }
+
+  // Load Roles via AJAX
+  function loadRoles(url = null) {
+    const form = document.getElementById('rolesFiltersForm');
+    if (!form) return;
     
+    const formData = new FormData(form);
     const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (status) params.append('status', status);
     
-    window.location.href = '{{ route("admin.roles.index") }}?' + params.toString();
+    if (url) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.forEach((value, key) => {
+        params.append(key, value);
+      });
+    } else {
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+    }
+
+    const tbody = document.getElementById('rolesTableBody');
+    const paginationContainer = document.getElementById('rolesPagination');
+    
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+    }
+
+    fetch(`{{ route('admin.roles.index') }}?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      const newTbody = doc.querySelector('#rolesTableBody');
+      const newPagination = doc.querySelector('#rolesPagination');
+      
+      if (newTbody && tbody) {
+        tbody.innerHTML = newTbody.innerHTML;
+        feather.replace();
+      }
+      
+      if (newPagination && paginationContainer) {
+        paginationContainer.innerHTML = newPagination.innerHTML;
+      }
+
+      const newUrl = `{{ route('admin.roles.index') }}?${params.toString()}`;
+      window.history.pushState({path: newUrl}, '', newUrl);
+    })
+    .catch(error => {
+      console.error('Error loading roles:', error);
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+      }
+    });
+  }
+
+  // Handle pagination clicks
+  document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('#rolesPagination a');
+    if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+      e.preventDefault();
+      loadRoles(paginationLink.href);
+    }
   });
 
-  document.getElementById('clearFilters')?.addEventListener('click', function() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = '';
-    window.location.href = '{{ route("admin.roles.index") }}';
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.path) {
+      loadRoles(e.state.path);
+    } else {
+      loadRoles();
+    }
   });
 
   // Export functionality

@@ -20,7 +20,6 @@ class Client extends Model
         'city',
         'sector',
         'state',
-        'pincode',
         'status',
     ];
 

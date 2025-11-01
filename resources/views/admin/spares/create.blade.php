@@ -68,9 +68,11 @@
                                     class="text-danger">*</span></label>
                             <select class="form-select @error('category') is-invalid @enderror" id="category" name="category" required>
                                 <option value="">Select Category</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category }}" {{ old('category') == $category ? 'selected' : '' }}>{{ $category }}</option>
-                                @endforeach
+                                @if(isset($categories) && $categories->count() > 0)
+                                    @foreach ($categories as $cat)
+                                        <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                    @endforeach
+                                @endif
                             </select>
                             @error('category')
                                 <div class="invalid-feedback">{{ $message }}</div>

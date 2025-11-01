@@ -164,12 +164,39 @@
     <a href="{{ route('admin.roles.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
       <i data-feather="shield" class="me-2"></i> Roles
     </a>
-    <a href="{{ route('admin.employees.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.employees.*') ? 'active' : '' }}">
-      <i data-feather="user-check" class="me-2"></i> Employees
-    </a>
-    <a href="{{ route('admin.clients.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
-      <i data-feather="briefcase" class="me-2"></i> Clients
-    </a>
+    <div class="nav-item-parent mb-1">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') ? 'active' : '' }}">
+        <a href="{{ route('admin.employees.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
+          <i data-feather="user-check" class="me-2"></i> Employees
+        </a>
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
+        </button>
+      </div>
+      <div class="collapse {{ request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') ? 'show' : '' }}" id="employeesSubmenu">
+        <a href="{{ route('admin.department.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.department.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="briefcase" class="me-2"></i> Departments
+        </a>
+        <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="award" class="me-2"></i> Designations
+        </a>
+      </div>
+    </div>
+    <div class="nav-item-parent mb-1">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.clients.*') || request()->routeIs('admin.sector.*') ? 'active' : '' }}">
+        <a href="{{ route('admin.clients.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
+          <i data-feather="briefcase" class="me-2"></i> Clients
+        </a>
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#clientsSubmenu" aria-expanded="{{ request()->routeIs('admin.sector.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
+        </button>
+      </div>
+      <div class="collapse {{ request()->routeIs('admin.sector.*') ? 'show' : '' }}" id="clientsSubmenu">
+        <a href="{{ route('admin.sector.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="map-pin" class="me-2"></i> Sectors
+        </a>
+      </div>
+    </div>
     <div class="nav-item-parent mb-1">
       <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') ? 'active' : '' }}">
         <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
@@ -180,7 +207,7 @@
         </button>
       </div>
       <div class="collapse {{ request()->routeIs('admin.category.*') ? 'show' : '' }}" id="complaintsSubmenu">
-        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-4 mb-1 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.05); margin-left: 8px; border-left: 2px solid rgba(59, 130, 246, 0.3);">
+        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="tag" class="me-2"></i> Categories
         </a>
       </div>
@@ -389,27 +416,33 @@
         });
       }
 
-      // Handle Complaints submenu collapse/expand with arrow rotation
-      const complaintsSubmenu = document.getElementById('complaintsSubmenu');
-      const navArrow = document.querySelector('.nav-arrow');
-      const navArrowBtn = document.querySelector('.nav-arrow-btn');
+      // Handle submenu collapse/expand with arrow rotation
+      const submenus = ['complaintsSubmenu', 'clientsSubmenu', 'employeesSubmenu'];
       
-      if (complaintsSubmenu && navArrow && navArrowBtn) {
-        complaintsSubmenu.addEventListener('show.bs.collapse', function() {
-          navArrow.style.transform = 'rotate(180deg)';
-        });
-        
-        complaintsSubmenu.addEventListener('hide.bs.collapse', function() {
-          navArrow.style.transform = 'rotate(0deg)';
-        });
-        
-        // Initialize arrow position based on current state
-        if (complaintsSubmenu.classList.contains('show')) {
-          navArrow.style.transform = 'rotate(180deg)';
-        } else {
-          navArrow.style.transform = 'rotate(0deg)';
+      submenus.forEach(submenuId => {
+        const submenu = document.getElementById(submenuId);
+        if (submenu) {
+          const parent = submenu.closest('.nav-item-parent');
+          const arrow = parent ? parent.querySelector('.nav-arrow') : null;
+          
+          if (arrow) {
+            submenu.addEventListener('show.bs.collapse', function() {
+              arrow.style.transform = 'rotate(180deg)';
+            });
+            
+            submenu.addEventListener('hide.bs.collapse', function() {
+              arrow.style.transform = 'rotate(0deg)';
+            });
+            
+            // Initialize arrow position based on current state
+            if (submenu.classList.contains('show')) {
+              arrow.style.transform = 'rotate(180deg)';
+            } else {
+              arrow.style.transform = 'rotate(0deg)';
+            }
+          }
         }
-      }
+      });
 
       // View all notifications
       const viewAllNotifications = document.getElementById('viewAllNotifications');

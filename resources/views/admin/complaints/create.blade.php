@@ -184,10 +184,10 @@
                   </div>
                   
                   <div class="col-md-3">
-                    <label class="form-label text-white">Product <span class="text-danger">*</span></label>
+                    <label class="form-label text-white">Product</label>
                     <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
-                            name="spare_parts[0][spare_id]" id="spare_select" required>
-                      <option value="">Select Product</option>
+                            name="spare_parts[0][spare_id]" id="spare_select">
+                      <option value="">Select Product (Optional)</option>
                       @foreach(\App\Models\Spare::orderBy('item_name')->get() as $spare)
                         <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}" {{ (string)old('spare_parts.0.spare_id') === (string)$spare->id ? 'selected' : '' }}>
                           {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
@@ -200,9 +200,9 @@
                   </div>
                   
                   <div class="col-md-6">
-                    <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
+                    <label class="form-label text-white">Quantity</label>
                     <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                           name="spare_parts[0][quantity]" id="quantity_input" min="1" value="{{ old('spare_parts.0.quantity') }}" required>
+                           name="spare_parts[0][quantity]" id="quantity_input" min="1" value="{{ old('spare_parts.0.quantity') }}">
                     <div id="stock_warning" class="text-warning mt-1" style="display: none; font-size: 0.875rem;"></div>
                     @error('spare_parts.0.quantity')
                       <div class="invalid-feedback">{{ $message }}</div>
@@ -211,7 +211,7 @@
                 </div>
                 
                 <div class="alert alert-info mt-3">
-                  <strong>Note:</strong> Stock will be checked and deducted during approval process. If quantity exceeds available stock, it will be automatically adjusted.
+                  <strong>Note:</strong> Product and quantity are optional. If provided, stock will be checked and deducted during approval process. If quantity exceeds available stock, it will be automatically adjusted.
                 </div>
               </div>
             </div>
@@ -361,9 +361,17 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('Spare ID:', spareSelect.value);
       console.log('Quantity:', quantityInput.value);
       
-      if (!spareSelect.value || !quantityInput.value || parseInt(quantityInput.value) <= 0) {
+      // Validate quantity only if product is selected
+      if (spareSelect.value && (!quantityInput.value || parseInt(quantityInput.value) <= 0)) {
         e.preventDefault();
-        alert('Please select a spare part and enter quantity.');
+        alert('Please enter quantity for selected product.');
+        return false;
+      }
+      
+      // If quantity is entered but no product selected
+      if (quantityInput.value && parseInt(quantityInput.value) > 0 && !spareSelect.value) {
+        e.preventDefault();
+        alert('Please select a product for the quantity.');
         return false;
       }
       

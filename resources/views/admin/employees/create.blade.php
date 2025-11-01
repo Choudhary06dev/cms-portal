@@ -46,8 +46,13 @@
       <div class="col-md-6">
         <div class="mb-3">
           <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
-          <input type="text" class="form-control @error('department') is-invalid @enderror" 
-                 id="department" name="department" value="{{ old('department') }}" autocomplete="off" required>
+          <select class="form-select @error('department') is-invalid @enderror" 
+                  id="department" name="department" required>
+            <option value="">Select Department</option>
+            @foreach ($departments as $dept)
+              <option value="{{ $dept->name }}" data-id="{{ $dept->id }}" {{ old('department') == $dept->name ? 'selected' : '' }}>{{ $dept->name }}</option>
+            @endforeach
+          </select>
           @error('department')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -57,8 +62,10 @@
       <div class="col-md-6">
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation <span class="text-danger">*</span></label>
-          <input type="text" class="form-control @error('designation') is-invalid @enderror" 
-                 id="designation" name="designation" value="{{ old('designation') }}" autocomplete="off" required>
+          <select class="form-select @error('designation') is-invalid @enderror" 
+                  id="designation" name="designation" required disabled>
+            <option value="">Select Department First</option>
+          </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -165,15 +172,110 @@
 <script>
   feather.replace();
   
-  // No special field clearing needed
-  document.addEventListener('DOMContentLoaded', function() {});
-  
-  // Form submission debug
-  document.querySelector('form').addEventListener('submit', function(e) {
-    console.log('Form submitted');
-    console.log('Name:', document.getElementById('name').value);
-    console.log('Department:', document.getElementById('department').value);
-    console.log('Designation:', document.getElementById('designation').value);
+  document.addEventListener('DOMContentLoaded', function() {
+    const departmentSelect = document.getElementById('department');
+    const designationSelect = document.getElementById('designation');
+    
+    // Handle department change
+    if (departmentSelect) {
+      departmentSelect.addEventListener('change', function() {
+        const departmentName = this.value;
+        
+        // Clear and disable designation dropdown
+        designationSelect.innerHTML = '<option value="">Loading...</option>';
+        designationSelect.disabled = true;
+        
+        if (departmentName) {
+          // Get department ID from selected option
+          const selectedOption = this.options[this.selectedIndex];
+          const departmentId = selectedOption ? selectedOption.getAttribute('data-id') : null;
+          
+          console.log('Department selected:', departmentName, 'ID:', departmentId);
+          
+          if (departmentId) {
+            // Fetch designations for this department
+            const url = `{{ route('admin.employees.designations') }}?department_id=${departmentId}`;
+            console.log('Fetching designations from:', url);
+            
+            fetch(url, {
+              method: 'GET',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+              }
+            })
+            .then(response => {
+              console.log('Response status:', response.status);
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('Designations data:', data);
+              designationSelect.innerHTML = '<option value="">Select Designation</option>';
+              
+              if (data.designations && data.designations.length > 0) {
+                data.designations.forEach(function(designation) {
+                  const option = document.createElement('option');
+                  option.value = designation.name;
+                  option.textContent = designation.name;
+                  designationSelect.appendChild(option);
+                });
+                designationSelect.disabled = false;
+                console.log('Designations loaded:', data.designations.length);
+              } else {
+                designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+                console.log('No designations found for department ID:', departmentId);
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching designations:', error);
+              designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+            });
+          } else {
+            // Try to find department by name as fallback
+            console.log('No data-id found, trying by name:', departmentName);
+            fetch(`{{ route('admin.employees.designations') }}?department_name=${encodeURIComponent(departmentName)}`, {
+              method: 'GET',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+              }
+            })
+            .then(response => {
+              console.log('Response status (by name):', response.status);
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('Designations data (by name):', data);
+              designationSelect.innerHTML = '<option value="">Select Designation</option>';
+              
+              if (data.designations && data.designations.length > 0) {
+                data.designations.forEach(function(designation) {
+                  const option = document.createElement('option');
+                  option.value = designation.name;
+                  option.textContent = designation.name;
+                  designationSelect.appendChild(option);
+                });
+                designationSelect.disabled = false;
+              } else {
+                designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching designations:', error);
+              designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+            });
+          }
+        } else {
+          designationSelect.innerHTML = '<option value="">Select Department First</option>';
+        }
+      });
+    }
   });
 </script>
 @endpush
