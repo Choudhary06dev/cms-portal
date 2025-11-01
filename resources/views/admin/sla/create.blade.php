@@ -92,14 +92,17 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="escalation_level" class="form-label text-white">Escalation Level</label>
-                  <select class="form-select @error('escalation_level') is-invalid @enderror" 
-                          id="escalation_level" name="escalation_level">
-                    <option value="1" {{ old('escalation_level') == '1' ? 'selected' : '' }}>Level 1</option>
-                    <option value="2" {{ old('escalation_level') == '2' ? 'selected' : '' }}>Level 2</option>
-                    <option value="3" {{ old('escalation_level') == '3' ? 'selected' : '' }}>Level 3</option>
+                  <label for="priority" class="form-label text-white">Priority <span class="text-danger">*</span></label>
+                  <select class="form-select @error('priority') is-invalid @enderror" 
+                          id="priority" name="priority" required>
+                    <option value="">Select Priority</option>
+                    <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low - Can wait</option>
+                    <option value="medium" {{ old('priority') == 'medium' ? 'selected' : '' }}>Medium - Normal</option>
+                    <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High - Important</option>
+                    <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent - Critical</option>
+                    <option value="emergency" {{ old('priority') == 'emergency' ? 'selected' : '' }}>Emergency - Immediate</option>
                   </select>
-                  @error('escalation_level')
+                  @error('priority')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>

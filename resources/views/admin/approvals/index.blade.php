@@ -23,8 +23,8 @@
   <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}">
   <div class="row g-2 align-items-end">
     <div class="col-12 col-md-3">
-        <input type="text" class="form-control" name="search" placeholder="Search approvals..." 
-               value="{{ request('search') }}">
+        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search approvals..." 
+               value="{{ request('search') }}" oninput="handleApprovalsSearchInput()">
     </div>
     <div class="col-6 col-md-2">
         <select class="form-select" name="status" onchange="submitApprovalsFilters()">
@@ -74,7 +74,7 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="approvalsTableBody">
         @forelse($approvals as $approval)
         <tr>
           <td>{{ $approval->id }}</td>
@@ -126,7 +126,7 @@
   </div>
   
   <!-- PAGINATION -->
-  <div class="d-flex justify-content-center mt-3">
+  <div class="d-flex justify-content-center mt-3" id="approvalsPagination">
     <div>
       {{ $approvals->links() }}
     </div>
@@ -202,14 +202,101 @@
     location.reload();
   }
 
-  // Debounced auto-submit for filters to ensure reliable submission
-  let submitFiltersTimeout = null;
+  // Debounced search input handler
+  let approvalsSearchTimeout = null;
+  function handleApprovalsSearchInput() {
+    if (approvalsSearchTimeout) clearTimeout(approvalsSearchTimeout);
+    approvalsSearchTimeout = setTimeout(() => {
+      loadApprovals();
+    }, 500);
+  }
+
+  // Auto-submit for select filters
   function submitApprovalsFilters() {
+    loadApprovals();
+  }
+
+  // Load Approvals via AJAX
+  function loadApprovals(url = null) {
     const form = document.getElementById('approvalsFiltersForm');
     if (!form) return;
-    if (submitFiltersTimeout) clearTimeout(submitFiltersTimeout);
-    submitFiltersTimeout = setTimeout(() => form.submit(), 0);
+    
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    
+    if (url) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.forEach((value, key) => {
+        params.append(key, value);
+      });
+    } else {
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+    }
+
+    const tbody = document.getElementById('approvalsTableBody');
+    const paginationContainer = document.getElementById('approvalsPagination');
+    
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+    }
+
+    fetch(`{{ route('admin.approvals.index') }}?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      const newTbody = doc.querySelector('#approvalsTableBody');
+      const newPagination = doc.querySelector('#approvalsPagination');
+      
+      if (newTbody && tbody) {
+        tbody.innerHTML = newTbody.innerHTML;
+        feather.replace();
+      }
+      
+      if (newPagination && paginationContainer) {
+        paginationContainer.innerHTML = newPagination.innerHTML;
+      }
+
+      const newUrl = `{{ route('admin.approvals.index') }}?${params.toString()}`;
+      window.history.pushState({path: newUrl}, '', newUrl);
+    })
+    .catch(error => {
+      console.error('Error loading approvals:', error);
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+      }
+    });
   }
+
+  // Handle pagination clicks
+  document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('#approvalsPagination a');
+    if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+      e.preventDefault();
+      loadApprovals(paginationLink.href);
+    }
+  });
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.path) {
+      loadApprovals(e.state.path);
+    } else {
+      loadApprovals();
+    }
+  });
 
   // Approval Functions
   function viewApproval(approvalId) {

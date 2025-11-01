@@ -18,36 +18,32 @@
 
 <!-- FILTERS -->
 <div class="card-glass mb-4">
-  <div class="row g-3">
-    <div class="col-md-4">
-      <input type="text" class="form-control" placeholder="Search SLA rules..." 
->
+  <form id="slaFiltersForm" method="GET" action="{{ route('admin.sla.index') }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search SLA rules..." 
+             value="{{ request('search') }}" oninput="handleSearchInput()">
     </div>
-    <div class="col-md-3">
-      <select class="form-select" 
->
-            <option value="">All Priorities</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
+    <div class="col-6 col-md-3">
+      <select class="form-select" name="priority" onchange="submitSlaFilters()">
+            <option value="" {{ request('priority') ? '' : 'selected' }}>All Priorities</option>
+            <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
+            <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
+            <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
+            <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+            <option value="emergency" {{ request('priority') == 'emergency' ? 'selected' : '' }}>Emergency</option>
           </select>
     </div>
-    <div class="col-md-3">
-      <select class="form-select" 
->
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+    <div class="col-6 col-md-3">
+      <select class="form-select" name="status" onchange="submitSlaFilters()">
+            <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
+            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
           </select>
     </div>
-    <div class="col-md-2">
-      <button class="btn btn-outline-light btn-sm w-100">
-        <i data-feather="filter" class="me-1"></i>Filter
-      </button>
-    </div>
-        </div>
-      </div>
+  </div>
+  </form>
+  </div>
 
 <!-- SLA RULES TABLE -->
 <div class="card-glass">
@@ -60,14 +56,13 @@
           <th >Priority</th>
           <th >Response Time</th>
           <th >Resolution Time</th>
-          <th >Escalation Time</th>
           <th >Notify To</th>
           <th >Status</th>
           <th >Created</th>
           <th >Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="slaRulesTableBody">
             @forelse($slaRules as $rule)
             <tr>
           <td >{{ $rule->id }}</td>
@@ -76,13 +71,12 @@
             <div class="text-muted small">{{ $rule->complaint_type_display ?? ucfirst($rule->complaint_type) }}</div>
               </td>
               <td>
-            <span class="priority-badge priority-medium">
-              Level {{ $rule->escalation_level }}
+            <span class="priority-badge priority-{{ $rule->priority ?? 'medium' }}">
+              {{ ucfirst($rule->priority ?? 'medium') }}
                 </span>
               </td>
           <td >{{ $rule->max_response_time }} hours</td>
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
-          <td >{{ $rule->escalation_level }} hours</td>
           <td >{{ $rule->notifyTo->name ?? 'N/A' }}</td>
           <td>
             <span class="status-badge status-{{ $rule->status ?? 'active' }}">
@@ -106,7 +100,7 @@
             </tr>
             @empty
             <tr>
-          <td colspan="10" class="text-center py-4" >
+          <td colspan="9" class="text-center py-4" >
             <i data-feather="clock" class="feather-lg mb-2"></i>
             <div>No SLA rules found</div>
               </td>
@@ -117,7 +111,7 @@
       </div>
 
   <!-- PAGINATION -->
-      <div class="d-flex justify-content-center mt-3">
+      <div class="d-flex justify-content-center mt-3" id="slaRulesPagination">
         <div>
           {{ $slaRules->links() }}
         </div>
@@ -132,6 +126,7 @@
   .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
   .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
   .priority-urgent { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+  .priority-emergency { background: rgba(220, 38, 38, 0.3); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.5); }
   
   .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
   .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
@@ -142,6 +137,110 @@
 @push('scripts')
   <script>
     feather.replace();
+
+  // Debounced search input handler
+  let searchTimeout = null;
+  function handleSearchInput() {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      loadSlaRules();
+    }, 500);
+  }
+
+  // Auto-submit for select filters
+  function submitSlaFilters() {
+    loadSlaRules();
+  }
+
+  // Load SLA rules via AJAX
+  function loadSlaRules(url = null) {
+    const form = document.getElementById('slaFiltersForm');
+    if (!form) return;
+    
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    
+    // If URL is provided (for pagination), use it; otherwise use form data
+    if (url) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.forEach((value, key) => {
+        params.append(key, value);
+      });
+    } else {
+      // Add all form values to params
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+    }
+
+    // Show loading state
+    const tbody = document.getElementById('slaRulesTableBody');
+    const paginationContainer = document.getElementById('slaRulesPagination');
+    
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+    }
+
+    // Make AJAX request
+    fetch(`{{ route('admin.sla.index') }}?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.text())
+    .then(html => {
+      // Use DOMParser to extract table content
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Extract table body
+      const newTbody = doc.querySelector('#slaRulesTableBody');
+      const newPagination = doc.querySelector('#slaRulesPagination');
+      
+      if (newTbody && tbody) {
+        tbody.innerHTML = newTbody.innerHTML;
+        feather.replace();
+      }
+      
+      // Update pagination
+      if (newPagination && paginationContainer) {
+        paginationContainer.innerHTML = newPagination.innerHTML;
+      }
+
+      // Update URL without reload
+      const newUrl = `{{ route('admin.sla.index') }}?${params.toString()}`;
+      window.history.pushState({path: newUrl}, '', newUrl);
+    })
+    .catch(error => {
+      console.error('Error loading SLA rules:', error);
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+      }
+    });
+  }
+
+  // Handle pagination clicks
+  document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('#slaRulesPagination a');
+    if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+      e.preventDefault();
+      loadSlaRules(paginationLink.href);
+    }
+  });
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.path) {
+      loadSlaRules(e.state.path);
+    } else {
+      loadSlaRules();
+    }
+  });
 
   // SLA Rule Functions
   function viewRule(ruleId) {

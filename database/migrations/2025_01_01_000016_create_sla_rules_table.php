@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('sla_rules', function (Blueprint $table) {
             $table->id();
             $table->string('complaint_type', 100);
+            $table->enum('priority', ['low', 'medium', 'high', 'urgent', 'emergency'])->default('medium');
             $table->integer('max_response_time'); // in hours
             $table->integer('max_resolution_time')->nullable(); // in hours
-            $table->integer('escalation_level');
             $table->foreignId('notify_to')->constrained('users');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();

@@ -14,9 +14,9 @@ class SlaRule extends Model
 
     protected $fillable = [
         'complaint_type',
+        'priority',
         'max_response_time',
         'max_resolution_time',
-        'escalation_level',
         'notify_to',
         'status',
     ];
@@ -58,13 +58,6 @@ class SlaRule extends Model
         return self::getComplaintTypes()[$this->complaint_type] ?? $this->complaint_type;
     }
 
-    /**
-     * Get escalation level display
-     */
-    public function getEscalationLevelDisplayAttribute(): string
-    {
-        return 'Level ' . $this->escalation_level;
-    }
 
     /**
      * Get max response time display
@@ -182,8 +175,8 @@ class SlaRule extends Model
     {
         return [
             'complaint_type' => $this->getComplaintTypeDisplayAttribute(),
+            'priority' => ucfirst($this->priority ?? 'medium'),
             'max_response_time' => $this->getMaxResponseTimeDisplayAttribute(),
-            'escalation_level' => $this->getEscalationLevelDisplayAttribute(),
             'notify_to' => $this->getNotifyToNameAttribute(),
         ];
     }
@@ -196,13 +189,6 @@ class SlaRule extends Model
         return $query->where('complaint_type', $type);
     }
 
-    /**
-     * Scope for specific escalation level
-     */
-    public function scopeForEscalationLevel($query, $level)
-    {
-        return $query->where('escalation_level', $level);
-    }
 
     /**
      * Scope for specific notify user

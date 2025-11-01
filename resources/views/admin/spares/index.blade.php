@@ -21,7 +21,7 @@
   <form id="sparesFiltersForm" method="GET" action="{{ route('admin.spares.index') }}">
     <div class="row g-3">
       <div class="col-md-4">
-        <input type="text" class="form-control" name="search" placeholder="Search spares..." value="{{ request('search') }}" oninput="submitSparesFilters()">
+        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search spares..." value="{{ request('search') }}" oninput="handleSparesSearchInput()">
       </div>
       <div class="col-md-3">
         <select class="form-select" name="category" onchange="submitSparesFilters()">
@@ -65,7 +65,7 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="sparesTableBody">
         @forelse($spares as $spare)
         <tr>
           <td class="text-muted">{{ $loop->iteration }}</td>
@@ -125,7 +125,7 @@
 </div>
 
 <!-- PAGINATION -->
-<div class="d-flex justify-content-center mt-3">
+<div class="d-flex justify-content-center mt-3" id="sparesPagination">
   <div>
     {{ $spares->links() }}
   </div>
@@ -316,14 +316,101 @@
   // Spare parts JavaScript loaded
   feather.replace();
 
-  // Debounced auto-submit for spares filters
-  let submitSparesFiltersTimeout = null;
+  // Debounced search input handler
+  let sparesSearchTimeout = null;
+  function handleSparesSearchInput() {
+    if (sparesSearchTimeout) clearTimeout(sparesSearchTimeout);
+    sparesSearchTimeout = setTimeout(() => {
+      loadSpares();
+    }, 500);
+  }
+
+  // Auto-submit for select filters
   function submitSparesFilters() {
+    loadSpares();
+  }
+
+  // Load Spares via AJAX
+  function loadSpares(url = null) {
     const form = document.getElementById('sparesFiltersForm');
     if (!form) return;
-    if (submitSparesFiltersTimeout) clearTimeout(submitSparesFiltersTimeout);
-    submitSparesFiltersTimeout = setTimeout(() => form.submit(), 300);
+    
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    
+    if (url) {
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.forEach((value, key) => {
+        params.append(key, value);
+      });
+    } else {
+      for (const [key, value] of formData.entries()) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+    }
+
+    const tbody = document.getElementById('sparesTableBody');
+    const paginationContainer = document.getElementById('sparesPagination');
+    
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+    }
+
+    fetch(`{{ route('admin.spares.index') }}?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      const newTbody = doc.querySelector('#sparesTableBody');
+      const newPagination = doc.querySelector('#sparesPagination');
+      
+      if (newTbody && tbody) {
+        tbody.innerHTML = newTbody.innerHTML;
+        feather.replace();
+      }
+      
+      if (newPagination && paginationContainer) {
+        paginationContainer.innerHTML = newPagination.innerHTML;
+      }
+
+      const newUrl = `{{ route('admin.spares.index') }}?${params.toString()}`;
+      window.history.pushState({path: newUrl}, '', newUrl);
+    })
+    .catch(error => {
+      console.error('Error loading spares:', error);
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+      }
+    });
   }
+
+  // Handle pagination clicks
+  document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('#sparesPagination a');
+    if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+      e.preventDefault();
+      loadSpares(paginationLink.href);
+    }
+  });
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.path) {
+      loadSpares(e.state.path);
+    } else {
+      loadSpares();
+    }
+  });
 
   // Spare Modal Functions
   function viewSpare(spareId) {

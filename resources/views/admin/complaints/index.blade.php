@@ -18,14 +18,14 @@
 
     <!-- FILTERS -->
     <div class="card-glass mb-4">
-        <form method="GET" action="{{ route('admin.complaints.index') }}">
+        <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <input type="text" class="form-control" name="search" placeholder="Search complaints..." 
-                           value="{{ request('search') }}">
+                    <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search complaints..." 
+                           value="{{ request('search') }}" oninput="handleComplaintsSearchInput()">
                 </div>
                 <div class="col-md-2">
-                    <select class="form-select" name="status">
+                    <select class="form-select" name="status" onchange="submitComplaintsFilters()">
                         <option value="">All Status</option>
                         <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
                         <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
@@ -35,7 +35,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-select" name="priority">
+                    <select class="form-select" name="priority" onchange="submitComplaintsFilters()">
                         <option value="">All Priority</option>
                         <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
                         <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
@@ -44,7 +44,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" class="form-control" name="category" list="category_list" value="{{ request('category') }}" placeholder="Category (any)">
+                    <input type="text" class="form-control" name="category" list="category_list" value="{{ request('category') }}" placeholder="Category (any)" oninput="handleComplaintsSearchInput()">
                 </div>
                 @if(isset($categories) && $categories->count() > 0)
                 <datalist id="category_list">
@@ -53,23 +53,12 @@
                     @endforeach
                 </datalist>
                 @endif
-                <div class="col-md-3">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-outline-light btn-sm">
-                            <i data-feather="filter" class="me-1"></i>Apply
-                        </button>
-                        <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-secondary btn-sm">
-                            <i data-feather="x" class="me-1"></i>Clear
-                        </a>
-                        
-                    </div>
-                </div>
             </div>
             
             <!-- Additional Filters Row -->
             <div class="row g-3 mt-2">
                 <div class="col-md-3">
-                    <select class="form-select" name="client_id">
+                    <select class="form-select" name="client_id" onchange="submitComplaintsFilters()">
                         <option value="">All Clients</option>
                         @foreach($clients as $client)
                         <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
@@ -79,7 +68,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select class="form-select" name="assigned_employee_id">
+                    <select class="form-select" name="assigned_employee_id" onchange="submitComplaintsFilters()">
                         <option value="">All Employees</option>
                         @foreach($employees as $employee)
                         <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
@@ -90,11 +79,11 @@
                 </div>
                 <div class="col-md-3">
                     <input type="date" class="form-control" name="date_from" 
-                           value="{{ request('date_from') }}" placeholder="From Date">
+                           value="{{ request('date_from') }}" placeholder="From Date" onchange="submitComplaintsFilters()">
                 </div>
                 <div class="col-md-3">
                     <input type="date" class="form-control" name="date_to" 
-                           value="{{ request('date_to') }}" placeholder="To Date">
+                           value="{{ request('date_to') }}" placeholder="To Date" onchange="submitComplaintsFilters()">
                 </div>
             </div>
         </form>
@@ -119,7 +108,7 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="complaintsTableBody">
                     @forelse($complaints as $complaint)
                         <tr>
                             <td>{{ $complaint->id }}</td>
@@ -200,7 +189,7 @@
         </div>
 
         <!-- PAGINATION -->
-        <div class="d-flex justify-content-center mt-3">
+        <div class="d-flex justify-content-center mt-3" id="complaintsPagination">
             <div>
                 {{ $complaints->links() }}
             </div>
@@ -347,6 +336,102 @@
 @push('scripts')
     <script>
         feather.replace();
+
+        // Debounced search input handler
+        let complaintsSearchTimeout = null;
+        function handleComplaintsSearchInput() {
+            if (complaintsSearchTimeout) clearTimeout(complaintsSearchTimeout);
+            complaintsSearchTimeout = setTimeout(() => {
+                loadComplaints();
+            }, 500);
+        }
+
+        // Auto-submit for select filters
+        function submitComplaintsFilters() {
+            loadComplaints();
+        }
+
+        // Load Complaints via AJAX
+        function loadComplaints(url = null) {
+            const form = document.getElementById('complaintsFiltersForm');
+            if (!form) return;
+            
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            if (url) {
+                const urlObj = new URL(url, window.location.origin);
+                urlObj.searchParams.forEach((value, key) => {
+                    params.append(key, value);
+                });
+            } else {
+                for (const [key, value] of formData.entries()) {
+                    if (value) {
+                        params.append(key, value);
+                    }
+                }
+            }
+
+            const tbody = document.getElementById('complaintsTableBody');
+            const paginationContainer = document.getElementById('complaintsPagination');
+            
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+            }
+
+            fetch(`{{ route('admin.complaints.index') }}?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const newTbody = doc.querySelector('#complaintsTableBody');
+                const newPagination = doc.querySelector('#complaintsPagination');
+                
+                if (newTbody && tbody) {
+                    tbody.innerHTML = newTbody.innerHTML;
+                    feather.replace();
+                }
+                
+                if (newPagination && paginationContainer) {
+                    paginationContainer.innerHTML = newPagination.innerHTML;
+                }
+
+                const newUrl = `{{ route('admin.complaints.index') }}?${params.toString()}`;
+                window.history.pushState({path: newUrl}, '', newUrl);
+            })
+            .catch(error => {
+                console.error('Error loading complaints:', error);
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+                }
+            });
+        }
+
+        // Handle pagination clicks
+        document.addEventListener('click', function(e) {
+            const paginationLink = e.target.closest('#complaintsPagination a');
+            if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+                e.preventDefault();
+                loadComplaints(paginationLink.href);
+            }
+        });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.path) {
+                loadComplaints(e.state.path);
+            } else {
+                loadComplaints();
+            }
+        });
 
         // Complaint Functions
         function viewComplaint(complaintId) {

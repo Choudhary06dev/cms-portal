@@ -27,14 +27,18 @@ class SlaController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('complaint_type', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                $q->where('complaint_type', 'like', "%{$search}%");
             });
         }
 
         // Filter by complaint type
         if ($request->has('complaint_type') && $request->complaint_type) {
             $query->where('complaint_type', $request->complaint_type);
+        }
+
+        // Filter by priority
+        if ($request->has('priority') && $request->priority) {
+            $query->where('priority', $request->priority);
         }
 
         // Filter by status
@@ -68,10 +72,10 @@ class SlaController extends Controller
         $allowedCategories = implode(',', array_keys(Complaint::getCategories()));
         $validator = Validator::make($request->all(), [
             'complaint_type' => "required|in:{$allowedCategories}",
+            'priority' => 'required|in:low,medium,high,urgent,emergency',
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
             'notify_to' => 'required|exists:users,id',
-            'escalation_level' => 'required|integer|min:1|max:5',
             'description' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
         ]);
@@ -125,10 +129,10 @@ class SlaController extends Controller
         $allowedCategories = implode(',', array_keys(Complaint::getCategories()));
         $validator = Validator::make($request->all(), [
             'complaint_type' => "required|in:{$allowedCategories}",
+            'priority' => 'required|in:low,medium,high,urgent,emergency',
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
             'notify_to' => 'required|exists:users,id',
-            'escalation_level' => 'required|integer|min:1|max:5',
             'description' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
         ]);
@@ -295,7 +299,7 @@ class SlaController extends Controller
                     'category' => $complaint->category,
                     'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->name : 'Unassigned',
                     'hours_overdue' => $complaint->getHoursOverdue(),
-                    'escalation_level' => $complaint->slaRule ? $complaint->slaRule->escalation_level : 1,
+                    'priority' => $complaint->slaRule ? $complaint->slaRule->priority : 'medium',
             'notify_to' => $complaint->slaRule ? $complaint->slaRule->notifyTo->name : null,
                 ];
             })
@@ -331,7 +335,7 @@ class SlaController extends Controller
             'max_resolution_time' => $sla->max_resolution_time,
             'response_breached' => $complaint->isResponseTimeBreached($sla),
             'resolution_breached' => $complaint->isResolutionTimeBreached($sla),
-            'escalation_level' => $sla->escalation_level,
+            'priority' => $sla->priority,
             'notify_to' => $sla->notifyTo->name,
         ];
 
@@ -388,8 +392,7 @@ class SlaController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('complaint_type', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                $q->where('complaint_type', 'like', "%{$search}%");
             });
         }
 

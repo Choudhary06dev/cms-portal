@@ -53,8 +53,12 @@
                     <td class="text-white">{{ $sla->max_resolution_time }} hours</td>
                   </tr>
                   <tr>
-                    <td class="text-white"><strong>Escalation Level:</strong></td>
-                    <td class="text-white">Level {{ $sla->escalation_level }}</td>
+                    <td class="text-white"><strong>Priority:</strong></td>
+                    <td>
+                      <span class="badge bg-{{ $sla->priority == 'low' ? 'success' : ($sla->priority == 'medium' ? 'warning' : ($sla->priority == 'high' ? 'info' : ($sla->priority == 'urgent' ? 'danger' : 'danger'))) }}">
+                        {{ ucfirst($sla->priority ?? 'medium') }}
+                      </span>
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Status:</strong></td>
