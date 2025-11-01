@@ -14,10 +14,8 @@ class Spare extends Model
     protected $fillable = [
         'product_code',
         'brand_name',
-        'product_nature',
         'item_name',
         'category',
-        'unit',
         'unit_price',
         'total_received_quantity',
         'issued_quantity',
@@ -111,35 +109,11 @@ class Spare extends Model
     }
 
     /**
-     * Get available units
-     */
-    public static function getUnits(): array
-    {
-        return [
-            'pcs' => 'Pieces',
-            'kg' => 'Kilograms',
-            'm' => 'Meters',
-            'ft' => 'Feet',
-            'box' => 'Box',
-            'roll' => 'Roll',
-            'set' => 'Set',
-        ];
-    }
-
-    /**
      * Get category display name
      */
     public function getCategoryDisplayAttribute(): string
     {
         return self::getCategories()[$this->category] ?? $this->category;
-    }
-
-    /**
-     * Get unit display name
-     */
-    public function getUnitDisplayAttribute(): string
-    {
-        return self::getUnits()[$this->unit] ?? $this->unit;
     }
 
     /**

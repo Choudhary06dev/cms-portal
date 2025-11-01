@@ -21,6 +21,8 @@ class Employee extends Model
         'date_of_hire',
         'leave_quota',
         'address',
+        'city_id',
+        'sector_id',
         'status',
     ];
 
@@ -81,6 +83,22 @@ class Employee extends Model
     public function complaintLogs(): HasMany
     {
         return $this->hasMany(ComplaintLog::class, 'action_by');
+    }
+
+    /**
+     * Get the city that owns the employee.
+     */
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Get the sector that owns the employee.
+     */
+    public function sector()
+    {
+        return $this->belongsTo(Sector::class);
     }
 
     // Removed username/email/status/user-dependent accessors

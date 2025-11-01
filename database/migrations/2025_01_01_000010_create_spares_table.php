@@ -16,11 +16,9 @@ return new class extends Migration
             // Product metadata
             $table->string('product_code', 50)->nullable();
             $table->string('brand_name', 100)->nullable();
-            $table->string('product_nature', 100)->nullable();
             $table->string('item_name', 150);
             // Category from complaint_categories table
             $table->string('category', 100);
-            $table->string('unit', 50)->nullable();
             $table->decimal('unit_price', 10, 2)->nullable();
             // Stock metrics
             $table->integer('total_received_quantity')->default(0);

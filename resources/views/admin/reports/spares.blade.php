@@ -99,7 +99,6 @@
             <th>#</th>
             <th>Item Name</th>
             <th>Category</th>
-            <th>Unit</th>
             <th class="text-end">Total Received</th>
             <th class="text-end">Issued Quantity</th>
             <th class="text-end">Balance Quantity</th>
@@ -114,7 +113,6 @@
             <td>{{ $loop->iteration }}</td>
             <td>{{ $spare['spare']->item_name ?? 'N/A' }}</td>
             <td><span class="badge bg-info">{{ ucfirst($spare['spare']->category ?? 'N/A') }}</span></td>
-            <td>{{ $spare['spare']->unit ?? 'N/A' }}</td>
             <td class="text-end"><span class="text-success">{{ number_format($spare['spare']->total_received_quantity ?? 0, 0) }}</span></td>
             <td class="text-end"><span class="text-danger">{{ number_format($spare['total_used'] ?? 0, 0) }}</span></td>
             <td class="text-end">{{ number_format($spare['current_stock'] ?? 0, 0) }}</td>

@@ -7,17 +7,17 @@
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h2 class="text-white mb-2">Edit Client</h2>
-      <p class="text-light">Update client information</p>
+      <h2 class="text-white mb-2">Edit Complainant</h2>
+      <p class="text-light">Update Complainant information</p>
     </div>
   </div>
 </div>
 
-<!-- CLIENT FORM -->
+<!-- Complainant FORM -->
 <div class="card-glass">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white">
-      <i data-feather="user-edit" class="me-2"></i>Edit Client: {{ $client->client_name }}
+      <i data-feather="user-edit" class="me-2"></i>Edit Complainant: {{ $client->client_name }}
     </h5>
   </div>
   <div class="card-body">
@@ -28,7 +28,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="client_name" class="form-label text-white">Client Name <span class="text-danger">*</span></label>
+                  <label for="client_name" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
                   <input type="text" class="form-control @error('client_name') is-invalid @enderror" 
                          id="client_name" name="client_name" value="{{ old('client_name', $client->client_name) }}" required>
                   @error('client_name')

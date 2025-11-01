@@ -7,11 +7,11 @@
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h2 class=" mb-2">Spare Parts Management</h2>
-      <p class="text-light">Manage inventory and spare parts</p>
+      <h2 class=" mb-2">Product Management</h2>
+      <p class="text-light">Manage inventory and Product</p>
     </div>
     <a href="{{ route('admin.spares.create') }}" class="btn btn-accent">
-      <i class="fas fa-plus me-2"></i>Add Spare Part
+      <i class="fas fa-plus me-2"></i>Add Product
     </a>
   </div>
 </div>
@@ -51,13 +51,11 @@
     <table class="table table-dark">
       <thead>
         <tr>
-          <th>#</th>
+          <th>Sr.No</th>
           <th>Product Code</th>
           <th>Brand Name</th>
           <th>Product Name</th>
           <th>Category</th>
-          <th>Product Nature</th>
-          <th>Unit</th>
           <th class="text-end">Total Received</th>
           <th class="text-end">issued Quantity</th>
           <th class="text-end">Balance Quantity</th>
@@ -77,8 +75,6 @@
           <td>
             <span class="badge bg-info">{{ ucfirst($spare->category ?? 'N/A') }}</span>
           </td>
-          <td>{{ $spare->product_nature ?? 'N/A' }}</td>
-          <td>{{ $spare->unit ?? 'N/A' }}</td>
           <td class="text-end"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
           <td class="text-end"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
           <td class="text-end">{{ number_format((float)($spare->stock_quantity ?? 0), 0) }}</td>
@@ -121,7 +117,7 @@
 <tr>
   <td colspan="14" class="text-center py-4">
     <i data-feather="package" class="feather-lg mb-2"></i>
-    <div>No spare parts found</div>
+    <div>No Product found</div>
   </td>
 </tr>
 @endforelse
@@ -137,26 +133,6 @@
 </div>
 </div>
 
-<!-- View Modal (for viewing spare details only) -->
-<div class="modal fade" id="spareModal" tabindex="-1" aria-labelledby="spareModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content card-glass">
-      <div class="modal-header">
-        <h5 class="modal-title" id="spareModalLabel">View Spare Part</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modalBody">
-        <!-- Content will be populated by viewSpare function -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        <a href="#" class="btn btn-info" id="printSpareBtn" target="_blank" style="display: none;">
-          <i data-feather="printer"></i> Print Details
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
 
 @endsection
 
@@ -417,100 +393,10 @@
     }
   });
 
-  // Spare Modal Functions
+  // Spare Functions
   function viewSpare(spareId) {
-    console.log('Viewing spare ID:', spareId);
-
-    // Load spare details via AJAX
-    fetch(`/admin/spares/${spareId}`, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        credentials: 'same-origin'
-      })
-      .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Received data:', data);
-
-        // Set print button
-        const printSpareBtn = document.getElementById('printSpareBtn');
-        if (printSpareBtn) {
-          printSpareBtn.href = `/admin/spares/${spareId}/print-slip`;
-          printSpareBtn.style.display = 'inline-block';
-        }
-
-        // Wait for DOM to be ready
-        setTimeout(() => {
-          // Show spare details in modal
-          const modalLabel = document.getElementById('spareModalLabel');
-          const modalBody = document.getElementById('modalBody');
-
-          if (!modalLabel || !modalBody) {
-            console.error('Modal elements not found');
-            console.log('ModalLabel:', modalLabel);
-            console.log('ModalBody:', modalBody);
-            alert('Error: Modal elements not found');
-            return;
-          }
-
-          modalLabel.textContent = 'View Spare Part';
-
-          console.log('Modal body found:', modalBody);
-
-          modalBody.innerHTML = `
-            <div class="row" style="color: var(--text-primary);">
-              <div class="col-md-6">
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Product Code:</strong> <span style="color: var(--text-secondary);">${data.product_code || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Brand Name:</strong> <span style="color: var(--text-secondary);">${data.brand_name || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Product Name:</strong> <span style="color: var(--text-secondary);">${data.name || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Product Nature:</strong> <span style="color: var(--text-secondary);">${data.product_nature || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Category:</strong> <span style="color: var(--text-secondary);">${data.category || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Unit:</strong> <span style="color: var(--text-secondary);">${data.unit || 'N/A'}</span></p>
-              </div>
-              <div class="col-md-6">
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Total Received:</strong> <span style="color: var(--text-secondary);">${data.total_received_quantity || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Issued Quantity:</strong> <span style="color: var(--text-secondary);">${data.issued_quantity || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Balance Quantity:</strong> <span style="color: var(--text-secondary);">${data.stock_quantity || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Threshold Level:</strong> <span style="color: var(--text-secondary);">${data.threshold_level || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Last Stock In:</strong> <span style="color: var(--text-secondary);">${data.last_stock_in_at || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Last Updated:</strong> <span style="color: var(--text-secondary);">${data.updated_at || 'N/A'}</span></p>
-              </div>
-              <div class="col-12 mt-3">
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Supplier:</strong> <span style="color: var(--text-secondary);">${data.supplier || 'N/A'}</span></p>
-                <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Description:</strong> <span style="color: var(--text-secondary);">${data.description || 'N/A'}</span></p>
-              </div>
-            </div>
-          `;
-
-          console.log('Modal body content updated');
-
-          // Show the modal first
-          const modalElement = document.getElementById('spareModal');
-          if (!modalElement) {
-            console.error('Spare modal element not found');
-            alert('Error: Modal not found');
-            return;
-          }
-
-          const modal = new bootstrap.Modal(modalElement);
-          modal.show();
-          console.log('Modal shown');
-          
-          // Footer remains visible with Close button
-        }, 100);
-      })
-      .catch(error => {
-        console.error('Error loading spare details:', error);
-        alert('Error loading spare details: ' + error.message);
-      });
+    // Redirect to show page
+    window.location.href = `/admin/spares/${spareId}`;
   }
 
 
@@ -592,130 +478,6 @@
     }, 5000);
   }
 
-  // Print Functions
-  function printSpare(spareId) {
-    console.log('Printing spare ID:', spareId);
-
-    // Load spare details for printing
-    fetch(`/admin/spares/${spareId}`, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        credentials: 'same-origin'
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        // Create print content
-        const printContent = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Spare Part Details - ${data.name || 'N/A'}</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-              .details { margin: 20px 0; }
-              .row { display: flex; margin: 10px 0; }
-              .label { font-weight: bold; width: 200px; }
-              .value { flex: 1; }
-              .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
-              @media print {
-                body { margin: 0; }
-                .no-print { display: none; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Spare Part Details</h1>
-              <p>Generated on: ${new Date().toLocaleString()}</p>
-            </div>
-            
-            <div class="details">
-              <div class="row">
-                <div class="label">Product Code:</div>
-                <div class="value">${data.product_code || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Brand Name:</div>
-                <div class="value">${data.brand_name || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Product Name:</div>
-                <div class="value">${data.name || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Product Nature:</div>
-                <div class="value">${data.product_nature || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Category:</div>
-                <div class="value">${data.category || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Unit:</div>
-                <div class="value">${data.unit || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Total Received:</div>
-                <div class="value">${data.total_received_quantity || '0'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Issued Quantity:</div>
-                <div class="value">${data.issued_quantity || '0'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Balance Quantity:</div>
-                <div class="value">${data.stock_quantity || '0'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Threshold Level:</div>
-                <div class="value">${data.threshold_level || '0'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Supplier:</div>
-                <div class="value">${data.supplier || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Last Stock In:</div>
-                <div class="value">${data.last_stock_in_at || 'N/A'}</div>
-              </div>
-              <div class="row">
-                <div class="label">Description:</div>
-                <div class="value">${data.description || 'N/A'}</div>
-              </div>
-            </div>
-            
-            <div class="footer">
-              <p>This document was generated from CMS Portal</p>
-            </div>
-          </body>
-          </html>
-        `;
-
-        // Open print window
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-
-        // Wait for content to load then print
-        printWindow.onload = function() {
-          printWindow.print();
-          printWindow.close();
-        };
-      })
-      .catch(error => {
-        console.error('Error loading spare details for print:', error);
-        showNotification('Error loading spare details for printing', 'error');
-      });
-  }
 
   // Print all spares list
   function printAllSpares() {

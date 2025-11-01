@@ -79,9 +79,7 @@ class SpareController extends Controller
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
-        $units = Spare::getUnits();
-        
-        return view('admin.spares.create', compact('categories', 'units'));
+        return view('admin.spares.create', compact('categories'));
     }
 
     /**
@@ -101,10 +99,8 @@ class SpareController extends Controller
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
-            'product_nature' => 'nullable|string|max:100',
             // Accept categories from ComplaintCategory table and legacy categories
             'category' => 'required|string',
-            'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
             'issued_quantity' => 'nullable|integer|min:0',
@@ -142,9 +138,7 @@ class SpareController extends Controller
             'item_name' => $request->item_name,
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
-            'product_nature' => $request->product_nature,
             'category' => $request->category,
-            'unit' => $request->unit,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => (int)($request->total_received_quantity ?? $request->stock_quantity ?? 0),
             'issued_quantity' => (int)($request->issued_quantity ?? 0),
@@ -189,9 +183,7 @@ class SpareController extends Controller
             'name' => $spare->item_name,
             'product_code' => $spare->product_code,
             'brand_name' => $spare->brand_name,
-            'product_nature' => $spare->product_nature,
             'category' => $spare->category,
-            'unit' => $spare->unit,
             'price' => $spare->unit_price,
             'total_received_quantity' => $spare->total_received_quantity,
             'issued_quantity' => $spare->issued_quantity,
@@ -206,26 +198,9 @@ class SpareController extends Controller
         ]);
         }
 
-        $spare->load(['stockLogs', 'complaintSpares.complaint.client', 'approvalItems.performa']);
-        
-        // Get stock movement summary
-        $stockMovement = $spare->getStockMovementSummary(30);
-        
-        // Get recent stock logs
-        $recentLogs = $spare->stockLogs()
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get();
+        $spare->load(['complaintSpares.complaint.client', 'approvalItems.performa']);
 
-        // Get usage statistics
-        $usageStats = $spare->complaintSpares()
-            ->selectRaw('DATE_FORMAT(used_at, "%Y-%m") as month, SUM(quantity) as total_quantity, SUM(quantity * (SELECT unit_price FROM spares WHERE id = complaint_spares.spare_id)) as total_cost')
-            ->where('used_at', '>=', now()->subMonths(12))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
-
-        return view('admin.spares.show', compact('spare', 'stockMovement', 'recentLogs', 'usageStats'));
+        return view('admin.spares.show', compact('spare'));
     }
 
     /**
@@ -246,9 +221,7 @@ class SpareController extends Controller
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
-        $units = Spare::getUnits();
-        
-        return view('admin.spares.edit', compact('spare', 'categories', 'units'));
+        return view('admin.spares.edit', compact('spare', 'categories'));
     }
 
     /**
@@ -261,9 +234,7 @@ class SpareController extends Controller
             'name' => $spare->item_name,
             'product_code' => $spare->product_code,
             'brand_name' => $spare->brand_name,
-            'product_nature' => $spare->product_nature,
             'category' => $spare->category,
-            'unit' => $spare->unit,
             'price' => $spare->unit_price,
             'total_received_quantity' => $spare->total_received_quantity,
             'issued_quantity' => $spare->issued_quantity,
@@ -292,10 +263,8 @@ class SpareController extends Controller
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
-            'product_nature' => 'nullable|string|max:100',
             // Accept categories from ComplaintCategory table and legacy categories
             'category' => 'required|string',
-            'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
             'issued_quantity' => 'nullable|integer|min:0',
@@ -350,9 +319,7 @@ class SpareController extends Controller
             'item_name' => $request->item_name,
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
-            'product_nature' => $request->product_nature,
             'category' => $normalizedCategory,
-            'unit' => $request->unit,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => $newTotalReceived,
             'issued_quantity' => $newIssued,

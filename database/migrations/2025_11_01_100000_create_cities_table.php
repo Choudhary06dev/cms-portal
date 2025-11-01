@@ -11,22 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sectors', function (Blueprint $table) {
+        Schema::create('cities', function (Blueprint $table) {
             $table->id();
-            // Add city_id column (nullable for existing installations)
-            $table->unsignedBigInteger('city_id')->nullable()->after('id');
             $table->string('name', 100)->unique();
             $table->text('description')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
-        
-        // Add foreign key constraint only if cities table exists
-        if (Schema::hasTable('cities')) {
-            Schema::table('sectors', function (Blueprint $table) {
-                $table->foreign('city_id')->references('id')->on('cities')->onDelete('cascade');
-            });
-        }
     }
 
     /**
@@ -34,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sectors');
+        Schema::dropIfExists('cities');
     }
 };

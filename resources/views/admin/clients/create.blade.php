@@ -1,18 +1,15 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Create New Client — CMS Admin')
+@section('title', 'Create New Complainant — CMS Admin')
 
 @section('content')
 <!-- PAGE HEADER -->
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h2 class="text-white mb-2">Create New Client</h2>
-      <p class="text-light">Add a new client to the system</p>
+      <h2 class="text-white mb-2">Create New Complainant</h2>
+      <p class="text-light">Add a new Complainant to the system</p>
     </div>
-    <a href="{{ route('admin.clients.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Clients
-    </a>
   </div>
 </div>
 
@@ -20,7 +17,7 @@
 <div class="card-glass">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white">
-      <i data-feather="user-plus" class="me-2"></i>Client Information
+      <i data-feather="user-plus" class="me-2"></i>Complainant Information
     </h5>
   </div>
   <div class="card-body">
@@ -37,7 +34,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="client_name" class="form-label text-white">Client Name <span class="text-danger">*</span></label>
+                  <label for="client_name" class="form-label text-white">Complainant<span class="text-danger">*</span></label>
                   <input type="text" class="form-control @error('client_name') is-invalid @enderror" 
                          id="client_name" name="client_name" value="{{ old('client_name', '') }}" autocomplete="off" required>
                   @error('client_name')
@@ -159,7 +156,7 @@
 
             <div class="d-flex justify-content-end gap-2">
               <a href="{{ route('admin.clients.index') }}" class="btn btn-outline-secondary">Cancel</a>
-              <button type="submit" class="btn btn-accent">Create Client</button>
+              <button type="submit" class="btn btn-accent">Create Complainant</button>
             </div>
           </form>
         </div>

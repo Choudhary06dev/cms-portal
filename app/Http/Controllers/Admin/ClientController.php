@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
-use App\Models\Complaint;
 use App\Models\Sector;
 use App\Traits\DatabaseTimeHelpers;
 use Illuminate\Http\Request;
@@ -129,14 +128,6 @@ class ClientController extends Controller
     public function show(Client $client)
     {
         $client->load(['complaints.assignedEmployee', 'complaints.attachments']);
-        
-        // Get client statistics
-        $stats = [
-            'total_complaints' => $client->complaints()->count(),
-            'pending_complaints' => $client->complaints()->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
-            'resolved_complaints' => $client->complaints()->whereIn('status', ['resolved', 'closed'])->count(),
-            'overdue_complaints' => $client->complaints()->overdue()->count(),
-        ];
 
         // Get recent complaints
         $recentComplaints = $client->complaints()
@@ -145,30 +136,15 @@ class ClientController extends Controller
             ->limit(10)
             ->get();
 
-        // Get complaints by category
-        $complaintsByType = $client->complaints()
-            ->selectRaw('category, COUNT(*) as count')
-            ->groupBy('category')
-            ->get();
-
-        // Get complaints by status
-        $complaintsByStatus = $client->complaints()
-            ->selectRaw('status, COUNT(*) as count')
-            ->groupBy('status')
-            ->get();
-
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'client' => $client,
-                'stats' => $stats,
-                'recentComplaints' => $recentComplaints,
-                'complaintsByType' => $complaintsByType,
-                'complaintsByStatus' => $complaintsByStatus
+                'recentComplaints' => $recentComplaints
             ]);
         }
 
-        return view('admin.clients.show', compact('client', 'stats', 'recentComplaints', 'complaintsByType', 'complaintsByStatus'));
+        return view('admin.clients.show', compact('client', 'recentComplaints'));
     }
 
     /**

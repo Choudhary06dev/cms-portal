@@ -1,13 +1,13 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Sectors — CMS Admin')
+@section('title', 'Cities — CMS Admin')
 
 @section('content')
 <div class="container-narrow">
 <div class="mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <h2 class="text-white mb-1">Sectors</h2>
-    <p class="text-light mb-0">Manage sectors for client selection</p>
+    <h2 class="text-white mb-1">Cities</h2>
+    <p class="text-light mb-0">Manage cities for employee selection</p>
   </div>
 </div>
 
@@ -36,41 +36,29 @@
 
 <div class="card-glass mb-3">
   <div class="card-header">
-    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add Sector</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add City</h5>
   </div>
   <div class="card-body">
-    <form method="POST" action="{{ route('admin.sector.store') }}" class="d-flex flex-wrap align-items-end gap-2">
+    <form method="POST" action="{{ route('admin.city.store') }}" class="d-flex flex-wrap align-items-end gap-2">
       @csrf
-      <div style="min-width: 200px; flex: 0 0 220px;">
-        <label class="form-label small text-muted mb-1">City <span class="text-danger">*</span></label>
-        <select name="city_id" class="form-select @error('city_id') is-invalid @enderror" required>
-          <option value="">Select City</option>
-          @if(isset($cities) && $cities->count() > 0)
-            @foreach ($cities as $city)
-              <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
-            @endforeach
-          @endif
-        </select>
-        @error('city_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-      </div>
-      <div style="min-width: 220px; flex: 0 0 240px;">
-        <label class="form-label small text-muted mb-1">Sector Name <span class="text-danger">*</span></label>
-        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Sector name" required>
+      <div style="min-width: 220px; flex: 0 0 260px;">
+        <label class="form-label small text-muted mb-1">Name</label>
+        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="City name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
-      <div style="min-width: 220px; flex: 1 1 300px;">
+      <div style="min-width: 260px; flex: 1 1 380px;">
         <label class="form-label small text-muted mb-1">Description</label>
         <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Short description (optional)">
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
-      <div style="min-width: 140px; flex: 0 0 160px;">
+      <div style="min-width: 160px; flex: 0 0 180px;">
         <label class="form-label small text-muted mb-1">Status</label>
         <select name="status" class="form-select">
           <option value="active" {{ old('status','active')==='active'?'selected':'' }}>Active</option>
           <option value="inactive" {{ old('status')==='inactive'?'selected':'' }}>Inactive</option>
         </select>
       </div>
-      <div class="d-grid" style="flex: 0 0 120px;">
+      <div class="d-grid" style="flex: 0 0 140px;">
         <button class="btn btn-accent" type="submit" style="width: 100%;">Add</button>
       </div>
     </form>
@@ -90,7 +78,7 @@
 
 <div class="card-glass">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>Sectors</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>Cities</h5>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -98,30 +86,28 @@
         <thead>
           <tr>
             <th style="width:70px">#</th>
-            <th>City</th>
-            <th>Sector Name</th>
+            <th>Name</th>
             <th>Description</th>
             <th style="width:140px">Status</th>
             <th style="width:180px">Actions</th>
           </tr>
         </thead>
         <tbody>
-        @forelse($sectors as $sector)
+        @forelse($cities as $city)
           <tr>
-            <td>{{ $sector->id }}</td>
-            <td>{{ $sector->city ? $sector->city->name : 'N/A' }}</td>
-            <td>{{ $sector->name }}</td>
-            <td>{{ $sector->description ? Str::limit($sector->description, 80) : '-' }}</td>
+            <td>{{ $city->id }}</td>
+            <td>{{ $city->name }}</td>
+            <td>{{ $city->description ? Str::limit($city->description, 80) : '-' }}</td>
             <td>
-              <span class="badge {{ $sector->status==='active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($sector->status) }}</span>
+              <span class="badge {{ $city->status==='active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($city->status) }}</span>
             </td>
             <td>
               <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editSectorModal" 
-                        data-id="{{ $sector->id }}" data-city-id="{{ $sector->city_id }}" data-name="{{ $sector->name }}" data-status="{{ $sector->status }}" data-description="{{ $sector->description }}">
+                <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editCityModal" 
+                        data-id="{{ $city->id }}" data-name="{{ $city->name }}" data-status="{{ $city->status }}" data-description="{{ $city->description }}">
                   Edit
                 </button>
-                <form action="{{ route('admin.sector.destroy', $sector) }}" method="POST" class="sector-delete-form" onsubmit="return confirm('Delete this sector?')">
+                <form action="{{ route('admin.city.destroy', $city) }}" method="POST" class="city-delete-form" onsubmit="return confirm('Delete this city?')">
                   @csrf
                   @method('DELETE')
                   <button class="btn btn-sm btn-danger" type="submit">Delete</button>
@@ -131,52 +117,41 @@
           </tr>
         @empty
           <tr>
-            <td colspan="6" class="text-center text-muted">No sectors yet.</td>
+            <td colspan="4" class="text-center text-muted">No cities yet.</td>
           </tr>
         @endforelse
         </tbody>
       </table>
     </div>
     <div class="mt-3">
-      {{ $sectors->links() }}
+      {{ $cities->links() }}
     </div>
   </div>
 </div>
 
-<!-- Edit Sector Modal -->
-<div class="modal fade" id="editSectorModal" tabindex="-1" aria-labelledby="editSectorModalLabel" aria-hidden="true">
+<!-- Edit City Modal -->
+<div class="modal fade" id="editCityModal" tabindex="-1" aria-labelledby="editCityModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content bg-dark text-white">
       <div class="modal-header">
-        <h5 class="modal-title" id="editSectorModalLabel">Edit Sector</h5>
+        <h5 class="modal-title" id="editCityModalLabel">Edit City</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="editSectorForm" method="POST">
+      <form id="editCityForm" method="POST">
         @csrf
         @method('PUT')
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">City <span class="text-danger">*</span></label>
-            <select name="city_id" id="editSectorCityId" class="form-select" required>
-              <option value="">Select City</option>
-              @if(isset($cities) && $cities->count() > 0)
-                @foreach ($cities as $city)
-                  <option value="{{ $city->id }}">{{ $city->name }}</option>
-                @endforeach
-              @endif
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Sector Name <span class="text-danger">*</span></label>
-            <input type="text" name="name" id="editSectorName" class="form-control" required>
+            <label class="form-label">Name</label>
+            <input type="text" name="name" id="editCityName" class="form-control" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Description</label>
-            <textarea name="description" id="editSectorDescription" class="form-control" rows="2" placeholder="Optional"></textarea>
+            <textarea name="description" id="editCityDescription" class="form-control" rows="2" placeholder="Optional"></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label">Status</label>
-            <select name="status" id="editSectorStatus" class="form-select">
+            <select name="status" id="editCityStatus" class="form-select">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
@@ -196,7 +171,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // AJAX delete to remove only from table (not DB hard delete)
-  document.querySelectorAll('form.sector-delete-form').forEach(function(form){
+  document.querySelectorAll('form.city-delete-form').forEach(function(form){
     form.addEventListener('submit', function(e){
       e.preventDefault();
       const row = form.closest('tr');
@@ -231,27 +206,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  const modalEl = document.getElementById('editSectorModal');
+  const modalEl = document.getElementById('editCityModal');
   if (!modalEl) return;
   modalEl.addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;
     const id = button.getAttribute('data-id');
-    const cityId = button.getAttribute('data-city-id');
     const name = button.getAttribute('data-name');
     const status = button.getAttribute('data-status');
     const description = button.getAttribute('data-description') || '';
 
-    const form = document.getElementById('editSectorForm');
-    const nameInput = document.getElementById('editSectorName');
-    const citySelect = document.getElementById('editSectorCityId');
-    const statusSelect = document.getElementById('editSectorStatus');
+    const form = document.getElementById('editCityForm');
+    const nameInput = document.getElementById('editCityName');
+    const statusSelect = document.getElementById('editCityStatus');
 
     if (form && id) {
-      form.action = `${window.location.origin}/admin/sector/${id}`;
+      form.action = `${window.location.origin}/admin/city/${id}`;
     }
     if (nameInput) nameInput.value = name || '';
-    if (citySelect && cityId) citySelect.value = cityId;
-    const descInput = document.getElementById('editSectorDescription');
+    const descInput = document.getElementById('editCityDescription');
     if (descInput) descInput.value = description;
     if (statusSelect) statusSelect.value = status || 'active';
   });
@@ -259,4 +231,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endpush
 @endsection
-

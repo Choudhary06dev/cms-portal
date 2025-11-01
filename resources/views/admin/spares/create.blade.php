@@ -1,14 +1,14 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Create New Spare Part — CMS Admin')
+@section('title', 'Create New Product — CMS Admin')
 
 @section('content')
     <!-- PAGE HEADER -->
     <div class="mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="text-white mb-2">Create New Spare Part</h2>
-                <p class="text-light">Add a new spare part to inventory</p>
+                <h2 class="text-white mb-2">Create New Product</h2>
+                <p class="text-light">Add a new Product to inventory</p>
             </div>
             
         </div>
@@ -18,7 +18,7 @@
     <div class="card-glass">
         <div class="card-header">
             <h5 class="card-title mb-0 text-white">
-                <i data-feather="package" class="me-2"></i>Spare Part Information
+                <i data-feather="package" class="me-2"></i>Product Information
             </h5>
         </div>
         <div class="card-body">
@@ -79,31 +79,9 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="product_nature" class="form-label text-white">Product Nature</label>
-                            <input type="text" class="form-control @error('product_nature') is-invalid @enderror"
-                                id="product_nature" name="product_nature" value="{{ old('product_nature') }}">
-                            @error('product_nature')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-
                 </div>
 
                 <div class="row">
-                    <div class="col-md-3">
-                        <div class="mb-3">
-                            <label for="unit" class="form-label text-white">Unit</label>
-                            <input type="text" class="form-control @error('unit') is-invalid @enderror" id="unit"
-                                name="unit" value="{{ old('unit') }}">
-                            @error('unit')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
                     <div class="col-md-3">
                         <div class="mb-3">
                             <label for="stock_quantity" class="form-label text-white">Stock Quantity <span
@@ -115,7 +93,7 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label for="threshold_level" class="form-label text-white">Threshold Level <span
                                     class="text-danger">*</span></label>
@@ -127,10 +105,7 @@
                             @enderror
                         </div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label for="supplier" class="form-label text-white">Supplier</label>
                             <input type="text" class="form-control @error('supplier') is-invalid @enderror"
@@ -140,10 +115,20 @@
                             @enderror
                         </div>
                     </div>
-
-                    
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="total_received_quantity" class="form-label text-white">Total Received
+                                Quantity</label>
+                            <input type="number"
+                                class="form-control @error('total_received_quantity') is-invalid @enderror"
+                                id="total_received_quantity" name="total_received_quantity"
+                                value="{{ old('total_received_quantity', 0) }}">
+                            @error('total_received_quantity')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
-
                 <div class="row">
                     <div class="col-12">
                         <div class="mb-3">
@@ -159,13 +144,10 @@
 
                 <div class="d-flex justify-content-end gap-2">
                     <a href="{{ route('admin.spares.index') }}" class="btn btn-outline-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-accent">Create Spare Part</button>
+                    <button type="submit" class="btn btn-accent">Create Product</button>
                 </div>
             </form>
         </div>
-    </div>
-    </div>
-    </div>
     </div>
 @endsection
 
