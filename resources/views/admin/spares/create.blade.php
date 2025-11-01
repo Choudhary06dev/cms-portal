@@ -68,9 +68,8 @@
                                     class="text-danger">*</span></label>
                             <select class="form-select @error('category') is-invalid @enderror" id="category" name="category" required>
                                 <option value="">Select Category</option>
-                                @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::where('status','active')->orderBy('name')->pluck('name') : collect())
-                                @foreach ($catOptions as $key)
-                                    <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>{{ $key }}</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category }}" {{ old('category') == $category ? 'selected' : '' }}>{{ $category }}</option>
                                 @endforeach
                             </select>
                             @error('category')

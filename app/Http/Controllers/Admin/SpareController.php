@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Spare;
 use App\Models\SpareStockLog;
 use App\Models\ComplaintSpare;
+use App\Models\ComplaintCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Schema;
 
 class SpareController extends Controller
 {
@@ -62,7 +64,9 @@ class SpareController extends Controller
         }
 
         $spares = $query->with('stockLogs')->orderBy('id', 'desc')->paginate(15);
-        $categories = Spare::getCategories();
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
 
         return view('admin.spares.index', compact('spares', 'categories'));
     }
@@ -72,7 +76,9 @@ class SpareController extends Controller
      */
     public function create()
     {
-        $categories = Spare::getCategories();
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
         $units = Spare::getUnits();
         
         return view('admin.spares.create', compact('categories', 'units'));
@@ -83,15 +89,17 @@ class SpareController extends Controller
      */
     public function store(Request $request)
     {
-        $categoryKeys = implode(',', array_keys(Spare::getCategories()));
-        $dbCategories = implode(',', Spare::getCanonicalCategories());
+        // Get valid categories from complaint_categories table
+        $validCategories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->pluck('name')->toArray()
+            : [];
+        
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
             'product_nature' => 'nullable|string|max:100',
-            // Accept both UI keys and canonical DB enum values
-            'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
+            'category' => 'required|string|max:100' . (!empty($validCategories) ? '|in:' . implode(',', $validCategories) : ''),
             'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
@@ -115,15 +123,12 @@ class SpareController extends Controller
                 ->withInput();
         }
 
-        // Normalize category to canonical DB enum values
-        $normalizedCategory = Spare::normalizeCategory($request->category);
-
         $spare = Spare::create([
             'item_name' => $request->item_name,
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'product_nature' => $request->product_nature,
-            'category' => $normalizedCategory,
+            'category' => $request->category,
             'unit' => $request->unit,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => (int)($request->total_received_quantity ?? $request->stock_quantity ?? 0),
@@ -223,7 +228,9 @@ class SpareController extends Controller
      */
     public function edit(Spare $spare)
     {
-        $categories = Spare::getCategories();
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            : collect();
         $units = Spare::getUnits();
         
         return view('admin.spares.edit', compact('spare', 'categories', 'units'));
@@ -259,15 +266,17 @@ class SpareController extends Controller
      */
     public function update(Request $request, Spare $spare)
     {
-        $categoryKeys = implode(',', array_keys(Spare::getCategories()));
-        $dbCategories = implode(',', Spare::getCanonicalCategories());
+        // Get valid categories from complaint_categories table
+        $validCategories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::where('status', 'active')->pluck('name')->toArray()
+            : [];
+        
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
             'brand_name' => 'nullable|string|max:100',
             'product_nature' => 'nullable|string|max:100',
-            // Accept both UI keys and canonical DB enum values
-            'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
+            'category' => 'required|string|max:100' . (!empty($validCategories) ? '|in:' . implode(',', $validCategories) : ''),
             'unit' => 'nullable|string|max:50',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
@@ -312,7 +321,7 @@ class SpareController extends Controller
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'product_nature' => $request->product_nature,
-            'category' => Spare::normalizeCategory($request->category),
+            'category' => $request->category,
             'unit' => $request->unit,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => $newTotalReceived,
@@ -585,19 +594,18 @@ class SpareController extends Controller
                 break;
 
             case 'change_category':
-                $categoryKeys = implode(',', array_keys(Spare::getCategories()));
-                $dbCategories = implode(',', Spare::getCanonicalCategories());
+                $validCategories = Schema::hasTable('complaint_categories')
+                    ? ComplaintCategory::where('status', 'active')->pluck('name')->toArray()
+                    : [];
                 $validator = Validator::make($request->all(), [
-                    // Accept both UI keys and canonical DB enum values
-                    'category' => 'required|in:' . $categoryKeys . ',' . $dbCategories,
+                    'category' => 'required|string|max:100' . (!empty($validCategories) ? '|in:' . implode(',', $validCategories) : ''),
                 ]);
                 
                 if ($validator->fails()) {
                     return redirect()->back()->withErrors($validator);
                 }
                 
-                $normalized = Spare::normalizeCategory($request->category);
-                Spare::whereIn('id', $spareIds)->update(['category' => $normalized]);
+                Spare::whereIn('id', $spareIds)->update(['category' => $request->category]);
                 $message = 'Category changed for selected spare parts successfully.';
                 break;
 

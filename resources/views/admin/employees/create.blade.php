@@ -129,13 +129,8 @@
           @enderror
         </div>
       </div>
-    </div>
-    
-  
-   
-    
-    <div class="row">
-      <div class="col-md-12">
+
+        <div class="col-md-6">
         <div class="mb-3">
           <label for="address" class="form-label text-white">Address</label>
           <textarea class="form-control @error('address') is-invalid @enderror" 
@@ -145,6 +140,13 @@
           @enderror
         </div>
       </div>
+    </div>
+    
+  
+   
+    
+    <div class="row">
+    
     </div>
     
     <div class="d-flex gap-2">
