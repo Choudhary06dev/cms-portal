@@ -86,7 +86,7 @@ class ComplaintController extends Controller
         $clients = Client::orderBy('client_name')->get();
         $employees = Employee::where('status', 'active')->get();
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
         return view('admin.complaints.index', compact('complaints', 'clients', 'employees', 'categories'));
@@ -108,7 +108,7 @@ class ComplaintController extends Controller
             ->orderBy('department')
             ->pluck('department');
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
         return view('admin.complaints.create', compact('clients', 'employees', 'categories', 'departments'));
@@ -135,7 +135,7 @@ class ComplaintController extends Controller
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
-            'status' => 'required|in:new,assigned,in_progress,resolved,closed',
+            // Status removed from form - will be managed in approvals view, default to 'new'
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
             'spare_parts' => 'nullable|array',
@@ -164,7 +164,7 @@ class ComplaintController extends Controller
                 'priority' => $request->priority,
                 'description' => $request->description,
                 'assigned_employee_id' => $request->assigned_employee_id,
-                'status' => $request->status,
+                'status' => 'new', // Default to 'new' - status will be managed in approvals view
             ]);
 
         // Handle file attachments
@@ -429,7 +429,7 @@ class ComplaintController extends Controller
             ->orderBy('department')
             ->pluck('department');
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
         return view('admin.complaints.edit', compact('complaint', 'clients', 'employees', 'categories', 'departments'));
@@ -449,7 +449,7 @@ class ComplaintController extends Controller
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
-            'status' => 'required|in:new,assigned,in_progress,resolved,closed',
+            // Status removed from form - will be managed in approvals view, keep existing status
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
             // Product (spare) update requirements: single selection required
@@ -475,8 +475,8 @@ class ComplaintController extends Controller
             'priority' => $request->priority,
             'description' => $request->description,
             'assigned_employee_id' => $request->assigned_employee_id,
-            'status' => $request->status,
-            'closed_at' => $request->status === 'closed' ? now() : null,
+            // Status not updated here - will be managed in approvals view
+            // Keep existing status and closed_at
         ]);
 
         // Update product (spare) selection: replace selection only; no stock movement here
@@ -660,6 +660,19 @@ class ComplaintController extends Controller
                 'action_by' => $currentEmployee->id,
                 'action' => 'status_changed',
                 'remarks' => "Status changed from {$oldStatus} to {$request->status}. " . ($request->notes ?? ''),
+            ]);
+        }
+
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Complaint status updated successfully.',
+                'complaint' => [
+                    'id' => $complaint->id,
+                    'status' => $complaint->status,
+                    'old_status' => $oldStatus
+                ]
             ]);
         }
 

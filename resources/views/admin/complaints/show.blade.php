@@ -18,7 +18,7 @@
 <div class="card-glass">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white">
-      <i data-feather="alert-triangle" class="me-2"></i>Complaint Details: {{ $complaint->ticket_number }}
+      <i data-feather="alert-triangle" class="me-2"></i>Complaint Details: {{ $complaint->complaint_id ?? $complaint->id }}
     </h5>
   </div>
   <div class="card-body">
@@ -28,20 +28,114 @@
                 <h6 class="text-white fw-bold">Complaint Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td class="text-white"><strong>Ticket Number:</strong></td>
-                    <td class="text-white">{{ $complaint->ticket_number }}</td>
+                    <td class="text-white"><strong>Complaint ID:</strong></td>
+                    <td class="text-white">{{ $complaint->complaint_id ?? $complaint->id }}</td>
                   </tr>
                   <tr>
-                    <td class="text-white"><strong>Type:</strong></td>
+                    <td class="text-white"><strong>Apply Date/Time:</strong></td>
+                    <td class="text-white">{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-white"><strong>Completion Time:</strong></td>
+                    <td class="text-white">
+                      @if($complaint->closed_at)
+                        {{ $complaint->closed_at->format('Y-m-d H:i:s') }}
+                      @elseif($complaint->status == 'resolved' || $complaint->status == 'closed')
+                        {{ $complaint->updated_at->format('Y-m-d H:i:s') }}
+                      @else
+                        -
+                      @endif
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-white"><strong>Complaint Nature & Type:</strong></td>
                     <td>
-                      <span class="category-badge category-{{ strtolower($complaint->category) }}">{{ ucfirst($complaint->category) }}</span>
+                      @php
+                        $category = $complaint->category ?? 'N/A';
+                        $department = $complaint->department ?? '';
+                        
+                        // Get product name from spare parts
+                        $productName = '';
+                        if ($complaint->spareParts && $complaint->spareParts->count() > 0) {
+                          $firstSpare = $complaint->spareParts->first();
+                          if ($firstSpare && $firstSpare->spare) {
+                            $productName = $firstSpare->spare->item_name ?? '';
+                            if ($complaint->spareParts->count() > 1) {
+                              $productName .= ' (+' . ($complaint->spareParts->count() - 1) . ')';
+                            }
+                          }
+                        }
+                        
+                        // Category to REQ type mapping
+                        $reqTypeMap = [
+                          'electric' => 'ELECTRECION REQ',
+                          'technical' => 'TECHNICAL REQ',
+                          'service' => 'SERVICE REQ',
+                          'billing' => 'BILLING REQ',
+                          'water' => 'PIPE FITTER REQ',
+                          'sanitary' => 'SANITARY REQ',
+                          'plumbing' => 'PLUMBING REQ',
+                          'kitchen' => 'KITCHEN REQ',
+                          'other' => 'OTHER REQ',
+                        ];
+                        
+                        $reqType = $reqTypeMap[strtolower($category)] ?? strtoupper($category) . ' REQ';
+                        
+                        // Format display text with category and product name
+                        if ($department) {
+                          if (strpos(strtoupper($department), 'B&R') !== false) {
+                            if ($productName) {
+                              $displayText = $department . ' - ' . $productName . ' - MASSON REQ';
+                            } else {
+                              $displayText = $department . ' - MASSON REQ';
+                            }
+                          } else {
+                            if ($productName) {
+                              $displayText = $department . ' - ' . $productName . ' - ' . $reqType;
+                            } else {
+                              $displayText = $department . ' - ' . $reqType;
+                            }
+                          }
+                        } else {
+                          $categoryDisplay = [
+                            'electric' => 'Electric',
+                            'technical' => 'Technical',
+                            'service' => 'Service',
+                            'billing' => 'Billing',
+                            'water' => 'Water Supply',
+                            'sanitary' => 'Sanitary',
+                            'plumbing' => 'Plumbing',
+                            'kitchen' => 'Kitchen',
+                            'other' => 'Other',
+                          ];
+                          $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                          
+                          if ($productName) {
+                            $displayText = $catDisplay . ' - ' . $productName . ' - ' . $reqType;
+                          } else {
+                            $displayText = $catDisplay . ' - ' . $reqType;
+                          }
+                        }
+                      @endphp
+                      <span class="text-white fw-bold">{{ $displayText }}</span>
                     </td>
                   </tr>
                   <tr>
                     <td class="text-white"><strong>Status:</strong></td>
                     <td>
-                      <span class="badge bg-{{ $complaint->status === 'resolved' ? 'success' : ($complaint->status === 'closed' ? 'info' : 'warning') }}">
-                        {{ ucfirst($complaint->status) }}
+                      @php
+                        $statusDisplay = $complaint->status == 'in_progress' ? 'In-Process' : 
+                                        ($complaint->status == 'resolved' || $complaint->status == 'closed' ? 'Addressed' : 
+                                        ucfirst(str_replace('_', ' ', $complaint->status)));
+                        $statusColor = ($complaint->status == 'in_progress' || $complaint->status == 'new' || $complaint->status == 'assigned') ? 
+                                      'rgba(239, 68, 68, 0.25)' : 'rgba(34, 197, 94, 0.25)';
+                        $textColor = ($complaint->status == 'in_progress' || $complaint->status == 'new' || $complaint->status == 'assigned') ? 
+                                    '#ef4444' : '#22c55e';
+                        $borderColor = ($complaint->status == 'in_progress' || $complaint->status == 'new' || $complaint->status == 'assigned') ? 
+                                      '#ef4444' : '#22c55e';
+                      @endphp
+                      <span class="badge" style="background-color: {{ $statusColor }}; color: {{ $textColor }}; border: 1px solid {{ $borderColor }}; padding: 4px 8px; border-radius: 4px; font-weight: 600;">
+                        {{ $statusDisplay }}
                       </span>
                     </td>
                   </tr>
@@ -53,38 +147,42 @@
                       </span>
                     </td>
                   </tr>
-                  <tr>
-                    <td class="text-white"><strong>Location:</strong></td>
-                    <td class="text-white">{{ $complaint->location ?? 'N/A' }}</td>
-                  </tr>
                 </table>
               </div>
             </div>
             
             <div class="col-md-6">
               <div class="mb-4">
-                <h6 class="text-white fw-bold">Client & Assignment</h6>
+                <h6 class="text-white fw-bold">Complainant Information</h6>
                 <table class="table table-borderless">
                   <tr>
-                    <td class="text-white"><strong>Client:</strong></td>
+                    <td class="text-white"><strong>Complainant Name:</strong></td>
                     <td class="text-white">{{ $complaint->client->client_name ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Assigned To:</strong></td>
-                    <td>{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}</td>
+                    <td class="text-white"><strong>Address:</strong></td>
+                    <td class="text-white">{{ $complaint->client->address ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Created:</strong></td>
-                    <td>{{ $complaint->created_at->format('M d, Y H:i') }}</td>
+                    <td class="text-white"><strong>Mobile No.:</strong></td>
+                    <td class="text-white">{{ $complaint->client->phone ?? 'N/A' }}</td>
                   </tr>
                   <tr>
-                    <td><strong>Last Updated:</strong></td>
-                    <td>{{ $complaint->updated_at->format('M d, Y H:i') }}</td>
+                    <td class="text-white"><strong>Assigned To:</strong></td>
+                    <td class="text-white">{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-white"><strong>Department:</strong></td>
+                    <td class="text-white">{{ $complaint->department ?? 'N/A' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-white"><strong>Created:</strong></td>
+                    <td class="text-white">{{ $complaint->created_at->format('d-m-Y H:i:s') }}</td>
                   </tr>
                   @if($complaint->closed_at)
                   <tr>
-                    <td><strong>Closed:</strong></td>
-                    <td>{{ $complaint->closed_at->format('M d, Y H:i') }}</td>
+                    <td class="text-white"><strong>Closed:</strong></td>
+                    <td class="text-white">{{ $complaint->closed_at->format('Y-m-d H:i:s') }}</td>
                   </tr>
                   @endif
                 </table>

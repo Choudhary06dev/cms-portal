@@ -24,33 +24,30 @@
 <!-- DATE FILTERS -->
 <div class="card-glass mb-4">
   <div class="card-body">
-    <form action="{{ route('admin.reports.employees') }}" method="GET" class="row g-3">
+    <form id="employeesReportFiltersForm" method="GET" class="row g-3">
       <div class="col-md-4">
         <label for="date_from" class="form-label text-white">From Date</label>
-        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required>
+        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required onchange="submitEmployeesReportFilters()">
       </div>
       <div class="col-md-4">
         <label for="date_to" class="form-label text-white">To Date</label>
-        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required>
+        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required onchange="submitEmployeesReportFilters()">
       </div>
       <div class="col-md-4">
         <label for="department" class="form-label text-white">Department</label>
-        <select class="form-select" id="department" name="department">
+        <select class="form-select" id="department" name="department" onchange="submitEmployeesReportFilters()">
           <option value="">All Departments</option>
           @foreach(\App\Models\Employee::distinct()->whereNotNull('department')->pluck('department') as $dept)
             <option value="{{ $dept }}" {{ $department == $dept ? 'selected' : '' }}>{{ $dept }}</option>
           @endforeach
         </select>
       </div>
-      <div class="col-md-12">
-        <button type="submit" class="btn btn-accent">Filter</button>
-        <a href="{{ route('admin.reports.employees') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
-      </div>
     </form>
   </div>
 </div>
 
 <!-- SUMMARY STATS -->
+<div id="employeesReportSummary">
 <div class="row g-4 mb-4">
   <div class="col-md-4">
     <div class="card-glass text-center">
@@ -77,9 +74,10 @@
     </div>
   </div>
 </div>
+</div>
 
 <!-- REPORT TABLE -->
-<div class="card-glass" id="report-print-area">
+<div class="card-glass" id="employeesReportContent" data-print-area="report-print-area">
   <div class="card-body">
     <div class="text-center mb-3">
       <h4 class="text-white mb-2">Employee Performance Report</h4>
@@ -130,10 +128,10 @@
     body * {
       visibility: hidden;
     }
-    #report-print-area, #report-print-area * {
+    #employeesReportContent, #employeesReportContent * {
       visibility: visible;
     }
-    #report-print-area {
+    #employeesReportContent {
       position: absolute;
       left: 0;
       top: 0;
@@ -164,6 +162,71 @@
     }
   }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+let employeesReportDebounceTimer;
+
+function submitEmployeesReportFilters() {
+    clearTimeout(employeesReportDebounceTimer);
+    employeesReportDebounceTimer = setTimeout(() => {
+        loadEmployeesReport();
+    }, 300);
+}
+
+function loadEmployeesReport() {
+    const form = document.getElementById('employeesReportFiltersForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    
+    // Show loading
+    const summaryDiv = document.getElementById('employeesReportSummary');
+    const content = document.getElementById('employeesReportContent');
+    if (summaryDiv) summaryDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+    if (content) content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Update URL without reload
+    const url = '{{ route("admin.reports.employees") }}?' + params.toString();
+    window.history.pushState({}, '', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html',
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the response
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Extract summary and report content
+        const newSummary = doc.getElementById('employeesReportSummary');
+        const newContent = doc.getElementById('employeesReportContent');
+        
+        if (newSummary && summaryDiv) {
+            summaryDiv.innerHTML = newSummary.innerHTML;
+        }
+        if (newContent && content) {
+            content.innerHTML = newContent.innerHTML;
+        }
+        
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    })
+    .catch(error => {
+        console.error('Error loading report:', error);
+        if (content) {
+            content.innerHTML = '<div class="alert alert-danger">Error loading report. Please refresh the page.</div>';
+        }
+    });
+}
+</script>
 @endpush
 
 @endsection

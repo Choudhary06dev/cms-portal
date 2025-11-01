@@ -344,8 +344,7 @@ class ReportController extends Controller
         $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
         
         // Get actual categories from ComplaintCategory table
-        $actualCategories = \App\Models\ComplaintCategory::where('status', 'active')
-            ->orderBy('name')
+        $actualCategories = \App\Models\ComplaintCategory::orderBy('name')
             ->pluck('name')
             ->toArray();
         

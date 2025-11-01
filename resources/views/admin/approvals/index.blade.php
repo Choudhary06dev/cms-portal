@@ -92,9 +92,21 @@
           <td>{{ $approval->items->sum('quantity_approved') }}</td>
           <td>{{ $approval->complaint->assignedEmployee->name ?? 'N/A' }}</td>
           <td>
-            <span class="status-badge status-{{ strtolower($approval->status) }}">
-              {{ ucfirst($approval->status) }}
-            </span>
+            @php
+              $complaintStatus = $approval->complaint->status ?? 'new';
+              $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
+                              ($complaintStatus == 'resolved' || $complaintStatus == 'closed' ? 'Addressed' : 
+                              ucfirst(str_replace('_', ' ', $complaintStatus)));
+            @endphp
+            <select class="form-select form-select-sm status-select" 
+                    data-complaint-id="{{ $approval->complaint->id }}"
+                    style="min-width: 120px; background-color: {{ $complaintStatus == 'in_progress' || $complaintStatus == 'new' || $complaintStatus == 'assigned' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(34, 197, 94, 0.25)' }}; color: {{ $complaintStatus == 'in_progress' || $complaintStatus == 'new' || $complaintStatus == 'assigned' ? '#ef4444' : '#22c55e' }}; border: 1px solid {{ $complaintStatus == 'in_progress' || $complaintStatus == 'new' || $complaintStatus == 'assigned' ? '#ef4444' : '#22c55e' }}; font-weight: 600; border-radius: 4px;">
+              <option value="new" {{ $complaintStatus == 'new' ? 'selected' : '' }}>New</option>
+              <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+              <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+              <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+              <option value="closed" {{ $complaintStatus == 'closed' ? 'selected' : '' }}>Closed</option>
+            </select>
           </td>
           <td>{{ $approval->created_at->format('M d, Y') }}</td>
           <td>
@@ -552,6 +564,98 @@
       }
     }, 5000);
   }
+
+  // Handle complaint status update from approvals view
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('status-select')) {
+      const select = e.target;
+      const complaintId = select.getAttribute('data-complaint-id');
+      const newStatus = select.value;
+      
+      if (!complaintId || !newStatus) {
+        return;
+      }
+      
+      // Confirm status change
+      const statusLabels = {
+        'new': 'New',
+        'assigned': 'Assigned',
+        'in_progress': 'In-Process',
+        'resolved': 'Addressed',
+        'closed': 'Closed'
+      };
+      
+      const oldStatus = select.dataset.oldStatus || select.value;
+      const confirmMsg = `Are you sure you want to change status to "${statusLabels[newStatus]}"?`;
+      
+      if (!confirm(confirmMsg)) {
+        // Revert selection
+        select.value = oldStatus;
+        return;
+      }
+      
+      // Store old value for revert
+      select.dataset.oldStatus = select.value;
+      
+      // Show loading state
+      select.style.opacity = '0.6';
+      select.disabled = true;
+      
+      // Get CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      // Update complaint status
+      fetch(`/admin/complaints/${complaintId}/update-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          notes: `Status updated from approvals view`
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success || response.ok) {
+          // Update select styling based on new status
+          const isActiveStatus = ['new', 'assigned', 'in_progress'].includes(newStatus);
+          select.style.backgroundColor = isActiveStatus ? 'rgba(239, 68, 68, 0.25)' : 'rgba(34, 197, 94, 0.25)';
+          select.style.color = isActiveStatus ? '#ef4444' : '#22c55e';
+          select.style.borderColor = isActiveStatus ? '#ef4444' : '#22c55e';
+          
+          showSuccess('Complaint status updated successfully!');
+          
+          // Update old status
+          select.dataset.oldStatus = newStatus;
+        } else {
+          // Revert selection on error
+          select.value = oldStatus;
+          showError(data.message || 'Failed to update status');
+        }
+      })
+      .catch(error => {
+        console.error('Error updating status:', error);
+        // Revert selection on error
+        select.value = oldStatus;
+        showError('Error updating complaint status');
+      })
+      .finally(() => {
+        select.style.opacity = '1';
+        select.disabled = false;
+      });
+    }
+  });
+  
+  // Store initial status on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.status-select').forEach(select => {
+      select.dataset.oldStatus = select.value;
+    });
+  });
 
 </script>
 @endpush

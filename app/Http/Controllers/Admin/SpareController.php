@@ -65,7 +65,7 @@ class SpareController extends Controller
 
         $spares = $query->with('stockLogs')->orderBy('id', 'desc')->paginate(15);
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
         return view('admin.spares.index', compact('spares', 'categories'));
@@ -77,7 +77,7 @@ class SpareController extends Controller
     public function create()
     {
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
         $units = Spare::getUnits();
         
@@ -91,7 +91,7 @@ class SpareController extends Controller
     {
         // Get categories from ComplaintCategory table
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')->toArray()
+            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
             : [];
         $categoryKeys = implode(',', array_keys(Spare::getCategories()));
         $dbCategories = implode(',', Spare::getCanonicalCategories());
@@ -244,7 +244,7 @@ class SpareController extends Controller
     public function edit(Spare $spare)
     {
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
         $units = Spare::getUnits();
         
@@ -283,7 +283,7 @@ class SpareController extends Controller
     {
         // Get categories from ComplaintCategory table
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::where('status', 'active')->orderBy('name')->pluck('name')->toArray()
+            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
             : [];
         $categoryKeys = implode(',', array_keys(Spare::getCategories()));
         $dbCategories = implode(',', Spare::getCanonicalCategories());
@@ -625,7 +625,7 @@ class SpareController extends Controller
 
             case 'change_category':
                 $validCategories = Schema::hasTable('complaint_categories')
-                    ? ComplaintCategory::where('status', 'active')->pluck('name')->toArray()
+                    ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
                     : [];
                 $validator = Validator::make($request->all(), [
                     'category' => 'required|string|max:100' . (!empty($validCategories) ? '|in:' . implode(',', $validCategories) : ''),

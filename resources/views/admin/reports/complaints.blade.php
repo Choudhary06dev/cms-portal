@@ -23,27 +23,21 @@
 <!-- DATE FILTERS -->
 <div class="card-glass mb-4">
   <div class="card-body">
-    <form action="{{ route('admin.reports.complaints') }}" method="GET" class="row g-3">
-      <div class="col-md-5">
+    <form id="complaintsReportFiltersForm" method="GET" class="row g-3">
+      <div class="col-md-6">
         <label for="date_from" class="form-label text-white">From Date</label>
-        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required>
+        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required onchange="submitComplaintsReportFilters()">
       </div>
-      <div class="col-md-5">
+      <div class="col-md-6">
         <label for="date_to" class="form-label text-white">To Date</label>
-        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required>
-      </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <button type="submit" class="btn btn-accent w-100">Filter</button>
-      </div>
-      <div class="col-md-12">
-        <a href="{{ route('admin.reports.complaints') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required onchange="submitComplaintsReportFilters()">
       </div>
     </form>
   </div>
 </div>
 
 <!-- REPORT TABLE -->
-<div class="card-glass" id="report-print-area">
+<div class="card-glass" id="complaintsReportContent" data-print-area="report-print-area">
   <div class="card-body">
     <div class="text-center mb-3">
       <h4 class="text-white mb-2">Performance Report</h4>
@@ -100,10 +94,10 @@
     body * {
       visibility: hidden;
     }
-    #report-print-area, #report-print-area * {
+    #complaintsReportContent, #complaintsReportContent * {
       visibility: visible;
     }
-    #report-print-area {
+    #complaintsReportContent {
       position: absolute;
       left: 0;
       top: 0;
@@ -157,6 +151,67 @@
     overflow-x: auto;
   }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+let complaintsReportDebounceTimer;
+
+function submitComplaintsReportFilters() {
+    clearTimeout(complaintsReportDebounceTimer);
+    complaintsReportDebounceTimer = setTimeout(() => {
+        loadComplaintsReport();
+    }, 300);
+}
+
+function loadComplaintsReport() {
+    const form = document.getElementById('complaintsReportFiltersForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    
+    // Show loading
+    const content = document.getElementById('complaintsReportContent');
+    if (content) {
+        content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    }
+    
+    // Update URL without reload
+    const url = '{{ route("admin.reports.complaints") }}?' + params.toString();
+    window.history.pushState({}, '', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html',
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the response
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Extract report content - use report-print-area for print compatibility
+        const newContent = doc.getElementById('complaintsReportContent') || doc.getElementById('report-print-area') || doc.querySelector('.card-glass');
+        
+        if (newContent && content) {
+            content.innerHTML = newContent.innerHTML;
+        }
+        
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    })
+    .catch(error => {
+        console.error('Error loading report:', error);
+        if (content) {
+            content.innerHTML = '<div class="alert alert-danger">Error loading report. Please refresh the page.</div>';
+        }
+    });
+}
+</script>
 @endpush
 
 @endsection

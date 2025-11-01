@@ -26,7 +26,7 @@
       <div class="col-md-3">
         <select class="form-select" name="category" onchange="submitSparesFilters()">
           <option value="">All Categories</option>
-          @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::where('status','active')->orderBy('name')->pluck('name') : collect())
+          @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::orderBy('name')->pluck('name') : collect())
           @foreach($catOptions as $cat)
           <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
           @endforeach

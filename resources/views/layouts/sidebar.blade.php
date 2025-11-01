@@ -198,17 +198,20 @@
       </div>
     </div>
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') ? 'active' : '' }}">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}">
         <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
           <i data-feather="alert-circle" class="me-2"></i> Complaints
         </a>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsSubmenu" aria-expanded="{{ request()->routeIs('admin.category.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsSubmenu" aria-expanded="{{ request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
         </button>
       </div>
-      <div class="collapse {{ request()->routeIs('admin.category.*') ? 'show' : '' }}" id="complaintsSubmenu">
+      <div class="collapse {{ request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'show' : '' }}" id="complaintsSubmenu">
         <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="tag" class="me-2"></i> Categories
+        </a>
+        <a href="{{ route('admin.complaint-titles.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="file-text" class="me-2"></i> Complaint Titles
         </a>
       </div>
     </div>
@@ -216,7 +219,7 @@
       <i data-feather="package" class="me-2"></i> Products
     </a>
     <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') ? 'active' : '' }}">
-      <i data-feather="check-circle" class="me-2"></i> Approvals
+      <i data-feather="eye" class="me-2"></i> View Complaints
     </a>
     <a href="{{ route('admin.reports.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
       <i data-feather="bar-chart-2" class="me-2"></i> Reports

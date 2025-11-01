@@ -95,89 +95,119 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Complaint</th>
-                        <th>Client</th>
-                        <th>Category</th>
-                        <th>Priority</th>
-                        <th>Status</th>
-                        <th>Assigned To</th>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Created</th>
+                        <th>Apply Date/Time</th>
+                        <th>Completion Time</th>
+                        <th>Complaint ID</th>
+                        <th>Complainant Name</th>
+                        <th>Address</th>
+                        <th>Complaint Nature & Type</th>
+                        <th>Mobile No.</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="complaintsTableBody">
                     @forelse($complaints as $complaint)
                         <tr>
-                            <td>{{ $complaint->id }}</td>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
+                            <td>{{ $complaint->closed_at ? $complaint->closed_at->format('Y-m-d H:i:s') : ($complaint->status == 'resolved' || $complaint->status == 'closed' ? $complaint->updated_at->format('Y-m-d H:i:s') : '') }}</td>
                             <td>
-                                <div class="lh-sm">{{ $complaint->title }}</div>
-                                {{-- <div class="text-muted small mt-1 opacity-75">
-                                    {{ Str::limit($complaint->title, 25) }}</div> --}}
+                                <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
+                                    {{ $complaint->complaint_id ?? $complaint->id }}
+                                </a>
                             </td>
                             <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
+                            <td>{{ $complaint->client->address ?? 'N/A' }}</td>
                             <td>
-                                <span class="category-badge category-{{ strtolower($complaint->category) }}">
-                                    {{ ucfirst($complaint->category) }}
-                                </span>
+                                @php
+                                    $category = $complaint->category ?? 'N/A';
+                                    $department = $complaint->department ?? '';
+                                    
+                                    // Get product name from spare parts
+                                    $productName = '';
+                                    if ($complaint->spareParts && $complaint->spareParts->count() > 0) {
+                                        $firstSpare = $complaint->spareParts->first();
+                                        if ($firstSpare && $firstSpare->spare) {
+                                            $productName = $firstSpare->spare->item_name ?? '';
+                                            // If multiple products, show count
+                                            if ($complaint->spareParts->count() > 1) {
+                                                $productName .= ' (+' . ($complaint->spareParts->count() - 1) . ')';
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Category to REQ type mapping
+                                    $reqTypeMap = [
+                                        'electric' => 'ELECTRECION REQ',
+                                        'technical' => 'TECHNICAL REQ',
+                                        'service' => 'SERVICE REQ',
+                                        'billing' => 'BILLING REQ',
+                                        'water' => 'PIPE FITTER REQ',
+                                        'sanitary' => 'SANITARY REQ',
+                                        'plumbing' => 'PLUMBING REQ',
+                                        'kitchen' => 'KITCHEN REQ',
+                                        'other' => 'OTHER REQ',
+                                    ];
+                                    
+                                    $reqType = $reqTypeMap[strtolower($category)] ?? strtoupper($category) . ' REQ';
+                                    
+                                    // Format display text with category and product name
+                                    if ($department) {
+                                        // If department exists, use format: "B&R - I - Product Name - MASSON REQ"
+                                        // Check for department patterns
+                                        if (strpos(strtoupper($department), 'B&R') !== false) {
+                                            if ($productName) {
+                                                $displayText = $department . ' - ' . $productName . ' - MASSON REQ';
+                                            } else {
+                                                $displayText = $department . ' - MASSON REQ';
+                                            }
+                                        } else {
+                                            if ($productName) {
+                                                $displayText = $department . ' - ' . $productName . ' - ' . $reqType;
+                                            } else {
+                                                $displayText = $department . ' - ' . $reqType;
+                                            }
+                                        }
+                                    } else {
+                                        // Use category-based format: "Electric - Product Name - ELECTRECION REQ"
+                                        $categoryDisplay = [
+                                            'electric' => 'Electric',
+                                            'technical' => 'Technical',
+                                            'service' => 'Service',
+                                            'billing' => 'Billing',
+                                            'water' => 'Water Supply',
+                                            'sanitary' => 'Sanitary',
+                                            'plumbing' => 'Plumbing',
+                                            'kitchen' => 'Kitchen',
+                                            'other' => 'Other',
+                                        ];
+                                        $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                                        
+                                        if ($productName) {
+                                            $displayText = $catDisplay . ' - ' . $productName . ' - ' . $reqType;
+                                        } else {
+                                            $displayText = $catDisplay . ' - ' . $reqType;
+                                        }
+                                    }
+                                @endphp
+                                <div class="text-white fw-bold">{{ $displayText }}</div>
+                                <div class="text-muted small">{{ Str::limit($complaint->description ?? 'No description', 40) }}</div>
                             </td>
+                            <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
                             <td>
-                                <span class="priority-badge priority-{{ strtolower($complaint->priority) }}">
-                                    {{ ucfirst($complaint->priority) }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="status-badge status-{{ strtolower($complaint->status) }}">
-                                    {{ ucfirst($complaint->status) }}
-                                </span>
-                            </td>
-                            <td>{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}</td>
-                            <td>
-                                @if($complaint->spareParts->count() > 0)
-                                    <div class="small">
-                                        @foreach($complaint->spareParts as $sparePart)
-                                            <div class="mb-1">
-                                                <span>{{ $sparePart->spare->item_name ?? 'N/A' }}</span>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <span class="text-muted">No parts used</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($complaint->spareParts->count() > 0)
-                                    {{ $complaint->spareParts->sum('quantity') }}
-                                @else
-                                    0
-                                @endif
-                            </td>
-                            <td>{{ $complaint->created_at->format('M d, Y') }}</td>
-                            <td>
-                                @if(in_array($complaint->status, ['resolved','closed']))
-                                    <span class="badge bg-success">Resolved</span>
-                                @else
-                                    <div class="btn-group" role="group">
-                                        <button class="btn btn-outline-info btn-sm"
-                                            onclick="viewComplaint({{ $complaint->id }})" title="View Details">
-                                            <i data-feather="eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-warning btn-sm"
-                                            onclick="editComplaint({{ $complaint->id }})" title="Edit">
-                                            <i data-feather="edit"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger btn-sm"
-                                            onclick="deleteComplaint({{ $complaint->id }})" title="Delete">
-                                            <i data-feather="trash-2"></i>
-                                        </button>
-                                    </div>
-                                @endif
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm" onclick="viewComplaint({{ $complaint->id }})" title="View Details" style="background-color: #22c55e; border-color: #22c55e; color: white; padding: 4px 8px; width: 32px; height: 32px;">
+                                        <i data-feather="eye" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                    <button class="btn btn-sm" onclick="editComplaint({{ $complaint->id }})" title="Edit" style="background-color: #3b82f6; border-color: #3b82f6; color: white; padding: 4px 8px; width: 32px; height: 32px;">
+                                        <i data-feather="edit" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="text-center py-4">
+                            <td colspan="9" class="text-center py-4">
                                 <i data-feather="alert-circle" class="feather-lg mb-2"></i>
                                 <div>No complaints found</div>
                             </td>

@@ -24,32 +24,29 @@
 <!-- DATE FILTERS -->
 <div class="card-glass mb-4">
   <div class="card-body">
-    <form action="{{ route('admin.reports.clients') }}" method="GET" class="row g-3">
+    <form id="clientsReportFiltersForm" method="GET" class="row g-3">
       <div class="col-md-4">
         <label for="date_from" class="form-label text-white">From Date</label>
-        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required>
+        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required onchange="submitClientsReportFilters()">
       </div>
       <div class="col-md-4">
         <label for="date_to" class="form-label text-white">To Date</label>
-        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required>
+        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required onchange="submitClientsReportFilters()">
       </div>
       <div class="col-md-4">
         <label for="status" class="form-label text-white">Status</label>
-        <select class="form-select" id="status" name="status">
+        <select class="form-select" id="status" name="status" onchange="submitClientsReportFilters()">
           <option value="">All Status</option>
           <option value="active" {{ $status == 'active' ? 'selected' : '' }}>Active</option>
           <option value="inactive" {{ $status == 'inactive' ? 'selected' : '' }}>Inactive</option>
         </select>
-      </div>
-      <div class="col-md-12">
-        <button type="submit" class="btn btn-accent">Filter</button>
-        <a href="{{ route('admin.reports.clients') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
       </div>
     </form>
   </div>
 </div>
 
 <!-- SUMMARY STATS -->
+<div id="clientsReportSummary">
 <div class="row g-4 mb-4">
   <div class="col-md-4">
     <div class="card-glass text-center">
@@ -76,9 +73,10 @@
     </div>
   </div>
 </div>
+</div>
 
 <!-- REPORT TABLE -->
-<div class="card-glass" id="report-print-area">
+<div class="card-glass" id="clientsReportContent" data-print-area="report-print-area">
   <div class="card-body">
     <div class="text-center mb-3">
       <h4 class="text-white mb-2">Clients Report</h4>
@@ -95,7 +93,8 @@
             <th>Email</th>
             <th>Phone</th>
             <th>City</th>
-            <th>State</th>
+            <th>Address</th>
+            <th>Sector</th>
             <th class="text-end">Total Complaints</th>
             <th class="text-end">Resolved</th>
             <th>Status</th>
@@ -110,7 +109,8 @@
             <td>{{ $client['client']->email ?? 'N/A' }}</td>
             <td>{{ $client['client']->phone ?? 'N/A' }}</td>
             <td>{{ $client['client']->city ?? 'N/A' }}</td>
-            <td>{{ ucfirst($client['client']->state ?? 'N/A') }}</td>
+            <td>{{ $client['client']->address ?? 'N/A' }}</td>
+            <td>{{ $client['client']->sector ?? 'N/A' }}</td>
             <td class="text-end">{{ number_format($client['total_complaints']) }}</td>
             <td class="text-end">{{ number_format($client['resolved_complaints']) }}</td>
             <td>
@@ -123,7 +123,7 @@
           </tr>
           @empty
           <tr>
-            <td colspan="10" class="text-center py-4">
+            <td colspan="11" class="text-center py-4">
               <i data-feather="users" class="feather-lg mb-2"></i>
               <div>No clients found</div>
             </td>
@@ -141,10 +141,10 @@
     body * {
       visibility: hidden;
     }
-    #report-print-area, #report-print-area * {
+    #clientsReportContent, #clientsReportContent * {
       visibility: visible;
     }
-    #report-print-area {
+    #clientsReportContent {
       position: absolute;
       left: 0;
       top: 0;
@@ -175,6 +175,71 @@
     }
   }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+let clientsReportDebounceTimer;
+
+function submitClientsReportFilters() {
+    clearTimeout(clientsReportDebounceTimer);
+    clientsReportDebounceTimer = setTimeout(() => {
+        loadClientsReport();
+    }, 300);
+}
+
+function loadClientsReport() {
+    const form = document.getElementById('clientsReportFiltersForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    
+    // Show loading
+    const summaryDiv = document.getElementById('clientsReportSummary');
+    const content = document.getElementById('clientsReportContent');
+    if (summaryDiv) summaryDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+    if (content) content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Update URL without reload
+    const url = '{{ route("admin.reports.clients") }}?' + params.toString();
+    window.history.pushState({}, '', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html',
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the response
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Extract summary and report content
+        const newSummary = doc.getElementById('clientsReportSummary');
+        const newContent = doc.getElementById('clientsReportContent') || doc.getElementById('report-print-area');
+        
+        if (newSummary && summaryDiv) {
+            summaryDiv.innerHTML = newSummary.innerHTML;
+        }
+        if (newContent && content) {
+            content.innerHTML = newContent.innerHTML;
+        }
+        
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    })
+    .catch(error => {
+        console.error('Error loading report:', error);
+        if (content) {
+            content.innerHTML = '<div class="alert alert-danger">Error loading report. Please refresh the page.</div>';
+        }
+    });
+}
+</script>
 @endpush
 
 @endsection

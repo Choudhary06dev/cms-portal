@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
 use App\Http\Controllers\Admin\SlaController as AdminSlaController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\ComplaintTitleController as AdminComplaintTitleController;
 use App\Http\Controllers\Admin\SectorController as AdminSectorController;
 use App\Http\Controllers\Admin\DepartmentController as AdminDepartmentController;
 use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
@@ -158,6 +159,14 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::resource('category', AdminCategoryController::class)
         ->only(['index','store','update','destroy'])
         ->middleware(['permission:complaints.view']);
+
+    // ===============================
+    // 📝 Complaint Titles
+    // ===============================
+    Route::middleware(['permission:complaints.view'])->group(function () {
+        Route::resource('complaint-titles', AdminComplaintTitleController::class);
+        Route::get('complaint-titles-by-category', [AdminComplaintTitleController::class, 'getTitlesByCategory'])->name('complaint-titles.by-category');
+    });
 
     // ===============================
     // 🏢 Sectors

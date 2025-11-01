@@ -26,26 +26,21 @@
             @csrf
             @method('PUT')
             
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="title" class="form-label text-white">Title <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control @error('title') is-invalid @enderror" 
-                         id="title" name="title" value="{{ old('title', $complaint->title) }}" required>
-                  @error('title')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
+            <!-- Complainant Information Section (matching index file columns) -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
               </div>
-              
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="client_id" class="form-label text-white">Client <span class="text-danger">*</span></label>
+                  <label for="client_id" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
                   <select class="form-select @error('client_id') is-invalid @enderror" 
                           id="client_id" name="client_id" required>
-                    <option value="">Select Client</option>
+                    <option value="">Select Complainant</option>
                     @foreach($clients as $client)
                     <option value="{{ $client->id }}" 
+                            data-address="{{ $client->address ?? '' }}" 
+                            data-phone="{{ $client->phone ?? '' }}"
                             {{ old('client_id', $complaint->client_id) == $client->id ? 'selected' : '' }}>
                       {{ $client->client_name }}
                     </option>
@@ -56,9 +51,27 @@
                   @enderror
                 </div>
               </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label text-white">Address</label>
+                  <input type="text" class="form-control" id="client_address" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ $complaint->client->address ?? '' }}">
+                  <small class="text-muted">Auto-filled from selected complainant</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label text-white">Mobile No.</label>
+                  <input type="text" class="form-control" id="client_phone" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ $complaint->client->phone ?? '' }}">
+                  <small class="text-muted">Auto-filled from selected complainant</small>
+                </div>
+              </div>
             </div>
 
-            <div class="row">
+            <!-- Complaint Details Section (matching index file columns) -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-white fw-bold mb-3"><i data-feather="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Complaint Nature & Type</h6>
+              </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
@@ -78,27 +91,6 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="priority" class="form-label text-white">Priority <span class="text-danger">*</span></label>
-                  <select class="form-select @error('priority') is-invalid @enderror" 
-                          id="priority" name="priority" required>
-                    <option value="">Select Priority</option>
-                    <option value="low" {{ old('priority', $complaint->priority) == 'low' ? 'selected' : '' }}>Low</option>
-                    <option value="medium" {{ old('priority', $complaint->priority) == 'medium' ? 'selected' : '' }}>Medium</option>
-                    <option value="high" {{ old('priority', $complaint->priority) == 'high' ? 'selected' : '' }}>High</option>
-                    <option value="urgent" {{ old('priority', $complaint->priority) == 'urgent' ? 'selected' : '' }}>Urgent</option>
-                  </select>
-                  @error('priority')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-            </div>
-
-            
-
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
                   <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
                   <select id="department" name="department" class="form-select @error('department') is-invalid @enderror" required>
                     <option value="">Select Department</option>
@@ -109,6 +101,55 @@
                     @endif
                   </select>
                   @error('department')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+
+              <!-- Product selection for Complaint Nature & Type -->
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label text-white">Product (for Complaint Nature & Type) <span class="text-danger">*</span></label>
+                  <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
+                          name="spare_parts[0][spare_id]" id="spare_select" required>
+                    <option value="">Select Product</option>
+                    @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
+                      <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}"
+                              {{ old('spare_parts.0.spare_id', $complaint->spareParts->first()?->spare_id) == $spare->id ? 'selected' : '' }}>
+                        {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
+                      </option>
+                    @endforeach
+                  </select>
+                  @error('spare_parts.0.spare_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
+                         name="spare_parts[0][quantity]" id="quantity_input" min="1" 
+                         value="{{ old('spare_parts.0.quantity', $complaint->spareParts->first()?->quantity) }}" required>
+                  @error('spare_parts.0.quantity')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="priority" class="form-label text-white">Priority <span class="text-danger">*</span></label>
+                  <select class="form-select @error('priority') is-invalid @enderror" 
+                          id="priority" name="priority" required>
+                    <option value="">Select Priority</option>
+                    <option value="low" {{ old('priority', $complaint->priority) == 'low' ? 'selected' : '' }}>Low</option>
+                    <option value="medium" {{ old('priority', $complaint->priority) == 'medium' ? 'selected' : '' }}>Medium</option>
+                    <option value="high" {{ old('priority', $complaint->priority) == 'high' ? 'selected' : '' }}>High</option>
+                    <option value="urgent" {{ old('priority', $complaint->priority) == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                  </select>
+                  @error('priority')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
@@ -132,50 +173,21 @@
                   @enderror
                 </div>
               </div>
-
             </div>
 
-            <!-- Spare Parts Section -->
-            <div class="row mt-1">
-              <div class="col-12">                
-                <div class="row g-2 align-items-end">
-                  <div class="col-md-3">
-                    <label for="status" class="form-label text-white">Status <span class="text-danger">*</span></label>
-                    <select class="form-select @error('status') is-invalid @enderror" 
-                            id="status" name="status" required>
-                      @foreach(\App\Models\Complaint::getStatuses() as $statusValue => $statusLabel)
-                        <option value="{{ $statusValue }}" {{ old('status', $complaint->status) == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
-                      @endforeach
-                    </select>
-                    @error('status')
-                      <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label text-white">Product <span class="text-danger">*</span></label>
-                    <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
-                            name="spare_parts[0][spare_id]" required>
-                      <option value="">Select Product</option>
-                      @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
-                        <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}"
-                                {{ old('spare_parts.0.spare_id', $complaint->spareParts->first()?->spare_id) == $spare->id ? 'selected' : '' }}>
-                          {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
-                        </option>
-                      @endforeach
-                    </select>
-                    @error('spare_parts.0.spare_id')
-                      <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                           name="spare_parts[0][quantity]" min="1" 
-                           value="{{ old('spare_parts.0.quantity', $complaint->spareParts->first()?->quantity) }}" required>
-                    @error('spare_parts.0.quantity')
-                      <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                  </div>
+            <!-- Additional Information -->
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="title" class="form-label text-white">Complaint Title <span class="text-danger">*</span></label>
+                  <select class="form-select @error('title') is-invalid @enderror" 
+                          id="title" name="title" required>
+                    <option value="{{ old('title', $complaint->title) }}">{{ old('title', $complaint->title) }}</option>
+                  </select>
+                  <small class="text-muted">Select category above to see complaint titles</small>
+                  @error('title')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
             </div>
@@ -282,6 +294,33 @@
 document.addEventListener('DOMContentLoaded', function() {
   const departmentSelect = document.getElementById('department');
   const employeeSelect = document.getElementById('assigned_employee_id');
+  const clientSelect = document.getElementById('client_id');
+  const clientAddress = document.getElementById('client_address');
+  const clientPhone = document.getElementById('client_phone');
+
+  // Auto-fill address and phone when client is selected
+  if (clientSelect && clientAddress && clientPhone) {
+    clientSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      if (selectedOption && selectedOption.value) {
+        clientAddress.value = selectedOption.getAttribute('data-address') || '';
+        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
+      } else {
+        clientAddress.value = '';
+        clientPhone.value = '';
+      }
+    });
+    
+    // Set initial values if client is pre-selected
+    if (clientSelect.value) {
+      const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+      if (selectedOption) {
+        clientAddress.value = selectedOption.getAttribute('data-address') || '';
+        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
+      }
+    }
+  }
+
   function filterEmployees() {
     if (!departmentSelect || !employeeSelect) return;
     const dep = departmentSelect.value;
@@ -296,6 +335,93 @@ document.addEventListener('DOMContentLoaded', function() {
   if (departmentSelect && employeeSelect) {
     departmentSelect.addEventListener('change', filterEmployees);
     filterEmployees();
+  }
+
+  // Category -> Complaint Titles dynamic loading
+  const categorySelect = document.getElementById('category');
+  const titleSelect = document.getElementById('title');
+  const currentTitle = '{{ old('title', $complaint->title) }}';
+  
+  if (categorySelect && titleSelect) {
+    categorySelect.addEventListener('change', function() {
+      const category = this.value;
+      
+      // Clear existing options except current value
+      titleSelect.innerHTML = '';
+      titleSelect.disabled = true;
+      
+      if (!category) {
+        const option = document.createElement('option');
+        option.value = currentTitle;
+        option.textContent = currentTitle || 'Select Category first, then choose title';
+        titleSelect.appendChild(option);
+        titleSelect.disabled = false;
+        return;
+      }
+      
+      // Fetch complaint titles by category
+      fetch(`{{ route('admin.complaint-titles.by-category') }}?category=${encodeURIComponent(category)}`, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Add current title as first option if it exists
+        if (currentTitle) {
+          const currentOption = document.createElement('option');
+          currentOption.value = currentTitle;
+          currentOption.textContent = currentTitle;
+          currentOption.selected = true;
+          titleSelect.appendChild(currentOption);
+        }
+        
+        if (data && data.length > 0) {
+          data.forEach(title => {
+            // Skip if it's already added as current title
+            if (title.title !== currentTitle) {
+              const option = document.createElement('option');
+              option.value = title.title;
+              option.textContent = title.title;
+              if (title.description) {
+                option.setAttribute('title', title.description);
+              }
+              titleSelect.appendChild(option);
+            }
+          });
+        }
+        
+        if (!currentTitle && (!data || data.length === 0)) {
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No titles found for this category';
+          titleSelect.appendChild(option);
+        }
+        
+        titleSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading complaint titles:', error);
+        // Keep current title if available
+        if (currentTitle) {
+          const option = document.createElement('option');
+          option.value = currentTitle;
+          option.textContent = currentTitle;
+          titleSelect.appendChild(option);
+        } else {
+          titleSelect.innerHTML = '<option value="">Error loading titles</option>';
+        }
+        titleSelect.disabled = false;
+      });
+    });
+    
+    // Trigger on page load if category is pre-selected
+    if (categorySelect.value) {
+      categorySelect.dispatchEvent(new Event('change'));
+    }
   }
 });
 </script>

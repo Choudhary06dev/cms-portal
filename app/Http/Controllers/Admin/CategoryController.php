@@ -19,7 +19,7 @@ class CategoryController extends Controller
                 ->with('error', 'Run migrations to create complaint_categories table.');
         }
 
-        // Show all categories; status column indicates active/inactive
+        // Show all categories
         $categories = ComplaintCategory::orderBy('name', 'asc')->paginate(15);
         return view('admin.category.index', compact('categories'));
     }
@@ -30,9 +30,8 @@ class CategoryController extends Controller
             return back()->with('error', 'Run migrations to create complaint_categories table (php artisan migrate).');
         }
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:complaint_categories,name,NULL,id,status,active',
+            'name' => 'required|string|max:100|unique:complaint_categories,name',
             'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
         ]);
         ComplaintCategory::create($validated);
         return back()->with('success', 'Category created');
@@ -50,13 +49,11 @@ class CategoryController extends Controller
             $rules = [
                 'name' => 'required|string|max:100',
                 'description' => 'nullable|string',
-                'status' => 'required|in:active,inactive',
             ];
             
-            // Only validate uniqueness if name changed and check against active categories only
+            // Only validate uniqueness if name changed
             if ($request->name !== $complaint_category->name) {
                 $exists = ComplaintCategory::where('name', $request->name)
-                    ->where('status', 'active')
                     ->where('id', '!=', $id)
                     ->exists();
                 
@@ -82,10 +79,8 @@ class CategoryController extends Controller
         
         try {
             $complaint_category = ComplaintCategory::findOrFail($id);
-            // Soft delete without migration: mark as inactive
-            $complaint_category->update([
-                'status' => 'inactive'
-            ]);
+            // Delete category
+            $complaint_category->delete();
             
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json(['success' => true]);

@@ -24,33 +24,30 @@
 <!-- DATE FILTERS -->
 <div class="card-glass mb-4">
   <div class="card-body">
-    <form action="{{ route('admin.reports.spares') }}" method="GET" class="row g-3">
+    <form id="sparesReportFiltersForm" method="GET" class="row g-3">
       <div class="col-md-4">
         <label for="date_from" class="form-label text-white">From Date</label>
-        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required>
+        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $dateFrom }}" required onchange="submitSparesReportFilters()">
       </div>
       <div class="col-md-4">
         <label for="date_to" class="form-label text-white">To Date</label>
-        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required>
+        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required onchange="submitSparesReportFilters()">
       </div>
       <div class="col-md-4">
         <label for="category" class="form-label text-white">Category</label>
-        <select class="form-select" id="category" name="category">
+        <select class="form-select" id="category" name="category" onchange="submitSparesReportFilters()">
           <option value="">All Categories</option>
           @foreach(\App\Models\Spare::distinct()->whereNotNull('category')->pluck('category') as $cat)
             <option value="{{ $cat }}" {{ $category == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
         </select>
       </div>
-      <div class="col-md-12">
-        <button type="submit" class="btn btn-accent">Filter</button>
-        <a href="{{ route('admin.reports.spares') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
-      </div>
     </form>
   </div>
 </div>
 
 <!-- SUMMARY STATS -->
+<div id="sparesReportSummary">
 <div class="row g-4 mb-4">
   <div class="col-md-3">
     <div class="card-glass text-center">
@@ -85,9 +82,10 @@
     </div>
   </div>
 </div>
+</div>
 
 <!-- REPORT TABLE -->
-<div class="card-glass" id="report-print-area">
+<div class="card-glass" id="sparesReportContent" data-print-area="report-print-area">
   <div class="card-body">
     <div class="text-center mb-3">
       <h4 class="text-white mb-2">Spare Parts Inventory Report</h4>
@@ -158,10 +156,10 @@
     body * {
       visibility: hidden;
     }
-    #report-print-area, #report-print-area * {
+    #sparesReportContent, #sparesReportContent * {
       visibility: visible;
     }
-    #report-print-area {
+    #sparesReportContent {
       position: absolute;
       left: 0;
       top: 0;
@@ -192,6 +190,71 @@
     }
   }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+let sparesReportDebounceTimer;
+
+function submitSparesReportFilters() {
+    clearTimeout(sparesReportDebounceTimer);
+    sparesReportDebounceTimer = setTimeout(() => {
+        loadSparesReport();
+    }, 300);
+}
+
+function loadSparesReport() {
+    const form = document.getElementById('sparesReportFiltersForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    
+    // Show loading
+    const summaryDiv = document.getElementById('sparesReportSummary');
+    const content = document.getElementById('sparesReportContent');
+    if (summaryDiv) summaryDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+    if (content) content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Update URL without reload
+    const url = '{{ route("admin.reports.spares") }}?' + params.toString();
+    window.history.pushState({}, '', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html',
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Parse the response
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Extract summary and report content
+        const newSummary = doc.getElementById('sparesReportSummary');
+        const newContent = doc.getElementById('sparesReportContent') || doc.getElementById('report-print-area');
+        
+        if (newSummary && summaryDiv) {
+            summaryDiv.innerHTML = newSummary.innerHTML;
+        }
+        if (newContent && content) {
+            content.innerHTML = newContent.innerHTML;
+        }
+        
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    })
+    .catch(error => {
+        console.error('Error loading report:', error);
+        if (content) {
+            content.innerHTML = '<div class="alert alert-danger">Error loading report. Please refresh the page.</div>';
+        }
+    });
+}
+</script>
 @endpush
 
 @endsection

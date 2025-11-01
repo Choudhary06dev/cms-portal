@@ -12,7 +12,6 @@ class ComplaintCategory extends Model
     protected $fillable = [
         'name',
         'description',
-        'status',
     ];
 }
 
