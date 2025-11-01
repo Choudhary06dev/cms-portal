@@ -85,9 +85,9 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="address" class="form-label text-white">Address</label>
+                  <label for="address" class="form-label text-white">Address <span class="text-danger">*</span></label>
                   <textarea class="form-control @error('address') is-invalid @enderror" 
-                            id="address" name="address" rows="3" autocomplete="off"></textarea>
+                            id="address" name="address" rows="3" autocomplete="off" required></textarea>
                   @error('address')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -96,10 +96,23 @@
               
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="city" class="form-label text-white">City</label>
+                  <label for="city" class="form-label text-white">City <span class="text-danger">*</span></label>
                   <input type="text" class="form-control @error('city') is-invalid @enderror" 
-                         id="city" name="city" value="" autocomplete="off">
+                         id="city" name="city" value="" autocomplete="off" required>
                   @error('city')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label for="sector" class="form-label text-white">Sector <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control @error('sector') is-invalid @enderror" 
+                         id="sector" name="sector" value="{{ old('sector', '') }}" autocomplete="off" required>
+                  @error('sector')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>

@@ -20,6 +20,7 @@ return new class extends Migration
                 $table->string('phone', 20);
                 $table->text('address');
                 $table->string('city', 50);
+                $table->string('sector', 100);
                 $table->string('state', 50);
                 $table->string('pincode', 10);
                 $table->enum('status', ['active', 'inactive'])->default('active');

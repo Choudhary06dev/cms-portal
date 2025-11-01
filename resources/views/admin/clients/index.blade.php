@@ -65,6 +65,7 @@
           <th >Email</th>
           <th >Phone</th>
           <th >City</th>
+          <th >Sector</th>
           <th >Address</th>
           <th >Status</th>
           <th >Complaints</th>
@@ -88,6 +89,7 @@
           <td>{{ $client->email ?? 'N/A' }}</td>
           <td>{{ $client->phone ?? 'N/A' }}</td>
           <td>{{ $client->city ?? 'N/A' }}</td>
+          <td>{{ $client->sector ?? 'N/A' }}</td>
           <td>{{ Str::limit($client->address ?? 'N/A', 40) }}</td>
           <td>
             <span class="status-badge status-{{ strtolower($client->status) }}">
@@ -111,7 +113,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="9" class="text-center py-4" >
+          <td colspan="10" class="text-center py-4" >
             <i data-feather="briefcase" class="feather-lg mb-2"></i>
             <div>No clients found</div>
           </td>
@@ -216,7 +218,7 @@
     const paginationContainer = document.getElementById('clientsPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     fetch(`{{ route('admin.clients.index') }}?${params.toString()}`, {
@@ -250,7 +252,7 @@
     .catch(error => {
       console.error('Error loading clients:', error);
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
       }
     });
   }
@@ -334,6 +336,7 @@
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Email:</strong> <span style="color: var(--text-secondary);">${client.email || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Phone:</strong> <span style="color: var(--text-secondary);">${client.phone || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">City:</strong> <span style="color: var(--text-secondary);">${client.city || 'N/A'}</span></p>
+                            <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Sector:</strong> <span style="color: var(--text-secondary);">${client.sector || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">State:</strong> <span style="color: var(--text-secondary);">${client.state || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Pincode:</strong> <span style="color: var(--text-secondary);">${client.pincode || 'N/A'}</span></p>
                             <p style="color: var(--text-primary);"><strong style="color: var(--text-primary);">Address:</strong> <span style="color: var(--text-secondary);">${client.address || 'N/A'}</span></p>
@@ -475,15 +478,24 @@
           <div class="row">
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="address_modal" class="form-label">Address</label>
-                <textarea class="form-control" id="address_modal" name="address" rows="3"></textarea>
+                <label for="address_modal" class="form-label">Address <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="address_modal" name="address" rows="3" required></textarea>
                 <div class="invalid-feedback"></div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="city_modal" class="form-label">City</label>
-                <input type="text" class="form-control" id="city_modal" name="city">
+                <label for="city_modal" class="form-label">City <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="city_modal" name="city" required>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="mb-3">
+                <label for="sector_modal" class="form-label">Sector <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="sector_modal" name="sector" required>
                 <div class="invalid-feedback"></div>
               </div>
             </div>

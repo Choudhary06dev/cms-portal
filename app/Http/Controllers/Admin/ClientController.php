@@ -79,8 +79,9 @@ class ClientController extends Controller
             'contact_person' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:50',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:50',
+            'sector' => 'required|string|max:100',
             'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             // Pincode must be exactly 4 digits if provided
             'pincode' => 'nullable|digits:4',
@@ -180,8 +181,9 @@ class ClientController extends Controller
             'contact_person' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:50',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:50',
+            'sector' => 'required|string|max:100',
             'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             // Pincode must be exactly 4 digits if provided
             'pincode' => 'nullable|digits:4',
