@@ -292,75 +292,62 @@ class ComplaintController extends Controller
                         ->with('error', 'Complaint created but approval could not be generated. Please create an employee first.');
                 }
                 
-                // Check stock availability for all items before creating approval
-                $canAutoApprove = true;
-                $unavailableItems = [];
+                // Always create pending approval - never auto-approve
+                // Check stock availability to add reason for insufficient stock
+                $stockIssues = [];
                 foreach ($request->spare_parts as $part) {
                     if (!empty($part['spare_id']) && !empty($part['quantity'])) {
                         $spare = Spare::find($part['spare_id']);
                         if ($spare) {
                             $requestedQty = (int)$part['quantity'];
-                            if ($spare->stock_quantity < $requestedQty) {
-                                $canAutoApprove = false;
-                                $unavailableItems[] = $spare->item_name . ' (Requested: ' . $requestedQty . ', Available: ' . $spare->stock_quantity . ')';
+                            $availableQty = (int)$spare->stock_quantity;
+                            if ($availableQty < $requestedQty) {
+                                $stockIssues[] = $spare->item_name . ' (Requested: ' . $requestedQty . ', Available: ' . $availableQty . ')';
                             }
-                        } else {
-                            $canAutoApprove = false;
-                            $unavailableItems[] = 'Unknown Spare (ID: ' . $part['spare_id'] . ')';
                         }
                     }
                 }
                 
-                // Create approval with status based on stock availability
-                $approvalStatus = $canAutoApprove ? 'approved' : 'pending';
-                $approvedBy = $canAutoApprove ? $requestedBy : null;
-                $approvedAt = $canAutoApprove ? now() : null;
-                
+                // Create pending approval - never auto-approve
                 $approval = SpareApprovalPerforma::create([
                     'complaint_id' => $complaint->id,
                     'requested_by' => $requestedBy,
-                    'status' => $approvalStatus,
-                    'approved_by' => $approvedBy,
-                    'approved_at' => $approvedAt,
-                    'remarks' => $canAutoApprove 
-                        ? 'Auto-approved for complaint: ' . $complaint->title 
-                        : 'Auto-generated approval for complaint: ' . $complaint->title . (count($unavailableItems) > 0 ? ' - Stock insufficient: ' . implode(', ', $unavailableItems) : ''),
+                    'status' => 'pending',
+                    'approved_by' => null,
+                    'approved_at' => null,
+                    'remarks' => 'Auto-generated approval for complaint: ' . $complaint->title . 
+                        (count($stockIssues) > 0 ? ' - Stock insufficient: ' . implode(', ', $stockIssues) : ''),
                 ]);
                 
-                // Create approval items and deduct stock if auto-approved
+                // Create approval items with requested quantities (no auto-approval)
                 foreach ($request->spare_parts as $part) {
                     if (!empty($part['spare_id']) && !empty($part['quantity'])) {
                         $spare = Spare::find($part['spare_id']);
                         $requestedQty = (int)$part['quantity'];
                         
-                        // Set approved quantity equal to requested if auto-approved
-                        $approvedQty = $canAutoApprove ? $requestedQty : null;
+                        // Check stock and set reason if insufficient
+                        $availableQty = $spare ? (int)$spare->stock_quantity : 0;
+                        $reason = 'Requested from complaint creation';
+                        if ($availableQty < $requestedQty) {
+                            $reason = 'Insufficient stock: Requested ' . $requestedQty . ', Available ' . $availableQty;
+                        }
                         
                         $item = SpareApprovalItem::create([
                             'performa_id' => $approval->id,
                             'spare_id' => (int)$part['spare_id'],
                             'quantity_requested' => $requestedQty,
-                            'quantity_approved' => $approvedQty,
-                            'reason' => 'Requested from complaint creation',
+                            'quantity_approved' => null, // Will be set when manually approved
+                            'reason' => $reason,
                         ]);
-                        
-                        // Deduct stock if auto-approved
-                        if ($canAutoApprove && $spare) {
-                            $spare->removeStock(
-                                $requestedQty,
-                                "Auto-approved for complaint #{$complaint->getTicketNumberAttribute()}",
-                                $complaint->id
-                            );
-                        }
                     }
                 }
                 
-                Log::info('Approval created successfully', [
+                Log::info('Approval created successfully (pending for manual approval)', [
                     'approval_id' => $approval->id,
                     'complaint_id' => $complaint->id,
                     'requested_by' => $requestedBy,
-                    'status' => $approvalStatus,
-                    'auto_approved' => $canAutoApprove,
+                    'status' => 'pending',
+                    'stock_issues' => count($stockIssues) > 0 ? $stockIssues : null,
                 ]);
             } catch (\Exception $e) {
                 Log::error('Failed to create approval', [
@@ -663,39 +650,69 @@ class ComplaintController extends Controller
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:new,assigned,in_progress,resolved,closed',
             'notes' => 'nullable|string',
+            'remarks' => 'nullable|string',
         ]);
 
+
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first('remarks') ?: 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator);
         }
 
         $oldStatus = $complaint->status;
+        
+        // Get remarks - prefer remarks field, fallback to notes
+        $remarks = $request->input('remarks') ?: $request->input('notes') ?: '';
 
-        $complaint->update([
+        // Set closed_at when status becomes 'resolved' or 'closed', but only if it's not already set
+        $updateData = [
             'status' => $request->status,
-            'closed_at' => $request->status === 'closed' ? now() : null,
-        ]);
+        ];
+        
+        if (in_array($request->status, ['resolved', 'closed']) && !$complaint->closed_at) {
+            $updateData['closed_at'] = now();
+        } elseif (!in_array($request->status, ['resolved', 'closed'])) {
+            // If status is changed from resolved/closed to something else, clear closed_at
+            $updateData['closed_at'] = null;
+        }
+
+        $complaint->update($updateData);
+
 
         $currentEmployee = Employee::first();
         if ($currentEmployee) {
+            $logRemarks = "Status changed from {$oldStatus} to {$request->status}";
+            if ($remarks) {
+                $logRemarks .= ". Remarks: " . $remarks;
+            }
             ComplaintLog::create([
                 'complaint_id' => $complaint->id,
                 'action_by' => $currentEmployee->id,
                 'action' => 'status_changed',
-                'remarks' => "Status changed from {$oldStatus} to {$request->status}. " . ($request->notes ?? ''),
+                'remarks' => $logRemarks,
             ]);
         }
 
         // Return JSON for AJAX requests
         if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            // Reload the complaint to get the updated closed_at
+            $complaint->refresh();
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Complaint status updated successfully.',
                 'complaint' => [
                     'id' => $complaint->id,
                     'status' => $complaint->status,
-                    'old_status' => $oldStatus
+                    'old_status' => $oldStatus,
+                    'closed_at' => $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : null,
                 ]
             ]);
         }
@@ -871,10 +888,28 @@ class ComplaintController extends Controller
                     return redirect()->back()->withErrors($validator);
                 }
                 
-                Complaint::whereIn('id', $complaintIds)->update([
-                    'status' => $request->status,
-                    'closed_at' => $request->status === 'closed' ? now() : null,
-                ]);
+                // Set closed_at when status becomes 'resolved' or 'closed', but only if not already set
+                if (in_array($request->status, ['resolved', 'closed'])) {
+                    Complaint::whereIn('id', $complaintIds)
+                        ->whereNull('closed_at')
+                        ->update([
+                            'status' => $request->status,
+                            'closed_at' => now(),
+                        ]);
+                    
+                    // Update status for complaints that already have closed_at
+                    Complaint::whereIn('id', $complaintIds)
+                        ->whereNotNull('closed_at')
+                        ->update([
+                            'status' => $request->status,
+                        ]);
+                } else {
+                    // If status is changed from resolved/closed to something else, clear closed_at
+                    Complaint::whereIn('id', $complaintIds)->update([
+                        'status' => $request->status,
+                        'closed_at' => null,
+                    ]);
+                }
                 $message = 'Selected complaints status updated successfully.';
                 break;
 

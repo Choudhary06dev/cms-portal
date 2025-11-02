@@ -16,27 +16,61 @@
   
   <!-- Error handling for missing scripts -->
   <script>
-    // Prevent errors from missing scripts
+    // Prevent errors from missing scripts and null element errors
     window.addEventListener('error', function(e) {
       if (e.filename && (e.filename.includes('share-modal.js') || e.filename.includes('share-modal'))) {
-        console.warn('share-modal.js not found - ignoring error');
+        console.warn('share-modal.js error ignored');
         e.preventDefault();
+        e.stopPropagation();
         return true;
       }
-    });
+      // Handle null element errors
+      if (e.message && e.message.includes('Cannot read properties of null') && e.message.includes('addEventListener')) {
+        console.warn('Null element addEventListener error ignored:', e.message);
+        e.preventDefault();
+        e.stopPropagation();
+        return true;
+      }
+    }, true); // Use capture phase
     
-    // Handle null element errors
-    document.addEventListener('DOMContentLoaded', function() {
-      // Override addEventListener to handle null elements gracefully
+    // Override addEventListener globally to handle null elements gracefully
+    (function() {
       const originalAddEventListener = Element.prototype.addEventListener;
       Element.prototype.addEventListener = function(type, listener, options) {
-        if (this === null || this === undefined) {
-          console.warn('Attempted to add event listener to null element');
+        if (this === null || this === undefined || !this.nodeType) {
+          console.warn('Attempted to add event listener to null/invalid element:', type);
           return;
         }
-        return originalAddEventListener.call(this, type, listener, options);
+        try {
+          return originalAddEventListener.call(this, type, listener, options);
+        } catch (error) {
+          console.warn('Error adding event listener:', error.message);
+          return;
+        }
       };
-    });
+    })();
+    
+    // Wrap setTimeout to catch errors
+    (function() {
+      const originalSetTimeout = window.setTimeout;
+      window.setTimeout = function(func, delay, ...args) {
+        return originalSetTimeout(function() {
+          try {
+            if (typeof func === 'function') {
+              func.apply(this, args);
+            } else {
+              eval(func);
+            }
+          } catch (error) {
+            if (error.message && (error.message.includes('share-modal') || error.message.includes('null') && error.message.includes('addEventListener'))) {
+              console.warn('setTimeout error ignored:', error.message);
+              return;
+            }
+            throw error;
+          }
+        }, delay || 0);
+      };
+    })();
   </script>
   <style>
     :root{

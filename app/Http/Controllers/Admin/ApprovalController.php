@@ -24,133 +24,134 @@ class ApprovalController extends Controller
      */
     public function index(Request $request)
     {
-        $query = SpareApprovalPerforma::with([
-            'complaint.client',
-            'complaint.assignedEmployee',
-            'requestedBy',
-            'approvedBy',
-            'items.spare'
-        ]);
-
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->whereHas('complaint', function($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($clientQuery) use ($search) {
-                      $clientQuery->where('client_name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        // Filter by status
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by requester or by complaint's assigned employee (using the same requested_by param)
-        if ($request->has('requested_by') && $request->requested_by) {
-            $employeeId = $request->requested_by;
-            $query->where(function($q) use ($employeeId) {
-                $q->where('requested_by', $employeeId)
-                  ->orWhereHas('complaint.assignedEmployee', function($qa) use ($employeeId) {
-                      $qa->where('id', $employeeId);
-                  });
-            });
-        }
-
-        // Filter by complaint
-        if ($request->has('complaint_id') && $request->complaint_id) {
-            $query->where('complaint_id', $request->complaint_id);
-        }
-
-        // Filter by date range
-        if ($request->has('date_from') && $request->date_from) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->has('date_to') && $request->date_to) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        $approvals = $query->orderBy('id', 'desc')->paginate(15);
-        
-        $complaints = Complaint::pending()->with('client')->get();
-        $employees = Employee::where('status', 'active')->get();
-
-        return view('admin.approvals.index', compact('approvals', 'complaints', 'employees'));
-    }
-
-    /**
-     * Show the form for creating a new approval performa.
-     */
-    public function create()
-    {
-        $complaints = Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->with(['client', 'assignedEmployee'])
-            ->get();
-        
-        $spares = Spare::all(); // Get all spares since status column might not exist
-        
-        return view('admin.approvals.create', compact('complaints', 'spares'));
-    }
-
-    /**
-     * Store a newly created approval performa.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'complaint_id' => 'required|exists:complaints,id',
-            'items' => 'required|array|min:1',
-            'items.*.spare_id' => 'required|exists:spares,id',
-            'items.*.quantity_requested' => 'required|integer|min:1',
-            'items.*.reason' => 'nullable|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
         try {
-            DB::beginTransaction();
+            // Start with base query and join complaints table for filtering/ordering
+            $query = SpareApprovalPerforma::query()
+                ->join('complaints', 'spare_approval_performa.complaint_id', '=', 'complaints.id')
+                ->join('clients', 'complaints.client_id', '=', 'clients.id')
+                ->select('spare_approval_performa.*');
 
-            // Create approval performa
-            $requestedBy = Employee::first();
-            if (!$requestedBy) {
-                throw new \Exception('No employee exists to set as requester.');
+            // Search functionality - by Complaint ID, Address, or Cell No (phone)
+            if ($request->has('search') && $request->search) {
+                $search = trim($request->search);
+                if (!empty($search)) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('complaints.id', 'like', "%{$search}%")
+                          ->orWhere('clients.client_name', 'like', "%{$search}%")
+                          ->orWhere('clients.address', 'like', "%{$search}%")
+                          ->orWhere('clients.phone', 'like', "%{$search}%")
+                          ->orWhere('complaints.title', 'like', "%{$search}%");
+                    });
+                }
             }
-            $approval = SpareApprovalPerforma::create([
-                'complaint_id' => $request->complaint_id,
-                'requested_by' => $requestedBy->id,
-                'status' => 'pending',
-                'remarks' => $request->remarks,
+
+            // Filter by Complaint Registration Date
+            if ($request->has('complaint_date') && $request->complaint_date) {
+                $query->whereDate('complaints.created_at', $request->complaint_date);
+            }
+
+            // Filter by Nature (category)
+            if ($request->has('category') && $request->category) {
+                $query->where('complaints.category', $request->category);
+            }
+
+            // Filter by status (keep for backward compatibility)
+            if ($request->has('status') && $request->status) {
+                $query->where('spare_approval_performa.status', $request->status);
+            }
+
+            // Filter by requester or by complaint's assigned employee (using the same requested_by param)
+            if ($request->has('requested_by') && $request->requested_by) {
+                $employeeId = $request->requested_by;
+                $query->where(function($q) use ($employeeId) {
+                    $q->where('spare_approval_performa.requested_by', $employeeId)
+                      ->orWhere('complaints.assigned_employee_id', $employeeId);
+                });
+            }
+
+            // Filter by complaint
+            if ($request->has('complaint_id') && $request->complaint_id) {
+                $query->where('spare_approval_performa.complaint_id', $request->complaint_id);
+            }
+
+            // Filter by date range (for approval creation date)
+            if ($request->has('date_from') && $request->date_from) {
+                $query->whereDate('spare_approval_performa.created_at', '>=', $request->date_from);
+            }
+
+            if ($request->has('date_to') && $request->date_to) {
+                $query->whereDate('spare_approval_performa.created_at', '<=', $request->date_to);
+            }
+
+            // Order by complaint created_at (descending)
+            $query->orderBy('complaints.created_at', 'desc');
+            
+            $approvals = $query->paginate(15);
+            
+            // Reload relationships after join (join may have affected eager loading)
+            $approvals->load([
+                'complaint.client',
+                'complaint.assignedEmployee',
+                'complaint.spareParts.spare',
+                'requestedBy',
+                'approvedBy',
+                'items.spare'
             ]);
+            
+            $complaints = Complaint::pending()->with('client')->get();
+            $employees = Employee::where('status', 'active')->get();
+            
+            // Get categories for Nature filter
+            $categories = Complaint::select('category')
+                ->distinct()
+                ->whereNotNull('category')
+                ->pluck('category')
+                ->unique()
+                ->values();
 
-            // Create approval items
-            foreach ($request->items as $item) {
-                SpareApprovalItem::create([
-                    'performa_id' => $approval->id,
-                    'spare_id' => $item['spare_id'],
-                    'quantity_requested' => $item['quantity_requested'],
-                    'reason' => $item['reason'],
-                ]);
+            // Handle AJAX requests - return only table and pagination
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                try {
+                    $html = view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories'))->render();
+                    return response()->json([
+                        'success' => true,
+                        'html' => $html
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Error rendering approvals view for AJAX', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Error loading approvals: ' . $e->getMessage()
+                    ], 500);
+                }
             }
 
-            DB::commit();
-
-            return redirect()->route('admin.approvals.index')
-                ->with('success', 'Approval request created successfully.');
-
+            return view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories'));
+            
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Failed to create approval request: ' . $e->getMessage())
-                ->withInput();
+            \Log::error('Error in ApprovalController@index', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+            
+            // Return error response for AJAX
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Error loading approvals: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            // Return error view for regular requests
+            return redirect()->route('admin.approvals.index')
+                ->with('error', 'Error loading approvals: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Display the specified approval performa
@@ -159,39 +160,68 @@ class ApprovalController extends Controller
     {
         $approval->load([
             'complaint.client',
+            'complaint.spareParts.spare',
             'requestedBy',
             'approvedBy',
             'items.spare'
         ]);
 
-        // If no approval items exist, backfill from complaint spare parts so UI can show requested rows
-        if ($approval->items->isEmpty() && $approval->complaint) {
+        // Always sync approval items from complaint spare parts
+        if ($approval->complaint) {
             try {
-                // Try to use complaint spareParts relationship if present
+                // Load complaint spare parts with spare relationship
                 $approval->complaint->loadMissing(['spareParts.spare']);
-                if ($approval->complaint->relationLoaded('spareParts') && $approval->complaint->spareParts->count() > 0) {
+                
+                if ($approval->complaint->spareParts->count() > 0) {
+                    // Get existing approval items by spare_id
+                    $existingItemsBySpareId = $approval->items->keyBy('spare_id');
+                    
                     foreach ($approval->complaint->spareParts as $sp) {
-                        \App\Models\SpareApprovalItem::firstOrCreate(
-                            [
+                        if (!$sp->spare_id) continue;
+                        
+                        // Check if approval item already exists for this spare
+                        $existingItem = $existingItemsBySpareId->get($sp->spare_id);
+                        
+                        if ($existingItem) {
+                            // Update existing item if quantity changed (only if status is pending)
+                            if ($approval->status === 'pending' && $existingItem->quantity_requested != $sp->quantity) {
+                                $existingItem->update([
+                                    'quantity_requested' => (int)($sp->quantity ?? 1),
+                                    'reason' => 'Updated from complaint spare usage',
+                                ]);
+                            }
+                        } else {
+                            // Create new approval item if it doesn't exist
+                            \App\Models\SpareApprovalItem::create([
                                 'performa_id' => $approval->id,
                                 'spare_id' => $sp->spare_id,
-                            ],
-                            [
                                 'quantity_requested' => (int)($sp->quantity ?? 1),
+                                'quantity_approved' => null,
                                 'reason' => 'Auto-imported from complaint spare usage',
-                            ]
-                        );
+                            ]);
+                        }
                     }
-                    // Reload items after backfill
+                    
+                    // Remove approval items that are no longer in complaint spare parts (only if status is pending)
+                    if ($approval->status === 'pending') {
+                        $complaintSpareIds = $approval->complaint->spareParts->pluck('spare_id')->filter()->toArray();
+                        $approval->items()->whereNotIn('spare_id', $complaintSpareIds)->delete();
+                    }
+                    
+                    // Reload items after sync
                     $approval->load(['items.spare']);
                 }
             } catch (\Throwable $e) {
-                \Log::warning('Failed to backfill approval items in show()', [
+                \Log::warning('Failed to sync approval items in show()', [
                     'approval_id' => $approval->id,
                     'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
         }
+
+        // Refresh approval to get latest remarks from database
+        $approval->refresh();
 
         // Return JSON for AJAX requests
         if (request()->ajax() || request()->wantsJson()) {
@@ -255,8 +285,10 @@ class ApprovalController extends Controller
                 return [$id => $qty];
             });
 
-        // Check if all items are available (use approved qty if provided, else requested)
+        // Check stock availability and adjust quantities if insufficient
         $unavailableItems = [];
+        $adjustedItems = [];
+        
         foreach ($approval->items as $item) {
             // Get spare directly to avoid relationship issues
             $spare = \App\Models\Spare::find($item->spare_id);
@@ -267,18 +299,35 @@ class ApprovalController extends Controller
                 continue;
             }
             
-            $qtyToUse = $approvedInput->get($item->id) !== null
+            $requestedQty = (int)$item->quantity_requested;
+            $approvedQty = $approvedInput->get($item->id) !== null
                 ? max(0, (int)$approvedInput->get($item->id))
-                : (int)$item->quantity_requested;
-
-            // Check stock availability directly against the intended approval quantity
-            if ($spare->stock_quantity < $qtyToUse) {
-                $unavailableItems[] = $spare->item_name;
+                : $requestedQty; // Use requested if not specified
+            
+            $availableQty = (int)$spare->stock_quantity;
+            
+            // Adjust quantity to available stock if insufficient
+            if ($availableQty < $approvedQty) {
+                if ($availableQty > 0) {
+                    // Give available quantity (partial approval)
+                    $adjustedItems[] = [
+                        'item_name' => $spare->item_name,
+                        'requested' => $approvedQty,
+                        'available' => $availableQty,
+                        'item_id' => $item->id
+                    ];
+                    // Update approved quantity to available
+                    $approvedInput[$item->id] = $availableQty;
+                } else {
+                    // No stock available at all
+                    $unavailableItems[] = $spare->item_name . ' (Requested: ' . $approvedQty . ', Available: 0)';
+                }
             }
         }
-
+        
+        // If items are completely unavailable (zero stock), show error
         if (!empty($unavailableItems)) {
-            $message = 'Cannot approve: ' . implode(', ', $unavailableItems) . ' are not available in sufficient quantity.';
+            $message = 'Cannot approve: ' . implode(', ', $unavailableItems) . ' have zero stock available.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -297,13 +346,45 @@ class ApprovalController extends Controller
                 throw new \Exception('No employee record found');
             }
             
-            $approval->update([
+            // Build adjusted items message for remarks
+            $adjustmentMessage = '';
+            if (!empty($adjustedItems)) {
+                $adjustments = [];
+                foreach ($adjustedItems as $adj) {
+                    $adjustments[] = $adj['item_name'] . ' (Requested: ' . $adj['requested'] . ', Given: ' . $adj['available'] . ')';
+                }
+                $adjustmentMessage = ' Adjusted quantities: ' . implode(', ', $adjustments) . '.';
+            }
+            
+            // Prepare final remarks - user remarks take priority, remove auto-generated text
+            $userRemarks = trim($request->remarks ?? '');
+            $finalRemarks = '';
+            
+            // If user provided remarks, use only user remarks (don't keep auto-generated text)
+            if ($userRemarks) {
+                $finalRemarks = $userRemarks;
+            }
+            
+            // Add adjustment message if any
+            if ($adjustmentMessage) {
+                $finalRemarks = ($finalRemarks ? $finalRemarks . ' ' : '') . trim($adjustmentMessage);
+            }
+            
+            // Update approval status and remarks
+            $updateData = [
                 'status' => 'approved',
                 'approved_by' => $employee->id,
                 'approved_at' => now(),
-                'remarks' => $request->remarks,
-            ]);
-
+            ];
+            
+            // Update remarks if user provided remarks or if there are adjustments
+            // This will replace the auto-generated remarks
+            if ($finalRemarks) {
+                $updateData['remarks'] = $finalRemarks;
+            }
+            
+            $approval->update($updateData);
+            
             // Deduct approved quantities now (no prior deduction at complaint stage)
             foreach ($approval->items as $item) {
                 $spare = \App\Models\Spare::find($item->spare_id);
@@ -311,15 +392,32 @@ class ApprovalController extends Controller
                     $qtyToUse = $approvedInput->get($item->id) !== null
                         ? max(0, (int)$approvedInput->get($item->id))
                         : (int)$item->quantity_requested;
+                    
+                    $availableQty = (int)$spare->stock_quantity;
+                    $requestedQty = (int)$item->quantity_requested;
+                    
+                    // Update reason if quantity was adjusted
+                    $reason = $item->reason;
+                    if ($qtyToUse < $requestedQty && $qtyToUse > 0) {
+                        $reason = 'Insufficient stock: Requested ' . $requestedQty . ', Approved ' . $qtyToUse . ' (Available: ' . $availableQty . ')';
+                    } elseif ($qtyToUse == 0) {
+                        $reason = 'Zero stock: Requested ' . $requestedQty . ', Available 0';
+                    }
 
-                    // Persist approved quantity on the item for accurate display/reporting
-                    $item->update(['quantity_approved' => $qtyToUse]);
-                    // Deduct exactly the approved quantity
-                    $spare->removeStock(
-                        $qtyToUse,
-                        "Approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
-                        $approval->complaint_id
-                    );
+                    // Persist approved quantity and updated reason
+                    $item->update([
+                        'quantity_approved' => $qtyToUse,
+                        'reason' => $reason
+                    ]);
+                    
+                    // Deduct exactly the approved quantity (only if > 0)
+                    if ($qtyToUse > 0) {
+                        $spare->removeStock(
+                            $qtyToUse,
+                            "Approved for complaint #{$approval->complaint->getTicketNumberAttribute()}",
+                            $approval->complaint_id
+                        );
+                    }
                 }
             }
 
@@ -648,3 +746,4 @@ class ApprovalController extends Controller
         return response()->json(['message' => 'Excel export requires Laravel Excel package']);
     }
 }
+
