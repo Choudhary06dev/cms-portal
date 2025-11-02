@@ -18,21 +18,17 @@
 
     <!-- FILTERS -->
     <div class="card-glass mb-4">
-        <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
-            <div class="row g-2 align-items-end">
+        <div class="card-header">
+            <h5 class="card-title mb-0 text-white">
+                <i data-feather="filter" class="me-2"></i>Filters
+            </h5>
+        </div>
+        <div class="card-body">
+            <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
+                <div class="row g-2 align-items-end">
                 <div class="col-12 col-md-2">
                     <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search complaints..." 
                            value="{{ request('search') }}" oninput="handleComplaintsSearchInput()">
-                </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="status" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
-                        <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
-                        <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                        <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                        <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
-                        <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
-                    </select>
                 </div>
                 <div class="col-6 col-md-2">
                     <select class="form-select" name="priority" onchange="submitComplaintsFilters()">
@@ -85,12 +81,19 @@
                            value="{{ request('date_to') }}" placeholder="To Date" onchange="submitComplaintsFilters()">
                 </div>
             </div>
-        </form>
+            </form>
+        </div>
     </div>
 
     <!-- COMPLAINTS TABLE -->
     <div class="card-glass">
-        <div class="table-responsive">
+        <div class="card-header">
+            <h5 class="card-title mb-0 text-white">
+                <i data-feather="list" class="me-2"></i>Complaints List
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
             <table class="table table-dark">
                 <thead>
                     <tr>
@@ -191,23 +194,22 @@
                                     }
                                 @endphp
                                 <div class="text-white fw-bold">{{ $displayText }}</div>
-                                <div class="text-muted small">{{ Str::limit($complaint->description ?? 'No description', 40) }}</div>
                             </td>
                             <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button class="btn btn-sm" onclick="viewComplaint({{ $complaint->id }})" title="View Details" style="background-color: #22c55e; border-color: #22c55e; color: white; padding: 4px 8px; width: 32px; height: 32px;">
-                                        <i data-feather="eye" style="width: 14px; height: 14px;"></i>
-                                    </button>
-                                    <button class="btn btn-sm" onclick="editComplaint({{ $complaint->id }})" title="Edit" style="background-color: #3b82f6; border-color: #3b82f6; color: white; padding: 4px 8px; width: 32px; height: 32px;">
-                                        <i data-feather="edit" style="width: 14px; height: 14px;"></i>
-                                    </button>
+                                    <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="btn btn-outline-success btn-sm" title="View Details">
+                                        <i data-feather="eye"></i>
+                                    </a>
+                                    <a href="{{ route('admin.complaints.edit', $complaint->id) }}" class="btn btn-outline-primary btn-sm" title="Edit">
+                                        <i data-feather="edit"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-4">
+                            <td colspan="8" class="text-center py-4">
                                 <i data-feather="alert-circle" class="feather-lg mb-2"></i>
                                 <div>No complaints found</div>
                             </td>
@@ -215,12 +217,13 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
+            </div>
 
-        <!-- PAGINATION -->
-        <div class="d-flex justify-content-center mt-3" id="complaintsPagination">
-            <div>
-                {{ $complaints->links() }}
+            <!-- PAGINATION -->
+            <div class="d-flex justify-content-center mt-3" id="complaintsPagination">
+                <div>
+                    {{ $complaints->links() }}
+                </div>
             </div>
         </div>
     </div>
@@ -315,6 +318,23 @@
         }
 
         /* Pagination styles are now centralized in components/pagination.blade.php */
+        
+        /* Table column borders - vertical lines between columns */
+        .table-dark th,
+        .table-dark td {
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            border-left: none;
+        }
+        
+        .table-dark th:first-child,
+        .table-dark td:first-child {
+            border-left: none;
+        }
+        
+        .table-dark th:last-child,
+        .table-dark td:last-child {
+            border-right: none;
+        }
     </style>
 @endpush
 
@@ -405,7 +425,7 @@
             const paginationContainer = document.getElementById('complaintsPagination');
             
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
             }
 
             fetch(`{{ route('admin.complaints.index') }}?${params.toString()}`, {
@@ -439,7 +459,7 @@
             .catch(error => {
                 console.error('Error loading complaints:', error);
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
                 }
             });
         }

@@ -292,7 +292,7 @@ class Complaint extends Model
     }
 
     /**
-     * Boot method to generate ticket number
+     * Boot method to generate ticket number and auto-set addressed date
      */
     protected static function boot()
     {
@@ -300,6 +300,22 @@ class Complaint extends Model
 
         static::creating(function ($complaint) {
             // Auto-generate ticket number will be handled by accessor
+        });
+
+        // Auto-set closed_at when status becomes 'resolved' or 'closed'
+        static::updating(function ($complaint) {
+            if ($complaint->isDirty('status')) {
+                $newStatus = $complaint->status;
+                $oldStatus = $complaint->getOriginal('status');
+                
+                // Set closed_at when status becomes 'resolved' or 'closed', but only if not already set
+                if (in_array($newStatus, ['resolved', 'closed']) && !$complaint->closed_at) {
+                    $complaint->closed_at = now();
+                } elseif (!in_array($newStatus, ['resolved', 'closed']) && in_array($oldStatus, ['resolved', 'closed'])) {
+                    // If status is changed from resolved/closed to something else, clear closed_at
+                    $complaint->closed_at = null;
+                }
+            }
         });
     }
 

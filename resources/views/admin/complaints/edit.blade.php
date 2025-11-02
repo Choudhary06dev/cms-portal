@@ -57,28 +57,24 @@
                 <div class="mb-3">
                   <label class="form-label text-white">Address</label>
                   <input type="text" class="form-control" id="client_address" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ $complaint->client->address ?? '' }}">
-                  <small class="text-muted">Auto-filled from selected complainant</small>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Mobile No.</label>
                   <input type="text" class="form-control" id="client_phone" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ $complaint->client->phone ?? '' }}">
-                  <small class="text-muted">Auto-filled from selected complainant</small>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">City</label>
                   <input type="text" class="form-control" id="client_city" name="city" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ old('city', $complaint->city ?? $complaint->client->city ?? '') }}">
-                  <small class="text-muted">Auto-filled from selected complainant</small>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Sector</label>
                   <input type="text" class="form-control" id="client_sector" name="sector" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ old('sector', $complaint->sector ?? $complaint->client->sector ?? '') }}">
-                  <small class="text-muted">Auto-filled from selected complainant</small>
                 </div>
               </div>
             </div>
@@ -88,7 +84,7 @@
               <div class="col-12">
                 <h6 class="text-white fw-bold mb-3"><i data-feather="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Complaint Nature & Type</h6>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
                   <select id="category" name="category" class="form-select @error('category') is-invalid @enderror" required>
@@ -105,7 +101,20 @@
                 </div>
               </div>
               
-              <div class="col-md-6">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="title" class="form-label text-white">Complaint Title <span class="text-danger">*</span></label>
+                  <select class="form-select @error('title') is-invalid @enderror" 
+                          id="title" name="title" required>
+                    <option value="{{ old('title', $complaint->title) }}">{{ old('title', $complaint->title) }}</option>
+                  </select>
+                  @error('title')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
                   <select id="department" name="department" class="form-select @error('department') is-invalid @enderror" required>
@@ -190,25 +199,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Additional Information -->
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-3">
-                  <label for="title" class="form-label text-white">Complaint Title <span class="text-danger">*</span></label>
-                  <select class="form-select @error('title') is-invalid @enderror" 
-                          id="title" name="title" required>
-                    <option value="{{ old('title', $complaint->title) }}">{{ old('title', $complaint->title) }}</option>
-                  </select>
-                  <small class="text-muted">Select category above to see complaint titles</small>
-                  @error('title')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-            </div>
-
-           
 
             <!-- Description moved below product section -->
             <div class="row mt-3">

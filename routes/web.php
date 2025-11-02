@@ -212,7 +212,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::get('spares/{spare}/print-slip', [AdminSpareController::class, 'printSlip'])->middleware(['permission:spares.view'])->name('spares.print-slip');
     Route::post('spares/{spare}/add-stock', [AdminSpareController::class, 'addStock'])->middleware(['permission:spares.view'])->name('spares.add-stock');
-    Route::resource('approvals', AdminApprovalController::class)->middleware(['permission:approvals.view']);
+    Route::resource('approvals', AdminApprovalController::class)->except(['create', 'store'])->middleware(['permission:approvals.view']);
     Route::post('approvals/{approval}/approve', [AdminApprovalController::class, 'approve'])->middleware(['permission:approvals.view'])->name('approvals.approve');
     Route::post('approvals/{approval}/reject', [AdminApprovalController::class, 'reject'])->middleware(['permission:approvals.view'])->name('approvals.reject');
     Route::post('approvals/bulk-action', [AdminApprovalController::class, 'bulkAction'])->middleware(['permission:approvals.view'])->name('approvals.bulk-action');
