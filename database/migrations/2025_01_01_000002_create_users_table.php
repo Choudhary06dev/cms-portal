@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('email', 150)->nullable();
             $table->string('phone', 20)->nullable();
             $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
-            $table->unsignedBigInteger('city_id')->nullable()->after('role_id');
-            $table->unsignedBigInteger('sector_id')->nullable()->after('city_id');
+            $table->unsignedBigInteger('city_id')->nullable();
+            $table->unsignedBigInteger('sector_id')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('theme', 10)->default('auto');
             $table->timestamps();

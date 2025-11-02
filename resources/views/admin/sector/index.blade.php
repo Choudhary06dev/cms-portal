@@ -47,7 +47,7 @@
           <option value="">Select City</option>
           @if(isset($cities) && $cities->count() > 0)
             @foreach ($cities as $city)
-              <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+              <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
             @endforeach
           @endif
         </select>
@@ -161,7 +161,7 @@
               <option value="">Select City</option>
               @if(isset($cities) && $cities->count() > 0)
                 @foreach ($cities as $city)
-                  <option value="{{ $city->id }}">{{ $city->name }}</option>
+                  <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}">{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
                 @endforeach
               @endif
             </select>

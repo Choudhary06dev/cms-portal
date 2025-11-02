@@ -88,7 +88,7 @@
                     <option value="">Select City</option>
                     @if(isset($cities) && $cities->count() > 0)
                       @foreach ($cities as $city)
-                        <option value="{{ $city->name }}" data-id="{{ $city->id }}" {{ old('city') == $city->name ? 'selected' : '' }}>{{ $city->name }}</option>
+                        <option value="{{ $city->name }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city') == $city->name ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
                       @endforeach
                     @endif
                   </select>
@@ -113,24 +113,6 @@
             </div>
 
             <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="state" class="form-label text-white">State <span class="text-danger">*</span></label>
-                  <select class="form-select @error('state') is-invalid @enderror" 
-                          id="state" name="state" required>
-                    <option value="">Select State</option>
-                    <option value="sindh" {{ old('state') == 'sindh' ? 'selected' : '' }}>Sindh</option>
-                    <option value="punjab" {{ old('state') == 'punjab' ? 'selected' : '' }}>Punjab</option>
-                    <option value="kpk" {{ old('state') == 'kpk' ? 'selected' : '' }}>KPK</option>
-                    <option value="balochistan" {{ old('state') == 'balochistan' ? 'selected' : '' }}>Balochistan</option>
-                    <option value="other" {{ old('state') == 'other' ? 'selected' : '' }}>Other</option>
-                  </select>
-                  @error('state')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-              
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="status" class="form-label text-white">Status</label>

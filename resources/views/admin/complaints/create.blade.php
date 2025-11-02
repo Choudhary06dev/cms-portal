@@ -72,6 +72,8 @@
                         <option value="{{ $client->id }}" 
                                 data-address="{{ $client->address ?? '' }}" 
                                 data-phone="{{ $client->phone ?? '' }}"
+                                data-city="{{ $client->city ?? '' }}"
+                                data-sector="{{ $client->sector ?? '' }}"
                                 {{ (string)old('client_id') === (string)$client->id ? 'selected' : '' }}>
                           {{ $client->client_name }}
                         </option>
@@ -85,17 +87,31 @@
                   @enderror
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Address</label>
                   <input type="text" class="form-control" id="client_address" readonly style="background-color: rgba(255, 255, 255, 0.05);">
                   <small class="text-muted">Auto-filled from selected complainant</small>
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Mobile No.</label>
                   <input type="text" class="form-control" id="client_phone" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <small class="text-muted">Auto-filled from selected complainant</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label text-white">City</label>
+                  <input type="text" class="form-control" id="client_city" name="city" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <small class="text-muted">Auto-filled from selected complainant</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label text-white">Sector</label>
+                  <input type="text" class="form-control" id="client_sector" name="sector" readonly style="background-color: rgba(255, 255, 255, 0.05);">
                   <small class="text-muted">Auto-filled from selected complainant</small>
                 </div>
               </div>
@@ -337,17 +353,23 @@ document.addEventListener('DOMContentLoaded', function() {
   const clientSelect = document.getElementById('client_id');
   const clientAddress = document.getElementById('client_address');
   const clientPhone = document.getElementById('client_phone');
+  const clientCity = document.getElementById('client_city');
+  const clientSector = document.getElementById('client_sector');
 
-  // Auto-fill address and phone when client is selected
-  if (clientSelect && clientAddress && clientPhone) {
+  // Auto-fill address, phone, city and sector when client is selected
+  if (clientSelect && clientAddress && clientPhone && clientCity && clientSector) {
     clientSelect.addEventListener('change', function() {
       const selectedOption = this.options[this.selectedIndex];
       if (selectedOption && selectedOption.value) {
         clientAddress.value = selectedOption.getAttribute('data-address') || '';
         clientPhone.value = selectedOption.getAttribute('data-phone') || '';
+        clientCity.value = selectedOption.getAttribute('data-city') || '';
+        clientSector.value = selectedOption.getAttribute('data-sector') || '';
       } else {
         clientAddress.value = '';
         clientPhone.value = '';
+        clientCity.value = '';
+        clientSector.value = '';
       }
     });
     
@@ -357,6 +379,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (selectedOption) {
         clientAddress.value = selectedOption.getAttribute('data-address') || '';
         clientPhone.value = selectedOption.getAttribute('data-phone') || '';
+        clientCity.value = selectedOption.getAttribute('data-city') || '';
+        clientSector.value = selectedOption.getAttribute('data-sector') || '';
       }
     }
   }

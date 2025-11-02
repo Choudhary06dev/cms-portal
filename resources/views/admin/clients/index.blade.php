@@ -41,15 +41,6 @@
           @endif
       </select>
     </div>
-    <div class="col-md-2">
-        <select class="form-select" name="state" onchange="submitClientsFilters()">
-          <option value="">All States</option>
-          <option value="sindh" {{ request('state') == 'sindh' ? 'selected' : '' }}>Sindh</option>
-          <option value="punjab" {{ request('state') == 'punjab' ? 'selected' : '' }}>Punjab</option>
-          <option value="kpk" {{ request('state') == 'kpk' ? 'selected' : '' }}>KPK</option>
-          <option value="balochistan" {{ request('state') == 'balochistan' ? 'selected' : '' }}>Balochistan</option>
-      </select>
-    </div>
     
   </div>
   </form>

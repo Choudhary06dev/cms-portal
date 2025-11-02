@@ -173,6 +173,8 @@ class ComplaintController extends Controller
             $complaint = Complaint::create([
                 'title' => $request->title,
                 'client_id' => $request->client_id,
+                'city' => $request->city,
+                'sector' => $request->sector,
                 'category' => $request->category,
                 'department' => $request->department,
                 'priority' => $request->priority,
@@ -401,9 +403,15 @@ class ComplaintController extends Controller
             ]);
 
             if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                // Exclude state from client data in JSON response for modal
+                $complaintData = $complaint->toArray();
+                if (isset($complaintData['client']) && is_array($complaintData['client']) && isset($complaintData['client']['state'])) {
+                    unset($complaintData['client']['state']);
+                }
+                
                 return response()->json([
                     'success' => true,
-                    'complaint' => $complaint
+                    'complaint' => $complaintData
                 ]);
             }
 
@@ -484,6 +492,8 @@ class ComplaintController extends Controller
         $complaint->update([
             'title' => $request->title,
             'client_id' => $request->client_id,
+            'city' => $request->city,
+            'sector' => $request->sector,
             'category' => $request->category,
             'department' => $request->department,
             'priority' => $request->priority,

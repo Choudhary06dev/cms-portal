@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('cities', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100)->unique();
+            $table->string('province', 100)->nullable();
             $table->text('description')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();

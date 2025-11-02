@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sectors', function (Blueprint $table) {
             $table->id();
             // Add city_id column (nullable for existing installations)
-            $table->unsignedBigInteger('city_id')->nullable()->after('id');
+            $table->unsignedBigInteger('city_id')->nullable();
             $table->string('name', 100)->unique();
             $table->text('description')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');

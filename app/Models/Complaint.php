@@ -15,6 +15,8 @@ class Complaint extends Model
     protected $fillable = [
         'title',
         'client_id',
+        'city',
+        'sector',
         'category',
         'department',
         'priority',

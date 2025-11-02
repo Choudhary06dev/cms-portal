@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->foreignId('client_id')->constrained('clients');
+            $table->string('city', 50)->nullable();
+            $table->string('sector', 100)->nullable();
             $table->string('category', 100);
             $table->string('department', 100)->nullable();
             $table->text('description')->nullable();

@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->text('address');
                 $table->string('city', 50);
                 $table->string('sector', 100);
-                $table->string('state', 50);
+                $table->string('state', 50)->nullable();
                 $table->enum('status', ['active', 'inactive'])->default('active');
                 $table->timestamps();
             });

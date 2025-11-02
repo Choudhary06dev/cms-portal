@@ -23,8 +23,8 @@ return new class extends Migration
             $table->integer('leave_quota')->default(30);
             $table->text('address')->nullable();
             // Add city_id and sector_id columns (nullable for existing installations)
-            $table->unsignedBigInteger('city_id')->nullable()->after('address');
-            $table->unsignedBigInteger('sector_id')->nullable()->after('city_id');
+            $table->unsignedBigInteger('city_id')->nullable();
+            $table->unsignedBigInteger('sector_id')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });

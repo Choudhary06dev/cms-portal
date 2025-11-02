@@ -107,8 +107,8 @@
                     id="city_id" name="city_id">
               <option value="">Select City (if required)</option>
               @foreach($cities as $city)
-                <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
-                  {{ $city->name }}
+                <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                  {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                 </option>
               @endforeach
             </select>

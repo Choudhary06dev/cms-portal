@@ -9,6 +9,8 @@ use App\Models\Sector;
 use App\Traits\DatabaseTimeHelpers;
 use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
 
@@ -40,8 +42,7 @@ class ClientController extends Controller
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
                   ->orWhere('address', 'like', "%{$search}%")
-                  ->orWhere('city', 'like', "%{$search}%")
-                  ->orWhere('state', 'like', "%{$search}%");
+                  ->orWhere('city', 'like', "%{$search}%");
             });
         }
 
@@ -55,10 +56,6 @@ class ClientController extends Controller
             $query->where('city', $request->city);
         }
 
-        // Filter by state
-        if ($request->has('state') && $request->state) {
-            $query->where('state', $request->state);
-        }
 
         $clients = $query->orderBy('id', 'desc')->paginate(15);
         
@@ -110,7 +107,6 @@ class ClientController extends Controller
             'address' => 'required|string|max:255',
             'city' => $cityRule,
             'sector' => 'required|string|max:100' . (Schema::hasTable('sectors') ? '|exists:sectors,name' : ''),
-            'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -200,7 +196,6 @@ class ClientController extends Controller
             'address' => 'required|string|max:255',
             'city' => $cityRule,
             'sector' => 'required|string|max:100' . (Schema::hasTable('sectors') ? '|exists:sectors,name' : ''),
-            'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             'status' => 'required|in:active,inactive',
         ]);
 
