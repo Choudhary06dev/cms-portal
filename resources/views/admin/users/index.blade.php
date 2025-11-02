@@ -53,6 +53,8 @@
           <th>Username</th>
           <th>Email</th>
           <th>Role</th>
+          <th>City</th>
+          <th>Sector</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -77,6 +79,28 @@
             <span class="badge bg-primary">{{ $user->role->role_name ?? 'No Role' }}</span>
           </td>
           <td>
+            @php
+              $roleName = strtolower($user->role->role_name ?? '');
+            @endphp
+            @if(in_array($roleName, ['director', 'admin']))
+              <span class="badge bg-info">All Cities</span>
+            @else
+              {{ $user->city->name ?? 'N/A' }}
+            @endif
+          </td>
+          <td>
+            @php
+              $roleName = strtolower($user->role->role_name ?? '');
+            @endphp
+            @if(in_array($roleName, ['director', 'admin']))
+              <span class="badge bg-info">All Sectors</span>
+            @elseif($roleName === 'garrison_engineer')
+              <span class="badge bg-info">All Sectors</span>
+            @else
+              {{ $user->sector->name ?? 'N/A' }}
+            @endif
+          </td>
+          <td>
             <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}">
               {{ ucfirst($user->status) }}
             </span>
@@ -97,7 +121,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="6" class="text-center py-4">
+          <td colspan="8" class="text-center py-4">
             <i data-feather="users" class="feather-lg mb-2"></i>
             <div>No users found</div>
           </td>
@@ -159,7 +183,7 @@
     const paginationContainer = document.getElementById('usersPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     fetch(`{{ route('admin.users.index') }}?${params.toString()}`, {
@@ -193,7 +217,7 @@
     .catch(error => {
       console.error('Error loading users:', error);
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
       }
     });
   }

@@ -34,12 +34,12 @@
         <div class="col-md-6">
           <h6 class="text-white fw-bold mb-3">Basic Information</h6>
           <div class="mb-3">
-            <span class="text-muted">Employee ID:</span>
-            <span class="text-white ms-2">{{ $employee->id }}</span>
-          </div>
-          <div class="mb-3">
             <span class="text-muted">Name:</span>
             <span class="text-white ms-2">{{ $employee->name ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Employee ID:</span>
+            <span class="text-white ms-2">{{ $employee->emp_id ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
             <span class="text-muted">Phone:</span>
@@ -82,8 +82,8 @@
         <div class="col-md-6">
           <h6 class="text-white fw-bold mb-3">Additional Information</h6>
           <div class="mb-3">
-            <span class="text-muted">Biometric ID:</span>
-            <span class="text-white ms-2">{{ $employee->biometric_id ?? 'N/A' }}</span>
+            <span class="text-muted">Employee ID:</span>
+            <span class="text-white ms-2">{{ $employee->emp_id ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
             <span class="text-muted">Leave Quota:</span>

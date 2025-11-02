@@ -24,7 +24,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with('role');
+        $query = User::with(['role', 'city', 'sector']);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -177,21 +177,24 @@ class UserController extends Controller
                 ->withInput();
         }
 
-        // If role doesn't require location, clear city_id and sector_id
-        if ($roleName === 'director' || $roleName === 'admin') {
-            $request->merge(['city_id' => null, 'sector_id' => null]);
-        }
-
         try {
             $updateData = [
                 'username' => $request->username,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role_id' => $request->role_id,
-                'city_id' => $request->city_id,
-                'sector_id' => $request->sector_id,
                 'status' => $request->status,
             ];
+
+            // If role doesn't require location, clear city_id and sector_id
+            if ($roleName === 'director' || $roleName === 'admin') {
+                $updateData['city_id'] = null;
+                $updateData['sector_id'] = null;
+            } else {
+                // Convert empty strings to null for city_id and sector_id
+                $updateData['city_id'] = $request->city_id ?: null;
+                $updateData['sector_id'] = $request->sector_id ?: null;
+            }
 
             if ($request->filled('theme')) {
                 $updateData['theme'] = $request->theme;

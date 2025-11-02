@@ -53,8 +53,10 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Get low stock items
-        $lowStockItems = Spare::lowStock()
+        // Get low stock items with location filtering
+        $lowStockItemsQuery = Spare::lowStock();
+        $this->filterSparesByLocation($lowStockItemsQuery, $user);
+        $lowStockItems = $lowStockItemsQuery
             ->orderBy('stock_quantity', 'asc')
             ->limit(10)
             ->get();
@@ -132,6 +134,9 @@ class DashboardController extends Controller
         
         $clientsQuery = Client::query();
         $this->filterClientsByLocation($clientsQuery, $user);
+        
+        $sparesQuery = Spare::query();
+        $this->filterSparesByLocation($sparesQuery, $user);
 
         return [
             // Complaint statistics with location filtering
@@ -152,11 +157,11 @@ class DashboardController extends Controller
             'total_employees' => (clone $employeesQuery)->count(),
             'total_clients' => (clone $clientsQuery)->count(),
 
-            // Spare parts statistics
-            'total_spares' => Spare::count(),
-            'low_stock_items' => Spare::lowStock()->count(),
-            'out_of_stock_items' => Spare::outOfStock()->count(),
-            'total_spare_value' => Spare::sum(DB::raw('stock_quantity * unit_price')),
+            // Spare parts statistics with location filtering
+            'total_spares' => (clone $sparesQuery)->count(),
+            'low_stock_items' => (clone $sparesQuery)->lowStock()->count(),
+            'out_of_stock_items' => (clone $sparesQuery)->outOfStock()->count(),
+            'total_spare_value' => (clone $sparesQuery)->sum(DB::raw('stock_quantity * unit_price')),
 
             // Approval statistics
             'pending_approvals' => SpareApprovalPerforma::where('status', 'pending')->count(),
@@ -327,10 +332,14 @@ class DashboardController extends Controller
      */
     public function getRealTimeUpdates()
     {
+        $user = Auth::user();
+        $lowStockQuery = Spare::lowStock();
+        $this->filterSparesByLocation($lowStockQuery, $user);
+        
         $updates = [
             'new_complaints' => Complaint::where('created_at', '>=', now()->subMinutes(5))->count(),
             'new_approvals' => SpareApprovalPerforma::where('created_at', '>=', now()->subMinutes(5))->count(),
-            'low_stock_alerts' => Spare::lowStock()->count(),
+            'low_stock_alerts' => $lowStockQuery->count(),
             'sla_breaches' => $this->getSlaBreaches(),
         ];
 

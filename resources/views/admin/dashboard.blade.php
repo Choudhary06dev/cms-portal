@@ -1018,7 +1018,7 @@
       <div class="col-md-2 mb-3">
     <div class="card-glass text-center">
       <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_clients'] ?? 0 }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Clients</div>
+      <div class="text-muted" style="font-size: 0.8rem;">Complaintants</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
@@ -1074,7 +1074,7 @@
                 <thead>
                 <tr>
                   <th>Ticket</th>
-                  <th>Client</th>
+                  <th>Complaintant</th>
                   <th>Type</th>
                   <th>Status</th>
                   <th>Priority</th>
@@ -1117,7 +1117,7 @@
                 <tr>
                   <th>Approval ID</th>
                   <th>Complaint</th>
-                  <th>Client</th>
+                  <th>Complaintant</th>
                   <th>Requested By</th>
                   <th>Items</th>
                   <th>Created</th>

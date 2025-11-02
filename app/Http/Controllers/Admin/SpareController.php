@@ -7,12 +7,18 @@ use App\Models\Spare;
 use App\Models\SpareStockLog;
 use App\Models\ComplaintSpare;
 use App\Models\ComplaintCategory;
+use App\Models\City;
+use App\Models\Sector;
+use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class SpareController extends Controller
 {
+    use LocationFilterTrait;
+
     public function __construct()
     {
         // Middleware is applied in routes
@@ -23,7 +29,11 @@ class SpareController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $query = Spare::query();
+
+        // Apply location-based filtering
+        $this->filterSparesByLocation($query, $user);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -63,7 +73,7 @@ class SpareController extends Controller
             $query->where('unit_price', '<=', $request->price_to);
         }
 
-        $spares = $query->with('stockLogs')->orderBy('id', 'desc')->paginate(15);
+        $spares = $query->with(['stockLogs', 'city', 'sector'])->orderBy('id', 'desc')->paginate(15);
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
@@ -76,10 +86,28 @@ class SpareController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
-        return view('admin.spares.create', compact('categories'));
+        
+        // Get cities and sectors based on user role
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        $sectors = collect();
+        // If user has city_id, show only sectors from that city
+        if ($user && $user->city_id) {
+            $sectors = Schema::hasTable('sectors')
+                ? Sector::where('city_id', $user->city_id)
+                    ->where('status', 'active')
+                    ->orderBy('name')
+                    ->get()
+                : collect();
+        }
+        
+        return view('admin.spares.create', compact('categories', 'cities', 'sectors'));
     }
 
     /**
@@ -101,6 +129,8 @@ class SpareController extends Controller
             'brand_name' => 'nullable|string|max:100',
             // Accept categories from ComplaintCategory table and legacy categories
             'category' => 'required|string',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
             'issued_quantity' => 'nullable|integer|min:0',
@@ -139,6 +169,8 @@ class SpareController extends Controller
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'category' => $request->category,
+            'city_id' => $request->city_id,
+            'sector_id' => $request->sector_id,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => (int)($request->total_received_quantity ?? $request->stock_quantity ?? 0),
             'issued_quantity' => (int)($request->issued_quantity ?? 0),
@@ -218,10 +250,29 @@ class SpareController extends Controller
      */
     public function edit(Spare $spare)
     {
+        $user = Auth::user();
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
-        return view('admin.spares.edit', compact('spare', 'categories'));
+        
+        // Get cities and sectors based on user role
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        $sectors = collect();
+        // If user has city_id or spare has city_id, show sectors from that city
+        $cityId = $user && $user->city_id ? $user->city_id : ($spare->city_id ?? null);
+        if ($cityId) {
+            $sectors = Schema::hasTable('sectors')
+                ? Sector::where('city_id', $cityId)
+                    ->where('status', 'active')
+                    ->orderBy('name')
+                    ->get()
+                : collect();
+        }
+        
+        return view('admin.spares.edit', compact('spare', 'categories', 'cities', 'sectors'));
     }
 
     /**
@@ -235,6 +286,8 @@ class SpareController extends Controller
             'product_code' => $spare->product_code,
             'brand_name' => $spare->brand_name,
             'category' => $spare->category,
+            'city_id' => $spare->city_id,
+            'sector_id' => $spare->sector_id,
             'price' => $spare->unit_price,
             'total_received_quantity' => $spare->total_received_quantity,
             'issued_quantity' => $spare->issued_quantity,
@@ -265,6 +318,8 @@ class SpareController extends Controller
             'brand_name' => 'nullable|string|max:100',
             // Accept categories from ComplaintCategory table and legacy categories
             'category' => 'required|string',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'unit_price' => 'nullable|numeric|min:0',
             'total_received_quantity' => 'nullable|integer|min:0',
             'issued_quantity' => 'nullable|integer|min:0',
@@ -320,6 +375,8 @@ class SpareController extends Controller
             'product_code' => $request->product_code,
             'brand_name' => $request->brand_name,
             'category' => $normalizedCategory,
+            'city_id' => $request->city_id,
+            'sector_id' => $request->sector_id,
             'unit_price' => $request->unit_price,
             'total_received_quantity' => $newTotalReceived,
             'issued_quantity' => $newIssued,

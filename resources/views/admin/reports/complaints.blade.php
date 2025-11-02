@@ -47,39 +47,39 @@
     <div class="table-responsive">
       <table class="table table-bordered table-dark" style="font-size: 0.875rem; width: 100%;">
         <thead>
-          <tr>
-            <th rowspan="2" class="align-middle text-center" style="min-width: 200px;">Description</th>
+          <tr class="table-header-row">
+            <th rowspan="2" class="align-middle text-center" style="min-width: 200px; color: #000000 !important; font-weight: 700 !important;">Description</th>
             @foreach($categories as $catKey => $catName)
-              <th colspan="2" class="text-center">{{ $catName }}</th>
+              <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important;">{{ $catName }}</th>
             @endforeach
-            <th colspan="2" class="text-center">Total</th>
+            <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Total</th>
           </tr>
-          <tr>
+          <tr class="table-header-row">
             @foreach($categories as $catKey => $catName)
-              <th class="text-center">Qty (No's)</th>
-              <th class="text-center">%age</th>
+              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Qty (No's)</th>
+              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">%age</th>
             @endforeach
-            <th class="text-center">Qty (No's)</th>
-            <th class="text-center">%age</th>
+            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Qty (No's)</th>
+            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">%age</th>
           </tr>
         </thead>
         <tbody>
           @foreach($reportData as $rowKey => $row)
-          <tr>
-            <td class="fw-bold">{{ $row['name'] }}</td>
+          <tr class="{{ $rowKey === 'total' ? 'table-total-row' : '' }}">
+            <td class="fw-bold" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ $row['name'] }}</td>
             @foreach($categories as $catKey => $catName)
               @php
                 $cellData = $row['categories'][$catKey] ?? ['count' => 0, 'percentage' => 0];
               @endphp
-              <td class="text-center">{{ number_format($cellData['count']) }}</td>
-              <td class="text-center">{{ number_format($cellData['percentage'], 1) }}%</td>
+              <td class="text-center" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['count']) }}</td>
+              <td class="text-center" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['percentage'], 1) }}%</td>
             @endforeach
             @php
               $rowGrandTotal = array_sum(array_column($row['categories'], 'count'));
               $rowGrandPercent = $grandTotal > 0 ? ($rowGrandTotal / $grandTotal * 100) : 0;
             @endphp
-            <td class="text-center fw-bold">{{ number_format($rowGrandTotal) }}</td>
-            <td class="text-center fw-bold">{{ number_format($rowGrandPercent, 1) }}%</td>
+            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important;">{{ number_format($rowGrandTotal) }}</td>
+            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important;">{{ number_format($rowGrandPercent, 1) }}%</td>
           </tr>
           @endforeach
         </tbody>
@@ -149,6 +149,47 @@
   }
   .table-responsive {
     overflow-x: auto;
+  }
+  
+  /* Header styling - sirf text black, background original */
+  .table-header-black {
+    color: #000000 !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Total row styling - sirf text black, background original */
+  .table-total-row {
+    font-weight: 700 !important;
+  }
+  
+  .table-total-row td {
+    color: #000000 !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Better table styling */
+  .table-dark {
+    border: 2px solid #000000;
+  }
+  
+  .table-dark th,
+  .table-dark td {
+    border: 1px solid #334155;
+  }
+  
+  .table-dark tbody tr:hover:not(.table-total-row) {
+    background-color: #334155;
+  }
+  
+  /* Print styling */
+  @media print {
+    .table-header-black {
+      color: #000000 !important;
+    }
+    
+    .table-total-row td {
+      color: #000000 !important;
+    }
   }
 </style>
 @endpush

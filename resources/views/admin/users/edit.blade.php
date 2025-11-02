@@ -249,6 +249,14 @@
   if (citySelect && sectorSelect) {
     citySelect.addEventListener('change', function() {
       const cityId = this.value;
+      const roleText = roleSelect ? roleSelect.options[roleSelect.selectedIndex].text.toLowerCase() : '';
+      
+      // Don't load sectors if role is GE (garrison_engineer) - GE sees all sectors
+      if (roleText.includes('garrison engineer') || roleText.includes('garrison_engineer')) {
+        sectorSelect.innerHTML = '<option value="">N/A (GE sees all sectors)</option>';
+        sectorSelect.disabled = true;
+        return;
+      }
       
       if (!cityId) {
         sectorSelect.innerHTML = '<option value="">Select City first</option>';

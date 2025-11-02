@@ -22,7 +22,7 @@ class SectorController extends Controller
         }
 
         // Show all sectors; status column indicates active/inactive
-        $sectors = Sector::with('city')->orderBy('name', 'asc')->paginate(15);
+        $sectors = Sector::with('city')->orderBy('id', 'desc')->paginate(15);
         $cities = Schema::hasTable('cities')
             ? City::where('status', 'active')->orderBy('name')->get()
             : collect();

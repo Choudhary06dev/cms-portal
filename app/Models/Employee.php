@@ -17,7 +17,7 @@ class Employee extends Model
         'department',
         'designation',
         'phone',
-        'biometric_id',
+        'emp_id',
         'date_of_hire',
         'leave_quota',
         'address',

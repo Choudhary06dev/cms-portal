@@ -44,34 +44,68 @@ class ReportController extends Controller
      */
     private function getRealDataForJS()
     {
+        $user = Auth::user();
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
         
+        // Complaints with location filtering
+        $complaintsQuery = \App\Models\Complaint::query();
+        $this->filterComplaintsByLocation($complaintsQuery, $user);
+        
+        // Employees with location filtering
+        $employeesQuery = \App\Models\Employee::where('status', 'active');
+        $this->filterEmployeesByLocation($employeesQuery, $user);
+        
+        // Spares with location filtering
+        $sparesQuery = \App\Models\Spare::query();
+        $this->filterSparesByLocation($sparesQuery, $user);
+        
+        // Approvals with location filtering
+        $approvalsQuery = \App\Models\SpareApprovalPerforma::query();
+        $approvedApprovalsQuery = \App\Models\SpareApprovalPerforma::where('status', 'approved');
+        
+        if ($user && !$this->canViewAllData($user)) {
+            $filterApprovals = function($query) use ($user) {
+                $query->whereHas('complaint', function($q) use ($user) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        if ($user->city_id && $user->city) {
+                            $clientQ->where('city', $user->city->name);
+                        }
+                        if ($user->sector_id && $user->sector) {
+                            $clientQ->where('sector', $user->sector->name);
+                        }
+                    });
+                });
+            };
+            $filterApprovals($approvalsQuery);
+            $filterApprovals($approvedApprovalsQuery);
+        }
+        
         return [
             'complaints' => [
-                'total' => \App\Models\Complaint::count(),
-                'resolved' => \App\Models\Complaint::where('status', 'resolved')
+                'total' => (clone $complaintsQuery)->count(),
+                'resolved' => (clone $complaintsQuery)->where('status', 'resolved')
                     ->whereBetween('updated_at', [$startOfMonth, $now])
                     ->count(),
-                'pending' => \App\Models\Complaint::where('status', '!=', 'resolved')->count(),
-                'avg_resolution_time' => $this->getAverageResolutionTime(Auth::user())
+                'pending' => (clone $complaintsQuery)->where('status', '!=', 'resolved')->count(),
+                'avg_resolution_time' => $this->getAverageResolutionTime($user)
             ],
             'employees' => [
-                'total' => \App\Models\Employee::count(),
-                'active' => \App\Models\Employee::where('status', 'active')->count(),
+                'total' => (clone $employeesQuery)->count(),
+                'active' => (clone $employeesQuery)->count(),
                 'on_leave' => \App\Models\EmployeeLeave::where('status', 'pending')->count(),
-                'avg_performance' => $this->getAverageEmployeePerformance(Auth::user())
+                'avg_performance' => $this->getAverageEmployeePerformance($user)
             ],
             'spares' => [
-                'total_items' => \App\Models\Spare::count(),
-                'low_stock' => \App\Models\Spare::where('stock_quantity', '<=', \DB::raw('threshold_level'))->count(),
-                'out_of_stock' => \App\Models\Spare::where('stock_quantity', 0)->count(),
-                'total_value' => \App\Models\Spare::sum(\DB::raw('stock_quantity * unit_price'))
+                'total_items' => (clone $sparesQuery)->count(),
+                'low_stock' => (clone $sparesQuery)->where('stock_quantity', '<=', \DB::raw('threshold_level'))->count(),
+                'out_of_stock' => (clone $sparesQuery)->where('stock_quantity', 0)->count(),
+                'total_value' => (clone $sparesQuery)->sum(\DB::raw('stock_quantity * unit_price'))
             ],
             'financial' => [
-                'total_costs' => $this->getTotalSpareCosts(),
-                'approvals' => \App\Models\SpareApprovalPerforma::count(),
-                'approved' => \App\Models\SpareApprovalPerforma::where('status', 'approved')->count(),
+                'total_costs' => $this->getTotalSpareCosts($user),
+                'approvals' => $approvalsQuery->count(),
+                'approved' => $approvedApprovalsQuery->count(),
                 'approval_rate' => $this->getApprovalRate()
             ]
         ];
@@ -106,18 +140,20 @@ class ReportController extends Controller
         $employeesQuery = \App\Models\Employee::query();
         $this->filterEmployeesByLocation($employeesQuery, $user);
         
-        $employees = $employeesQuery->with(['assignedComplaints' => function($query) use ($user) {
-            $query->where('status', 'resolved');
-            // Apply location filter to complaints
+        $employees = $employeesQuery->with(['assignedComplaints' => function($complaintsQuery) use ($user) {
+            $complaintsQuery->where('status', 'resolved');
+            // Apply location filter to complaints - using whereHas on the relation
             if ($user && !$this->canViewAllData($user)) {
-                $query->whereHas('client', function($q) use ($user) {
-                    if ($user->city_id) {
-                        $q->where('city_id', $user->city_id);
-                    }
-                    if ($user->sector_id) {
-                        $q->where('sector_id', $user->sector_id);
-                    }
-                });
+                if ($user->city_id && $user->city) {
+                    $complaintsQuery->whereHas('client', function($clientQ) use ($user) {
+                        $clientQ->where('city', $user->city->name);
+                    });
+                }
+                if ($user->sector_id && $user->sector) {
+                    $complaintsQuery->whereHas('client', function($clientQ) use ($user) {
+                        $clientQ->where('sector', $user->sector->name);
+                    });
+                }
             }
         }])->get();
         
@@ -139,22 +175,48 @@ class ReportController extends Controller
     /**
      * Get total spare costs
      */
-    private function getTotalSpareCosts()
+    private function getTotalSpareCosts($user = null)
     {
         // Prefer complaint_spares if exists; otherwise fallback to approved items
         if (Schema::hasTable('complaint_spares')) {
-            return DB::table('complaint_spares')
-            ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
-                ->sum(DB::raw('complaint_spares.quantity * spares.unit_price'));
+            $query = DB::table('complaint_spares')
+                ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
+                ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+                ->join('clients', 'complaints.client_id', '=', 'clients.id');
+            
+            // Apply location filtering
+            if ($user && !$this->canViewAllData($user)) {
+                if ($user->city_id && $user->city) {
+                    $query->where('clients.city', $user->city->name);
+                }
+                if ($user->sector_id && $user->sector) {
+                    $query->where('clients.sector', $user->sector->name);
+                }
+            }
+            
+            return $query->sum(DB::raw('complaint_spares.quantity * spares.unit_price'));
         }
 
         // Fallback: use approved quantities from spare_approval_items joined to spares and approved performa
         if (Schema::hasTable('spare_approval_items') && Schema::hasTable('spare_approval_performa')) {
-            return DB::table('spare_approval_items')
+            $query = DB::table('spare_approval_items')
                 ->join('spares', 'spare_approval_items.spare_id', '=', 'spares.id')
                 ->join('spare_approval_performa', 'spare_approval_items.performa_id', '=', 'spare_approval_performa.id')
-                ->where('spare_approval_performa.status', 'approved')
-                ->sum(DB::raw('COALESCE(spare_approval_items.quantity_approved, 0) * spares.unit_price'));
+                ->where('spare_approval_performa.status', 'approved');
+            
+            // Apply location filtering if approval is linked to complaint
+            if ($user && !$this->canViewAllData($user) && Schema::hasColumn('spare_approval_performa', 'complaint_id')) {
+                $query->join('complaints', 'spare_approval_performa.complaint_id', '=', 'complaints.id')
+                    ->join('clients', 'complaints.client_id', '=', 'clients.id');
+                if ($user->city_id && $user->city) {
+                    $query->where('clients.city', $user->city->name);
+                }
+                if ($user->sector_id && $user->sector) {
+                    $query->where('clients.sector', $user->sector->name);
+                }
+            }
+            
+            return $query->sum(DB::raw('COALESCE(spare_approval_items.quantity_approved, 0) * spares.unit_price'));
         }
 
         return 0;
@@ -380,15 +442,23 @@ class ReportController extends Controller
         $dateFromStart = \Carbon\Carbon::parse($dateFrom)->startOfDay();
         $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
         
+        // Get user for location filtering
+        $user = Auth::user();
+        
         // Get actual categories from ComplaintCategory table
         $actualCategories = \App\Models\ComplaintCategory::orderBy('name')
             ->pluck('name')
             ->toArray();
         
         // Also get categories from complaints table that might not be in ComplaintCategory
-        $complaintCategories = Complaint::whereNotNull('category')
-            ->whereBetween('created_at', [$dateFromStart, $dateToEnd])
-            ->distinct()
+        // Apply location filtering to get only relevant categories
+        $complaintCategoriesQuery = Complaint::whereNotNull('category')
+            ->whereBetween('created_at', [$dateFromStart, $dateToEnd]);
+        
+        // Apply location-based filtering
+        $this->filterComplaintsByLocation($complaintCategoriesQuery, $user);
+        
+        $complaintCategories = $complaintCategoriesQuery->distinct()
             ->orderBy('category')
             ->pluck('category')
             ->toArray();
@@ -420,7 +490,11 @@ class ReportController extends Controller
         $rows = \App\Models\Complaint::getStatuses();
         
         // Base query for all complaints in date range
+        // Note: $user already defined above
         $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
+        
+        // Apply location-based filtering
+        $this->filterComplaintsByLocation($baseQuery, $user);
         
         // Initialize report data structure
         $reportData = [];
@@ -532,9 +606,26 @@ class ReportController extends Controller
             ]);
         }
 
-        $query = Employee::with(['assignedComplaints' => function($q) use ($dateFrom, $dateTo) {
+        $user = Auth::user();
+        $query = Employee::with(['assignedComplaints' => function($q) use ($dateFrom, $dateTo, $user) {
             $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+            // Apply location filter to complaints - get the underlying query builder
+            if ($user && !$this->canViewAllData($user)) {
+                if ($user->city_id && $user->city) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        $clientQ->where('city', $user->city->name);
+                    });
+                }
+                if ($user->sector_id && $user->sector) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        $clientQ->where('sector', $user->sector->name);
+                    });
+                }
+            }
         }]);
+
+        // Apply location-based filtering to employees
+        $this->filterEmployeesByLocation($query, $user);
 
         if ($department) {
             $query->where('department', $department);
@@ -655,7 +746,11 @@ class ReportController extends Controller
             ]);
         }
 
+        $user = Auth::user();
         $query = Spare::query();
+        
+        // Apply location-based filtering
+        $this->filterSparesByLocation($query, $user);
 
         if ($category) {
             $query->where('category', $category);
@@ -733,18 +828,49 @@ class ReportController extends Controller
             ]);
         }
 
-        // Spare parts costs
-        $spareCosts = DB::table('complaint_spares')
+        $user = Auth::user();
+        
+        // Build spare costs query with location filtering
+        $spareCostsQuery = DB::table('complaint_spares')
             ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
-            ->whereBetween('complaint_spares.used_at', [$dateFrom, $dateTo])
-            ->selectRaw('spares.category, SUM(complaint_spares.quantity * spares.unit_price) as total_cost')
+            ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+            ->join('clients', 'complaints.client_id', '=', 'clients.id')
+            ->whereBetween('complaint_spares.used_at', [$dateFrom, $dateTo]);
+        
+        // Apply location filtering
+        if ($user && !$this->canViewAllData($user)) {
+            if ($user->city_id && $user->city) {
+                $spareCostsQuery->where('clients.city', $user->city->name);
+            }
+            if ($user->sector_id && $user->sector) {
+                $spareCostsQuery->where('clients.sector', $user->sector->name);
+            }
+        }
+        
+        $spareCosts = $spareCostsQuery->selectRaw('spares.category, SUM(complaint_spares.quantity * spares.unit_price) as total_cost')
             ->groupBy('spares.category')
             ->get();
 
-        // Approval costs - simplified approach
-        $approvalCosts = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->where('status', 'approved')
-            ->get()
+        // Approval costs - simplified approach (with location filtering if needed)
+        $approvalQuery = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
+            ->where('status', 'approved');
+        
+        // Note: Approvals might not have direct location, filter if they're related to complaints
+        // For now, show all approvals if user can view all, otherwise filter by complaint location
+        if ($user && !$this->canViewAllData($user)) {
+            $approvalQuery->whereHas('complaint', function($q) use ($user) {
+                $q->whereHas('client', function($clientQ) use ($user) {
+                    if ($user->city_id && $user->city) {
+                        $clientQ->where('city', $user->city->name);
+                    }
+                    if ($user->sector_id && $user->sector) {
+                        $clientQ->where('sector', $user->sector->name);
+                    }
+                });
+            });
+        }
+        
+        $approvalCosts = $approvalQuery->get()
             ->groupBy(function($approval) {
                 return $approval->created_at->format('Y-m');
             })
@@ -752,11 +878,33 @@ class ReportController extends Controller
                 return $approvals->count(); // For now, just count approvals per month
             });
 
+        // Calculate totals with location filtering
+        $totalApprovalsQuery = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo]);
+        $approvedApprovalsQuery = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
+            ->where('status', 'approved');
+        
+        // Apply location filtering to approval counts if needed
+        if ($user && !$this->canViewAllData($user)) {
+            $filterApprovals = function($query) use ($user) {
+                $query->whereHas('complaint', function($q) use ($user) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        if ($user->city_id && $user->city) {
+                            $clientQ->where('city', $user->city->name);
+                        }
+                        if ($user->sector_id && $user->sector) {
+                            $clientQ->where('sector', $user->sector->name);
+                        }
+                    });
+                });
+            };
+            $filterApprovals($totalApprovalsQuery);
+            $filterApprovals($approvedApprovalsQuery);
+        }
+        
         $summary = [
             'total_spare_costs' => $spareCosts->sum('total_cost'),
-            'total_approvals' => SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
-            'approved_approvals' => SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
-                ->where('status', 'approved')->count(),
+            'total_approvals' => $totalApprovalsQuery->count(),
+            'approved_approvals' => $approvedApprovalsQuery->count(),
             'category_breakdown' => $spareCosts,
             'monthly_approvals' => $approvalCosts,
         ];
@@ -781,9 +929,15 @@ class ReportController extends Controller
         // Get SLA rules
         $slaRules = \App\Models\SlaRule::all()->keyBy('complaint_type');
 
+        $user = Auth::user();
+        
         // Get complaints with SLA analysis
-        $complaints = Complaint::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->with(['client', 'assignedEmployee'])
+        $complaintsQuery = Complaint::whereBetween('created_at', [$dateFrom, $dateTo]);
+        
+        // Apply location-based filtering
+        $this->filterComplaintsByLocation($complaintsQuery, $user);
+        
+        $complaints = $complaintsQuery->with(['client', 'assignedEmployee'])
             ->get()
             ->map(function($complaint) use ($slaRules) {
                 $ageInHours = $complaint->created_at->diffInHours(now());
@@ -881,10 +1035,13 @@ class ReportController extends Controller
         $type = $request->get('type', 'complaints');
         $period = $request->get('period', '30'); // days
 
+        $user = Auth::user();
+        
         switch ($type) {
             case 'complaints':
-                $data = Complaint::where('created_at', '>=', now()->subDays($period))
-                    ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                $complaintsQuery = Complaint::where('created_at', '>=', now()->subDays($period));
+                $this->filterComplaintsByLocation($complaintsQuery, $user);
+                $data = $complaintsQuery->selectRaw('DATE(created_at) as date, COUNT(*) as count')
                     ->groupBy('date')
                     ->orderBy('date')
                     ->get();
@@ -901,10 +1058,24 @@ class ReportController extends Controller
                 break;
 
             case 'employees':
-                $data = Employee::where('status', 'active')
-                ->withCount(['assignedComplaints' => function($q) use ($period) {
+                $employeesQuery = Employee::where('status', 'active');
+                $this->filterEmployeesByLocation($employeesQuery, $user);
+                $data = $employeesQuery->withCount(['assignedComplaints' => function($q) use ($period, $user) {
                     $q->where('created_at', '>=', now()->subDays($period))
                       ->whereIn('status', ['resolved', 'closed']);
+                    // Apply location filter to complaints - using whereHas on the relation
+                    if ($user && !$this->canViewAllData($user)) {
+                        if ($user->city_id && $user->city) {
+                            $q->whereHas('client', function($clientQ) use ($user) {
+                                $clientQ->where('city', $user->city->name);
+                            });
+                        }
+                        if ($user->sector_id && $user->sector) {
+                            $q->whereHas('client', function($clientQ) use ($user) {
+                                $clientQ->where('sector', $user->sector->name);
+                            });
+                        }
+                    }
                 }])
                 ->get()
                 ->map(function($employee) {
@@ -1114,10 +1285,14 @@ class ReportController extends Controller
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
         $groupBy = $request->get('group_by', 'status');
 
+        $user = Auth::user();
         $dateFromStart = \Carbon\Carbon::parse($dateFrom)->startOfDay();
         $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
 
         $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
+        
+        // Apply location-based filtering
+        $this->filterComplaintsByLocation($baseQuery, $user);
         switch ($groupBy) {
             case 'status':
                 $data = (clone $baseQuery)->selectRaw('status, COUNT(*) as count')->groupBy('status')->get();
@@ -1157,7 +1332,27 @@ class ReportController extends Controller
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
         $department = $request->get('department');
 
-        $query = Employee::with(['user','assignedComplaints' => function($q) use ($dateFrom, $dateTo){ $q->whereBetween('created_at', [$dateFrom, $dateTo]); }]);
+        $user = Auth::user();
+        $query = Employee::with(['user','assignedComplaints' => function($q) use ($dateFrom, $dateTo, $user){ 
+            $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+            // Apply location filter to complaints - using whereHas on the relation
+            if ($user && !$this->canViewAllData($user)) {
+                if ($user->city_id && $user->city) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        $clientQ->where('city', $user->city->name);
+                    });
+                }
+                if ($user->sector_id && $user->sector) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        $clientQ->where('sector', $user->sector->name);
+                    });
+                }
+            }
+        }]);
+        
+        // Apply location-based filtering to employees
+        $this->filterEmployeesByLocation($query, $user);
+        
         if ($department) { $query->where('department', $department); }
 
         $employees = $query->get()->map(function($employee){
@@ -1186,7 +1381,13 @@ class ReportController extends Controller
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
         $category = $request->get('category');
 
-        $query = Spare::query(); if ($category) { $query->where('category', $category); }
+        $user = Auth::user();
+        $query = Spare::query();
+        
+        // Apply location-based filtering
+        $this->filterSparesByLocation($query, $user);
+        
+        if ($category) { $query->where('category', $category); }
         $spares = $query->with(['complaintSpares' => function($q) use ($dateFrom, $dateTo){ $q->whereBetween('used_at', [$dateFrom, $dateTo]); }])->get()->map(function($spare){
             $usage = $spare->complaintSpares; $totalUsed = $usage->sum('quantity');
             $totalCost = $usage->sum(function($item) use ($spare){ return $item->quantity * $spare->unit_price; });
@@ -1212,11 +1413,27 @@ class ReportController extends Controller
 
     private function getFinancialData(Request $request): array
     {
+        $user = Auth::user();
         $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
-        $spareCosts = DB::table('complaint_spares')->join('spares','complaint_spares.spare_id','=','spares.id')
-            ->whereBetween('complaint_spares.used_at', [$dateFrom, $dateTo])
-            ->selectRaw('spares.category, SUM(complaint_spares.quantity * spares.unit_price) as total_cost')
+        
+        $spareCostsQuery = DB::table('complaint_spares')
+            ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
+            ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+            ->join('clients', 'complaints.client_id', '=', 'clients.id')
+            ->whereBetween('complaint_spares.used_at', [$dateFrom, $dateTo]);
+        
+        // Apply location filtering
+        if ($user && !$this->canViewAllData($user)) {
+            if ($user->city_id && $user->city) {
+                $spareCostsQuery->where('clients.city', $user->city->name);
+            }
+            if ($user->sector_id && $user->sector) {
+                $spareCostsQuery->where('clients.sector', $user->sector->name);
+            }
+        }
+        
+        $spareCosts = $spareCostsQuery->selectRaw('spares.category, SUM(complaint_spares.quantity * spares.unit_price) as total_cost')
             ->groupBy('spares.category')->get();
         $approvalCosts = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status','approved')->get()->groupBy(function($a){ return $a->created_at->format('Y-m'); })

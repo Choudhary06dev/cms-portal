@@ -198,4 +198,45 @@ trait LocationFilterTrait
 
         return [];
     }
+
+    /**
+     * Apply location-based filtering to spares query
+     */
+    public function filterSparesByLocation(Builder $query, $user): Builder
+    {
+        if (!$user || !$user->role) {
+            return $query;
+        }
+
+        $roleName = strtolower($user->role->role_name ?? '');
+
+        switch ($roleName) {
+            case 'director':
+                // Director can see all spares - no filter
+                break;
+
+            case 'garrison_engineer':
+                // GE can see only their city's spares
+                if ($user->city_id) {
+                    $query->where('city_id', $user->city_id);
+                } else {
+                    // If no city assigned, show nothing
+                    $query->whereRaw('1 = 0');
+                }
+                break;
+
+            case 'complaint_center':
+            case 'department_staff':
+                // Complaint Center and Department Staff can see only their sector's spares
+                if ($user->sector_id) {
+                    $query->where('sector_id', $user->sector_id);
+                } else {
+                    // If no sector assigned, show nothing
+                    $query->whereRaw('1 = 0');
+                }
+                break;
+        }
+
+        return $query;
+    }
 }

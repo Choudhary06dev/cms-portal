@@ -20,7 +20,7 @@ class CityController extends Controller
         }
 
         // Show all cities; status column indicates active/inactive
-        $cities = City::orderBy('name', 'asc')->paginate(15);
+        $cities = City::orderBy('id', 'desc')->paginate(15);
         return view('admin.city.index', compact('cities'));
     }
 

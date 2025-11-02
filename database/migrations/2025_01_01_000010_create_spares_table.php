@@ -19,6 +19,11 @@ return new class extends Migration
             $table->string('item_name', 150);
             // Category from complaint_categories table
             $table->string('category', 100);
+            // Location columns for city/sector-based filtering
+            $table->unsignedBigInteger('city_id')->nullable()->after('category');
+            $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
+            $table->unsignedBigInteger('sector_id')->nullable()->after('city_id');
+            $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
             $table->decimal('unit_price', 10, 2)->nullable();
             // Stock metrics
             $table->integer('total_received_quantity')->default(0);

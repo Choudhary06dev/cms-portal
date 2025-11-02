@@ -16,6 +16,8 @@ class Spare extends Model
         'brand_name',
         'item_name',
         'category',
+        'city_id',
+        'sector_id',
         'unit_price',
         'total_received_quantity',
         'issued_quantity',
@@ -58,6 +60,22 @@ class Spare extends Model
     public function approvalItems(): HasMany
     {
         return $this->hasMany(SpareApprovalItem::class);
+    }
+
+    /**
+     * Get the city that owns the spare.
+     */
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Get the sector that owns the spare.
+     */
+    public function sector()
+    {
+        return $this->belongsTo(Sector::class);
     }
 
     /**
