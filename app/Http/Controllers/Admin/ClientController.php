@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\City;
 use App\Models\Sector;
 use App\Traits\DatabaseTimeHelpers;
 use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
@@ -62,11 +62,15 @@ class ClientController extends Controller
 
         $clients = $query->orderBy('id', 'desc')->paginate(15);
         
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
         $sectors = Schema::hasTable('sectors')
             ? Sector::where('status', 'active')->orderBy('name')->pluck('name')
             : collect();
 
-        return view('admin.clients.index', compact('clients', 'sectors'));
+        return view('admin.clients.index', compact('clients', 'cities', 'sectors'));
     }
 
     /**
@@ -77,11 +81,15 @@ class ClientController extends Controller
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
         
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
         $sectors = Schema::hasTable('sectors')
             ? Sector::where('status', 'active')->orderBy('name')->pluck('name', 'name')
             : collect();
         
-        return view('admin.clients.create', compact('sectors'));
+        return view('admin.clients.create', compact('cities', 'sectors'));
     }
 
     /**
@@ -89,13 +97,18 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
+        $cityRule = 'required|string|max:50';
+        if (Schema::hasTable('cities')) {
+            $cityRule .= '|exists:cities,name';
+        }
+        
         $validator = Validator::make($request->all(), [
             'client_name' => 'required|string|max:100|unique:clients',
             'contact_person' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
             'address' => 'required|string|max:255',
-            'city' => 'required|string|max:50',
+            'city' => $cityRule,
             'sector' => 'required|string|max:100' . (Schema::hasTable('sectors') ? '|exists:sectors,name' : ''),
             'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             'status' => 'required|in:active,inactive',
@@ -158,11 +171,15 @@ class ClientController extends Controller
      */
     public function edit(Client $client)
     {
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
         $sectors = Schema::hasTable('sectors')
             ? Sector::where('status', 'active')->orderBy('name')->pluck('name', 'name')
             : collect();
         
-        return view('admin.clients.edit', compact('client', 'sectors'));
+        return view('admin.clients.edit', compact('client', 'cities', 'sectors'));
     }
 
     /**
@@ -170,13 +187,18 @@ class ClientController extends Controller
      */
     public function update(Request $request, Client $client)
     {
+        $cityRule = 'required|string|max:50';
+        if (Schema::hasTable('cities')) {
+            $cityRule .= '|exists:cities,name';
+        }
+        
         $validator = Validator::make($request->all(), [
             'client_name' => 'required|string|max:100|unique:clients,client_name,' . $client->id,
             'contact_person' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
             'address' => 'required|string|max:255',
-            'city' => 'required|string|max:50',
+            'city' => $cityRule,
             'sector' => 'required|string|max:100' . (Schema::hasTable('sectors') ? '|exists:sectors,name' : ''),
             'state' => 'required|string|max:50|in:sindh,punjab,kpk,balochistan,other',
             'status' => 'required|in:active,inactive',
@@ -207,6 +229,61 @@ class ClientController extends Controller
 
         return redirect()->route('admin.clients.index')
             ->with('success', 'Client updated successfully.');
+    }
+
+    /**
+     * Get sectors by city (AJAX)
+     */
+    public function getSectorsByCity(Request $request)
+    {
+        if (!Schema::hasTable('sectors')) {
+            return response()->json(['sectors' => []]);
+        }
+
+        $cityId = $request->input('city_id');
+        
+        // If city_name is provided instead of city_id, find the city
+        if ($request->has('city_name') && $request->city_name && !$cityId) {
+            $city = City::where('name', $request->city_name)->first();
+            if ($city) {
+                $cityId = $city->id;
+            }
+        }
+
+        // Convert to integer if it's a string
+        if ($cityId) {
+            $cityId = (int) $cityId;
+        }
+
+        if (!$cityId || $cityId <= 0) {
+            Log::info('No valid city ID provided', [
+                'city_id' => $request->input('city_id'),
+                'city_name' => $request->input('city_name'),
+                'all_request' => $request->all()
+            ]);
+            return response()->json(['sectors' => []]);
+        }
+
+        // Check if city exists
+        $city = City::find($cityId);
+        if (!$city) {
+            Log::warning('City not found', ['city_id' => $cityId]);
+            return response()->json(['sectors' => []]);
+        }
+
+        // Filter sectors by city_id - return sector names
+        $sectors = Sector::where('city_id', '=', $cityId)
+            ->where('status', '=', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        
+        Log::info('Sectors fetched for client', [
+            'requested_city_id' => $cityId,
+            'city_name' => $city->name,
+            'filtered_sectors_count' => $sectors->count()
+        ]);
+        
+        return response()->json(['sectors' => $sectors]);
     }
 
     /**

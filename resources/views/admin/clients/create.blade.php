@@ -83,8 +83,15 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="city" class="form-label text-white">City <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control @error('city') is-invalid @enderror" 
-                         id="city" name="city" value="{{ old('city', '') }}" autocomplete="off" required>
+                  <select class="form-select @error('city') is-invalid @enderror" 
+                          id="city" name="city" required>
+                    <option value="">Select City</option>
+                    @if(isset($cities) && $cities->count() > 0)
+                      @foreach ($cities as $city)
+                        <option value="{{ $city->name }}" data-id="{{ $city->id }}" {{ old('city') == $city->name ? 'selected' : '' }}>{{ $city->name }}</option>
+                      @endforeach
+                    @endif
+                  </select>
                   @error('city')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -94,11 +101,9 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="sector" class="form-label text-white">Sector <span class="text-danger">*</span></label>
-                  <select class="form-select @error('sector') is-invalid @enderror" id="sector" name="sector" required>
-                    <option value="">Select Sector</option>
-                    @foreach ($sectors as $sectorName)
-                      <option value="{{ $sectorName }}" {{ old('sector') == $sectorName ? 'selected' : '' }}>{{ $sectorName }}</option>
-                    @endforeach
+                  <select class="form-select @error('sector') is-invalid @enderror" 
+                          id="sector" name="sector" required disabled>
+                    <option value="">Select City First</option>
                   </select>
                   @error('sector')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -260,11 +265,71 @@ document.addEventListener('DOMContentLoaded', function() {
     clearFields();
     
     // Don't clear fields on focus to allow user input
+    
+    // Handle city change to filter sectors
+    const citySelect = document.getElementById('city');
+    const sectorSelect = document.getElementById('sector');
+    
+    if (citySelect && sectorSelect) {
+      citySelect.addEventListener('change', function() {
+        // Get the actual city ID value
+        const cityName = this.value;
+        const selectedOption = this.options[this.selectedIndex];
+        const cityId = selectedOption ? selectedOption.getAttribute('data-id') : null;
+        
+        console.log('City selected - name:', cityName, 'ID:', cityId);
+        
+        // Clear and disable sector dropdown
+        sectorSelect.innerHTML = '<option value="">Loading...</option>';
+        sectorSelect.disabled = true;
+        
+        if (cityId) {
+          // Fetch sectors for this city
+          const url = `{{ route('admin.clients.sectors') }}?city_id=${cityId}`;
+          console.log('Fetching sectors from:', url);
+          
+          fetch(url, {
+            method: 'GET',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Sectors data received:', data);
+            console.log('Number of sectors for city:', data.sectors ? data.sectors.length : 0);
+            sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+            
+            if (data.sectors && data.sectors.length > 0) {
+              data.sectors.forEach(function(sector) {
+                const option = document.createElement('option');
+                option.value = sector.name;
+                option.textContent = sector.name;
+                sectorSelect.appendChild(option);
+              });
+              sectorSelect.disabled = false;
+              console.log('Sectors loaded successfully:', data.sectors.length);
+            } else {
+              sectorSelect.innerHTML = '<option value="">No Sector Available</option>';
+              console.log('No sectors found for city ID:', cityId);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching sectors:', error);
+            sectorSelect.innerHTML = '<option value="">Error Loading Sectors</option>';
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value="">Select City First</option>';
+        }
+      });
+    }
 });
-</script>
-@endpush
-
-@push('scripts')
-<script>
 </script>
 @endpush
