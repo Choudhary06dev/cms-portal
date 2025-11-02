@@ -88,6 +88,46 @@
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
+            <label for="city_id" class="form-label text-white">City</label>
+            <select class="form-select @error('city_id') is-invalid @enderror" 
+                    id="city_id" name="city_id">
+              <option value="">Select City (if required)</option>
+              @foreach($cities as $city)
+                <option value="{{ $city->id }}" {{ old('city_id', $user->city_id) == $city->id ? 'selected' : '' }}>
+                  {{ $city->name }}
+                </option>
+              @endforeach
+            </select>
+            <small class="text-muted">Required for: GE, Complaint Center, Department Staff</small>
+            @error('city_id')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="sector_id" class="form-label text-white">Sector</label>
+            <select class="form-select @error('sector_id') is-invalid @enderror" 
+                    id="sector_id" name="sector_id">
+              <option value="">Select City first</option>
+              @foreach($sectors as $sector)
+                <option value="{{ $sector->id }}" {{ old('sector_id', $user->sector_id) == $sector->id ? 'selected' : '' }}>
+                  {{ $sector->name }}
+                </option>
+              @endforeach
+            </select>
+            <small class="text-muted">Required for: Complaint Center, Department Staff</small>
+            @error('sector_id')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
             <label for="status" class="form-label text-white">Status</label>
             <select class="form-select @error('status') is-invalid @enderror" 
                     id="status" name="status">
@@ -101,8 +141,6 @@
         </div>
         <div class="col-md-6"></div>
       </div>
-      
-      
       
       <div class="d-flex justify-content-end gap-2 mt-4">
         <a href="{{ route('admin.users.index', $user) }}" class="btn btn-outline-secondary">
@@ -200,5 +238,100 @@
 @push('scripts')
 <script>
   feather.replace();
+
+  // Dynamic sector loading based on city
+  const citySelect = document.getElementById('city_id');
+  const sectorSelect = document.getElementById('sector_id');
+  const roleSelect = document.getElementById('role_id');
+  const currentCityId = '{{ old('city_id', $user->city_id) }}';
+  const currentSectorId = '{{ old('sector_id', $user->sector_id) }}';
+
+  if (citySelect && sectorSelect) {
+    citySelect.addEventListener('change', function() {
+      const cityId = this.value;
+      
+      if (!cityId) {
+        sectorSelect.innerHTML = '<option value="">Select City first</option>';
+        sectorSelect.disabled = true;
+        return;
+      }
+
+      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+      sectorSelect.disabled = true;
+
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            if (currentSectorId && sector.id == currentSectorId) {
+              option.selected = true;
+            }
+            sectorSelect.appendChild(option);
+          });
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
+    });
+
+    // Handle role change - show/hide city/sector fields
+    if (roleSelect) {
+      roleSelect.addEventListener('change', function() {
+        const roleText = this.options[this.selectedIndex].text.toLowerCase();
+        
+        // Enable/disable city and sector based on role
+        if (roleText.includes('director') || roleText.includes('admin')) {
+          citySelect.disabled = true;
+          sectorSelect.disabled = true;
+          citySelect.value = '';
+          sectorSelect.innerHTML = '<option value="">Select City first</option>';
+          citySelect.required = false;
+          sectorSelect.required = false;
+        } else if (roleText.includes('garrison engineer') || roleText.includes('garrison_engineer')) {
+          citySelect.disabled = false;
+          sectorSelect.disabled = true;
+          sectorSelect.innerHTML = '<option value="">N/A</option>';
+          citySelect.required = true;
+          sectorSelect.required = false;
+        } else if (roleText.includes('complaint center') || roleText.includes('complaint_center') || 
+                   roleText.includes('department staff') || roleText.includes('department_staff')) {
+          citySelect.disabled = false;
+          citySelect.required = true;
+          sectorSelect.required = true;
+          // Sector will be enabled when city is selected
+        } else {
+          citySelect.disabled = false;
+          sectorSelect.disabled = false;
+          citySelect.required = false;
+          sectorSelect.required = false;
+        }
+      });
+
+      // Trigger on page load if role is pre-selected
+      if (roleSelect.value) {
+        roleSelect.dispatchEvent(new Event('change'));
+      }
+    }
+
+    // Trigger city change if pre-selected
+    if (citySelect.value) {
+      citySelect.dispatchEvent(new Event('change'));
+    }
+  }
 </script>
 @endpush

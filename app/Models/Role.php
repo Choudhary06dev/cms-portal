@@ -27,6 +27,7 @@ class Role extends Model
         static::saved(function ($role) {
             if ($role->id === 1) {
                 $modules = [
+                    'dashboard',
                     'users',
                     'roles',
                     'employees',

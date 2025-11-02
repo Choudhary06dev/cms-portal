@@ -20,29 +20,29 @@ return new class extends Migration
                 $table->timestamps();
             });
 
-            // Insert default roles
+            // Insert access level roles
             DB::table('roles')->insert([
                 [
-                    'role_name' => 'admin',
-                    'description' => 'System Administrator',
+                    'role_name' => 'director',
+                    'description' => 'Director - Head Office (Islamabad) - Can view all GEs and their complaints',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
-                    'role_name' => 'manager',
-                    'description' => 'Manager',
+                    'role_name' => 'garrison_engineer',
+                    'description' => 'Garrison Engineer (GE) - per city - Can view/manage complaint centers under his city',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
-                    'role_name' => 'employee',
-                    'description' => 'Employee',
+                    'role_name' => 'complaint_center',
+                    'description' => 'Complaint Center (Helpdesk staff) - Can register and track complaints for their area only',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
-                    'role_name' => 'client',
-                    'description' => 'Client',
+                    'role_name' => 'department_staff',
+                    'description' => 'Trade/Department Staff - Receive and register complaint, assign to concerned department',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],

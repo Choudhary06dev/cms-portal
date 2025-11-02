@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Sector;
 use App\Traits\DatabaseTimeHelpers;
+use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
-    use DatabaseTimeHelpers;
+    use DatabaseTimeHelpers, LocationFilterTrait;
     public function __construct()
     {
         // Middleware is applied in routes
@@ -23,7 +25,11 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $query = Client::withCount('complaints');
+
+        // Apply location-based filtering
+        $this->filterClientsByLocation($query, $user);
 
         // Search functionality
         if ($request->has('search') && $request->search) {

@@ -11,12 +11,14 @@ use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
 use App\Models\SlaRule;
 use App\Traits\DatabaseTimeHelpers;
+use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    use DatabaseTimeHelpers;
+    use DatabaseTimeHelpers, LocationFilterTrait;
     public function __construct()
     {
         // Middleware is applied in routes
@@ -24,19 +26,30 @@ class DashboardController extends Controller
 
     public function index()
     {
-        // Get dashboard statistics
-        $stats = $this->getDashboardStats();
+        $user = Auth::user();
         
-        // Get recent complaints
-        $recentComplaints = Complaint::with(['client', 'assignedEmployee'])
-            ->orderBy('created_at', 'desc')
+        // Get dashboard statistics
+        $stats = $this->getDashboardStats($user);
+        
+        // Get recent complaints with location filtering
+        $recentComplaintsQuery = Complaint::with(['client', 'assignedEmployee']);
+        $this->filterComplaintsByLocation($recentComplaintsQuery, $user);
+        $recentComplaints = $recentComplaintsQuery->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
-        // Get pending approvals
-        $pendingApprovals = SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare'])
-            ->where('status', 'pending')
-            ->orderBy('created_at', 'desc')
+        // Get pending approvals with location filtering
+        $pendingApprovalsQuery = SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare'])
+            ->where('status', 'pending');
+        
+        // Apply location filter through complaint relationship
+        if (!$this->canViewAllData($user)) {
+            $pendingApprovalsQuery->whereHas('complaint', function($q) use ($user) {
+                $this->filterComplaintsByLocation($q, $user);
+            });
+        }
+        
+        $pendingApprovals = $pendingApprovalsQuery->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
@@ -46,27 +59,34 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        // Get overdue complaints
-        $overdueComplaints = Complaint::overdue()
-            ->with(['client', 'assignedEmployee'])
-            ->orderBy('created_at', 'asc')
+        // Get overdue complaints with location filtering
+        $overdueComplaintsQuery = Complaint::overdue()
+            ->with(['client', 'assignedEmployee']);
+        $this->filterComplaintsByLocation($overdueComplaintsQuery, $user);
+        $overdueComplaints = $overdueComplaintsQuery->orderBy('created_at', 'asc')
             ->limit(10)
             ->get();
 
-        // Get complaints by status
-        $complaintsByStatus = Complaint::selectRaw('status, COUNT(*) as count')
+        // Get complaints by status with location filtering
+        $complaintsByStatusQuery = Complaint::query();
+        $this->filterComplaintsByLocation($complaintsByStatusQuery, $user);
+        $complaintsByStatus = $complaintsByStatusQuery->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
 
-        // Get complaints by category
-        $complaintsByType = Complaint::selectRaw('category, COUNT(*) as count')
+        // Get complaints by category with location filtering
+        $complaintsByTypeQuery = Complaint::query();
+        $this->filterComplaintsByLocation($complaintsByTypeQuery, $user);
+        $complaintsByType = $complaintsByTypeQuery->selectRaw('category, COUNT(*) as count')
             ->groupBy('category')
             ->pluck('count', 'category')
             ->toArray();
 
-        // Get employee performance
-        $employeePerformance = Employee::query()
+        // Get employee performance with location filtering
+        $employeePerformanceQuery = Employee::query();
+        $this->filterEmployeesByLocation($employeePerformanceQuery, $user);
+        $employeePerformance = $employeePerformanceQuery
             ->withCount(['assignedComplaints' => function($query) {
                 $query->where('created_at', '>=', now()->subDays(30));
             }])
@@ -97,28 +117,40 @@ class DashboardController extends Controller
     /**
      * Get dashboard statistics
      */
-    private function getDashboardStats()
+    private function getDashboardStats($user = null)
     {
         $today = now()->startOfDay();
         $thisMonth = now()->startOfMonth();
         $lastMonth = now()->subMonth()->startOfMonth();
 
-        return [
-            // Complaint statistics
-            'total_complaints' => Complaint::count(),
-            'new_complaints' => Complaint::where('status', 'new')->count(),
-            'pending_complaints' => Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
-            'resolved_complaints' => Complaint::whereIn('status', ['resolved', 'closed'])->count(),
-            'overdue_complaints' => Complaint::overdue()->count(),
-            'complaints_today' => Complaint::whereDate('created_at', $today)->count(),
-            'complaints_this_month' => Complaint::where('created_at', '>=', $thisMonth)->count(),
-            'complaints_last_month' => Complaint::whereBetween('created_at', [$lastMonth, $thisMonth])->count(),
+        // Apply location filtering to queries
+        $complaintsQuery = Complaint::query();
+        $this->filterComplaintsByLocation($complaintsQuery, $user);
+        
+        $employeesQuery = Employee::query();
+        $this->filterEmployeesByLocation($employeesQuery, $user);
+        
+        $clientsQuery = Client::query();
+        $this->filterClientsByLocation($clientsQuery, $user);
 
-            // User statistics
+        return [
+            // Complaint statistics with location filtering
+            'total_complaints' => (clone $complaintsQuery)->count(),
+            'new_complaints' => (clone $complaintsQuery)->where('status', 'new')->count(),
+            'pending_complaints' => (clone $complaintsQuery)->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
+            'resolved_complaints' => (clone $complaintsQuery)->whereIn('status', ['resolved', 'closed'])->count(),
+            'overdue_complaints' => (clone $complaintsQuery)->where(function($q) {
+                return $q->overdue();
+            })->count(),
+            'complaints_today' => (clone $complaintsQuery)->whereDate('created_at', $today)->count(),
+            'complaints_this_month' => (clone $complaintsQuery)->where('created_at', '>=', $thisMonth)->count(),
+            'complaints_last_month' => (clone $complaintsQuery)->whereBetween('created_at', [$lastMonth, $thisMonth])->count(),
+
+            // User statistics (users are not location-based)
             'total_users' => User::count(),
             'active_users' => User::where('status', 'active')->count(),
-            'total_employees' => Employee::count(),
-            'total_clients' => Client::count(),
+            'total_employees' => (clone $employeesQuery)->count(),
+            'total_clients' => (clone $clientsQuery)->count(),
 
             // Spare parts statistics
             'total_spares' => Spare::count(),

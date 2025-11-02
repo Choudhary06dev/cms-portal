@@ -117,4 +117,23 @@ class SectorController extends Controller
             return back()->with('error', 'Error deleting sector: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Get sectors by city (AJAX endpoint)
+     */
+    public function getSectorsByCity(Request $request)
+    {
+        $cityId = $request->query('city_id');
+        
+        if (!$cityId) {
+            return response()->json([]);
+        }
+
+        $sectors = Sector::where('city_id', $cityId)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($sectors);
+    }
 }

@@ -30,12 +30,16 @@ class RolePermission extends Model
     public static function getAvailableModules(): array
     {
         return [
+            'dashboard' => 'Dashboard',
             'users' => 'User Management',
+            'roles' => 'Role Management',
             'employees' => 'Employee Management',
             'clients' => 'Client Management',
             'complaints' => 'Complaint Management',
             'spares' => 'Spare Parts Management',
+            'approvals' => 'Approvals',
             'reports' => 'Reports & Analytics',
+            'sla' => 'SLA Rules',
             'settings' => 'System Settings',
         ];
     }

@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Designation;
 use App\Models\City;
 use App\Models\Sector;
+use App\Traits\LocationFilterTrait;
 // Removed User and Role dependencies as employees no longer link to users
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,10 +17,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class EmployeeController extends Controller
 {
+    use LocationFilterTrait;
     public function __construct()
     {
         // Middleware is handled in routes/web.php
@@ -30,7 +33,11 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $query = Employee::query();
+
+        // Apply location-based filtering
+        $this->filterEmployeesByLocation($query, $user);
 
         // Search functionality
         if ($request->has('search') && $request->search) {

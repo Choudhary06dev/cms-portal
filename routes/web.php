@@ -73,7 +73,9 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     // 🏠 Dashboard
     // ===============================
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::middleware(['permission:dashboard'])->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    });
     // Notifications API
     Route::get('/notifications/api', [AdminController::class, 'getNotifications'])->name('notifications.api');
     Route::get('/dashboard/chart-data', [AdminDashboardController::class, 'getChartData'])->name('dashboard.chart-data');
@@ -176,6 +178,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::resource('sector', AdminSectorController::class)
         ->only(['index','store','update','destroy'])
         ->middleware(['permission:employees.view']);
+    Route::get('sectors-by-city', [AdminSectorController::class, 'getSectorsByCity'])->name('sectors.by-city');
 
     // ===============================
     // 🏢 Cities

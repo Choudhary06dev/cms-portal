@@ -14,15 +14,18 @@ use App\Models\SpareApprovalPerforma;
 use App\Models\SpareApprovalItem;
 use App\Models\ComplaintAttachment;
 use App\Models\ComplaintLog;
+use App\Traits\LocationFilterTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ComplaintController extends Controller
 {
+    use LocationFilterTrait;
     public function __construct()
     {
         // Middleware is applied in routes
@@ -33,7 +36,11 @@ class ComplaintController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $query = Complaint::with(['client', 'assignedEmployee', 'attachments', 'spareParts.spare']);
+
+        // Apply location-based filtering
+        $this->filterComplaintsByLocation($query, $user);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -67,7 +74,7 @@ class ComplaintController extends Controller
             $query->where('assigned_employee_id', $request->assigned_employee_id);
         }
 
-        // Filter by client
+        // Filter by client (apply location filter)
         if ($request->has('client_id') && $request->client_id) {
             $query->where('client_id', $request->client_id);
         }
@@ -83,8 +90,15 @@ class ComplaintController extends Controller
 
         $complaints = $query->orderBy('id', 'desc')->paginate(15);
         
-        $clients = Client::orderBy('client_name')->get();
-        $employees = Employee::where('status', 'active')->get();
+        // Filter clients and employees by location
+        $clientsQuery = Client::query();
+        $this->filterClientsByLocation($clientsQuery, $user);
+        $clients = $clientsQuery->orderBy('client_name')->get();
+        
+        $employeesQuery = Employee::where('status', 'active');
+        $this->filterEmployeesByLocation($employeesQuery, $user);
+        $employees = $employeesQuery->get();
+        
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();

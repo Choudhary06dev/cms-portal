@@ -36,12 +36,25 @@
             
             <div class="row">
               @php
-              $modules = ['users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
+              $modules = ['dashboard', 'users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
+              $moduleLabels = [
+                'dashboard' => 'Dashboard',
+                'users' => 'User Management',
+                'roles' => 'Role Management',
+                'employees' => 'Employee Management',
+                'clients' => 'Client Management',
+                'complaints' => 'Complaint Management',
+                'spares' => 'Spare Parts Management',
+                'approvals' => 'Approvals',
+                'reports' => 'Reports & Analytics',
+                'sla' => 'SLA Rules',
+              ];
               @endphp
               
               @foreach($modules as $module)
               @php
               $hasPermission = $role->rolePermissions->where('module_name', $module)->first();
+              $moduleLabel = $moduleLabels[$module] ?? ucfirst($module);
               @endphp
               <div class="col-md-6 col-lg-4 mb-3">
                 <div class="form-check">
@@ -52,7 +65,7 @@
                          {{ ($role->id === 1 || $hasPermission) ? 'checked' : '' }}
                          {{ $role->id === 1 ? 'disabled' : '' }}>
                   <label class="form-check-label" for="{{ $module }}">
-                    {{ ucfirst($module) }}
+                    {{ $moduleLabel }}
                     @if($role->id === 1)
                       <span class="badge bg-success ms-2">Auto</span>
                     @endif

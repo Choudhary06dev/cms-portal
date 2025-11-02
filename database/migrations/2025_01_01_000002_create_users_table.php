@@ -19,9 +19,19 @@ return new class extends Migration
             $table->string('email', 150)->nullable();
             $table->string('phone', 20)->nullable();
             $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            $table->unsignedBigInteger('city_id')->nullable()->after('role_id');
+            $table->unsignedBigInteger('sector_id')->nullable()->after('city_id');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('theme', 10)->default('auto');
             $table->timestamps();
+            
+            // Add foreign key constraints only if cities and sectors tables exist
+            if (Schema::hasTable('cities')) {
+                $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
+            }
+            if (Schema::hasTable('sectors')) {
+                $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
+            }
         });
     }
 

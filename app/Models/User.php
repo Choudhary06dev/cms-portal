@@ -20,6 +20,8 @@ class User extends Authenticatable
         'email',
         'phone',
         'role_id',
+        'city_id',
+        'sector_id',
         'status',
         'theme',
     ];
@@ -48,6 +50,22 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get the city that owns the user.
+     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Get the sector that owns the user.
+     */
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(Sector::class);
     }
 
     /**

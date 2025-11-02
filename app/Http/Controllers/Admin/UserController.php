@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\RolePermission;
+use App\Models\City;
+use App\Models\Sector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -55,7 +57,9 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('admin.users.create', compact('roles'));
+        $cities = City::where('status', 'active')->orderBy('name')->get();
+        $sectors = collect(); // Will be populated dynamically based on selected city
+        return view('admin.users.create', compact('roles', 'cities', 'sectors'));
     }
 
     /**
@@ -68,6 +72,8 @@ class UserController extends Controller
             'email' => 'nullable|email|max:150|unique:users',
             'password' => 'required|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -77,12 +83,31 @@ class UserController extends Controller
                 ->withInput();
         }
 
+        // Get role to check if city/sector is required
+        $role = Role::find($request->role_id);
+        $roleName = strtolower($role->role_name ?? '');
+
+        // Validate city/sector based on role
+        if ($roleName === 'garrison_engineer' && !$request->city_id) {
+            return redirect()->back()
+                ->withErrors(['city_id' => 'City is required for Garrison Engineer role'])
+                ->withInput();
+        }
+
+        if (in_array($roleName, ['complaint_center', 'department_staff']) && (!$request->city_id || !$request->sector_id)) {
+            return redirect()->back()
+                ->withErrors(['city_id' => 'City and Sector are required for this role', 'sector_id' => 'City and Sector are required for this role'])
+                ->withInput();
+        }
+
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
+            'city_id' => $request->city_id,
+            'sector_id' => $request->sector_id,
             'status' => $request->status,
         ]);
 
@@ -105,7 +130,11 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        return view('admin.users.edit', compact('user', 'roles'));
+        $cities = City::where('status', 'active')->orderBy('name')->get();
+        $sectors = $user->city_id 
+            ? Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('name')->get()
+            : collect();
+        return view('admin.users.edit', compact('user', 'roles', 'cities', 'sectors'));
     }
 
     /**
@@ -119,6 +148,8 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'status' => 'required|in:active,inactive',
             'theme' => 'nullable|in:auto,light,dark',
         ]);
@@ -129,12 +160,36 @@ class UserController extends Controller
                 ->withInput();
         }
 
+        // Get role to check if city/sector is required
+        $role = Role::find($request->role_id);
+        $roleName = strtolower($role->role_name ?? '');
+
+        // Validate city/sector based on role
+        if ($roleName === 'garrison_engineer' && !$request->city_id) {
+            return redirect()->back()
+                ->withErrors(['city_id' => 'City is required for Garrison Engineer role'])
+                ->withInput();
+        }
+
+        if (in_array($roleName, ['complaint_center', 'department_staff']) && (!$request->city_id || !$request->sector_id)) {
+            return redirect()->back()
+                ->withErrors(['city_id' => 'City and Sector are required for this role', 'sector_id' => 'City and Sector are required for this role'])
+                ->withInput();
+        }
+
+        // If role doesn't require location, clear city_id and sector_id
+        if ($roleName === 'director' || $roleName === 'admin') {
+            $request->merge(['city_id' => null, 'sector_id' => null]);
+        }
+
         try {
             $updateData = [
                 'username' => $request->username,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role_id' => $request->role_id,
+                'city_id' => $request->city_id,
+                'sector_id' => $request->sector_id,
                 'status' => $request->status,
             ];
 

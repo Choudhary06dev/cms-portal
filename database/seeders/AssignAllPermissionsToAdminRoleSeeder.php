@@ -16,6 +16,7 @@ class AssignAllPermissionsToAdminRoleSeeder extends Seeder
     {
         // Get all available modules
         $modules = [
+            'dashboard',
             'users',
             'roles',
             'employees',

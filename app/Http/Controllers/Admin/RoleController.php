@@ -220,6 +220,7 @@ class RoleController extends Controller
             // Special handling for role_id = 1 (Admin) - always has all permissions
             if ($role->id === 1) {
                 $allModules = [
+                    'dashboard',
                     'users',
                     'roles',
                     'employees',

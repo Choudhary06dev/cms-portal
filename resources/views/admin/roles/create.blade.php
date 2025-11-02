@@ -48,10 +48,25 @@
               <h6 class="text-white fw-bold mb-3">Select Modules</h6>
               <div class="row">
                 @php
-                $modules = ['users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
+                $modules = ['dashboard', 'users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
+                $moduleLabels = [
+                  'dashboard' => 'Dashboard',
+                  'users' => 'User Management',
+                  'roles' => 'Role Management',
+                  'employees' => 'Employee Management',
+                  'clients' => 'Client Management',
+                  'complaints' => 'Complaint Management',
+                  'spares' => 'Spare Parts Management',
+                  'approvals' => 'Approvals',
+                  'reports' => 'Reports & Analytics',
+                  'sla' => 'SLA Rules',
+                ];
                 @endphp
                 
                 @foreach($modules as $module)
+                @php
+                $moduleLabel = $moduleLabels[$module] ?? ucfirst($module);
+                @endphp
                 <div class="col-md-6 col-lg-4 mb-3">
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" 
@@ -59,7 +74,7 @@
                            name="permissions[]"
                            value="{{ $module }}" {{ old('permissions') && in_array($module, old('permissions')) ? 'checked' : '' }}>
                     <label class="form-check-label text-white" for="{{ $module }}">
-                      {{ ucfirst($module) }}
+                      {{ $moduleLabel }}
                     </label>
                   </div>
                 </div>

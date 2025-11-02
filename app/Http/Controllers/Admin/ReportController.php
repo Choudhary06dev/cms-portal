@@ -10,12 +10,15 @@ use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
 use App\Models\EmployeeLeave;
 use App\Models\ReportsSummary;
+use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
+    use LocationFilterTrait;
     public function __construct()
     {
         // Middleware is applied in routes
@@ -51,13 +54,13 @@ class ReportController extends Controller
                     ->whereBetween('updated_at', [$startOfMonth, $now])
                     ->count(),
                 'pending' => \App\Models\Complaint::where('status', '!=', 'resolved')->count(),
-                'avg_resolution_time' => $this->getAverageResolutionTime()
+                'avg_resolution_time' => $this->getAverageResolutionTime(Auth::user())
             ],
             'employees' => [
                 'total' => \App\Models\Employee::count(),
                 'active' => \App\Models\Employee::where('status', 'active')->count(),
                 'on_leave' => \App\Models\EmployeeLeave::where('status', 'pending')->count(),
-                'avg_performance' => $this->getAverageEmployeePerformance()
+                'avg_performance' => $this->getAverageEmployeePerformance(Auth::user())
             ],
             'spares' => [
                 'total_items' => \App\Models\Spare::count(),
@@ -77,11 +80,12 @@ class ReportController extends Controller
     /**
      * Get average resolution time in hours
      */
-    private function getAverageResolutionTime()
+    private function getAverageResolutionTime($user = null)
     {
-        $resolvedComplaints = \App\Models\Complaint::where('status', 'resolved')
-            ->whereNotNull('updated_at')
-            ->get();
+        $query = \App\Models\Complaint::where('status', 'resolved')
+            ->whereNotNull('updated_at');
+        $this->filterComplaintsByLocation($query, $user);
+        $resolvedComplaints = $query->get();
             
         if ($resolvedComplaints->isEmpty()) {
             return 0;
@@ -97,10 +101,24 @@ class ReportController extends Controller
     /**
      * Get average employee performance
      */
-    private function getAverageEmployeePerformance()
+    private function getAverageEmployeePerformance($user = null)
     {
-        $employees = \App\Models\Employee::with(['assignedComplaints' => function($query) {
+        $employeesQuery = \App\Models\Employee::query();
+        $this->filterEmployeesByLocation($employeesQuery, $user);
+        
+        $employees = $employeesQuery->with(['assignedComplaints' => function($query) use ($user) {
             $query->where('status', 'resolved');
+            // Apply location filter to complaints
+            if ($user && !$this->canViewAllData($user)) {
+                $query->whereHas('client', function($q) use ($user) {
+                    if ($user->city_id) {
+                        $q->where('city_id', $user->city_id);
+                    }
+                    if ($user->sector_id) {
+                        $q->where('sector_id', $user->sector_id);
+                    }
+                });
+            }
         }])->get();
         
         if ($employees->isEmpty()) {
@@ -159,39 +177,56 @@ class ReportController extends Controller
      */
     private function getRealTimeStats()
     {
+        $user = Auth::user();
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
         
+        // Apply location filtering
+        $complaintsQuery = Complaint::query();
+        $this->filterComplaintsByLocation($complaintsQuery, $user);
+        
+        $employeesQuery = Employee::where('status', 'active');
+        $this->filterEmployeesByLocation($employeesQuery, $user);
+        
+        $clientsQuery = Client::query();
+        $this->filterClientsByLocation($clientsQuery, $user);
+        
         return [
-            'active_complaints' => Complaint::where('status', '!=', 'resolved')->count(),
-            'resolved_this_month' => Complaint::where('status', 'resolved')
+            'active_complaints' => (clone $complaintsQuery)->where('status', '!=', 'resolved')->count(),
+            'resolved_this_month' => (clone $complaintsQuery)->where('status', 'resolved')
                 ->whereBetween('updated_at', [$startOfMonth, $now])
                 ->count(),
-            'sla_compliance' => $this->calculateSlaCompliance(),
-            'active_employees' => Employee::where('status', 'active')->count(),
+            'sla_compliance' => $this->calculateSlaCompliance($user),
+            'active_employees' => (clone $employeesQuery)->count(),
             'total_spares' => Spare::count(),
             'low_stock_items' => Spare::where('stock_quantity', '<=', DB::raw('threshold_level'))->count(),
             'out_of_stock_items' => Spare::where('stock_quantity', 0)->count(),
             'total_approvals' => SpareApprovalPerforma::count(),
             'pending_approvals' => SpareApprovalPerforma::where('status', 'pending')->count(),
-            'total_clients' => \App\Models\Client::count(),
-            'active_clients' => \App\Models\Client::where('status', 'active')->count(),
+            'total_clients' => (clone $clientsQuery)->count(),
+            'active_clients' => (clone $clientsQuery)->where('status', 'active')->count(),
             'total_spare_value' => Spare::sum(DB::raw('stock_quantity * unit_price')),
-            'avg_resolution_time' => $this->getAverageResolutionTime(),
-            'employee_performance' => $this->getAverageEmployeePerformance()
+            'avg_resolution_time' => $this->getAverageResolutionTime($user),
+            'employee_performance' => $this->getAverageEmployeePerformance($user)
         ];
     }
 
     /**
      * Calculate SLA compliance percentage
      */
-    private function calculateSlaCompliance()
+    private function calculateSlaCompliance($user = null)
     {
-        $totalComplaints = Complaint::count();
+        $complaintsQuery = Complaint::query();
+        $this->filterComplaintsByLocation($complaintsQuery, $user);
+        
+        $totalComplaints = (clone $complaintsQuery)->count();
         if ($totalComplaints === 0) return 100;
         
         // Get complaints that are resolved and within SLA time limits
-        $compliantComplaints = Complaint::where('status', 'resolved')
+        $compliantComplaintsQuery = Complaint::query();
+        $this->filterComplaintsByLocation($compliantComplaintsQuery, $user);
+        
+        $compliantComplaints = (clone $compliantComplaintsQuery)->where('status', 'resolved')
             ->whereHas('slaRule', function($query) {
                 $query->whereRaw('TIMESTAMPDIFF(HOUR, complaints.created_at, complaints.updated_at) <= sla_rules.max_resolution_time');
             })->count();
@@ -204,12 +239,14 @@ class ReportController extends Controller
      */
     private function getRecentActivity()
     {
+        $user = Auth::user();
         $activities = collect();
         
         try {
-            // Recent complaints
-            $recentComplaints = Complaint::with(['client', 'assignedEmployee'])
-                ->latest()
+            // Recent complaints with location filtering
+            $recentComplaintsQuery = Complaint::with(['client', 'assignedEmployee']);
+            $this->filterComplaintsByLocation($recentComplaintsQuery, $user);
+            $recentComplaints = $recentComplaintsQuery->latest()
                 ->limit(3)
                 ->get();
                 
@@ -536,11 +573,16 @@ class ReportController extends Controller
      */
     public function clients(Request $request)
     {
+        $user = Auth::user();
         $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
         $dateTo = $request->date_to ?? now()->format('Y-m-d');
         $status = $request->status; // optional filter
 
         $query = Client::query();
+        
+        // Apply location-based filtering
+        $this->filterClientsByLocation($query, $user);
+        
         if ($status) {
             $query->where('status', $status);
         }
