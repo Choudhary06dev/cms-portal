@@ -253,6 +253,31 @@ class ReportController extends Controller
         $clientsQuery = Client::query();
         $this->filterClientsByLocation($clientsQuery, $user);
         
+        // Spares with location filtering
+        $sparesQuery = Spare::query();
+        $this->filterSparesByLocation($sparesQuery, $user);
+        
+        // Approvals with location filtering
+        $approvalsQuery = SpareApprovalPerforma::query();
+        $pendingApprovalsQuery = SpareApprovalPerforma::where('status', 'pending');
+        
+        if ($user && !$this->canViewAllData($user)) {
+            $filterApprovals = function($query) use ($user) {
+                $query->whereHas('complaint', function($q) use ($user) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        if ($user->city_id && $user->city) {
+                            $clientQ->where('city', $user->city->name);
+                        }
+                        if ($user->sector_id && $user->sector) {
+                            $clientQ->where('sector', $user->sector->name);
+                        }
+                    });
+                });
+            };
+            $filterApprovals($approvalsQuery);
+            $filterApprovals($pendingApprovalsQuery);
+        }
+        
         return [
             'active_complaints' => (clone $complaintsQuery)->where('status', '!=', 'resolved')->count(),
             'resolved_this_month' => (clone $complaintsQuery)->where('status', 'resolved')
@@ -260,14 +285,14 @@ class ReportController extends Controller
                 ->count(),
             'sla_compliance' => $this->calculateSlaCompliance($user),
             'active_employees' => (clone $employeesQuery)->count(),
-            'total_spares' => Spare::count(),
-            'low_stock_items' => Spare::where('stock_quantity', '<=', DB::raw('threshold_level'))->count(),
-            'out_of_stock_items' => Spare::where('stock_quantity', 0)->count(),
-            'total_approvals' => SpareApprovalPerforma::count(),
-            'pending_approvals' => SpareApprovalPerforma::where('status', 'pending')->count(),
+            'total_spares' => (clone $sparesQuery)->count(),
+            'low_stock_items' => (clone $sparesQuery)->where('stock_quantity', '<=', DB::raw('threshold_level'))->count(),
+            'out_of_stock_items' => (clone $sparesQuery)->where('stock_quantity', 0)->count(),
+            'total_approvals' => $approvalsQuery->count(),
+            'pending_approvals' => $pendingApprovalsQuery->count(),
             'total_clients' => (clone $clientsQuery)->count(),
             'active_clients' => (clone $clientsQuery)->where('status', 'active')->count(),
-            'total_spare_value' => Spare::sum(DB::raw('stock_quantity * unit_price')),
+            'total_spare_value' => (clone $sparesQuery)->sum(DB::raw('stock_quantity * unit_price')),
             'avg_resolution_time' => $this->getAverageResolutionTime($user),
             'employee_performance' => $this->getAverageEmployeePerformance($user)
         ];
@@ -323,9 +348,24 @@ class ReportController extends Controller
                 ]);
             }
             
-            // Recent approvals
-            $recentApprovals = SpareApprovalPerforma::with(['requestedBy'])
-                ->latest()
+            // Recent approvals with location filtering
+            $recentApprovalsQuery = SpareApprovalPerforma::with(['requestedBy']);
+            
+            // Apply location filtering to approvals
+            if ($user && !$this->canViewAllData($user)) {
+                $recentApprovalsQuery->whereHas('complaint', function($q) use ($user) {
+                    $q->whereHas('client', function($clientQ) use ($user) {
+                        if ($user->city_id && $user->city) {
+                            $clientQ->where('city', $user->city->name);
+                        }
+                        if ($user->sector_id && $user->sector) {
+                            $clientQ->where('sector', $user->sector->name);
+                        }
+                    });
+                });
+            }
+            
+            $recentApprovals = $recentApprovalsQuery->latest()
                 ->limit(2)
                 ->get();
                 
@@ -340,10 +380,18 @@ class ReportController extends Controller
                 ]);
             }
             
-            // Recent employee activities
-            $recentLeaves = EmployeeLeave::with(['employee'])
-                ->where('status', 'pending')
-                ->latest()
+            // Recent employee activities with location filtering
+            $recentLeavesQuery = EmployeeLeave::with(['employee'])
+                ->where('status', 'pending');
+            
+            // Apply location filtering to employee leaves
+            if ($user && !$this->canViewAllData($user)) {
+                $recentLeavesQuery->whereHas('employee', function($q) use ($user) {
+                    $this->filterEmployeesByLocation($q, $user);
+                });
+            }
+            
+            $recentLeaves = $recentLeavesQuery->latest()
                 ->limit(1)
                 ->get();
                 

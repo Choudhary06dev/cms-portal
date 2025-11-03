@@ -7,11 +7,11 @@
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h2 class="text-white mb-2" >Reports & Analytics</h2>
-      <p class="text-light" >Generate comprehensive reports and analytics</p>
+      <h2 class="text-white mb-2">Reports & Analytics</h2>
+      <p class="text-light mb-0">Generate comprehensive reports and analytics</p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-accent">
+      <button class="btn btn-outline-secondary" onclick="refreshReportData()">
         <i data-feather="refresh-cw" class="me-2"></i>Refresh Data
       </button>
     </div>
@@ -19,180 +19,214 @@
 </div>
 
 <!-- REPORT CARDS -->
-<div class="row g-4 mb-4 justify-content-center">
+<div class="row g-4 mb-4">
   <div class="col-md-3">
-    <div class="card-glass text-center">
+    <div class="card-glass text-center h-100">
       <div class="mb-3">
-        <i data-feather="alert-circle" class="feather-lg text-primary"></i>
+        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <i data-feather="alert-circle" class="feather-lg text-white" style="width: 28px; height: 28px;"></i>
+        </div>
       </div>
-      <h4 class="text-white mb-1">Complaints Report</h4>
-      <p class="text-muted mb-3">Performance</p>
+      <h4 class="text-white mb-2">Complaints Report</h4>
+      <p class="text-muted mb-3" style="font-size: 0.9rem;">Performance analysis and statistics</p>
       <a href="{{ route('admin.reports.complaints') }}" class="btn btn-outline-primary btn-sm">
-        View Report
+        <i data-feather="file-text" class="me-2" style="width: 14px; height: 14px;"></i>View Report
       </a>
     </div>
   </div>
   
   <div class="col-md-3">
-    <div class="card-glass text-center">
+    <div class="card-glass text-center h-100">
       <div class="mb-3">
-        <i data-feather="users" class="feather-lg text-success"></i>
+        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <i data-feather="users" class="feather-lg text-white" style="width: 28px; height: 28px;"></i>
+        </div>
       </div>
-      <h4 class="text-white mb-1">Employee Report</h4>
-      <p class="text-muted mb-3">Employee performance and attendance</p>
-      <a href="{{ route('admin.reports.employees') }}" class="btn btn-outline-success btn-sm">View Report</a>
+      <h4 class="text-white mb-2">Employee Report</h4>
+      <p class="text-muted mb-3" style="font-size: 0.9rem;">Employee performance and attendance</p>
+      <a href="{{ route('admin.reports.employees') }}" class="btn btn-outline-success btn-sm">
+        <i data-feather="file-text" class="me-2" style="width: 14px; height: 14px;"></i>View Report
+      </a>
     </div>
   </div>
   
   <div class="col-md-3">
-    <div class="card-glass text-center">
+    <div class="card-glass text-center h-100">
       <div class="mb-3">
-        <i data-feather="package" class="feather-lg text-warning"></i>
+        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <i data-feather="package" class="feather-lg text-white" style="width: 28px; height: 28px;"></i>
+        </div>
       </div>
-      <h4 class="text-white mb-1">Spare Parts Report</h4>
-      <p class="text-muted mb-3">Inventory and usage statistics</p>
-      <a href="{{ route('admin.reports.spares') }}" class="btn btn-outline-warning btn-sm">View Report</a>
+      <h4 class="text-white mb-2">Store Products Report</h4>
+      <p class="text-muted mb-3" style="font-size: 0.9rem;">Inventory and usage statistics</p>
+      <a href="{{ route('admin.reports.spares') }}" class="btn btn-outline-warning btn-sm">
+        <i data-feather="file-text" class="me-2" style="width: 14px; height: 14px;"></i>View Report
+      </a>
     </div>
   </div>
   
-  
+  <div class="col-md-3">
+    <div class="card-glass text-center h-100">
+      <div class="mb-3">
+        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <i data-feather="clock" class="feather-lg text-white" style="width: 28px; height: 28px;"></i>
+        </div>
+      </div>
+      <h4 class="text-white mb-2">SLA Report</h4>
+      <p class="text-muted mb-3" style="font-size: 0.9rem;">Service level agreement compliance</p>
+      <a href="{{ route('admin.reports.sla') }}" class="btn btn-outline-danger btn-sm">
+        <i data-feather="file-text" class="me-2" style="width: 14px; height: 14px;"></i>View Report
+      </a>
+    </div>
+  </div>
 </div>
 
 <!-- QUICK STATS -->
 <div class="row g-4 mb-4">
-  <div class="col-md-6">
+  <div class="col-md-8">
     <div class="card-glass">
-      <h5 class="text-white mb-3">Quick Statistics</h5>
-      <div class="row g-3">
-        <!-- Row 1: Complaints & SLA -->
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-primary mb-1">{{ $stats['active_complaints'] ?? 0 }}</div>
-            <div class="text-muted small">Active Complaints</div>
+      <div class="card-header mb-3">
+        <h5 class="text-white mb-0">
+          <i data-feather="bar-chart-2" class="me-2"></i>Quick Statistics
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Row 1: Complaints -->
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #3b82f6;">
+              <div class="h3 text-primary mb-1 fw-bold">{{ $stats['active_complaints'] ?? 0 }}</div>
+              <div class="text-muted small">Active Complaints</div>
+            </div>
           </div>
-        </div>
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-success mb-1">{{ $stats['resolved_this_month'] ?? 0 }}</div>
-            <div class="text-muted small">Resolved This Month</div>
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid #10b981;">
+              <div class="h3 text-success mb-1 fw-bold">{{ $stats['resolved_this_month'] ?? 0 }}</div>
+              <div class="text-muted small">Resolved This Month</div>
+            </div>
           </div>
-        </div>
-        
-        <!-- Row 2: SLA & Employees -->
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-warning mb-1">{{ $stats['sla_compliance'] ?? 0 }}%</div>
-            <div class="text-muted small">SLA Compliance</div>
+          
+          <!-- Row 2: Employees & SLA -->
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #06b6d4;">
+              <div class="h3 text-info mb-1 fw-bold">{{ $stats['active_employees'] ?? 0 }}</div>
+              <div class="text-muted small">Active Employees</div>
+            </div>
           </div>
-        </div>
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-info mb-1">{{ $stats['active_employees'] ?? 0 }}</div>
-            <div class="text-muted small">Active Employees</div>
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px; border-left: 3px solid #f59e0b;">
+              <div class="h3 text-warning mb-1 fw-bold">{{ $stats['sla_compliance'] ?? 0 }}%</div>
+              <div class="text-muted small">SLA Compliance</div>
+            </div>
           </div>
-        </div>
-        
-        <!-- Row 3: Spare Parts & Stock -->
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-secondary mb-1">{{ $stats['total_spares'] ?? 0 }}</div>
-            <div class="text-muted small">Total Spare Parts</div>
+          
+          <!-- Row 3: Spare Parts -->
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(139, 92, 246, 0.1); border-radius: 8px; border-left: 3px solid #8b5cf6;">
+              <div class="h3 text-secondary mb-1 fw-bold">{{ $stats['total_spares'] ?? 0 }}</div>
+              <div class="text-muted small">Total Spare Parts</div>
+            </div>
           </div>
-        </div>
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-danger mb-1">{{ $stats['low_stock_items'] ?? 0 }}</div>
-            <div class="text-muted small">Low Stock Items</div>
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(239, 68, 68, 0.1); border-radius: 8px; border-left: 3px solid #ef4444;">
+              <div class="h3 text-danger mb-1 fw-bold">{{ $stats['low_stock_items'] ?? 0 }}</div>
+              <div class="text-muted small">Low Stock Items</div>
+            </div>
           </div>
-        </div>
-        
-        <!-- Row 4: Approvals & Clients -->
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-warning mb-1">{{ $stats['pending_approvals'] ?? 0 }}</div>
-            <div class="text-muted small">Pending Approvals</div>
+          
+          <!-- Row 4: Performance -->
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid #10b981;">
+              <div class="h3 text-success mb-1 fw-bold">{{ $stats['employee_performance'] ?? 0 }}%</div>
+              <div class="text-muted small">Avg Performance</div>
+            </div>
           </div>
-        </div>
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-success mb-1">{{ $stats['active_clients'] ?? 0 }}</div>
-            <div class="text-muted small">Active Clients</div>
-          </div>
-        </div>
-        
-        <!-- Row 5: Performance & Resolution Time -->
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-info mb-1">{{ $stats['employee_performance'] ?? 0 }}%</div>
-            <div class="text-muted small">Avg Performance</div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="text-center">
-            <div class="h4 text-primary mb-1">{{ $stats['avg_resolution_time'] ?? 0 }}h</div>
-            <div class="text-muted small">Avg Resolution Time</div>
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #3b82f6;">
+              <div class="h3 text-primary mb-1 fw-bold">{{ $stats['avg_resolution_time'] ?? 0 }}h</div>
+              <div class="text-muted small">Avg Resolution Time</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-6">
-    <div class="card-glass">
-      <h5 class="text-white mb-3">Recent Activity</h5>
-      <div class="list-group list-group-flush">
-        @forelse($recentActivity as $activity)
-        <div class="list-group-item d-flex justify-content-between align-items-center" style="background: transparent; border: none; color: #cbd5e1;">
-          <div>
-            <div class="fw-bold">{{ $activity['title'] }}</div>
-            <small class="text-muted">{{ $activity['description'] }}</small>
-            <br><small class="text-muted">{{ $activity['time'] }}</small>
+  <div class="col-md-4">
+    <div class="card-glass h-100">
+      <div class="card-header mb-3">
+        <h5 class="text-white mb-0">
+          <i data-feather="activity" class="me-2"></i>Recent Activity
+        </h5>
+      </div>
+      <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+        <div class="list-group list-group-flush">
+          @forelse($recentActivity as $activity)
+          <div class="list-group-item px-0 py-2" style="background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1) !important;">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="fw-bold text-white mb-1" style="font-size: 0.9rem;">{{ $activity['title'] }}</div>
+                <small class="text-muted d-block" style="font-size: 0.8rem;">{{ $activity['description'] }}</small>
+                <small class="text-muted" style="font-size: 0.75rem;">{{ $activity['time'] }}</small>
+              </div>
+              <span class="badge bg-{{ $activity['badge_class'] }} ms-2">{{ $activity['badge'] }}</span>
+            </div>
           </div>
-          <span class="badge bg-{{ $activity['badge_class'] }}">{{ $activity['badge'] }}</span>
+          @empty
+          <div class="text-center py-4">
+            <i data-feather="inbox" class="feather-lg text-muted mb-2"></i>
+            <div class="text-muted">No recent activity</div>
+          </div>
+          @endforelse
         </div>
-        @empty
-        <div class="list-group-item text-center" style="background: transparent; border: none; color: #cbd5e1;">
-          <div class="text-muted">No recent activity</div>
-        </div>
-        @endforelse
       </div>
     </div>
   </div>
 </div>
 
 <!-- REPORT FILTERS -->
-<div class="card-glass">
-  <h5 class="text-white mb-3">Generate Custom Report</h5>
-  <form id="customReportForm">
-    <div class="row g-3">
-      <div class="col-md-3">
-        <label class="form-label text-white">Report Type</label>
-        <select name="report_type" class="form-select" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;" required>
-          <option value="">Select Report Type</option>
-          <option value="complaints">Complaints Report</option>
-          <option value="employees">Employee Report</option>
-          <option value="spares">Spare Parts Report</option>
-          
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label text-white">Date From</label>
-        <input type="date" name="date_from" class="form-control" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;" required>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label text-white">Date To</label>
-        <input type="date" name="date_to" class="form-control" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff;" required>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label text-white">&nbsp;</label>
-        <div class="d-grid">
-          <button type="submit" class="btn btn-accent">
-            <i data-feather="file-text" class="me-2"></i>Generate Report
+<div class="card-glass mb-4">
+  <div class="card-header mb-3">
+    <h5 class="text-white mb-0">
+      <i data-feather="filter" class="me-2"></i>Generate Custom Report
+    </h5>
+  </div>
+  <div class="card-body">
+    <form id="customReportForm">
+      <div class="row g-2 align-items-end">
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Report Type</label>
+          <select name="report_type" class="form-select" style="font-size: 0.9rem; width: 180px;" required>
+            <option value="">Select Type</option>
+            <option value="complaints">Complaints</option>
+            <option value="employees">Employees</option>
+            <option value="spares">Store Products</option>
+            <option value="sla">SLA</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From Date</label>
+          <input type="date" name="date_from" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To Date</label>
+          <input type="date" name="date_to" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+          <button type="submit" class="btn btn-accent btn-sm" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+            <i data-feather="file-text" class="me-1" style="width: 14px; height: 14px;"></i>Generate
+          </button>
+        </div>
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetCustomReportForm()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+            <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
           </button>
         </div>
       </div>
-    </div>
-  </form>
+    </form>
+  </div>
 </div>
 
 @endsection
@@ -203,14 +237,6 @@
 
 
   document.addEventListener('DOMContentLoaded', function() {
-    // Refresh Data functionality
-    const refreshBtn = document.querySelector('.btn-accent');
-    if (refreshBtn && refreshBtn.textContent.includes('Refresh Data')) {
-      refreshBtn.addEventListener('click', function() {
-        refreshReportData();
-      });
-    }
-
     // Custom Report Form
     const customReportForm = document.getElementById('customReportForm');
     if (customReportForm) {
@@ -219,7 +245,24 @@
         generateCustomReport();
       });
     }
+    
+    feather.replace();
   });
+
+  // Reset custom report form
+  function resetCustomReportForm() {
+    const form = document.getElementById('customReportForm');
+    if (!form) return;
+    
+    // Clear all form inputs
+    form.querySelectorAll('input[type="date"], select').forEach(input => {
+      if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+    });
+  }
 
   function refreshReportData() {
     // Show loading state
@@ -283,7 +326,8 @@
         return `${baseUrl}employees?${params.toString()}`;
       case 'spares':
         return `${baseUrl}spares?${params.toString()}`;
-      
+      case 'sla':
+        return `${baseUrl}sla?${params.toString()}`;
       default:
         return baseUrl;
     }

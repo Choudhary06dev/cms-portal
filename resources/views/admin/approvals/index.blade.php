@@ -22,19 +22,20 @@
 <div class="card-glass mb-4">
   <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}" onsubmit="event.preventDefault(); submitApprovalsFilters(event); return false;">
   <div class="row g-2 align-items-end">
-    <div class="col-12 col-md-4">
-      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Enter Complaint ID or Address or Cell No (Auto Search)" 
-             value="{{ request('search') }}" autocomplete="off">
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Complaint ID or Address..." 
+             value="{{ request('search') }}" autocomplete="off" style="font-size: 0.9rem; width: 200px;">
     </div>
-    <div class="col-12 col-md-4">
-      <label class="form-label text-white small mb-1">Filter by Complaint Registration Date</label>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Date</label>
       <input type="date" class="form-control" name="complaint_date" 
-             value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off">
+             value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
     </div>
-    <div class="col-12 col-md-4">
-      <label class="form-label text-white small mb-1">Nature <span class="text-danger">*</span></label>
-      <select class="form-select" name="category" autocomplete="off">
-        <option value="" {{ request('category') ? '' : 'selected' }}>Select</option>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+      <select class="form-select" name="category" autocomplete="off" style="font-size: 0.9rem; width: 140px;">
+        <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
         @if(isset($categories))
           @foreach($categories as $cat)
             <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
@@ -52,23 +53,21 @@
         @endif
       </select>
     </div>
-  </div>
-  <div class="row g-2 align-items-end mt-2">
-    <div class="col-12 col-md-2">
-      <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-secondary">
-        <i data-feather="x" class="me-2"></i>Clear Filters
-      </a>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetApprovalsFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+        <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+      </button>
     </div>
   </div>
   </form>
-  </div>
 </div>
 
 <!-- APPROVALS TABLE -->
 
 <div class="card-glass">
   <div class="table-responsive">
-        <table class="table table-dark">
+        <table class="table table-dark table-sm">
       <thead>
         <tr>
           <th>#</th>
@@ -385,6 +384,24 @@
       console.log('Auto-search triggered');
       loadApprovals();
     }, 200);
+  }
+
+  // Reset filters function
+  function resetApprovalsFilters() {
+    const form = document.getElementById('approvalsFiltersForm');
+    if (!form) return;
+    
+    // Clear all form inputs
+    form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+      if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+    });
+    
+    // Reset URL to base route
+    window.location.href = '{{ route('admin.approvals.index') }}';
   }
 
   // Auto-submit for select filters - immediate filter on change

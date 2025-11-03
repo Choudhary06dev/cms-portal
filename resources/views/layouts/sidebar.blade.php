@@ -84,10 +84,10 @@
     body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); color:#f1f5f9; min-height:100vh; }
     .sidebar {
       min-height:100vh;
-      width: 260px;
+      width: 220px;
       background: var(--sidebar-bg);
       border-right: 1px solid rgba(59, 130, 246, 0.2);
-      padding: 22px;
+      padding: 16px;
       position: fixed;
       left:0; top:50px; bottom:0;
       box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
@@ -96,13 +96,13 @@
     .brand { color: var(--accent); font-weight:700; font-size:18px; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
     .nav-link { color: #cbd5e1; border-radius:8px; transition: none !important; }
     .nav-link:hover, .nav-link.active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); color: #fff; transform: none !important; }
-    .content { margin-left: 280px; padding: 28px; margin-top: 50px; }
+    .content { margin-left: 230px; padding: 20px; margin-top: 50px; }
     /* Topbar styles are now in the navigation component */
     .card-glass { 
       background: var(--glass-bg); 
       border:1px solid rgba(59, 130, 246, 0.1); 
       border-radius:14px; 
-      padding:18px; 
+      padding:14px; 
       box-shadow: 0 8px 30px rgba(15, 23, 42, 0.4);
       backdrop-filter: blur(10px);
     }
@@ -110,6 +110,25 @@
       background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); 
       color:#e2e8f0; 
       border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.875rem !important;
+    }
+    .table td { 
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.875rem !important;
+    }
+    .table { 
+      font-size: 0.875rem !important;
+    }
+    .table-sm th,
+    .table-sm td {
+      padding: 0.4rem 0.5rem !important;
+      font-size: 0.8rem !important;
+    }
+    .compact-table th,
+    .compact-table td {
+      padding: 0.4rem 0.5rem !important;
+      font-size: 0.8rem !important;
     }
     .btn-accent { 
       background: linear-gradient(135deg, #3b82f6, #1d4ed8); 

@@ -48,7 +48,7 @@
 <!-- SLA RULES TABLE -->
 <div class="card-glass">
       <div class="table-responsive">
-        <table class="table table-dark">
+        <table class="table table-dark table-sm">
           <thead>
             <tr>
           <th >ID</th>
@@ -150,6 +150,24 @@
   // Auto-submit for select filters
   function submitSlaFilters() {
     loadSlaRules();
+  }
+
+  // Reset filters function
+  function resetSlaFilters() {
+    const form = document.getElementById('slaFiltersForm');
+    if (!form) return;
+    
+    // Clear all form inputs
+    form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+      if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+    });
+    
+    // Reset URL to base route
+    window.location.href = '{{ route('admin.sla.index') }}';
   }
 
   // Load SLA rules via AJAX

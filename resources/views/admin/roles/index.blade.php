@@ -31,7 +31,7 @@
 <!-- ROLES TABLE -->
 <div class="card-glass">
   <div class="table-responsive">
-    <table class="table table-dark">
+    <table class="table table-dark table-sm">
       <thead class="table-dark">
         <tr>
           <th class="text-white">ID</th>
