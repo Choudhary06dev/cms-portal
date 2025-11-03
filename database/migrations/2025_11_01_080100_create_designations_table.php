@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('designations', function (Blueprint $table) {
             $table->id();
-            $table->string('category', 100)->after('id');
+            $table->string('category', 100);
             $table->string('name', 100);
             $table->text('description')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');

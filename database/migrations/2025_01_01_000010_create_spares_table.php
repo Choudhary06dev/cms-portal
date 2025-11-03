@@ -20,10 +20,8 @@ return new class extends Migration
             // Category from complaint_categories table
             $table->string('category', 100);
             // Location columns for city/sector-based filtering
-            $table->unsignedBigInteger('city_id')->nullable()->after('category');
-            $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
-            $table->unsignedBigInteger('sector_id')->nullable()->after('city_id');
-            $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
+            $table->unsignedBigInteger('city_id')->nullable();
+            $table->unsignedBigInteger('sector_id')->nullable();
             $table->decimal('unit_price', 10, 2)->nullable();
             // Stock metrics
             $table->integer('total_received_quantity')->default(0);
@@ -46,6 +44,19 @@ return new class extends Migration
             $table->text('remarks')->nullable();
             $table->timestamps();
         });
+        
+        // Add foreign keys only if cities and sectors tables exist
+        if (Schema::hasTable('cities')) {
+            Schema::table('spares', function (Blueprint $table) {
+                $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
+            });
+        }
+        
+        if (Schema::hasTable('sectors')) {
+            Schema::table('spares', function (Blueprint $table) {
+                $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
+            });
+        }
     }
 
     /**
