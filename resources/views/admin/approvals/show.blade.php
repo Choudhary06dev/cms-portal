@@ -108,17 +108,17 @@
         <table class="table table-borderless">
           <tr>
             <td class="text-white"><strong>Registration Date/Time:</strong></td>
-            <td class="text-white">{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
+            <td class="text-white">{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
           </tr>
           <tr>
             <td class="text-white"><strong>Addressed Date/Time:</strong></td>
-            <td class="text-white">{{ $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : '-' }}</td>
+            <td class="text-white">{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '-' }}</td>
           </tr>
           <tr>
             <td class="text-white"><strong>Complaint ID:</strong></td>
             <td>
               <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-                {{ $complaint->complaint_id ?? $complaint->id }}
+                {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
               </a>
             </td>
           </tr>
@@ -137,7 +137,7 @@
           <tr>
             <td class="text-white"><strong>Complaint Nature & Type:</strong></td>
             <td>
-              <div class="text-white fw-bold">{{ $displayText }}</div>
+              <div class="text-white">{{ $displayText }}</div>
             </td>
           </tr>
           <tr>

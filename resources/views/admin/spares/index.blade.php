@@ -107,15 +107,15 @@
             @endif
           </td>
           <td style="padding: 0.4rem 0.5rem;">
-            <div class="btn-group btn-group-sm" role="group">
-              <button class="btn btn-outline-info" style="padding: 0.25rem 0.4rem;" onclick="viewSpare('{{ $spare->id }}')" title="View">
-                <i data-feather="eye" style="width: 12px; height: 12px;"></i>
+            <div class="btn-group" role="group">
+              <button class="btn btn-outline-success btn-sm" style="padding: 3px 8px;" onclick="viewSpare('{{ $spare->id }}')" title="View">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </button>
-              <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-outline-warning" style="padding: 0.25rem 0.4rem;" title="Edit">
-                <i data-feather="edit" style="width: 12px; height: 12px;"></i>
+              <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-outline-primary btn-sm" style="padding: 3px 8px;" title="Edit">
+                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
-              <button class="btn btn-outline-danger" style="padding: 0.25rem 0.4rem;" onclick="deleteSpare('{{ $spare->id }}')" title="Delete">
-                <i data-feather="trash-2" style="width: 12px; height: 12px;"></i>
+              <button class="btn btn-outline-danger btn-sm" style="padding: 3px 8px;" onclick="deleteSpare('{{ $spare->id }}')" title="Delete">
+                <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
           </td>

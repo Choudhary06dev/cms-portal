@@ -122,11 +122,11 @@
                     @forelse($complaints as $complaint)
                         <tr>
                             <td>{{ ($complaints->currentPage() - 1) * $complaints->perPage() + $loop->iteration }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : '' }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '' }}</td>
                             <td style="white-space: nowrap;">
                                 <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-                                    {{ $complaint->complaint_id ?? $complaint->id }}
+                                    {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
                                 </a>
                             </td>
                             <td style="white-space: nowrap;">{{ $complaint->client->client_name ?? 'N/A' }}</td>
@@ -134,74 +134,20 @@
                             <td>
                                 @php
                                     $category = $complaint->category ?? 'N/A';
-                                    $department = $complaint->department ?? '';
-                                    
-                                    // Get product name from spare parts
-                                    $productName = '';
-                                    if ($complaint->spareParts && $complaint->spareParts->count() > 0) {
-                                        $firstSpare = $complaint->spareParts->first();
-                                        if ($firstSpare && $firstSpare->spare) {
-                                            $productName = $firstSpare->spare->item_name ?? '';
-                                            // If multiple products, show count
-                                            if ($complaint->spareParts->count() > 1) {
-                                                $productName .= ' (+' . ($complaint->spareParts->count() - 1) . ')';
-                                            }
-                                        }
-                                    }
-                                    
-                                    // Category to REQ type mapping
-                                    $reqTypeMap = [
-                                        'electric' => 'ELECTRECION REQ',
-                                        'technical' => 'TECHNICAL REQ',
-                                        'service' => 'SERVICE REQ',
-                                        'billing' => 'BILLING REQ',
-                                        'water' => 'PIPE FITTER REQ',
-                                        'sanitary' => 'SANITARY REQ',
-                                        'plumbing' => 'PLUMBING REQ',
-                                        'kitchen' => 'KITCHEN REQ',
-                                        'other' => 'OTHER REQ',
+                                    $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+                                    $categoryDisplay = [
+                                        'electric' => 'Electric',
+                                        'technical' => 'Technical',
+                                        'service' => 'Service',
+                                        'billing' => 'Billing',
+                                        'water' => 'Water Supply',
+                                        'sanitary' => 'Sanitary',
+                                        'plumbing' => 'Plumbing',
+                                        'kitchen' => 'Kitchen',
+                                        'other' => 'Other',
                                     ];
-                                    
-                                    $reqType = $reqTypeMap[strtolower($category)] ?? strtoupper($category) . ' REQ';
-                                    
-                                    // Format display text with category and product name
-                                    if ($department) {
-                                        // If department exists, use format: "B&R - I - Product Name - MASSON REQ"
-                                        // Check for department patterns
-                                        if (strpos(strtoupper($department), 'B&R') !== false) {
-                                            if ($productName) {
-                                                $displayText = $department . ' - ' . $productName . ' - MASSON REQ';
-                                            } else {
-                                                $displayText = $department . ' - MASSON REQ';
-                                            }
-                                        } else {
-                                            if ($productName) {
-                                                $displayText = $department . ' - ' . $productName . ' - ' . $reqType;
-                                            } else {
-                                                $displayText = $department . ' - ' . $reqType;
-                                            }
-                                        }
-                                    } else {
-                                        // Use category-based format: "Electric - Product Name - ELECTRECION REQ"
-                                        $categoryDisplay = [
-                                            'electric' => 'Electric',
-                                            'technical' => 'Technical',
-                                            'service' => 'Service',
-                                            'billing' => 'Billing',
-                                            'water' => 'Water Supply',
-                                            'sanitary' => 'Sanitary',
-                                            'plumbing' => 'Plumbing',
-                                            'kitchen' => 'Kitchen',
-                                            'other' => 'Other',
-                                        ];
-                                        $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-                                        
-                                        if ($productName) {
-                                            $displayText = $catDisplay . ' - ' . $productName . ' - ' . $reqType;
-                                        } else {
-                                            $displayText = $catDisplay . ' - ' . $reqType;
-                                        }
-                                    }
+                                    $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                                    $displayText = $catDisplay . ' - ' . $designation;
                                 @endphp
                                 <div class="text-white">{{ $displayText }}</div>
                             </td>
