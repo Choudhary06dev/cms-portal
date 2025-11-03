@@ -32,19 +32,6 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="emp_id" class="form-label text-white">Employee ID</label>
-          <input type="text" class="form-control @error('emp_id') is-invalid @enderror" 
-                 id="emp_id" name="emp_id" value="{{ old('emp_id') }}" autocomplete="off">
-          @error('emp_id')
-            <div class="invalid-feedback">{{ $message }}</div>
-          @enderror
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-6">
-        <div class="mb-3">
           <label for="email" class="form-label text-white">Email</label>
           <input type="email" class="form-control @error('email') is-invalid @enderror" 
                  id="email" name="email" value="{{ old('email') }}" autocomplete="off">
@@ -53,6 +40,9 @@
           @enderror
         </div>
       </div>
+    </div>
+    
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="phone" class="form-label text-white">Phone</label>
@@ -63,9 +53,6 @@
           @enderror
         </div>
       </div>
-    </div>
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
@@ -83,7 +70,9 @@
           @enderror
         </div>
       </div>
+    </div>
 
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
@@ -95,9 +84,6 @@
           @enderror
         </div>
       </div>
-    </div>
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="city_id" class="form-label text-white">City</label>
@@ -115,7 +101,9 @@
           @enderror
         </div>
       </div>
+    </div>
 
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="sector_id" class="form-label text-white">Sector</label>
@@ -128,10 +116,6 @@
           @enderror
         </div>
       </div>
-    </div>
-    
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="status" class="form-label text-white">Status</label>
@@ -145,6 +129,10 @@
           @enderror
         </div>
       </div>
+    </div>
+    
+
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="date_of_hire" class="form-label text-white">Date of Hire</label>
@@ -155,9 +143,6 @@
           @enderror
         </div>
       </div>
-    </div>
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="leave_quota" class="form-label text-white">Leave Quota (Days)</label>
@@ -169,8 +154,10 @@
           @enderror
         </div>
       </div>
+    </div>
 
-        <div class="col-md-6">
+    <div class="row">
+      <div class="col-md-12">
         <div class="mb-3">
           <label for="address" class="form-label text-white">Address</label>
           <textarea class="form-control @error('address') is-invalid @enderror" 

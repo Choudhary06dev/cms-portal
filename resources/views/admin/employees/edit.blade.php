@@ -32,19 +32,6 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="emp_id" class="form-label text-white">Employee ID</label>
-          <input type="text" class="form-control @error('emp_id') is-invalid @enderror" 
-                 id="emp_id" name="emp_id" value="{{ old('emp_id', $employee->emp_id) }}">
-          @error('emp_id')
-            <div class="invalid-feedback">{{ $message }}</div>
-          @enderror
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-6">
-        <div class="mb-3">
           <label for="email" class="form-label text-white">Email</label>
           <input type="email" class="form-control @error('email') is-invalid @enderror" 
                  id="email" name="email" value="{{ old('email', $employee->email) }}">
@@ -53,6 +40,9 @@
           @enderror
         </div>
       </div>
+    </div>
+
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="phone" class="form-label text-white">Phone</label>
@@ -63,88 +53,87 @@
           @enderror
         </div>
       </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
+          <select class="form-select @error('category') is-invalid @enderror" 
+                  id="category" name="category" required>
+            <option value="">Select Category</option>
+            @if(isset($categories) && $categories->count() > 0)
+              @foreach ($categories as $cat)
+                <option value="{{ $cat }}" {{ old('category', $employee->department) == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+              @endforeach
+            @endif
+          </select>
+          @error('category')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
     </div>
 
     <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
-            <select class="form-select @error('category') is-invalid @enderror" 
-                    id="category" name="category" required>
-              <option value="">Select Category</option>
-              @if(isset($categories) && $categories->count() > 0)
-                @foreach ($categories as $cat)
-                  <option value="{{ $cat }}" {{ old('category', $employee->department) == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-                @endforeach
-              @endif
-            </select>
-            @error('category')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="designation" class="form-label text-white">Designation</label>
-            <input type="text" class="form-control @error('designation') is-invalid @enderror" 
-                   id="designation" name="designation" value="{{ old('designation', $employee->designation) }}" 
-                   placeholder="Enter designation">
-            @error('designation')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="designation" class="form-label text-white">Designation</label>
+          <input type="text" class="form-control @error('designation') is-invalid @enderror" 
+                 id="designation" name="designation" value="{{ old('designation', $employee->designation) }}" 
+                 placeholder="Enter designation">
+          @error('designation')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
       </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="city_id" class="form-label text-white">City</label>
-            <select class="form-select @error('city_id') is-invalid @enderror" 
-                    id="city_id" name="city_id">
-              <option value="">Select City</option>
-              @if(isset($cities) && $cities->count() > 0)
-                @foreach ($cities as $city)
-                  <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id', $employee->city_id) == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
-                @endforeach
-              @endif
-            </select>
-            @error('city_id')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="sector_id" class="form-label text-white">Sector</label>
-            <select class="form-select @error('sector_id') is-invalid @enderror" 
-                    id="sector_id" name="sector_id" disabled>
-              <option value="">Select City First</option>
-            </select>
-            @error('sector_id')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="city_id" class="form-label text-white">City</label>
+          <select class="form-select @error('city_id') is-invalid @enderror" 
+                  id="city_id" name="city_id">
+            <option value="">Select City</option>
+            @if(isset($cities) && $cities->count() > 0)
+              @foreach ($cities as $city)
+                <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id', $employee->city_id) == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
+              @endforeach
+            @endif
+          </select>
+          @error('city_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
       </div>
+      </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="sector_id" class="form-label text-white">Sector</label>
+          <select class="form-select @error('sector_id') is-invalid @enderror" 
+                  id="sector_id" name="sector_id" disabled>
+            <option value="">Select City First</option>
+          </select>
+          @error('sector_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="status" class="form-label text-white">Status</label>
+          <select class="form-select @error('status') is-invalid @enderror" 
+                  id="status" name="status" required>
+            <option value="">Select Status</option>
+            <option value="active" {{ old('status', $employee->status) == 'active' ? 'selected' : '' }}>Active</option>
+            <option value="inactive" {{ old('status', $employee->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+          </select>
+          @error('status')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
+    </div>
 
 
       <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="status" class="form-label text-white">Status</label>
-            <select class="form-select @error('status') is-invalid @enderror" 
-                    id="status" name="status" required>
-              <option value="">Select Status</option>
-              <option value="active" {{ old('status', $employee->status) == 'active' ? 'selected' : '' }}>Active</option>
-              <option value="inactive" {{ old('status', $employee->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-            </select>
-            @error('status')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
         <div class="col-md-6">
           <div class="mb-3">
             <label for="date_of_hire" class="form-label text-white">Date of Hire</label>
@@ -155,9 +144,6 @@
             @enderror
           </div>
         </div>
-      </div>
-
-      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="leave_quota" class="form-label text-white">Leave Quota (Days)</label>

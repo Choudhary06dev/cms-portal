@@ -106,8 +106,15 @@ class SpareController extends Controller
                     ->get()
                 : collect();
         }
+        // Defaults for Department Staff: preselect their city and sector
+        $defaultCityId = null;
+        $defaultSectorId = null;
+        if ($user && $user->role && strtolower($user->role->role_name) === 'department_staff') {
+            $defaultCityId = $user->city_id;
+            $defaultSectorId = $user->sector_id;
+        }
         
-        return view('admin.spares.create', compact('categories', 'cities', 'sectors'));
+        return view('admin.spares.create', compact('categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId'));
     }
 
     /**

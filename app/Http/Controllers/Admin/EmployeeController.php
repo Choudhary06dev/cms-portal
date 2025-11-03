@@ -115,7 +115,7 @@ class EmployeeController extends Controller
             'category' => $categoryRule,
             'designation' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
-            'emp_id' => 'nullable|string|max:50|unique:employees',
+            // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
             'leave_quota' => 'nullable|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
@@ -149,7 +149,7 @@ class EmployeeController extends Controller
                 'department' => $request->category, // Store category in department field for backward compatibility
                 'designation' => $request->designation,
                 'phone' => $request->phone,
-                'emp_id' => $request->emp_id,
+                // 'emp_id' removed
                 'date_of_hire' => $request->date_of_hire,
                 'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
@@ -300,7 +300,7 @@ class EmployeeController extends Controller
             'phone' => 'nullable|string|max:20',
             'category' => $categoryRule,
             'designation' => 'nullable|string|max:100',
-            'emp_id' => 'nullable|string|max:50|unique:employees,emp_id,' . $employee->id,
+            // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
             'leave_quota' => 'required|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
@@ -331,7 +331,7 @@ class EmployeeController extends Controller
                 'department' => $request->category, // Store category in department field for backward compatibility
                 'designation' => $request->designation,
                 'phone' => $request->phone,
-                'emp_id' => $request->emp_id,
+                // 'emp_id' removed
                 'date_of_hire' => $request->date_of_hire,
                 'leave_quota' => $request->leave_quota,
                 'address' => $request->address,

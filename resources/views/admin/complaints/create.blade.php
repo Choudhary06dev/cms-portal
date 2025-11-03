@@ -84,7 +84,7 @@
                     <option value="">Select City</option>
                     @if(isset($cities) && $cities->count() > 0)
                       @foreach($cities as $city)
-                        <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                        <option value="{{ $city->id }}" {{ old('city_id', $defaultCityId ?? null) == $city->id ? 'selected' : '' }}>
                           {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                         </option>
                       @endforeach
@@ -99,8 +99,8 @@
                 <div class="mb-3">
                   <label for="sector_id" class="form-label text-white">Sector</label>
                   <select class="form-select @error('sector_id') is-invalid @enderror" 
-                          id="sector_id" name="sector_id" disabled>
-                    <option value="">Select City First</option>
+                          id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
+                    <option value="">{{ (old('city_id', $defaultCityId ?? null)) ? 'Loading sectors...' : 'Select City First' }}</option>
                   </select>
                   @error('sector_id')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -545,9 +545,42 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    // If city is pre-selected, load its sectors
-    if (citySelect.value) {
-      citySelect.dispatchEvent(new Event('change'));
+    // If city is pre-selected (e.g., for Department Staff), load sectors and select default
+    const defaultCityId = '{{ old('city_id', $defaultCityId ?? '') }}';
+    const defaultSectorId = '{{ old('sector_id', $defaultSectorId ?? '') }}';
+    if (defaultCityId) {
+      citySelect.value = defaultCityId;
+      // Trigger fetch to load sectors, then select default
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${defaultCityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            if (defaultSectorId && String(sector.id) === String(defaultSectorId)) {
+              option.selected = true;
+            }
+            sectorSelect.appendChild(option);
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
     }
   }
 

@@ -42,6 +42,7 @@ return new class extends Migration
             $table->integer('quantity');
             $table->integer('reference_id')->nullable(); // complaint_id or purchase_id
             $table->text('remarks')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
         

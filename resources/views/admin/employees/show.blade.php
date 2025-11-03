@@ -37,10 +37,7 @@
             <span class="text-muted">Name:</span>
             <span class="text-white ms-2">{{ $employee->name ?? 'N/A' }}</span>
           </div>
-          <div class="mb-3">
-            <span class="text-muted">Employee ID:</span>
-            <span class="text-white ms-2">{{ $employee->emp_id ?? 'N/A' }}</span>
-          </div>
+          
           <div class="mb-3">
             <span class="text-muted">Phone:</span>
             <span class="text-white ms-2">{{ $employee->phone ?? 'N/A' }}</span>
@@ -81,10 +78,7 @@
       <div class="row mt-4">
         <div class="col-md-6">
           <h6 class="text-white fw-bold mb-3">Additional Information</h6>
-          <div class="mb-3">
-            <span class="text-muted">Employee ID:</span>
-            <span class="text-white ms-2">{{ $employee->emp_id ?? 'N/A' }}</span>
-          </div>
+          
           <div class="mb-3">
             <span class="text-muted">Leave Quota:</span>
             <span class="text-white ms-2">{{ $employee->leave_quota ?? 'N/A' }} days</span>

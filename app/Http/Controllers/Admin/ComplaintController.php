@@ -124,7 +124,16 @@ class ComplaintController extends Controller
         
         $sectors = collect(); // Will be loaded dynamically based on city selection
 
-        return view('admin.complaints.create', compact('employees', 'categories', 'cities', 'sectors'));
+        // Defaults for Department Staff: preselect their city and sector
+        $defaultCityId = null;
+        $defaultSectorId = null;
+        $authUser = Auth::user();
+        if ($authUser && $authUser->role && strtolower($authUser->role->role_name) === 'department_staff') {
+            $defaultCityId = $authUser->city_id;
+            $defaultSectorId = $authUser->sector_id;
+        }
+
+        return view('admin.complaints.create', compact('employees', 'categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId'));
     }
 
     /**
