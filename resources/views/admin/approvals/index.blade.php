@@ -82,7 +82,8 @@
           <th>Complainant Name</th>
           <th>Address</th>
           <th>Complaint Nature & Type</th>
-          <th>Mobile No.</th>
+          <th>Phone No.</th>
+          <th>Performa Required</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -183,6 +184,9 @@
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
           <td>
+            <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600;"></span>
+          </td>
+          <td>
             @if($complaintStatus == 'resolved')
               <span class="badge" style="background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">
                 Addressed
@@ -191,10 +195,12 @@
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
-                      style="min-width: 120px; background-color: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 600; border-radius: 4px;">
+                      style="min-width: 140px; background-color: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 600; border-radius: 4px;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa">Work Performa</option>
+                <option value="maint_performa">Maint Performa</option>
               </select>
             @endif
           </td>
@@ -209,7 +215,7 @@
         @endif
           @empty
         <tr>
-          <td colspan="10" class="text-center py-4">
+          <td colspan="11" class="text-center py-4">
             <i data-feather="check-circle" class="feather-lg mb-2"></i>
             <div>No complaints found</div>
           </td>
@@ -529,7 +535,7 @@
     const paginationContainer = document.getElementById('approvalsPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     const fetchUrl = `{{ route('admin.approvals.index') }}?${params.toString()}`;
@@ -538,7 +544,7 @@
     
     // Show loading state
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
     
     fetch(fetchUrl, {
@@ -597,6 +603,13 @@
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
         feather.replace();
+        // Re-initialize performa badges and status old values after table refresh
+        if (typeof initPerformaBadges === 'function') {
+          initPerformaBadges();
+        }
+        if (typeof initStatusSelects === 'function') {
+          initStatusSelects();
+        }
         console.log('Table updated successfully');
       } else {
         console.error('Table body not found in response');
@@ -609,6 +622,12 @@
           if (extractedTbody && tbody) {
             tbody.innerHTML = extractedTbody.innerHTML;
             feather.replace();
+            if (typeof initPerformaBadges === 'function') {
+              initPerformaBadges();
+            }
+            if (typeof initStatusSelects === 'function') {
+              initStatusSelects();
+            }
             console.log('Table updated via direct extraction');
           } else {
             throw new Error('Could not find table body in response');
@@ -642,7 +661,7 @@
       
       // Show error message to user
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">' +
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">' +
           '<div class="alert alert-danger mb-0">' +
           '<strong>Error:</strong> ' + (error.message || 'Failed to load approvals. Please try again.') +
           '<br><small>If this persists, please refresh the page.</small>' +
@@ -839,147 +858,7 @@
     }, 6000);
   }
 
-  // Handle complaint status update from approvals view
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('status-select')) {
-      const select = e.target;
-      
-      const complaintId = select.getAttribute('data-complaint-id');
-      const newStatus = select.value;
-      let oldStatus = select.dataset.oldStatus || select.value;
-      
-      // Get actual status from data attribute (in case it was 'new' which is displayed as 'assigned')
-      const actualOldStatus = select.getAttribute('data-actual-status') || oldStatus;
-      
-      // Prevent changing from resolved if already addressed
-      if (actualOldStatus === 'resolved' && newStatus !== 'resolved') {
-        select.value = oldStatus;
-        showError('Cannot change status - Complaint is already addressed and cannot be modified.');
-        return;
-      }
-      
-      if (!complaintId || !newStatus) {
-        return;
-      }
-      
-      // Confirm status change
-      const statusLabels = {
-        'assigned': 'Assigned',
-        'in_progress': 'In-Process',
-        'resolved': 'Addressed'
-      };
-      
-      oldStatus = select.dataset.oldStatus || select.value;
-      
-      // Confirm status change
-      const confirmMsg = `Are you sure you want to change status to "${statusLabels[newStatus]}"?`;
-      if (!confirm(confirmMsg)) {
-        // Revert selection
-        select.value = oldStatus;
-        return;
-      }
-      
-      // Store old value for revert
-      select.dataset.oldStatus = select.value;
-      
-      // Show loading state
-      select.style.opacity = '0.6';
-      select.disabled = true;
-      
-      // Get CSRF token
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      // Update complaint status
-      fetch(`/admin/complaints/${complaintId}/update-status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          notes: `Status updated from approvals view`
-        })
-      })
-      .then(response => {
-        if (!response.ok && response.status === 422) {
-          return response.json().then(data => {
-            throw new Error(data.message || 'Validation failed');
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.success || !data.errors) {
-          // Update select styling based on new status
-          const isActiveStatus = ['assigned', 'in_progress'].includes(newStatus);
-          select.style.backgroundColor = isActiveStatus ? 'rgba(239, 68, 68, 0.25)' : 'rgba(34, 197, 94, 0.25)';
-          select.style.color = isActiveStatus ? '#ef4444' : '#22c55e';
-          select.style.borderColor = isActiveStatus ? '#ef4444' : '#22c55e';
-          
-          // Update addressed date/time cell if status is resolved
-          if (newStatus === 'resolved' && data.complaint && data.complaint.closed_at) {
-            const row = select.closest('tr');
-            const addressedDateCell = row.querySelector('td:nth-child(3)'); // 3rd column is Addressed Date/Time
-            if (addressedDateCell) {
-              addressedDateCell.textContent = data.complaint.closed_at;
-            }
-            
-            // Replace dropdown with green "Addressed" badge when status becomes addressed
-            const statusCell = select.closest('td');
-            const badge = document.createElement('span');
-            badge.className = 'badge';
-            badge.style.cssText = 'background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;';
-            badge.textContent = 'Addressed';
-            
-            // Store old status before replacing (use oldStatus from outer scope if available)
-            const oldStatusValue = oldStatus || select.value;
-            
-            // Replace select with badge
-            select.replaceWith(badge);
-            
-            // Update old status tracker (though select is now replaced)
-            // This is for reference only since badge doesn't have dataset
-          } else if (newStatus !== 'resolved') {
-            // Clear addressed date/time if status changed from resolved to something else
-            const row = select.closest('tr');
-            const addressedDateCell = row.querySelector('td:nth-child(3)');
-            if (addressedDateCell) {
-              addressedDateCell.textContent = '';
-            }
-          }
-          
-          showSuccess('Complaint status updated successfully!');
-          
-          // Update old status (only if select still exists)
-          if (select.isConnected) {
-            select.dataset.oldStatus = newStatus;
-          }
-        } else {
-          // Revert selection on error
-          select.value = oldStatus;
-          showError(data.message || 'Failed to update complaint status.');
-        }
-      })
-      .catch(error => {
-        console.error('Error updating status:', error);
-        // Revert selection on error
-        select.value = oldStatus;
-        showError(error.message || 'Failed to update complaint status.');
-        select.style.opacity = '1';
-        select.disabled = false;
-      })
-      .finally(() => {
-        // Only re-enable if select still exists in DOM and is not addressed
-        if (select.isConnected && select.value !== 'resolved') {
-          select.style.opacity = '1';
-          select.disabled = false;
-        }
-      });
-    }
-  });
+  // Removed duplicate status change handler (handled by comprehensive handler below)
   
   // Event delegation for approval buttons (document level for dynamic content)
   document.addEventListener('click', function(e) {
@@ -1002,6 +881,179 @@
         rejectRequest(parseInt(approvalId));
       }
     }
+  });
+
+  // Handle Performa Required dropdown changes
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('status-select')) {
+      const select = e.target;
+      let newStatus = (select.value || '').toString().trim();
+      const row = select.closest('tr');
+      const performaBadge = row ? row.querySelector('.performa-badge') : null;
+      const complaintId = select.getAttribute('data-complaint-id');
+
+      // Normalize common variants to backend values
+      const normalize = (val) => {
+        const v = (val || '').toString().trim().toLowerCase();
+        if (v === 'in-process' || v === 'in process' || v === 'inprocess') return 'in_progress';
+        if (v === 'addressed' || v === 'done' || v === 'completed') return 'resolved';
+        if (v === 'assign' || v === 'assignment') return 'assigned';
+        return v;
+      };
+      newStatus = normalize(newStatus);
+
+      // Handle pseudo-statuses locally without backend call
+      if (newStatus === 'work_performa' || newStatus === 'maint_performa') {
+        if (performaBadge) {
+          if (newStatus === 'work_performa') {
+            performaBadge.textContent = 'Work Performa Required';
+            performaBadge.style.backgroundColor = '#0ea5e9';
+            performaBadge.style.color = '#fff';
+          } else {
+            performaBadge.textContent = 'Maint Performa Required';
+            performaBadge.style.backgroundColor = '#6366f1';
+            performaBadge.style.color = '#fff';
+          }
+          performaBadge.style.display = 'inline-block';
+        }
+        // Persist selection locally so it survives reloads
+        if (complaintId) {
+          const key = `performaRequired:${complaintId}`;
+          const val = newStatus === 'work_performa' ? 'work' : 'maint';
+          try { localStorage.setItem(key, val); } catch (err) {}
+        }
+        const oldStatusLocal = select.dataset.oldStatus || 'assigned';
+        select.value = oldStatusLocal;
+        showSuccess(performaBadge?.textContent || 'Performa marked');
+        return;
+      }
+
+      // Real statuses only
+      const allowed = ['new','assigned','in_progress','resolved','closed'];
+      if (!allowed.includes(newStatus)) {
+        console.warn('Blocked unsupported status:', newStatus);
+        // Revert to old on invalid
+        const oldStatusLocal = select.dataset.oldStatus || 'assigned';
+        select.value = oldStatusLocal;
+        showError('Unsupported status selected.');
+        return;
+      }
+
+      // Clear Performa Required badge when switching to real statuses
+      if (performaBadge) {
+        performaBadge.style.display = 'none';
+        performaBadge.textContent = '';
+      }
+
+      // Clear persisted performa flag when switching to real statuses
+      if (complaintId) {
+        try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+      }
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (!complaintId || !csrfToken) {
+        console.error('Missing complaintId or CSRF token');
+        return;
+      }
+
+      const oldStatus = select.dataset.oldStatus || select.value;
+      const labelMap = { in_progress: 'In-Process', resolved: 'Addressed', assigned: 'Assigned', new: 'New', closed: 'Closed' };
+      const confirmMsg = `Are you sure you want to change status to "${labelMap[newStatus] || newStatus}"?`;
+      if (!confirm(confirmMsg)) {
+        select.value = oldStatus;
+        return;
+      }
+
+      select.style.opacity = '0.6';
+      select.disabled = true;
+
+      fetch(`/admin/complaints/${complaintId}/update-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus, notes: `Status updated from approvals view` })
+      })
+      .then(async (response) => {
+        const contentType = response.headers.get('content-type') || '';
+        const isJson = contentType.includes('application/json');
+        const data = isJson ? await response.json() : null;
+        if (!response.ok) {
+          const message = (data && (data.message || (data.errors && Object.values(data.errors)[0]?.[0]))) || `HTTP ${response.status}`;
+          throw new Error(message);
+        }
+        return data;
+      })
+      .then(data => {
+        const updated = data && data.complaint ? data.complaint : null;
+        if (updated && updated.closed_at && newStatus === 'resolved') {
+          const addressedDateCell = row?.querySelector('td:nth-child(3)');
+          if (addressedDateCell) addressedDateCell.textContent = updated.closed_at;
+          const statusCell = select.closest('td');
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.style.cssText = 'background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;';
+          badge.textContent = 'Addressed';
+          select.replaceWith(badge);
+        }
+        showSuccess('Complaint status updated successfully!');
+        if (select.isConnected) select.dataset.oldStatus = newStatus;
+      })
+      .catch(error => {
+        console.error('Error updating status:', error);
+        select.value = oldStatus;
+        showError(error.message || 'Failed to update complaint status.');
+      })
+      .finally(() => {
+        if (select.isConnected && select.value !== 'resolved') {
+          select.style.opacity = '1';
+          select.disabled = false;
+        }
+      });
+    }
+  });
+
+  // Helpers to initialize UI after load/refresh
+  function initPerformaBadges() {
+    document.querySelectorAll('.performa-badge').forEach(function(b){
+      if (!b.textContent) b.style.display = 'none';
+    });
+    // Restore persisted Performa Required selections per complaint
+    document.querySelectorAll('select.status-select[data-complaint-id]').forEach(function(sel){
+      const complaintId = sel.getAttribute('data-complaint-id');
+      if (!complaintId) return;
+      let saved;
+      try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
+      if (!saved) return;
+      const row = sel.closest('tr');
+      const badge = row ? row.querySelector('.performa-badge') : null;
+      if (!badge) return;
+      if (saved === 'work') {
+        badge.textContent = 'Work Performa Required';
+        badge.style.backgroundColor = '#0ea5e9';
+        badge.style.color = '#fff';
+        badge.style.display = 'inline-block';
+      } else if (saved === 'maint') {
+        badge.textContent = 'Maint Performa Required';
+        badge.style.backgroundColor = '#6366f1';
+        badge.style.color = '#fff';
+        badge.style.display = 'inline-block';
+      }
+    });
+  }
+
+  function initStatusSelects() {
+    document.querySelectorAll('.status-select').forEach(function(sel){
+      if (!sel.dataset.oldStatus) sel.dataset.oldStatus = sel.value;
+    });
+  }
+
+  // Initialize rows on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    initPerformaBadges();
+    initStatusSelects();
   });
 
   // Store initial status on page load

@@ -96,15 +96,15 @@
     </div>
 
     <!-- COMPLAINTS TABLE -->
-    <div class="card-glass" style="padding: 0 !important;">
-        <div class="card-header" style="padding: 12px 18px;">
+    <div class="card-glass" style="padding: 0 !important; border-radius: 12px; overflow: hidden;">
+        <div class="card-header" style="padding: 12px 18px; border-radius: 12px 12px 0 0;">
             <h5 class="card-title mb-0 text-white">
                 <i data-feather="list" class="me-2"></i>Complaints List
             </h5>
         </div>
         <div class="card-body" style="padding: 0 !important; margin: 0 !important;">
-            <div class="table-responsive-xl" style="margin: 0 !important; padding: 0 !important;">
-            <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important;">
+            <div class="table-responsive-xl" style="margin: 0 !important; padding: 0 !important; border-radius: 0 0 12px 12px; overflow: hidden;">
+            <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important; border-radius: 0 0 12px 12px;">
                 <thead>
                     <tr>
                         <th style="width: 40px; padding-left: 8px !important;">#</th>
@@ -114,7 +114,7 @@
                         <th style="width: 120px;">Complainant Name</th>
                         <th style="width: 150px;">Address</th>
                         <th style="width: 250px;">Complaint Nature & Type</th>
-                        <th style="width: 100px;">Mobile No.</th>
+                        <th style="width: 100px;">Phone No.</th>
                         <th style="width: 80px;">Actions</th>
                     </tr>
                 </thead>
@@ -246,6 +246,8 @@
             margin: 0 !important;
             border-collapse: collapse;
             width: 100% !important;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
         }
         .table-compact th {
             white-space: nowrap;
@@ -290,6 +292,8 @@
         .card-glass[style*="padding: 0"] {
             padding: 0 !important;
             margin: 0 !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
         }
         .card-glass[style*="padding: 0"] > .card-body {
             padding: 0 !important;

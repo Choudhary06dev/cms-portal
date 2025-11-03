@@ -219,6 +219,17 @@ class Complaint extends Model
     }
 
     /**
+     * Get 4-digit complaint ID
+     */
+    public function getComplaintIdAttribute(): string
+    {
+        // Generate 4-digit complaint ID based on complaint id
+        // Use modulo to ensure it's always 4 digits (0001-9999)
+        $complaintNumber = ($this->id % 10000);
+        return str_pad($complaintNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * Get hours elapsed since creation
      */
     public function getHoursElapsedAttribute(): int

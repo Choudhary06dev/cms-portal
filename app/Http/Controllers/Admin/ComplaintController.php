@@ -9,6 +9,8 @@ use App\Models\Employee;
 use App\Models\ComplaintSpare;
 use App\Models\Spare;
 use App\Models\ComplaintCategory;
+use App\Models\City;
+use App\Models\Sector;
 use Illuminate\Support\Facades\Schema;
 use App\Models\SpareApprovalPerforma;
 use App\Models\SpareApprovalItem;
@@ -114,8 +116,15 @@ class ComplaintController extends Controller
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
+        
+        // Get cities and sectors for dropdowns
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        $sectors = collect(); // Will be loaded dynamically based on city selection
 
-        return view('admin.complaints.create', compact('employees', 'categories'));
+        return view('admin.complaints.create', compact('employees', 'categories', 'cities', 'sectors'));
     }
 
     /**
@@ -146,6 +155,9 @@ class ComplaintController extends Controller
             'spare_parts.*.quantity' => 'nullable|integer|min:1',
             'city' => 'nullable|string|max:100',
             'sector' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:500',
+            'email' => 'nullable|string|max:150',
+            'phone' => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -161,12 +173,30 @@ class ComplaintController extends Controller
         DB::beginTransaction();
         
         try {
+            // Get city and sector names from IDs if provided
+            $cityName = null;
+            $sectorName = null;
+            
+            if ($request->city_id) {
+                $city = City::find($request->city_id);
+                $cityName = $city ? $city->name : null;
+            }
+            
+            if ($request->sector_id) {
+                $sector = Sector::find($request->sector_id);
+                $sectorName = $sector ? $sector->name : null;
+            }
+            
             // Find or create client by name
             $client = Client::firstOrCreate(
                 ['client_name' => trim($request->client_name)],
                 [
-                    'city' => $request->city ?? null,
-                    'sector' => $request->sector ?? null,
+                    'contact_person' => $request->input('contact_person') ?: trim($request->client_name),
+                    'email' => $request->input('email', ''),
+                    'phone' => $request->input('phone', ''),
+                    'city' => $cityName,
+                    'sector' => $sectorName,
+                    'address' => $request->input('address'),
                     'status' => 'active',
                 ]
             );
@@ -174,8 +204,8 @@ class ComplaintController extends Controller
             $complaint = Complaint::create([
                 'title' => $request->title,
                 'client_id' => $client->id,
-                'city' => $request->city,
-                'sector' => $request->sector,
+                'city' => $cityName,
+                'sector' => $sectorName,
                 'category' => $request->category,
                 'priority' => $request->priority,
                 'description' => $request->description,
@@ -662,7 +692,7 @@ class ComplaintController extends Controller
             if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->json([
                     'success' => false,
-                    'message' => $validator->errors()->first('remarks') ?: 'Validation failed',
+                    'message' => $validator->errors()->first() ?: 'Validation failed',
                     'errors' => $validator->errors()
                 ], 422);
             }
@@ -692,7 +722,9 @@ class ComplaintController extends Controller
 
         $currentEmployee = Employee::first();
         if ($currentEmployee) {
+            // Initialize log remarks with status change message
             $logRemarks = "Status changed from {$oldStatus} to {$request->status}";
+            
             if ($remarks) {
                 $logRemarks .= ". Remarks: " . $remarks;
             }
