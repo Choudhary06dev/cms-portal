@@ -94,8 +94,33 @@
       z-index: 999;
     }
     .brand { color: var(--accent); font-weight:700; font-size:18px; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-    .nav-link { color: #cbd5e1; border-radius:8px; transition: none !important; }
-    .nav-link:hover, .nav-link.active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); color: #fff; transform: none !important; }
+    .nav-link { 
+      color: #cbd5e1; 
+      border-radius:8px; 
+      transition: none !important; 
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.9rem;
+      display: flex !important;
+      align-items: center;
+    }
+    .nav-link:hover, .nav-link.active { 
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); 
+      color: #fff; 
+      transform: none !important; 
+    }
+    .nav-link i {
+      flex-shrink: 0 !important;
+      width: 18px !important;
+      height: 18px !important;
+      min-width: 18px !important;
+    }
+    .nav-link span, .nav-link .text-decoration-none {
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .content { margin-left: 230px; padding: 20px; margin-top: 50px; }
     /* Topbar styles are now in the navigation component */
     .card-glass { 
@@ -157,7 +182,7 @@
     .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
     .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
     .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; }
+    .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; white-space: nowrap; }
     .nav-item-parent .nav-link { position: relative; }
     .nav-arrow-btn:hover { opacity: 0.8; }
     .nav-arrow-btn:focus { outline: none; box-shadow: none; }
