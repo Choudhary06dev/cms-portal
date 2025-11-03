@@ -57,7 +57,7 @@
           <th>ID</th>
           <th>Employee</th>
           <th>Category</th>
-          <th>Position</th>
+          <th>Designation</th>
           <th>City</th>
           <th>Sector</th>
           <th>Phone</th>

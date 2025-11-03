@@ -81,7 +81,11 @@ class EmployeeController extends Controller
             ? City::where('status', 'active')->orderBy('name')->get()
             : collect();
         
-        $response = response()->view('admin.employees.create', compact('categories', 'cities'));
+        $designations = Schema::hasTable('designations')
+            ? Designation::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        $response = response()->view('admin.employees.create', compact('categories', 'cities', 'designations'));
         
         // Add cache-busting headers
         $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -221,7 +225,11 @@ class EmployeeController extends Controller
             ? City::where('status', 'active')->orderBy('name')->get()
             : collect();
         
-        return view('admin.employees.edit', compact('employee', 'categories', 'cities'));
+        $designations = Schema::hasTable('designations')
+            ? Designation::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        
+        return view('admin.employees.edit', compact('employee', 'categories', 'cities', 'designations'));
     }
 
 

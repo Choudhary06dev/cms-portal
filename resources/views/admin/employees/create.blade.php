@@ -87,9 +87,17 @@
       <div class="col-md-6">
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
-          <input type="text" class="form-control @error('designation') is-invalid @enderror" 
-                 id="designation" name="designation" value="{{ old('designation') }}" 
-                 placeholder="Enter designation">
+          <select class="form-select @error('designation') is-invalid @enderror" 
+                  id="designation" name="designation">
+            <option value="">Select Designation</option>
+            @if(isset($designations) && $designations->count() > 0)
+              @foreach ($designations as $designation)
+                <option value="{{ $designation->name }}" data-category="{{ $designation->category }}" {{ old('designation') == $designation->name ? 'selected' : '' }}>
+                  {{ $designation->name }}
+                </option>
+              @endforeach
+            @endif
+          </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -199,6 +207,38 @@
   feather.replace();
   
   document.addEventListener('DOMContentLoaded', function() {
+    // Filter designations by selected category
+    const categorySelect = document.getElementById('category');
+    const designationSelect = document.getElementById('designation');
+    function filterDesignations() {
+      if (!categorySelect || !designationSelect) return;
+      const cat = (categorySelect.value || '').toString();
+      const current = designationSelect.value;
+      let firstVisible = null;
+      Array.from(designationSelect.options).forEach(opt => {
+        if (!opt.value) return; // skip placeholder
+        const optCat = opt.getAttribute('data-category') || '';
+        const show = !cat || optCat === cat;
+        opt.hidden = !show;
+        if (show && !firstVisible) firstVisible = opt;
+      });
+      // If current hidden, clear selection
+      const sel = designationSelect.selectedOptions[0];
+      if (sel && sel.hidden) {
+        designationSelect.value = '';
+      }
+      // Disable until category selected
+      if (!cat) {
+        designationSelect.disabled = true;
+      } else {
+        designationSelect.disabled = false;
+      }
+    }
+    if (categorySelect && designationSelect) {
+      categorySelect.addEventListener('change', filterDesignations);
+      // Initialize state on load
+      filterDesignations();
+    }
     const citySelect = document.getElementById('city_id');
     const sectorSelect = document.getElementById('sector_id');
     

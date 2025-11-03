@@ -108,7 +108,7 @@
                 <thead>
                     <tr>
                         <th style="width: 40px; padding-left: 8px !important;">#</th>
-                        <th style="width: 130px;">Apply Date/Time</th>
+                        <th style="width: 130px;">	Registration Date/Time</th>
                         <th style="width: 130px;">Completion Time</th>
                         <th style="width: 100px;">Complaint ID</th>
                         <th style="width: 120px;">Complainant Name</th>
