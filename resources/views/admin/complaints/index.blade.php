@@ -86,40 +86,40 @@
     </div>
 
     <!-- COMPLAINTS TABLE -->
-    <div class="card-glass">
-        <div class="card-header">
+    <div class="card-glass" style="padding: 0 !important;">
+        <div class="card-header" style="padding: 12px 18px;">
             <h5 class="card-title mb-0 text-white">
                 <i data-feather="list" class="me-2"></i>Complaints List
             </h5>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-            <table class="table table-dark">
+        <div class="card-body" style="padding: 0 !important; margin: 0 !important;">
+            <div class="table-responsive-xl" style="margin: 0 !important; padding: 0 !important;">
+            <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important;">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Apply Date/Time</th>
-                        <th>Completion Time</th>
-                        <th>Complaint ID</th>
-                        <th>Complainant Name</th>
-                        <th>Address</th>
-                        <th>Complaint Nature & Type</th>
-                        <th>Mobile No.</th>
-                        <th>Actions</th>
+                        <th style="width: 40px; padding-left: 8px !important;">#</th>
+                        <th style="width: 130px;">Apply Date/Time</th>
+                        <th style="width: 130px;">Completion Time</th>
+                        <th style="width: 100px;">Complaint ID</th>
+                        <th style="width: 120px;">Complainant Name</th>
+                        <th style="width: 150px;">Address</th>
+                        <th style="width: 250px;">Complaint Nature & Type</th>
+                        <th style="width: 100px;">Mobile No.</th>
+                        <th style="width: 80px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="complaintsTableBody">
                     @forelse($complaints as $complaint)
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
-                            <td>{{ $complaint->closed_at ? $complaint->closed_at->format('Y-m-d H:i:s') : ($complaint->status == 'resolved' || $complaint->status == 'closed' ? $complaint->updated_at->format('Y-m-d H:i:s') : '') }}</td>
-                            <td>
+                            <td>{{ ($complaints->currentPage() - 1) * $complaints->perPage() + $loop->iteration }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">
                                 <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
                                     {{ $complaint->complaint_id ?? $complaint->id }}
                                 </a>
                             </td>
-                            <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->client->client_name ?? 'N/A' }}</td>
                             <td>{{ $complaint->client->address ?? 'N/A' }}</td>
                             <td>
                                 @php
@@ -193,23 +193,23 @@
                                         }
                                     }
                                 @endphp
-                                <div class="text-white fw-bold">{{ $displayText }}</div>
+                                <div class="text-white">{{ $displayText }}</div>
                             </td>
                             <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="btn btn-outline-success btn-sm" title="View Details">
-                                        <i data-feather="eye"></i>
+                                    <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                                        <i data-feather="eye" style="width: 16px; height: 16px;"></i>
                                     </a>
-                                    <a href="{{ route('admin.complaints.edit', $complaint->id) }}" class="btn btn-outline-primary btn-sm" title="Edit">
-                                        <i data-feather="edit"></i>
+                                    <a href="{{ route('admin.complaints.edit', $complaint->id) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
+                                        <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                                     </a>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4">
+                            <td colspan="9" class="text-center py-4">
                                 <i data-feather="alert-circle" class="feather-lg mb-2"></i>
                                 <div>No complaints found</div>
                             </td>
@@ -220,7 +220,7 @@
             </div>
 
             <!-- PAGINATION -->
-            <div class="d-flex justify-content-center mt-3" id="complaintsPagination">
+            <div class="d-flex justify-content-center mt-3 px-3" id="complaintsPagination">
                 <div>
                     {{ $complaints->links() }}
                 </div>
@@ -231,6 +231,92 @@
 
 @push('styles')
     <style>
+        /* Table styles - Compact */
+        .table-compact {
+            margin: 0 !important;
+            border-collapse: collapse;
+            width: 100% !important;
+        }
+        .table-compact th {
+            white-space: nowrap;
+            padding: 4px 6px;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .table-compact th:first-child {
+            padding-left: 8px !important;
+        }
+        .table-compact td {
+            padding: 4px 6px;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+        .table-compact td:first-child {
+            padding-left: 8px !important;
+        }
+        /* Make complaint ID and name columns compact */
+        .table-compact th:nth-child(4),
+        .table-compact td:nth-child(4),
+        .table-compact th:nth-child(5),
+        .table-compact td:nth-child(5) {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Ensure table fits properly */
+        .table-compact {
+            margin-bottom: 0;
+            margin-left: 0;
+            width: 100%;
+        }
+        /* Remove left spacing from table container */
+        .card-body > .table-responsive-xl {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        /* Remove all padding from card-glass and card-body for table */
+        .card-glass[style*="padding: 0"] {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .card-glass[style*="padding: 0"] > .card-body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        /* Ensure table container has no spacing */
+        .card-glass[style*="padding: 0"] > .card-body > .table-responsive-xl {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+        /* Keep padding for pagination only */
+        #complaintsPagination {
+            padding-left: 1rem;
+            padding-right: 1rem;
+            padding-top: 1rem;
+        }
+        /* Table should fill full width */
+        .card-glass[style*="padding: 0"] .table-compact {
+            margin: 0 !important;
+            width: 100% !important;
+            border-left: none !important;
+            border-right: none !important;
+        }
+        /* Address column with ellipsis for long text */
+        .table-compact td:nth-child(6) {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* Complaint Nature column - allow wrap but limit height */
+        .table-compact td:nth-child(7) {
+            max-width: 250px;
+            word-wrap: break-word;
+            line-height: 1.3;
+        }
         .category-badge {
             padding: 4px 8px;
             border-radius: 12px;
@@ -425,7 +511,7 @@
             const paginationContainer = document.getElementById('complaintsPagination');
             
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
             }
 
             fetch(`{{ route('admin.complaints.index') }}?${params.toString()}`, {
@@ -459,7 +545,7 @@
             .catch(error => {
                 console.error('Error loading complaints:', error);
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
                 }
             });
         }
