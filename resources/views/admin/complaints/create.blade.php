@@ -61,7 +61,7 @@
               <div class="col-12">
                 <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
               </div>
-              <div class="col-md-12">
+              <div class="col-md-3">
                 <div class="mb-3">
                   <label for="client_name" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
                   <input type="text" 
@@ -76,16 +76,49 @@
                   @enderror
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">City</label>
-                  <input type="text" class="form-control" id="client_city" name="city" value="{{ old('city') }}" placeholder="Enter city">
+                  <label for="city_id" class="form-label text-white">City</label>
+                  <select class="form-select @error('city_id') is-invalid @enderror" 
+                          id="city_id" name="city_id">
+                    <option value="">Select City</option>
+                    @if(isset($cities) && $cities->count() > 0)
+                      @foreach($cities as $city)
+                        <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                          {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
+                        </option>
+                      @endforeach
+                    @endif
+                  </select>
+                  @error('city_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">Sector</label>
-                  <input type="text" class="form-control" id="client_sector" name="sector" value="{{ old('sector') }}" placeholder="Enter sector">
+                  <label for="sector_id" class="form-label text-white">Sector</label>
+                  <select class="form-select @error('sector_id') is-invalid @enderror" 
+                          id="sector_id" name="sector_id" disabled>
+                    <option value="">Select City First</option>
+                  </select>
+                  @error('sector_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="address" class="form-label text-white">Address</label>
+                  <input type="text"
+                         class="form-control @error('address') is-invalid @enderror"
+                         id="address"
+                         name="address"
+                         value="{{ old('address') }}"
+                         placeholder="e.g., 00/0-ST-0-B-0">
+                  @error('address')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
             </div>
@@ -127,7 +160,7 @@
               
 
               <!-- Product selection for Complaint Nature & Type -->
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Product (for Complaint Nature & Type)</label>
                   <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
@@ -145,7 +178,7 @@
                 </div>
               </div>
               
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Quantity</label>
                   <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
@@ -157,7 +190,7 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="priority" class="form-label text-white">Priority <span class="text-danger">*</span></label>
                   <select class="form-select @error('priority') is-invalid @enderror" 
@@ -175,7 +208,7 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="assigned_employee_id" class="form-label text-white">Assign Employee</label>
                   <select class="form-select @error('assigned_employee_id') is-invalid @enderror" 
@@ -439,26 +472,119 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         titleSelect.disabled = false;
+        // Restore previously selected title if any
+        const previous = titleSelect.getAttribute('data-prev');
+        if (previous) {
+          const opt = Array.from(titleSelect.options).find(o => o.value === previous);
+          if (opt) titleSelect.value = previous;
+        }
       })
       .catch(error => {
         console.error('Error loading complaint titles:', error);
-        titleSelect.innerHTML = '<option value="">Error loading titles. You can type manually.</option>';
-        // Allow manual input by converting to text input
-        const titleInput = document.createElement('input');
-        titleInput.type = 'text';
-        titleInput.className = titleSelect.className;
-        titleInput.id = titleSelect.id;
-        titleInput.name = titleSelect.name;
-        titleInput.required = titleSelect.required;
-        titleInput.value = '';
-        titleSelect.parentNode.replaceChild(titleInput, titleSelect);
+        titleSelect.innerHTML = '<option value="">Failed to load titles. Please try again.</option>';
+        titleSelect.disabled = false;
       });
     });
     
     // Trigger on page load if category is pre-selected
     if (categorySelect.value) {
+      // Preserve old title if present
+      if (titleSelect && titleSelect.value) {
+        titleSelect.setAttribute('data-prev', titleSelect.value);
+      } else if ('{{ old('title') }}') {
+        titleSelect.setAttribute('data-prev', @json(old('title')));
+      }
       categorySelect.dispatchEvent(new Event('change'));
     }
+  }
+
+  // City -> Sector dynamic loading
+  const citySelect = document.getElementById('city_id');
+  const sectorSelect = document.getElementById('sector_id');
+  const addressInput = document.getElementById('address');
+  
+  if (citySelect && sectorSelect) {
+    citySelect.addEventListener('change', function() {
+      const cityId = this.value;
+      
+      if (!cityId) {
+        sectorSelect.innerHTML = '<option value="">Select City First</option>';
+        sectorSelect.disabled = true;
+        return;
+      }
+
+      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+      sectorSelect.disabled = true;
+
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            sectorSelect.appendChild(option);
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
+    });
+    
+    // If city is pre-selected, load its sectors
+    if (citySelect.value) {
+      citySelect.dispatchEvent(new Event('change'));
+    }
+  }
+
+  // Address auto-format: e.g., 17/2-ST-9-B-9
+  if (addressInput) {
+    function formatAddress(val) {
+      if (!val) return '';
+      let v = val.toUpperCase();
+      // Remove spaces
+      v = v.replace(/\s+/g, '');
+      // Ensure hyphen after number/number pattern like 17/2 → 17/2-
+      v = v.replace(/(\d+\/\d+)(?!-)/g, '$1-');
+      // Ensure hyphen after ST-<num> like ST-9 → ST-9-
+      v = v.replace(/(ST-\d+)(?!-)/g, '$1-');
+      // Collapse multiple hyphens
+      v = v.replace(/-+/g, '-');
+      // Prevent leading hyphen
+      v = v.replace(/^-+/, '');
+      return v;
+    }
+
+    let lastAddress = addressInput.value;
+    const applyFormat = () => {
+      const formatted = formatAddress(addressInput.value);
+      if (formatted !== addressInput.value) {
+        const pos = addressInput.selectionStart;
+        addressInput.value = formatted;
+        // Best-effort caret restore: move to end when structure changed
+        try { addressInput.setSelectionRange(formatted.length, formatted.length); } catch (_) {}
+      }
+      lastAddress = addressInput.value;
+    };
+
+    addressInput.addEventListener('input', applyFormat);
+    addressInput.addEventListener('blur', applyFormat);
+    // Initialize on load
+    applyFormat();
   }
 });
 </script>
