@@ -659,49 +659,6 @@ class ReportController extends Controller
         }
     }
 
-    /**
-     * Generate clients report
-     */
-    public function clients(Request $request)
-    {
-        $user = Auth::user();
-        $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
-        $dateTo = $request->date_to ?? now()->format('Y-m-d');
-        $status = $request->status; // optional filter
-
-        $query = Client::query();
-        
-        // Apply location-based filtering
-        $this->filterClientsByLocation($query, $user);
-        
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        $clients = $query->orderBy('created_at', 'desc')->get()->map(function($client) use ($dateFrom, $dateTo) {
-            $totalComplaints = Complaint::where('client_id', $client->id)
-                ->whereBetween('created_at', [$dateFrom, $dateTo])
-                ->count();
-            $resolvedComplaints = Complaint::where('client_id', $client->id)
-                ->whereBetween('created_at', [$dateFrom, $dateTo])
-                ->whereIn('status', ['resolved','closed'])
-                ->count();
-
-            return [
-                'client' => $client,
-                'total_complaints' => $totalComplaints,
-                'resolved_complaints' => $resolvedComplaints,
-            ];
-        });
-
-        $summary = [
-            'total_clients' => Client::count(),
-            'active_clients' => Client::where('status', 'active')->count(),
-            'complaints_this_period' => Complaint::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
-        ];
-
-        return view('admin.reports.clients', compact('clients', 'summary', 'dateFrom', 'dateTo', 'status'));
-    }
 
     /** Printable versions - reuse data builders */
     public function printComplaints(Request $request)
@@ -720,10 +677,6 @@ class ReportController extends Controller
         return redirect()->route('admin.reports.spares', $request->query());
     }
 
-    public function printClients(Request $request)
-    {
-        return redirect()->route('admin.reports.clients', $request->query());
-    }
 
     /**
      * Generate spare parts reports

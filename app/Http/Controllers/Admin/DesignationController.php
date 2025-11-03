@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Designation;
-use App\Models\Department;
+use App\Models\ComplaintCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
@@ -20,12 +20,12 @@ class DesignationController extends Controller
                 ->with('error', 'Run migrations to create designations table.');
         }
 
-        $designations = Designation::with('department')->orderBy('name', 'asc')->paginate(15);
-        $departments = Schema::hasTable('departments')
-            ? Department::where('status', 'active')->orderBy('name')->get()
+        $designations = Designation::orderBy('name', 'asc')->paginate(15);
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
         
-        return view('admin.designation.index', compact('designations', 'departments'));
+        return view('admin.designation.index', compact('designations', 'categories'));
     }
 
     public function store(Request $request)
@@ -34,8 +34,21 @@ class DesignationController extends Controller
             return back()->with('error', 'Run migrations to create designations table (php artisan migrate).');
         }
         $validated = $request->validate([
-            'department_id' => 'required|exists:departments,id',
-            'name' => 'required|string|max:100|unique:designations,name,NULL,id,department_id,' . $request->department_id . ',status,active',
+            'category' => 'required|string|max:100',
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) use ($request) {
+                    $exists = Designation::where('name', $value)
+                        ->where('category', $request->category)
+                        ->where('status', 'active')
+                        ->exists();
+                    if ($exists) {
+                        $fail('The designation name has already been taken for this category.');
+                    }
+                }
+            ],
             'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
@@ -53,23 +66,25 @@ class DesignationController extends Controller
             $designation = Designation::findOrFail($id);
             
             $rules = [
-                'department_id' => 'required|exists:departments,id',
-                'name' => 'required|string|max:100',
+                'category' => 'required|string|max:100',
+                'name' => [
+                    'required',
+                    'string',
+                    'max:100',
+                    function ($attribute, $value, $fail) use ($request, $id) {
+                        $exists = Designation::where('name', $value)
+                            ->where('category', $request->category)
+                            ->where('status', 'active')
+                            ->where('id', '!=', $id)
+                            ->exists();
+                        if ($exists) {
+                            $fail('The designation name has already been taken for this category.');
+                        }
+                    }
+                ],
                 'description' => 'nullable|string',
                 'status' => 'required|in:active,inactive',
             ];
-            
-            if ($request->name !== $designation->name || $request->department_id != $designation->department_id) {
-                $exists = Designation::where('name', $request->name)
-                    ->where('department_id', $request->department_id)
-                    ->where('status', 'active')
-                    ->where('id', '!=', $id)
-                    ->exists();
-                
-                if ($exists) {
-                    return back()->withErrors(['name' => 'The name has already been taken for this department.'])->withInput();
-                }
-            }
             
             $validated = $request->validate($rules);
             $designation->update($validated);

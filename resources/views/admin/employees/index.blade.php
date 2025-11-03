@@ -25,8 +25,8 @@
              value="{{ request('search') }}" oninput="handleEmployeesSearchInput()">
     </div>
     <div class="col-6 col-md-3">
-      <input type="text" class="form-control" name="department" placeholder="Department" 
-             value="{{ request('department') }}" oninput="handleEmployeesSearchInput()">
+      <input type="text" class="form-control" name="category" placeholder="Category" 
+             value="{{ request('category') }}" oninput="handleEmployeesSearchInput()">
     </div>
     <div class="col-6 col-md-3">
       <select class="form-select" name="status" onchange="submitEmployeesFilters()">
@@ -47,7 +47,7 @@
         <tr>
           <th>ID</th>
           <th>Employee</th>
-          <th>Department</th>
+          <th>Category</th>
           <th>Position</th>
           <th>City</th>
           <th>Sector</th>
@@ -72,7 +72,7 @@
               </div>
             </div>
           </td>
-          <td>{{ $employee->department ?? 'N/A' }}</td>
+          <td>{{ ucfirst($employee->department ?? 'N/A') }}</td>
           <td>{{ $employee->designation ?? 'N/A' }}</td>
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>

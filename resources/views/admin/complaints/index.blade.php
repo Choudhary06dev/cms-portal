@@ -26,61 +26,71 @@
         <div class="card-body">
             <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
                 <div class="row g-2 align-items-end">
-                <div class="col-12 col-md-2">
-                    <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search complaints..." 
-                           value="{{ request('search') }}" oninput="handleComplaintsSearchInput()">
-                </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="priority" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('priority') ? '' : 'selected' }}>All Priority</option>
-                        <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
-                        <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
-                        <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
-                        <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="category" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('category') ? '' : 'selected' }}>All Categories</option>
-                        @if(isset($categories) && $categories->count() > 0)
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+                        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
+                               value="{{ request('search') }}" oninput="handleComplaintsSearchInput()" style="font-size: 0.9rem; width: 180px;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Priority</label>
+                        <select class="form-select" name="priority" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
+                            <option value="" {{ request('priority') ? '' : 'selected' }}>All</option>
+                            <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
+                            <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
+                            <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
+                            <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+                        <select class="form-select" name="category" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
+                            <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
+                            @if(isset($categories) && $categories->count() > 0)
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Employee</label>
+                        <select class="form-select" name="assigned_employee_id" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 170px;">
+                            <option value="" {{ request('assigned_employee_id') ? '' : 'selected' }}>All</option>
+                            @foreach($employees as $employee)
+                            <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
+                                {{ $employee->name }}
+                            </option>
                             @endforeach
-                        @endif
-                    </select>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From</label>
+                        <input type="date" class="form-control" name="date_from" 
+                               value="{{ request('date_from') }}" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 150px;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To</label>
+                        <input type="date" class="form-control" name="date_to" 
+                               value="{{ request('date_to') }}" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 150px;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Status</label>
+                        <select class="form-select" name="status" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
+                            <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
+                            <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
+                            <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                            <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                            <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                            <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetComplaintsFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+                            <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+                        </button>
+                    </div>
                 </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="client_id" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('client_id') ? '' : 'selected' }}>All Clients</option>
-                        @foreach($clients as $client)
-                        <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                            {{ $client->client_name }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="assigned_employee_id" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('assigned_employee_id') ? '' : 'selected' }}>All Employees</option>
-                        @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
-                            {{ $employee->name }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            
-            <div class="row g-2 align-items-end mt-2">
-                <div class="col-6 col-md-2">
-                    <input type="date" class="form-control" name="date_from" 
-                           value="{{ request('date_from') }}" placeholder="From Date" onchange="submitComplaintsFilters()">
-                </div>
-                <div class="col-6 col-md-2">
-                    <input type="date" class="form-control" name="date_to" 
-                           value="{{ request('date_to') }}" placeholder="To Date" onchange="submitComplaintsFilters()">
-                </div>
-            </div>
             </form>
         </div>
     </div>
@@ -481,6 +491,24 @@
                 loadComplaints();
             }
         });
+
+        // Reset filters function
+        function resetComplaintsFilters() {
+            const form = document.getElementById('complaintsFiltersForm');
+            if (!form) return;
+            
+            // Clear all form inputs
+            form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+                if (input.type === 'select-one') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // Reset URL to base route
+            window.location.href = '{{ route('admin.complaints.index') }}';
+        }
 
         // Complaint Functions
         function viewComplaint(complaintId) {

@@ -90,11 +90,7 @@ class ComplaintController extends Controller
 
         $complaints = $query->orderBy('id', 'desc')->paginate(15);
         
-        // Filter clients and employees by location
-        $clientsQuery = Client::query();
-        $this->filterClientsByLocation($clientsQuery, $user);
-        $clients = $clientsQuery->orderBy('client_name')->get();
-        
+        // Filter employees by location
         $employeesQuery = Employee::where('status', 'active');
         $this->filterEmployeesByLocation($employeesQuery, $user);
         $employees = $employeesQuery->get();
@@ -103,7 +99,7 @@ class ComplaintController extends Controller
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
-        return view('admin.complaints.index', compact('complaints', 'clients', 'employees', 'categories'));
+        return view('admin.complaints.index', compact('complaints', 'employees', 'categories'));
     }
 
     /**
@@ -114,18 +110,12 @@ class ComplaintController extends Controller
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
         
-        $clients = Client::where('status', 'active')->orderBy('client_name')->get();
         $employees = Employee::where('status', 'active')->orderBy('name')->get();
-        $departments = Employee::where('status', 'active')
-            ->whereNotNull('department')
-            ->distinct()
-            ->orderBy('department')
-            ->pluck('department');
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
-        return view('admin.complaints.create', compact('clients', 'employees', 'categories', 'departments'));
+        return view('admin.complaints.create', compact('employees', 'categories'));
     }
 
     /**
@@ -142,10 +132,9 @@ class ComplaintController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'client_id' => 'required|exists:clients,id',
+            'client_name' => 'required|string|max:255',
             // Allow any category string (column changed to VARCHAR)
             'category' => 'required|string|max:100',
-            'department' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
@@ -155,6 +144,8 @@ class ComplaintController extends Controller
             'spare_parts' => 'nullable|array',
             'spare_parts.*.spare_id' => 'nullable|exists:spares,id',
             'spare_parts.*.quantity' => 'nullable|integer|min:1',
+            'city' => 'nullable|string|max:100',
+            'sector' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -170,13 +161,22 @@ class ComplaintController extends Controller
         DB::beginTransaction();
         
         try {
+            // Find or create client by name
+            $client = Client::firstOrCreate(
+                ['client_name' => trim($request->client_name)],
+                [
+                    'city' => $request->city ?? null,
+                    'sector' => $request->sector ?? null,
+                    'status' => 'active',
+                ]
+            );
+
             $complaint = Complaint::create([
                 'title' => $request->title,
-                'client_id' => $request->client_id,
+                'client_id' => $client->id,
                 'city' => $request->city,
                 'sector' => $request->sector,
                 'category' => $request->category,
-                'department' => $request->department,
                 'priority' => $request->priority,
                 'description' => $request->description,
                 'assigned_employee_id' => $request->assigned_employee_id,
@@ -430,18 +430,12 @@ class ComplaintController extends Controller
     {
         $complaint->load(['spareParts.spare']);
         
-        $clients = Client::orderBy('client_name')->get();
         $employees = Employee::where('status', 'active')->orderBy('name')->get();
-        $departments = Employee::where('status', 'active')
-            ->whereNotNull('department')
-            ->distinct()
-            ->orderBy('department')
-            ->pluck('department');
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
-        return view('admin.complaints.edit', compact('complaint', 'clients', 'employees', 'categories', 'departments'));
+        return view('admin.complaints.edit', compact('complaint', 'employees', 'categories'));
     }
 
     /**
@@ -451,10 +445,9 @@ class ComplaintController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'client_id' => 'required|exists:clients,id',
+            'client_name' => 'required|string|max:255',
             // Allow any category string (column changed to VARCHAR)
             'category' => 'required|string|max:100',
-            'department' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'description' => 'required|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
@@ -465,6 +458,8 @@ class ComplaintController extends Controller
             'spare_parts' => 'required|array|min:1',
             'spare_parts.0.spare_id' => 'required|exists:spares,id',
             'spare_parts.0.quantity' => 'required|integer|min:1',
+            'city' => 'nullable|string|max:100',
+            'sector' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -473,16 +468,25 @@ class ComplaintController extends Controller
                 ->withInput();
         }
 
+        // Find or create client by name
+        $client = Client::firstOrCreate(
+            ['client_name' => trim($request->client_name)],
+            [
+                'city' => $request->city ?? null,
+                'sector' => $request->sector ?? null,
+                'status' => 'active',
+            ]
+        );
+
         $oldStatus = $complaint->status;
         $oldAssignedTo = $complaint->assigned_employee_id;
 
         $complaint->update([
             'title' => $request->title,
-            'client_id' => $request->client_id,
+            'client_id' => $client->id,
             'city' => $request->city,
             'sector' => $request->sector,
             'category' => $request->category,
-            'department' => $request->department,
             'priority' => $request->priority,
             'description' => $request->description,
             'assigned_employee_id' => $request->assigned_employee_id,

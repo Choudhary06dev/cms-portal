@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
-use App\Models\Department;
+use App\Models\ComplaintCategory;
 use App\Models\Designation;
 use App\Models\City;
 use App\Models\Sector;
@@ -44,15 +44,15 @@ class EmployeeController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%") // department field stores category
                   ->orWhere('designation', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        // Filter by department
-        if ($request->has('department') && $request->department) {
-            $query->where('department', 'like', "%{$request->department}%");
+        // Filter by category (stored in department field for backward compatibility)
+        if ($request->has('category') && $request->category) {
+            $query->where('department', 'like', "%{$request->category}%");
         }
 
         // Filter by status
@@ -73,15 +73,15 @@ class EmployeeController extends Controller
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
         
-        $departments = Schema::hasTable('departments')
-            ? Department::where('status', 'active')->orderBy('name')->get()
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
         
         $cities = Schema::hasTable('cities')
             ? City::where('status', 'active')->orderBy('name')->get()
             : collect();
         
-        $response = response()->view('admin.employees.create', compact('departments', 'cities'));
+        $response = response()->view('admin.employees.create', compact('categories', 'cities'));
         
         // Add cache-busting headers
         $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -103,21 +103,17 @@ class EmployeeController extends Controller
             'content_type' => $request->header('Content-Type'),
         ]);
 
-        $departmentRule = 'required|string|max:100';
-        $designationRule = 'required|string|max:100';
+        $categoryRule = 'required|string|max:100';
         
-        if (Schema::hasTable('departments')) {
-            $departmentRule .= '|exists:departments,name';
-        }
-        if (Schema::hasTable('designations')) {
-            $designationRule .= '|exists:designations,name';
+        if (Schema::hasTable('complaint_categories')) {
+            $categoryRule .= '|exists:complaint_categories,name';
         }
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
             'email' => 'nullable|email|max:150|unique:employees,email',
-            'department' => $departmentRule,
-            'designation' => $designationRule,
+            'category' => $categoryRule,
+            'designation' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
             'emp_id' => 'nullable|string|max:50|unique:employees',
             'date_of_hire' => 'nullable|date',
@@ -150,7 +146,7 @@ class EmployeeController extends Controller
             $employee = Employee::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'department' => $request->department,
+                'department' => $request->category, // Store category in department field for backward compatibility
                 'designation' => $request->designation,
                 'phone' => $request->phone,
                 'emp_id' => $request->emp_id,
@@ -217,69 +213,17 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
-        $departments = Schema::hasTable('departments')
-            ? Department::where('status', 'active')->orderBy('name')->get()
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
         
         $cities = Schema::hasTable('cities')
             ? City::where('status', 'active')->orderBy('name')->get()
             : collect();
         
-        return view('admin.employees.edit', compact('employee', 'departments', 'cities'));
+        return view('admin.employees.edit', compact('employee', 'categories', 'cities'));
     }
 
-    /**
-     * Get designations by department (AJAX)
-     */
-    public function getDesignationsByDepartment(Request $request)
-    {
-        if (!Schema::hasTable('designations')) {
-            return response()->json(['designations' => []]);
-        }
-
-        $departmentId = $request->input('department_id');
-        
-        // If department_name is provided instead of department_id, find the department
-        if ($request->has('department_name') && $request->department_name && !$departmentId) {
-            $department = Department::where('name', $request->department_name)->first();
-            if ($department) {
-                $departmentId = $department->id;
-            }
-        }
-
-        // Convert to integer if it's a string
-        if ($departmentId) {
-            $departmentId = (int) $departmentId;
-        }
-
-        if (!$departmentId || $departmentId <= 0) {
-            Log::info('No valid department ID provided', [
-                'department_id' => $request->input('department_id'),
-                'department_name' => $request->input('department_name')
-            ]);
-            return response()->json(['designations' => []]);
-        }
-
-        // Check if department exists
-        $department = Department::find($departmentId);
-        if (!$department) {
-            Log::warning('Department not found', ['department_id' => $departmentId]);
-            return response()->json(['designations' => []]);
-        }
-
-        $designations = Designation::where('department_id', $departmentId)
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get(['id', 'name']);
-        
-        Log::info('Designations fetched', [
-            'department_id' => $departmentId,
-            'department_name' => $department->name,
-            'count' => $designations->count()
-        ]);
-        
-        return response()->json(['designations' => $designations]);
-    }
 
     /**
      * Get sectors by city (AJAX)
@@ -344,22 +288,18 @@ class EmployeeController extends Controller
      */
     public function update(Request $request, Employee $employee)
     {
-        $departmentRule = 'required|string|max:100';
-        $designationRule = 'required|string|max:100';
+        $categoryRule = 'required|string|max:100';
         
-        if (Schema::hasTable('departments')) {
-            $departmentRule .= '|exists:departments,name';
-        }
-        if (Schema::hasTable('designations')) {
-            $designationRule .= '|exists:designations,name';
+        if (Schema::hasTable('complaint_categories')) {
+            $categoryRule .= '|exists:complaint_categories,name';
         }
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
             'email' => 'nullable|email|max:150|unique:employees,email,' . $employee->id,
             'phone' => 'nullable|string|max:20',
-            'department' => $departmentRule,
-            'designation' => $designationRule,
+            'category' => $categoryRule,
+            'designation' => 'nullable|string|max:100',
             'emp_id' => 'nullable|string|max:50|unique:employees,emp_id,' . $employee->id,
             'date_of_hire' => 'nullable|date',
             'leave_quota' => 'required|integer|min:0|max:365',
@@ -388,7 +328,7 @@ class EmployeeController extends Controller
             $employee->update([
                 'name' => $request->name,
                 'email' => $request->email,
-                'department' => $request->department,
+                'department' => $request->category, // Store category in department field for backward compatibility
                 'designation' => $request->designation,
                 'phone' => $request->phone,
                 'emp_id' => $request->emp_id,

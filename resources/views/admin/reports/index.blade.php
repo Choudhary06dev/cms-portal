@@ -55,17 +55,6 @@
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="card-glass text-center">
-      <div class="mb-3">
-        <i data-feather="briefcase" class="feather-lg text-secondary"></i>
-      </div>
-      <h4 class="text-white mb-1">Clients Report</h4>
-      <p class="text-muted mb-3">Clients listing and activity overview</p>
-      <a href="{{ route('admin.reports.clients') }}" class="btn btn-outline-secondary btn-sm">View Report</a>
-    </div>
-  </div>
-  
   
 </div>
 

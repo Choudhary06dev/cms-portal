@@ -61,54 +61,31 @@
               <div class="col-12">
                 <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-12">
                 <div class="mb-3">
-                  <label for="client_id" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
-                  <select class="form-select @error('client_id') is-invalid @enderror" 
-                          id="client_id" name="client_id" required>
-                    <option value="">Select Complainant</option>
-                    @if(isset($clients) && $clients->count() > 0)
-                      @foreach($clients as $client)
-                        <option value="{{ $client->id }}" 
-                                data-address="{{ $client->address ?? '' }}" 
-                                data-phone="{{ $client->phone ?? '' }}"
-                                data-city="{{ $client->city ?? '' }}"
-                                data-sector="{{ $client->sector ?? '' }}"
-                                {{ (string)old('client_id') === (string)$client->id ? 'selected' : '' }}>
-                          {{ $client->client_name }}
-                        </option>
-                      @endforeach
-                    @else
-                      <option value="" disabled>No clients available</option>
-                    @endif
-                  </select>
-                  @error('client_id')
+                  <label for="client_name" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
+                  <input type="text" 
+                         class="form-control @error('client_name') is-invalid @enderror" 
+                         id="client_name" 
+                         name="client_name" 
+                         value="{{ old('client_name') }}"
+                         placeholder="Enter complainant name"
+                         required>
+                  @error('client_name')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
               </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label text-white">Address</label>
-                  <input type="text" class="form-control" id="client_address" readonly style="background-color: rgba(255, 255, 255, 0.05);">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label text-white">Mobile No.</label>
-                  <input type="text" class="form-control" id="client_phone" readonly style="background-color: rgba(255, 255, 255, 0.05);">
-                </div>
-              </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label text-white">City</label>
-                  <input type="text" class="form-control" id="client_city" name="city" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <input type="text" class="form-control" id="client_city" name="city" value="{{ old('city') }}" placeholder="Enter city">
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label text-white">Sector</label>
-                  <input type="text" class="form-control" id="client_sector" name="sector" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <input type="text" class="form-control" id="client_sector" name="sector" value="{{ old('sector') }}" placeholder="Enter sector">
                 </div>
               </div>
             </div>
@@ -148,22 +125,6 @@
                 </div>
               </div>
               
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
-                  <select id="department" name="department" class="form-select @error('department') is-invalid @enderror" required>
-                    <option value="">Select Department</option>
-                    @if(isset($departments) && $departments->count() > 0)
-                      @foreach($departments as $dep)
-                        <option value="{{ $dep }}" {{ old('department') == $dep ? 'selected' : '' }}>{{ $dep }}</option>
-                      @endforeach
-                    @endif
-                  </select>
-                  @error('department')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
 
               <!-- Product selection for Complaint Nature & Type -->
               <div class="col-md-6">
@@ -222,7 +183,7 @@
                     <option value="">Select Employee (Optional)</option>
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}" data-department="{{ $employee->department }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
+                        <option value="{{ $employee->id }}" data-category="{{ $employee->department }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
                       @endforeach
                     @else
                       <option value="" disabled>No employees available</option>
@@ -340,42 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const spareSelect = document.getElementById('spare_select');
   const quantityInput = document.getElementById('quantity_input');
   const stockWarning = document.getElementById('stock_warning');
-  const departmentSelect = document.getElementById('department');
-  const employeeSelect = document.getElementById('assigned_employee_id');
-  const clientSelect = document.getElementById('client_id');
-  const clientAddress = document.getElementById('client_address');
-  const clientPhone = document.getElementById('client_phone');
-  const clientCity = document.getElementById('client_city');
-  const clientSector = document.getElementById('client_sector');
-
-  // Auto-fill address, phone, city and sector when client is selected
-  if (clientSelect && clientAddress && clientPhone && clientCity && clientSector) {
-    clientSelect.addEventListener('change', function() {
-      const selectedOption = this.options[this.selectedIndex];
-      if (selectedOption && selectedOption.value) {
-        clientAddress.value = selectedOption.getAttribute('data-address') || '';
-        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
-        clientCity.value = selectedOption.getAttribute('data-city') || '';
-        clientSector.value = selectedOption.getAttribute('data-sector') || '';
-      } else {
-        clientAddress.value = '';
-        clientPhone.value = '';
-        clientCity.value = '';
-        clientSector.value = '';
-      }
-    });
-    
-    // Set initial values if client is pre-selected
-    if (clientSelect.value) {
-      const selectedOption = clientSelect.options[clientSelect.selectedIndex];
-      if (selectedOption) {
-        clientAddress.value = selectedOption.getAttribute('data-address') || '';
-        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
-        clientCity.value = selectedOption.getAttribute('data-city') || '';
-        clientSector.value = selectedOption.getAttribute('data-sector') || '';
-      }
-    }
-  }
+  const categorySelect = document.getElementById('category');
   
   if (!spareSelect || !quantityInput) return;
 
@@ -439,15 +365,17 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('Form not found!');
   }
 
-  // Department -> Employee filter
+  const employeeSelect = document.getElementById('assigned_employee_id');
+
+  // Category -> Employee filter
   function filterEmployees() {
-    if (!departmentSelect || !employeeSelect) return;
-    const dep = departmentSelect.value;
+    if (!categorySelect || !employeeSelect) return;
+    const category = categorySelect.value;
     let firstVisible = null;
     Array.from(employeeSelect.options).forEach(opt => {
       if (!opt.value) return; // placeholder
-      const od = opt.getAttribute('data-department') || '';
-      const show = !dep || od === dep;
+      const optCategory = opt.getAttribute('data-category') || '';
+      const show = !category || optCategory === category;
       opt.hidden = !show;
       if (show && !firstVisible) firstVisible = opt;
     });
@@ -457,13 +385,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if (sel && sel.hidden) employeeSelect.value = '';
     }
   }
-  if (departmentSelect && employeeSelect) {
-    departmentSelect.addEventListener('change', filterEmployees);
+  if (categorySelect && employeeSelect) {
+    categorySelect.addEventListener('change', filterEmployees);
     filterEmployees();
   }
 
   // Category -> Complaint Titles dynamic loading
-  const categorySelect = document.getElementById('category');
   const titleSelect = document.getElementById('title');
   
   if (categorySelect && titleSelect) {

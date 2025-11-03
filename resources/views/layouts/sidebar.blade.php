@@ -210,19 +210,16 @@
     @endif
     @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'department_staff'))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'active' : '' }}">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'active' : '' }}">
         <a href="{{ route('admin.employees.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
           <i data-feather="user-check" class="me-2"></i> Employees
         </a>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
         </button>
       </div>
-      <div class="collapse {{ request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'show' : '' }}" id="employeesSubmenu">
+      <div class="collapse {{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'show' : '' }}" id="employeesSubmenu">
         @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="{{ route('admin.department.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.department.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="briefcase" class="me-2"></i> Departments
-        </a>
         <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="award" class="me-2"></i> Designations
         </a>
@@ -238,11 +235,6 @@
        
       </div>
     </div>
-    @endif
-    @if($user && ($user->hasPermission('clients') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
-    <a href="{{ route('admin.clients.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
-      <i data-feather="briefcase" class="me-2"></i> Complainant
-    </a>
     @endif
     @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
     <div class="nav-item-parent mb-1">
