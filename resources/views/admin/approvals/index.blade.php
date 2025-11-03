@@ -65,6 +65,7 @@
 </div>
 
 <!-- APPROVALS TABLE -->
+
 <div class="card-glass">
   <div class="table-responsive">
         <table class="table table-dark">
