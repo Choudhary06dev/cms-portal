@@ -60,7 +60,6 @@
         <tr>
           <th>ID</th>
           <th>Username</th>
-          <th>Email</th>
           <th>Role</th>
           <th>City</th>
           <th>Sector</th>
@@ -83,9 +82,12 @@
               </div>
             </div>
           </td>
-          <td>{{ $user->email ?? 'N/A' }}</td>
           <td>
-            <span class="badge bg-primary">{{ $user->role->role_name ?? 'No Role' }}</span>
+            @php
+              $rawRole = $user->role->role_name ?? 'No Role';
+              $prettyRole = $rawRole === 'No Role' ? $rawRole : ucwords(str_replace('_', ' ', strtolower($rawRole)));
+            @endphp
+            <span class="badge bg-primary" style="font-size: 0.85rem; padding: 6px 10px;">{{ $prettyRole }}</span>
           </td>
           <td>
             @php

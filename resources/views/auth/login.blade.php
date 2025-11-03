@@ -9,13 +9,13 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email Address -->
+        <!-- Username -->
         <div class="form-group">
-            <label for="email" class="form-label">
-                <i data-feather="mail" class="inline w-4 h-4 mr-2"></i>Email Address
+            <label for="username" class="form-label">
+                <i data-feather="user" class="inline w-4 h-4 mr-2"></i>Username
             </label>
-            <input id="email" class="form-input" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Enter your email" />
-            @error('email')
+            <input id="username" class="form-input" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username" placeholder="Enter your username" />
+            @error('username')
                 <div class="error-message">{{ $message }}</div>
             @enderror
         </div>

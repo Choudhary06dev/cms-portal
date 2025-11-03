@@ -28,15 +28,20 @@
              value="{{ request('search') }}" autocomplete="off" style="font-size: 0.9rem; width: 200px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Date</label>
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From Date</label>
       <input type="date" class="form-control" name="complaint_date" 
              value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To Date</label>
+      <input type="date" class="form-control" name="date_to" 
+             value="{{ request('date_to') }}" placeholder="End Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
     </div>
     <div class="col-auto">
       <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
       <select class="form-select" name="category" autocomplete="off" style="font-size: 0.9rem; width: 140px;">
         <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
-        @if(isset($categories))
+        @if(isset($categories) && $categories->count() > 0)
           @foreach($categories as $cat)
             <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
@@ -469,6 +474,12 @@
     const dateInput = form.querySelector('input[name="complaint_date"]');
     if (dateInput) {
       dateInput.addEventListener('change', submitApprovalsFilters);
+    }
+    
+    // Attach event listener to end date input
+    const endDateInput = form.querySelector('input[name="date_to"]');
+    if (endDateInput) {
+      endDateInput.addEventListener('change', submitApprovalsFilters);
     }
     
     // Attach event listener to category select

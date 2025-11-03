@@ -45,19 +45,18 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
-        // Disable "remember me" since users table has no remember_token column
         if (Auth::guard('frontend')->attempt($credentials, false)) {
             $request->session()->regenerate();
             return redirect()->route('frontend.dashboard');
         }
 
         return back()->withErrors([
-            'email' => 'Invalid credentials.',
-        ])->onlyInput('email');
+            'username' => 'Invalid credentials.',
+        ])->onlyInput('username');
     }
 
     public function logout(Request $request)

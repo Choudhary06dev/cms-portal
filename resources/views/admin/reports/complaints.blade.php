@@ -103,6 +103,15 @@
       top: 0;
       width: 100%;
       background: #fff !important;
+      padding: 0 !important;
+    }
+    /* Remove any boxes/shadows/wrappers in print */
+    .card-glass, .card-glass .card-body {
+      box-shadow: none !important;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
     .btn, .card-glass .card-body form, .card-header, .mb-4:first-child {
       display: none !important;
@@ -120,8 +129,10 @@
       border: 1px solid #000 !important;
       color: #000 !important;
     }
+    /* Remove outer table border box; keep only cell borders */
     .table-bordered {
-      border: 2px solid #000 !important;
+      border: none !important;
+      border-radius: 0 !important;
     }
     .text-white {
       color: #000 !important;
