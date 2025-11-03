@@ -31,7 +31,7 @@
               <div class="col-12">
                 <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
               </div>
-              <div class="col-md-12">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="client_name" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
                   <input type="text" 
@@ -46,16 +46,28 @@
                   @enderror
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">City</label>
                   <input type="text" class="form-control" id="client_city" name="city" value="{{ old('city', $complaint->city ?? $complaint->client->city ?? '') }}" placeholder="Enter city">
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Sector</label>
                   <input type="text" class="form-control" id="client_sector" name="sector" value="{{ old('sector', $complaint->sector ?? $complaint->client->sector ?? '') }}" placeholder="Enter sector">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label text-white">Address</label>
+                  <input type="text" class="form-control" id="client_address" name="address" value="{{ old('address', $complaint->client->address ?? '') }}" placeholder="e.g., 00/0-ST-0-B-0">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label text-white">Phone No.</label>
+                  <input type="text" class="form-control" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number">
                 </div>
               </div>
             </div>
@@ -96,37 +108,7 @@
               </div>
               
 
-              <!-- Product selection for Complaint Nature & Type -->
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label text-white">Product (for Complaint Nature & Type) <span class="text-danger">*</span></label>
-                  <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
-                          name="spare_parts[0][spare_id]" id="spare_select" required>
-                    <option value="">Select Product</option>
-                    @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
-                      <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}"
-                              {{ old('spare_parts.0.spare_id', $complaint->spareParts->first()?->spare_id) == $spare->id ? 'selected' : '' }}>
-                        {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
-                      </option>
-                    @endforeach
-                  </select>
-                  @error('spare_parts.0.spare_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
               
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
-                  <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                         name="spare_parts[0][quantity]" id="quantity_input" min="1" 
-                         value="{{ old('spare_parts.0.quantity', $complaint->spareParts->first()?->quantity) }}" required>
-                  @error('spare_parts.0.quantity')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
 
               <div class="col-md-6">
                 <div class="mb-3">
@@ -171,7 +153,7 @@
                 <div class="mb-3">
                   <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
                   <textarea class="form-control @error('description') is-invalid @enderror" 
-                            id="description" name="description" rows="4" required>{{ old('description', $complaint->description) }}</textarea>
+                            id="description" name="description" rows="4" >{{ old('description', $complaint->description) }}</textarea>
                   @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -265,6 +247,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const categorySelect = document.getElementById('category');
   const employeeSelect = document.getElementById('assigned_employee_id');
+  const addressInput = document.getElementById('client_address');
 
   function filterEmployees() {
     if (!categorySelect || !employeeSelect) return;
@@ -282,6 +265,36 @@ document.addEventListener('DOMContentLoaded', function() {
     filterEmployees();
   }
 
+  // Address auto-format: ensure patterns like 00/0-ST-4-B-5
+  if (addressInput) {
+    function formatAddress(val) {
+      if (!val) return '';
+      let v = val.toUpperCase();
+      v = v.replace(/\s+/g, '');
+      // Ensure hyphen after number/number pattern e.g., 17/2 -> 17/2-
+      v = v.replace(/(\d+\/\d+)(?!-)/g, '$1-');
+      // Ensure hyphen after ST-<num> e.g., ST-4 -> ST-4-
+      v = v.replace(/(ST-\d+)(?!-)/g, '$1-');
+      // Collapse multiple hyphens
+      v = v.replace(/-+/g, '-');
+      // Trim leading hyphens
+      v = v.replace(/^-+/, '');
+      return v;
+    }
+
+    const applyFormat = () => {
+      const formatted = formatAddress(addressInput.value);
+      if (formatted !== addressInput.value) {
+        addressInput.value = formatted;
+        try { addressInput.setSelectionRange(formatted.length, formatted.length); } catch (_) {}
+      }
+    };
+
+    addressInput.addEventListener('input', applyFormat);
+    addressInput.addEventListener('blur', applyFormat);
+    // Initialize once on load
+    applyFormat();
+  }
   // Category -> Complaint Titles dynamic loading
   const titleSelect = document.getElementById('title');
   const currentTitle = '{{ old('title', $complaint->title) }}';

@@ -484,12 +484,15 @@ class ComplaintController extends Controller
             // Status removed from form - will be managed in approvals view, keep existing status
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
-            // Product (spare) update requirements: single selection required
-            'spare_parts' => 'required|array|min:1',
-            'spare_parts.0.spare_id' => 'required|exists:spares,id',
-            'spare_parts.0.quantity' => 'required|integer|min:1',
+            // Product (spare) optional now
+            'spare_parts' => 'nullable|array',
+            'spare_parts.0.spare_id' => 'nullable|exists:spares,id',
+            'spare_parts.0.quantity' => 'nullable|integer|min:1',
             'city' => 'nullable|string|max:100',
             'sector' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:500',
+            'email' => 'nullable|string|max:150',
+            'phone' => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -498,15 +501,28 @@ class ComplaintController extends Controller
                 ->withInput();
         }
 
-        // Find or create client by name
+        // Find or create client by name and update details
         $client = Client::firstOrCreate(
             ['client_name' => trim($request->client_name)],
             [
+                'contact_person' => $request->input('contact_person') ?: trim($request->client_name),
+                'email' => $request->input('email', ''),
+                'phone' => $request->input('phone', ''),
+                'address' => $request->input('address'),
                 'city' => $request->city ?? null,
                 'sector' => $request->sector ?? null,
                 'status' => 'active',
             ]
         );
+        // Update existing client with provided fields
+        $client->fill([
+            'contact_person' => $request->input('contact_person') ?: trim($request->client_name),
+            'email' => $request->input('email', $client->email),
+            'phone' => $request->input('phone', $client->phone),
+            'address' => $request->input('address', $client->address),
+            'city' => $request->city ?? $client->city,
+            'sector' => $request->sector ?? $client->sector,
+        ])->save();
 
         $oldStatus = $complaint->status;
         $oldAssignedTo = $complaint->assigned_employee_id;
@@ -524,49 +540,45 @@ class ComplaintController extends Controller
             // Keep existing status and closed_at
         ]);
 
-        // Update product (spare) selection: replace selection only; no stock movement here
-        try {
-            DB::beginTransaction();
+        // Update product (spare) selection only if provided
+        if ($request->filled('spare_parts') && isset($request->spare_parts[0]['spare_id']) && $request->spare_parts[0]['spare_id']) {
+            try {
+                DB::beginTransaction();
 
-            $currentEmployee = Employee::first();
+                $currentEmployee = Employee::first();
 
-            // Remove existing complaint spares without stock adjustment
-            $existingSpares = $complaint->spareParts()->with('spare')->get();
-            foreach ($existingSpares as $existing) {
-                $existing->delete();
-            }
+                // Remove existing complaint spares without stock adjustment
+                $complaint->spareParts()->delete();
 
-            // Add the new selection (single box form)
-            $part = $request->spare_parts[0];
-            $spare = Spare::find($part['spare_id']);
-            if (!$spare) {
-                throw new \Exception('Selected product not found.');
-            }
-            // Do not enforce stock at request time; approval will enforce
+                // Add the new selection (single box form)
+                $part = $request->spare_parts[0];
+                $spare = Spare::find($part['spare_id']);
+                if (!$spare) {
+                    throw new \Exception('Selected product not found.');
+                }
 
-            // Create record only (no stock deduction here)
-            ComplaintSpare::create([
-                'complaint_id' => $complaint->id,
-                'spare_id' => $spare->id,
-                'quantity' => (int)$part['quantity'],
-                'used_by' => $currentEmployee?->id ?? Employee::first()->id,
-                'used_at' => now(),
-            ]);
-
-            // Log change
-            if ($currentEmployee) {
-                ComplaintLog::create([
+                ComplaintSpare::create([
                     'complaint_id' => $complaint->id,
-                    'action_by' => $currentEmployee->id,
-                    'action' => 'spare_parts_updated',
-                    'remarks' => "Updated product to {$spare->item_name} (Qty: {$part['quantity']})",
+                    'spare_id' => $spare->id,
+                    'quantity' => (int)($part['quantity'] ?? 1),
+                    'used_by' => $currentEmployee?->id ?? Employee::first()->id,
+                    'used_at' => now(),
                 ]);
-            }
 
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to update product/quantity: ' . $e->getMessage())->withInput();
+                if ($currentEmployee) {
+                    ComplaintLog::create([
+                        'complaint_id' => $complaint->id,
+                        'action_by' => $currentEmployee->id,
+                        'action' => 'spare_parts_updated',
+                        'remarks' => "Updated product to {$spare->item_name} (Qty: " . ((int)($part['quantity'] ?? 1)) . ")",
+                    ]);
+                }
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Failed to update product/quantity: ' . $e->getMessage())->withInput();
+            }
         }
 
         // Handle new file attachments

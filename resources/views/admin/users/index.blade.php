@@ -118,14 +118,14 @@
           </td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-info btn-sm" title="View Details">
-                <i data-feather="eye"></i>
+              <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
-              <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline-warning btn-sm" title="Edit">
-                <i data-feather="edit"></i>
+              <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
+                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteUser({{ $user->id }})" title="Delete">
-                <i data-feather="trash-2"></i>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteUser({{ $user->id }})" title="Delete" style="padding: 3px 8px;">
+                <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
           </td>

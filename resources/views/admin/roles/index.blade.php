@@ -68,17 +68,17 @@
           <td>{{ $role->created_at->format('M d, Y') }}</td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-outline-info btn-sm" title="View Details">
-                <i data-feather="eye"></i>
+              <a href="{{ route('admin.roles.show', $role) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
-              <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-outline-warning btn-sm" title="Edit">
-                <i data-feather="edit"></i>
+              <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
+                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
-              <a href="{{ route('admin.roles.permissions', $role) }}" class="btn btn-outline-primary btn-sm" title="Permissions">
-                <i data-feather="shield"></i>
+              <a href="{{ route('admin.roles.permissions', $role) }}" class="btn btn-outline-secondary btn-sm" title="Permissions" style="padding: 3px 8px;">
+                <i data-feather="shield" style="width: 16px; height: 16px;"></i>
               </a>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteRole({{ $role->id }})" title="Delete">
-                <i data-feather="trash-2"></i>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteRole({{ $role->id }})" title="Delete" style="padding: 3px 8px;">
+                <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
           </td>

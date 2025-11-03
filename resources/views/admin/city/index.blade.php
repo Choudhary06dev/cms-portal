@@ -50,11 +50,11 @@
         <label class="form-label small text-muted mb-1">Province</label>
         <select name="province" class="form-select @error('province') is-invalid @enderror">
           <option value="">Select Province</option>
+                    <option value="Punjab" {{ old('province')==='Punjab'?'selected':'' }}>Punjab</option>
           <option value="Sindh" {{ old('province')==='Sindh'?'selected':'' }}>Sindh</option>
-          <option value="Punjab" {{ old('province')==='Punjab'?'selected':'' }}>Punjab</option>
+                    <option value="Balochistan" {{ old('province')==='Balochistan'?'selected':'' }}>Balochistan</option>
           <option value="KPK" {{ old('province')==='KPK'?'selected':'' }}>KPK</option>
-          <option value="Balochistan" {{ old('province')==='Balochistan'?'selected':'' }}>Balochistan</option>
-          <option value="Gilgit-Baltistan" {{ old('province')==='Gilgit-Baltistan'?'selected':'' }}>Gilgit-Baltistan</option>
+          <option value="Federal" {{ old('province')==='Federal'?'selected':'' }}>Federal</option>
           <option value="Azad Kashmir" {{ old('province')==='Azad Kashmir'?'selected':'' }}>Azad Kashmir</option>
         </select>
         @error('province')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -168,7 +168,7 @@
               <option value="Punjab">Punjab</option>
               <option value="KPK">KPK</option>
               <option value="Balochistan">Balochistan</option>
-              <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
+              <option value="Federal">Federal</option>
               <option value="Azad Kashmir">Azad Kashmir</option>
             </select>
           </div>

@@ -96,70 +96,20 @@
         @if($complaint)
         @php
           $category = $complaint->category ?? 'N/A';
-          $department = $complaint->department ?? '';
-          
-          // Get product name from spare parts
-          $productName = '';
-          if ($complaint->spareParts && $complaint->spareParts->count() > 0) {
-            $firstSpare = $complaint->spareParts->first();
-            if ($firstSpare && $firstSpare->spare) {
-              $productName = $firstSpare->spare->item_name ?? '';
-              if ($complaint->spareParts->count() > 1) {
-                $productName .= ' (+' . ($complaint->spareParts->count() - 1) . ')';
-              }
-            }
-          }
-          
-          // Category to REQ type mapping
-          $reqTypeMap = [
-            'electric' => 'ELECTRECION REQ',
-            'technical' => 'TECHNICAL REQ',
-            'service' => 'SERVICE REQ',
-            'billing' => 'BILLING REQ',
-            'water' => 'PIPE FITTER REQ',
-            'sanitary' => 'SANITARY REQ',
-            'plumbing' => 'PLUMBING REQ',
-            'kitchen' => 'KITCHEN REQ',
-            'other' => 'OTHER REQ',
+          $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+          $categoryDisplay = [
+            'electric' => 'Electric',
+            'technical' => 'Technical',
+            'service' => 'Service',
+            'billing' => 'Billing',
+            'water' => 'Water Supply',
+            'sanitary' => 'Sanitary',
+            'plumbing' => 'Plumbing',
+            'kitchen' => 'Kitchen',
+            'other' => 'Other',
           ];
-          
-          $reqType = $reqTypeMap[strtolower($category)] ?? strtoupper($category) . ' REQ';
-          
-          // Format display text with category and product name
-          if ($department) {
-            if (strpos(strtoupper($department), 'B&R') !== false) {
-              if ($productName) {
-                $displayText = $department . ' - ' . $productName . ' - MASSON REQ';
-              } else {
-                $displayText = $department . ' - MASSON REQ';
-              }
-            } else {
-              if ($productName) {
-                $displayText = $department . ' - ' . $productName . ' - ' . $reqType;
-              } else {
-                $displayText = $department . ' - ' . $reqType;
-              }
-            }
-          } else {
-            $categoryDisplay = [
-              'electric' => 'Electric',
-              'technical' => 'Technical',
-              'service' => 'Service',
-              'billing' => 'Billing',
-              'water' => 'Water Supply',
-              'sanitary' => 'Sanitary',
-              'plumbing' => 'Plumbing',
-              'kitchen' => 'Kitchen',
-              'other' => 'Other',
-            ];
-            $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-            
-            if ($productName) {
-              $displayText = $catDisplay . ' - ' . $productName . ' - ' . $reqType;
-            } else {
-              $displayText = $catDisplay . ' - ' . $reqType;
-            }
-          }
+          $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+          $displayText = $catDisplay . ' - ' . $designation;
           
           // Convert 'new' status to 'assigned' for display
           $rawStatus = $complaint->status ?? 'new';
@@ -170,17 +120,17 @@
         @endphp
         <tr>
           <td>{{ $loop->iteration }}</td>
-          <td>{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
-          <td>{{ $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : '' }}</td>
+          <td>{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
+          <td>{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '' }}</td>
           <td>
             <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-              {{ $complaint->complaint_id ?? $complaint->id }}
+              {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
             </a>
           </td>
           <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
           <td>{{ $complaint->client->address ?? 'N/A' }}</td>
           <td>
-            <div class="text-white fw-bold">{{ $displayText }}</div>
+            <div class="text-white">{{ $displayText }}</div>
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
           <td>
@@ -206,8 +156,8 @@
           </td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-outline-info btn-sm" title="View Details">
-                <i data-feather="eye"></i>
+              <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
             </div>
           </td>
@@ -891,6 +841,7 @@
       const row = select.closest('tr');
       const performaBadge = row ? row.querySelector('.performa-badge') : null;
       const complaintId = select.getAttribute('data-complaint-id');
+      let skipConfirm = false;
 
       // Normalize common variants to backend values
       const normalize = (val) => {
@@ -922,10 +873,11 @@
           const val = newStatus === 'work_performa' ? 'work' : 'maint';
           try { localStorage.setItem(key, val); } catch (err) {}
         }
-        const oldStatusLocal = select.dataset.oldStatus || 'assigned';
-        select.value = oldStatusLocal;
+        // Auto-set status to In-Process and continue to update backend
+        newStatus = 'in_progress';
+        select.value = 'in_progress';
+        skipConfirm = true;
         showSuccess(performaBadge?.textContent || 'Performa marked');
-        return;
       }
 
       // Real statuses only
@@ -939,10 +891,26 @@
         return;
       }
 
-      // Clear Performa Required badge when switching to real statuses
-      if (performaBadge) {
-        performaBadge.style.display = 'none';
-        performaBadge.textContent = '';
+      // Clear Performa Required badge only if no persisted flag exists
+      if (performaBadge && complaintId) {
+        let savedFlag = null;
+        try { savedFlag = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedFlag = null; }
+        if (!savedFlag) {
+          performaBadge.style.display = 'none';
+          performaBadge.textContent = '';
+        } else {
+          // Ensure correct styling if persisted
+          if (savedFlag === 'work') {
+            performaBadge.textContent = 'Work Performa Required';
+            performaBadge.style.backgroundColor = '#0ea5e9';
+            performaBadge.style.color = '#fff';
+          } else if (savedFlag === 'maint') {
+            performaBadge.textContent = 'Maint Performa Required';
+            performaBadge.style.backgroundColor = '#6366f1';
+            performaBadge.style.color = '#fff';
+          }
+          performaBadge.style.display = 'inline-block';
+        }
       }
 
       // Clear persisted performa flag when switching to real statuses
@@ -958,9 +926,11 @@
       const oldStatus = select.dataset.oldStatus || select.value;
       const labelMap = { in_progress: 'In-Process', resolved: 'Addressed', assigned: 'Assigned', new: 'New', closed: 'Closed' };
       const confirmMsg = `Are you sure you want to change status to "${labelMap[newStatus] || newStatus}"?`;
-      if (!confirm(confirmMsg)) {
-        select.value = oldStatus;
-        return;
+      if (!skipConfirm) {
+        if (!confirm(confirmMsg)) {
+          select.value = oldStatus;
+          return;
+        }
       }
 
       select.style.opacity = '0.6';

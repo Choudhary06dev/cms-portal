@@ -121,6 +121,20 @@
                   @enderror
                 </div>
               </div>
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="phone" class="form-label text-white">Phone No.</label>
+                  <input type="text"
+                         class="form-control @error('phone') is-invalid @enderror"
+                         id="phone"
+                         name="phone"
+                         value="{{ old('phone') }}"
+                         placeholder="Enter phone number">
+                  @error('phone')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
             </div>
 
             <!-- Complaint Details Section (matching index file columns) -->
@@ -159,36 +173,7 @@
               </div>
               
 
-              <!-- Product selection for Complaint Nature & Type -->
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label text-white">Product (for Complaint Nature & Type)</label>
-                  <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
-                          name="spare_parts[0][spare_id]" id="spare_select">
-                    <option value="">Select Product (Optional)</option>
-                    @foreach(\App\Models\Spare::orderBy('item_name')->get() as $spare)
-                      <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}" {{ (string)old('spare_parts.0.spare_id') === (string)$spare->id ? 'selected' : '' }}>
-                        {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
-                      </option>
-                    @endforeach
-                  </select>
-                  @error('spare_parts.0.spare_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
               
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label text-white">Quantity</label>
-                  <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                         name="spare_parts[0][quantity]" id="quantity_input" min="1" value="{{ old('spare_parts.0.quantity') }}">
-                  <div id="stock_warning" class="text-warning mt-1" style="display: none; font-size: 0.875rem;"></div>
-                  @error('spare_parts.0.quantity')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
 
               <div class="col-md-4">
                 <div class="mb-3">
