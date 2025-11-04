@@ -150,57 +150,70 @@
           </td>
           <td>
             @if($complaintStatus == 'resolved')
-              <span class="badge" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid {{ $statusColors['resolved']['border'] }};">
-                Addressed
-              </span>
+              <div class="status-chip" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['resolved']['bg'] }}; border-color: {{ $statusColors['resolved']['border'] }};"></span>
+                <span style="font-size: 11px; font-weight: 700;">Addressed</span>
+              </div>
             @elseif($complaintStatus == 'in_progress')
+              <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['in_progress']['bg'] }}; border-color: {{ $statusColors['in_progress']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="in_progress"
-                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border: 1px solid {{ $statusColors['in_progress']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
+                      style="min-width: 110px; max-width: 140px; font-size: 11px; font-weight: 700;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa">Work Performa</option>
                 <option value="maint_performa">Maint Performa</option>
               </select>
+              </div>
             @elseif($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false))
+              <div class="status-chip" style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['work_performa']['bg'] }}; border-color: {{ $statusColors['work_performa']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="work_performa"
-                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border: 1px solid {{ $statusColors['work_performa']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
+                      style="min-width: 110px; max-width: 140px; font-size: 11px; font-weight: 700;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa" {{ $complaintStatus == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
                 <option value="maint_performa">Maint Performa</option>
               </select>
+              </div>
             @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Maint') !== false))
+              <div class="status-chip" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="maint_performa"
-                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border: 1px solid {{ $statusColors['maint_performa']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
+                      style="min-width: 110px; max-width: 140px; font-size: 11px; font-weight: 700;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa">Work Performa</option>
                 <option value="maint_performa" {{ $complaintStatus == 'maint_performa' ? 'selected' : '' }}>Maint Performa</option>
               </select>
+              </div>
             @else
+              <div class="status-chip" style="background-color: {{ $statusColors['assigned']['bg'] }}; color: {{ $statusColors['assigned']['text'] }}; border-color: {{ $statusColors['assigned']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['assigned']['bg'] }}; border-color: {{ $statusColors['assigned']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="assigned"
-                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['assigned']['bg'] }}; color: {{ $statusColors['assigned']['text'] }}; border: 1px solid {{ $statusColors['assigned']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
+                      style="min-width: 110px; max-width: 140px; font-size: 7px; font-weight: 700;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa">Work Performa</option>
                 <option value="maint_performa">Maint Performa</option>
               </select>
+              </div>
             @endif
           </td>
           <td>
@@ -271,7 +284,6 @@
   .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
   .status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
   .status-approved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-  .status-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
   
   /* Table text styling for all themes */
   .table td {
@@ -300,11 +312,57 @@
     font-size: 11px !important;
     height: 28px !important;
     line-height: 1.4 !important;
+    /* Make native arrow consistent */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 22px !important; /* room for arrow */
+    background-repeat: no-repeat !important;
+    background-position: right 6px center !important;
+    background-size: 12px 12px !important;
+    /* SVG arrow uses currentColor so it adapts to text color */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
   }
   
   .status-select option {
     padding: 4px 8px;
     font-size: 11px;
+  }
+
+  /* Live color indicator next to status select (works across browsers) */
+  .status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    border: 1px solid rgba(0,0,0,0.25);
+    vertical-align: middle;
+  }
+
+  /* Colored chip that wraps the whole status control */
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    min-height: 32px;
+  }
+  .status-chip .status-select {
+    background: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    padding-left: 0 !important;
+    /* keep right padding for arrow */
+    padding-right: 22px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+  }
+  .status-chip span {
+    font-size: 11px;
+    font-weight: 700;
   }
   
 </style>
@@ -319,75 +377,7 @@
   let isProcessing = false;
 
   // viewApproval function removed - using direct link to show.blade.php page instead
-
-  function approveRequest(approvalId) {
-    if (confirm('Are you sure you want to approve this request?')) {
-      const remarks = prompt('Enter approval remarks (optional):');
-      
-      fetch(`/admin/approvals/${approvalId}/approve`, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-          remarks: remarks || ''
-        })
-      })
-      .then(response => {
-        return response.json().then(data => {
-          if (data.success || response.ok) {
-            showSuccess('Approval approved successfully!');
-            location.reload();
-          } else {
-            showError(data.message || 'Failed to approve request');
-          }
-        });
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        showError('Error approving request');
-      });
-    }
-  }
-
-  function rejectRequest(approvalId) {
-    const remarks = prompt('Please enter rejection reason (required):');
-    if (remarks === null) return; // User cancelled
-    if (!remarks || remarks.trim() === '') {
-      showError('Rejection reason is required');
-      return;
-    }
-    
-    fetch(`/admin/approvals/${approvalId}/reject`, {
-      method: 'POST',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      },
-      body: JSON.stringify({
-        remarks: remarks
-      })
-    })
-    .then(response => {
-      return response.json().then(data => {
-        if (data.success || response.ok) {
-          showSuccess('Approval rejected successfully!');
-          location.reload();
-        } else {
-          showError(data.message || 'Failed to reject request');
-        }
-      });
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showError('Error rejecting request');
-    });
-  }
+  // approveRequest and rejectRequest functions removed as per user request
 
   // Utility Functions
   function refreshPage() {
@@ -873,29 +863,7 @@
   }
 
   // Removed duplicate status change handler (handled by comprehensive handler below)
-  
-  // Event delegation for approval buttons (document level for dynamic content)
-  document.addEventListener('click', function(e) {
-    // Approve Request button
-    if (e.target.closest('.btn-approve-request')) {
-      e.preventDefault();
-      const button = e.target.closest('.btn-approve-request');
-      const approvalId = button.getAttribute('data-approval-id');
-      if (approvalId) {
-        approveRequest(parseInt(approvalId));
-      }
-    }
-    
-    // Reject Request button
-    if (e.target.closest('.btn-reject-request')) {
-      e.preventDefault();
-      const button = e.target.closest('.btn-reject-request');
-      const approvalId = button.getAttribute('data-approval-id');
-      if (approvalId) {
-        rejectRequest(parseInt(approvalId));
-      }
-    }
-  });
+  // Event delegation for approval/reject buttons removed as per user request
 
   // Status colors mapping for JavaScript
   const statusColors = {
@@ -914,6 +882,21 @@
     select.style.color = color.text;
     select.style.borderColor = color.border;
     select.setAttribute('data-status-color', normalizedStatus);
+    // Update the small status indicator dot next to the select
+    const td = select.closest('td');
+    if (td) {
+      const dot = td.querySelector('.status-indicator');
+      const chip = td.querySelector('.status-chip');
+      if (dot) {
+        dot.style.backgroundColor = color.bg;
+        dot.style.borderColor = color.border;
+      }
+      if (chip) {
+        chip.style.backgroundColor = color.bg;
+        chip.style.color = color.text;
+        chip.style.borderColor = color.border;
+      }
+    }
   }
 
   // Handle Performa Required dropdown changes
