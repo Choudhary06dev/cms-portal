@@ -284,96 +284,151 @@ class AdminController extends Controller
      */
     public function getNotifications(Request $request)
     {
-        // Build a simple aggregated notification feed (max 10)
-        $notifications = collect();
+        try {
+            // Build a simple aggregated notification feed (max 10)
+            $notifications = collect();
 
-        // 1) New complaints today
-        $newComplaints = Complaint::with(['client'])
-            ->orderBy('created_at', 'desc')
-            ->whereDate('created_at', today())
-            ->limit(5)
-            ->get()
-            ->map(function($c) {
-                return [
-                    'id' => 'complaint-'.$c->id,
-                    'title' => 'New Complaint',
-                    'message' => ($c->client->client_name ?? 'Client').': '.$c->title,
-                    'type' => 'info',
-                    'icon' => 'alert-circle',
-                    'time' => $c->created_at->diffForHumans(),
-                    'read' => false,
-                    'url' => route('admin.complaints.show', $c->id),
-                ];
-            });
+            // 1) New complaints today
+            try {
+                $newComplaints = Complaint::with(['client'])
+                    ->orderBy('created_at', 'desc')
+                    ->whereDate('created_at', today())
+                    ->limit(5)
+                    ->get()
+                    ->map(function($c) {
+                        return [
+                            'id' => 'complaint-'.$c->id,
+                            'title' => 'New Complaint',
+                            'message' => ($c->client->client_name ?? 'Client').': '.$c->title,
+                            'type' => 'info',
+                            'icon' => 'alert-circle',
+                            'time' => $c->created_at->diffForHumans(),
+                            'read' => false,
+                            'url' => route('admin.complaints.show', $c->id),
+                        ];
+                    });
+            } catch (\Exception $e) {
+                \Log::error('Error loading new complaints for notifications', ['error' => $e->getMessage()]);
+                $newComplaints = collect();
+            }
 
-        // 2) Pending approvals
-        $pendingApprovals = SpareApprovalPerforma::with(['complaint'])
-            ->where('status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function($a) {
-                return [
-                    'id' => 'approval-'.$a->id,
-                    'title' => 'Approval Pending',
-                    'message' => 'Performa #'.$a->id.' awaiting action',
-                    'type' => 'warning',
-                    'icon' => 'check-circle',
-                    'time' => $a->created_at->diffForHumans(),
-                    'read' => false,
-                    'url' => route('admin.approvals.show', $a->id),
-                ];
-            });
+            // 2) Pending approvals
+            try {
+                $pendingApprovals = SpareApprovalPerforma::with(['complaint'])
+                    ->where('status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get()
+                    ->map(function($a) {
+                        return [
+                            'id' => 'approval-'.$a->id,
+                            'title' => 'Approval Pending',
+                            'message' => 'Performa #'.$a->id.' awaiting action',
+                            'type' => 'warning',
+                            'icon' => 'check-circle',
+                            'time' => $a->created_at->diffForHumans(),
+                            'read' => false,
+                            'url' => route('admin.approvals.show', $a->id),
+                        ];
+                    });
+            } catch (\Exception $e) {
+                \Log::error('Error loading pending approvals for notifications', ['error' => $e->getMessage()]);
+                $pendingApprovals = collect();
+            }
 
-        // 3) Low stock spares
-        $lowStock = Spare::lowStock()
-            ->orderBy('stock_quantity', 'asc')
-            ->limit(5)
-            ->get()
-            ->map(function($s) {
-                return [
-                    'id' => 'spare-'.$s->id,
-                    'title' => 'Low Stock',
-                    'message' => $s->item_name.' stock at '.$s->stock_quantity,
-                    'type' => 'danger',
-                    'icon' => 'package',
-                    'time' => now()->diffForHumans(),
-                    'read' => false,
-                    'url' => route('admin.spares.show', $s->id),
-                ];
-            });
+            // 3) Low stock spares
+            try {
+                // Check if lowStock() method exists, otherwise use manual query
+                if (method_exists(Spare::class, 'lowStock')) {
+                    $lowStock = Spare::lowStock()
+                        ->orderBy('stock_quantity', 'asc')
+                        ->limit(5)
+                        ->get();
+                } else {
+                    // Fallback: manually query low stock items
+                    $lowStock = Spare::whereColumn('stock_quantity', '<=', 'threshold_level')
+                        ->orderBy('stock_quantity', 'asc')
+                        ->limit(5)
+                        ->get();
+                }
+                
+                $lowStock = $lowStock->map(function($s) {
+                    return [
+                        'id' => 'spare-'.$s->id,
+                        'title' => 'Low Stock',
+                        'message' => $s->item_name.' stock at '.$s->stock_quantity,
+                        'type' => 'danger',
+                        'icon' => 'package',
+                        'time' => now()->diffForHumans(),
+                        'read' => false,
+                        'url' => route('admin.spares.show', $s->id),
+                    ];
+                });
+            } catch (\Exception $e) {
+                \Log::error('Error loading low stock for notifications', ['error' => $e->getMessage()]);
+                $lowStock = collect();
+            }
 
-        // 4) Overdue complaints
-        $overdue = Complaint::overdue()
-            ->with(['client'])
-            ->orderBy('created_at', 'asc')
-            ->limit(5)
-            ->get()
-            ->map(function($c) {
-                return [
-                    'id' => 'overdue-'.$c->id,
-                    'title' => 'Overdue Complaint',
-                    'message' => ($c->client->client_name ?? 'Client').': '.$c->title,
-                    'type' => 'danger',
-                    'icon' => 'clock',
-                    'time' => $c->created_at->diffForHumans(),
-                    'read' => false,
-                    'url' => route('admin.complaints.show', $c->id),
-                ];
-            });
+            // 4) Overdue complaints
+            try {
+                // Check if overdue() method exists, otherwise use manual query
+                if (method_exists(Complaint::class, 'overdue')) {
+                    $overdue = Complaint::overdue()
+                        ->with(['client'])
+                        ->orderBy('created_at', 'asc')
+                        ->limit(5)
+                        ->get();
+                } else {
+                    // Fallback: manually query overdue complaints
+                    $overdue = Complaint::with(['client'])
+                        ->where('status', '!=', 'resolved')
+                        ->where('created_at', '<', now()->subDays(7))
+                        ->orderBy('created_at', 'asc')
+                        ->limit(5)
+                        ->get();
+                }
+                
+                $overdue = $overdue->map(function($c) {
+                    return [
+                        'id' => 'overdue-'.$c->id,
+                        'title' => 'Overdue Complaint',
+                        'message' => ($c->client->client_name ?? 'Client').': '.$c->title,
+                        'type' => 'danger',
+                        'icon' => 'clock',
+                        'time' => $c->created_at->diffForHumans(),
+                        'read' => false,
+                        'url' => route('admin.complaints.show', $c->id),
+                    ];
+                });
+            } catch (\Exception $e) {
+                \Log::error('Error loading overdue complaints for notifications', ['error' => $e->getMessage()]);
+                $overdue = collect();
+            }
 
-        $notifications = $notifications
-            ->merge($newComplaints)
-            ->merge($pendingApprovals)
-            ->merge($lowStock)
-            ->merge($overdue)
-            ->sortByDesc(function($n) { return strtotime($n['time']) ?: 0; })
-            ->values()
-            ->take(10);
+            $notifications = $notifications
+                ->merge($newComplaints)
+                ->merge($pendingApprovals)
+                ->merge($lowStock)
+                ->merge($overdue)
+                ->sortByDesc(function($n) { return strtotime($n['time']) ?: 0; })
+                ->values()
+                ->take(10);
 
-        return response()->json([
-            'unread' => $notifications->count(),
-            'notifications' => $notifications,
-        ]);
+            return response()->json([
+                'unread' => $notifications->count(),
+                'notifications' => $notifications,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in getNotifications', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'unread' => 0,
+                'notifications' => [],
+                'error' => 'Failed to load notifications'
+            ], 500);
+        }
     }
 }

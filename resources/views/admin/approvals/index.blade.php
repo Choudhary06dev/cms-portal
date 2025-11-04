@@ -221,6 +221,9 @@
               <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
                 <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
+              <button type="button" class="btn btn-outline-primary btn-sm add-stock-btn" title="Issue Stock" data-approval-id="{{ $approval->id }}" onclick="openAddStockModal({{ $approval->id }})" style="padding: 3px 8px; cursor: pointer;">
+                <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -241,6 +244,27 @@
   <div class="d-flex justify-content-center mt-3" id="approvalsPagination">
     <div>
       {{ $approvals->links() }}
+    </div>
+  </div>
+</div>
+
+<!-- Issue Stock Modal -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addStockModalLabel">Issue Stock</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" tabindex="0"></button>
+      </div>
+      <div class="modal-body" id="addStockModalBody">
+        <!-- Stock items will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" tabindex="0">Close</button>
+        <button type="button" class="btn btn-success" id="submitAddStockBtn" onclick="if(window.submitIssueStock) { window.submitIssueStock(); } else { alert('Submit function not available. Please refresh the page.'); }" style="display: none;" tabindex="0">
+          <i data-feather="check-circle"></i> Issue Stock
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -365,6 +389,103 @@
     font-weight: 700;
   }
   
+  /* Ensure Add Stock button is clickable */
+  .add-stock-btn {
+    pointer-events: auto !important;
+    z-index: 10 !important;
+    position: relative !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+  }
+  
+  .add-stock-btn:hover {
+    opacity: 0.8 !important;
+  }
+  
+  .add-stock-btn:active {
+    opacity: 0.6 !important;
+  }
+  
+  .btn-group .add-stock-btn {
+    margin-left: 4px;
+  }
+  
+  /* Ensure Submit button in Add Stock Modal is clickable */
+  #submitAddStockBtn {
+    pointer-events: auto !important;
+    z-index: 1050 !important;
+    position: relative !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    display: inline-block !important;
+  }
+  
+  #submitAddStockBtn:hover {
+    opacity: 0.9 !important;
+  }
+  
+  #submitAddStockBtn:active {
+    opacity: 0.7 !important;
+  }
+  
+  #submitAddStockBtn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+  }
+  
+  /* Ensure modal footer buttons are clickable */
+  #addStockModal .modal-footer button {
+    pointer-events: auto !important;
+    z-index: 1050 !important;
+    position: relative !important;
+  }
+  
+  /* Add Stock Modal Table Styling */
+  #addStockModal .table {
+    margin-bottom: 0;
+  }
+  
+  #addStockModal .table thead th {
+    background-color: #0d6efd;
+    color: white;
+    border: 1px solid #0d6efd;
+    padding: 12px 15px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  
+  #addStockModal .table tbody td {
+    padding: 12px 15px;
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+  }
+  
+  #addStockModal .table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  #addStockModal .table tbody tr:hover {
+    background-color: #e9ecef;
+  }
+  
+  #addStockModal .table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  #addStockModal .total-quantity-input {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+  
+  #addStockModal .total-quantity-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    outline: none;
+  }
+  
 </style>
 @endpush
 
@@ -445,6 +566,655 @@
   window.handleApprovalsSearchInput = handleApprovalsSearchInput;
   window.submitApprovalsFilters = submitApprovalsFilters;
   window.loadApprovals = loadApprovals;
+  
+  // Helper function to escape HTML
+  function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  // Helper function to render item row
+  function renderItemRow(item) {
+    const canDelete = !item.isExisting;
+    return `
+      <tr data-item-id="${item.itemId}" data-spare-id="${item.spareId}" data-is-existing="${item.isExisting}">
+        <td style="vertical-align: middle; font-weight: 500; padding: 12px;">${escapeHtml(item.productName)}</td>
+        <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${escapeHtml(item.category)}</td>
+        <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${item.requestedQty}</td>
+        <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">
+          <span class="badge ${item.availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">${item.availableStock}</span>
+        </td>
+        <td style="vertical-align: middle; text-align: center; padding: 12px;">
+          <input type="number" 
+                 class="form-control form-control-sm issue-quantity-input" 
+                 name="items[${item.itemId}][issue_quantity]" 
+                 value="${item.issueQty}" 
+                 min="0" 
+                 max="${item.availableStock}"
+                 data-spare-id="${item.spareId}"
+                 data-item-id="${item.itemId}"
+                 data-product-name="${escapeHtml(item.productName)}"
+                 data-available-stock="${item.availableStock}"
+                 style="width: 120px; text-align: center; margin: 0 auto; display: block;">
+        </td>
+        <td style="vertical-align: middle; text-align: center; padding: 12px;">
+          ${canDelete ? `<button type="button" class="btn btn-danger btn-sm remove-item-btn" data-item-id="${item.itemId}" style="padding: 3px 8px;" title="Remove">
+            <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
+          </button>` : '<span class="text-muted">-</span>'}
+        </td>
+      </tr>
+    `;
+  }
+
+  // Load categories for modal dropdown
+  function loadCategoriesForModal() {
+    console.log('Loading categories for modal...');
+    const categorySelect = document.getElementById('manualCategory');
+    
+    if (!categorySelect) {
+      console.error('Category select element not found!');
+      // Retry after a short delay
+      setTimeout(() => {
+        loadCategoriesForModal();
+      }, 200);
+      return;
+    }
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch('/admin/spares/get-categories', {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Categories response:', data);
+      if (data.success && data.categories && Array.isArray(data.categories)) {
+        categorySelect.innerHTML = '<option value="">All Products</option>';
+        data.categories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat;
+          option.textContent = cat;
+          categorySelect.appendChild(option);
+        });
+        console.log(`✅ Loaded ${data.categories.length} categories`);
+      } else {
+        console.warn('⚠️ No categories found or invalid response:', data);
+        categorySelect.innerHTML = '<option value="">All Products</option>';
+      }
+    })
+    .catch(error => {
+      console.error('❌ Error loading categories:', error);
+      categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+    });
+  }
+
+  // Load products by category (or all products if category is empty)
+  function loadProductsByCategory(category) {
+    const productSelect = document.getElementById('manualProduct');
+    const availableStockInput = document.getElementById('manualAvailableStock');
+    
+    if (!productSelect) return;
+    
+    // If no category, show all products
+    if (!category) {
+      category = ''; // Empty category will fetch all products
+    }
+
+    productSelect.innerHTML = '<option value="">Loading...</option>';
+    productSelect.disabled = true;
+    availableStockInput.value = '';
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Build URL - if category is empty, don't send category parameter or send empty
+    const url = category 
+      ? `/admin/spares/get-products-by-category?category=${encodeURIComponent(category)}`
+      : `/admin/spares/get-products-by-category?category=`;
+    
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.products && data.products.length > 0) {
+        productSelect.innerHTML = '<option value="">Select Product</option>';
+        data.products.forEach(product => {
+          const option = document.createElement('option');
+          option.value = product.id;
+          option.textContent = product.item_name;
+          option.setAttribute('data-stock', product.stock_quantity || 0);
+          option.setAttribute('data-category', product.category || '');
+          productSelect.appendChild(option);
+        });
+        productSelect.disabled = false;
+      } else {
+        productSelect.innerHTML = '<option value="">No products found</option>';
+        productSelect.disabled = false; // Enable even if no products so user can try again
+      }
+    })
+    .catch(error => {
+      console.error('Error loading products:', error);
+      productSelect.innerHTML = '<option value="">Error loading products</option>';
+      productSelect.disabled = false;
+    });
+  }
+
+  // Add item to table
+  function addManualItemToTable() {
+    const categorySelect = document.getElementById('manualCategory');
+    const productSelect = document.getElementById('manualProduct');
+    const availableStockInput = document.getElementById('manualAvailableStock');
+    const requestQtyInput = document.getElementById('manualRequestQty');
+    
+    if (!categorySelect || !productSelect || !availableStockInput || !requestQtyInput) return;
+    
+    const category = categorySelect.value || '';
+    const productId = productSelect.value;
+    const productName = productSelect.options[productSelect.selectedIndex]?.textContent || 'N/A';
+    const productCategory = productSelect.options[productSelect.selectedIndex]?.getAttribute('data-category') || category || '';
+    const availableStock = parseInt(availableStockInput.value) || 0;
+    const requestQty = parseInt(requestQtyInput.value) || 0;
+
+    if (!productId) {
+      alert('Please select a product');
+      return;
+    }
+
+    if (requestQty <= 0) {
+      alert('Please enter a valid request quantity');
+      requestQtyInput.focus();
+      return;
+    }
+
+    if (requestQty > availableStock) {
+      alert(`Request quantity (${requestQty}) cannot exceed available stock (${availableStock})`);
+      requestQtyInput.focus();
+      return;
+    }
+
+    // Check if product already exists in manual items
+    const existingItem = window.manualItems?.find(item => item.spare_id == productId);
+    if (existingItem) {
+      alert('This product is already added. Please remove it first or update the quantity.');
+      return;
+    }
+
+    // Add to manual items array
+    if (!window.manualItems) {
+      window.manualItems = [];
+    }
+
+    const tempId = `manual_${Date.now()}`;
+    const newItem = {
+      tempId: tempId,
+      spare_id: parseInt(productId),
+      product_name: productName,
+      category: productCategory, // Use product's actual category from data attribute
+      requested_qty: requestQty,
+      available_stock: availableStock,
+      isExisting: false
+    };
+
+    window.manualItems.push(newItem);
+
+    // Reset form
+    categorySelect.value = '';
+    productSelect.innerHTML = '<option value="">Select Category First</option>';
+    productSelect.disabled = true;
+    availableStockInput.value = '';
+    requestQtyInput.value = '';
+
+    // Show submit button
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.style.display = 'inline-block';
+    }
+  }
+
+  // Setup manual form event listeners
+  function setupManualFormListeners() {
+    const categorySelect = document.getElementById('manualCategory');
+    const productSelect = document.getElementById('manualProduct');
+    const availableStockInput = document.getElementById('manualAvailableStock');
+    const requestQtyInput = document.getElementById('manualRequestQty');
+    
+    if (!categorySelect || !productSelect || !requestQtyInput) return;
+
+    // Category change
+    categorySelect.addEventListener('change', function() {
+      const category = this.value;
+      loadProductsByCategory(category);
+      availableStockInput.value = '';
+      requestQtyInput.value = '';
+    });
+
+    // Product change
+    productSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const stock = parseInt(selectedOption?.getAttribute('data-stock')) || 0;
+      availableStockInput.value = stock;
+      
+      // If request quantity is already entered, auto-add item
+      const qty = parseInt(requestQtyInput.value) || 0;
+      if (qty > 0 && qty <= stock && this.value) {
+        // Auto-add after a short delay to allow user to see the stock value
+        setTimeout(() => {
+          addManualItemToTable();
+        }, 300);
+      }
+    });
+
+    // Request quantity input - auto-add on Enter or blur
+    requestQtyInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const qty = parseInt(this.value) || 0;
+        const stock = parseInt(availableStockInput.value) || 0;
+        
+        if (qty > 0 && qty <= stock && productSelect.value) {
+          addManualItemToTable();
+        }
+      }
+    });
+
+    // Auto-add when quantity is entered and product is selected
+    requestQtyInput.addEventListener('blur', function() {
+      const qty = parseInt(this.value) || 0;
+      const stock = parseInt(availableStockInput.value) || 0;
+      
+      if (qty > 0 && qty <= stock && productSelect.value) {
+        addManualItemToTable();
+      }
+    });
+
+  }
+
+  // Forward declaration for Add Stock Modal function (defined later)
+  window.openAddStockModal = function(approvalId) {
+    console.log('openAddStockModal called with ID:', approvalId);
+    
+    // Store approvalId globally for submitIssueStock
+    window.currentApprovalId = approvalId;
+    
+    // Reset manual items array when modal opens
+    window.manualItems = [];
+    
+    // Find modal element
+    const modalElement = document.getElementById('addStockModal');
+    if (!modalElement) {
+      console.error('Modal element not found');
+      alert('Modal not found. Please refresh the page.');
+      return;
+    }
+
+    const modalBody = document.getElementById('addStockModalBody');
+    if (!modalBody) {
+      console.error('Modal body not found');
+      alert('Modal body not found. Please refresh the page.');
+      return;
+    }
+
+    // Show loading immediately
+    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Loading approval items...</p></div>';
+
+    // Show Submit button and hide it initially
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+
+    // Show modal immediately (before data loads)
+    let modalInstance = null;
+    try {
+      // Check if Bootstrap is available
+      if (typeof bootstrap === 'undefined' || typeof bootstrap.Modal === 'undefined') {
+        console.error('Bootstrap Modal not available');
+        alert('Bootstrap Modal library not loaded. Please refresh the page.');
+        return;
+      }
+
+      modalInstance = bootstrap.Modal.getInstance(modalElement);
+      if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(modalElement, {
+          backdrop: true,
+          keyboard: true,
+          focus: true
+        });
+      }
+      
+      // Fix accessibility: Set up event listeners before showing modal
+      const handleShown = function() {
+        // Bootstrap automatically removes aria-hidden on shown event
+        // But we ensure it's properly set
+        if (modalElement.hasAttribute('aria-hidden')) {
+          modalElement.removeAttribute('aria-hidden');
+        }
+        modalElement.setAttribute('aria-modal', 'true');
+        console.log('✅ Modal accessibility fixed');
+      };
+      
+      const handleHidden = function() {
+        modalElement.setAttribute('aria-hidden', 'true');
+        modalElement.removeAttribute('aria-modal');
+      };
+      
+      // Remove any existing listeners first
+      modalElement.removeEventListener('shown.bs.modal', handleShown);
+      modalElement.removeEventListener('hidden.bs.modal', handleHidden);
+      
+      // Add new listeners
+      modalElement.addEventListener('shown.bs.modal', handleShown, { once: true });
+      modalElement.addEventListener('hidden.bs.modal', handleHidden);
+      
+      // Show the modal
+      modalInstance.show();
+      console.log('Modal shown successfully');
+      
+      // Also fix immediately after a short delay (in case shown event fires before our listener)
+      setTimeout(() => {
+        if (modalElement.classList.contains('show') && modalElement.hasAttribute('aria-hidden')) {
+          modalElement.removeAttribute('aria-hidden');
+          modalElement.setAttribute('aria-modal', 'true');
+          console.log('✅ Modal accessibility fixed (delayed check)');
+        }
+      }, 200);
+      
+    } catch (error) {
+      console.error('Error showing modal:', error);
+      alert('Error opening modal: ' + error.message);
+      return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    // Fetch approval details
+    fetch(`/admin/approvals/${approvalId}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      console.log('Fetch response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Fetch response data:', data);
+      if (data.success && data.approval && data.approval.items) {
+        const items = data.approval.items || [];
+        
+        console.log('✅ Creating table with 5 columns:');
+        console.log('   1. Product Name (25% width)');
+        console.log('   2. Category (20% width)');
+        console.log('   3. Request Quantity (15% width)');
+        console.log('   4. Available Stock (15% width)');
+        console.log('   5. Issue Quantity (25% width)');
+        console.log('Items to display:', items.length);
+        console.log('Items data:', items);
+        
+        if (items.length === 0) {
+          console.warn('⚠️ No items found in approval ID:', approvalId);
+          console.info('ℹ️ Table structure with 5 columns (Product Name, Category, Request Quantity, Available Stock, Issue Quantity) will still be displayed');
+          console.info('ℹ️ Empty state message will be shown in the table');
+        } else {
+          console.log('✅ Items found:', items.length);
+          console.log('✅ Displaying items in table with 5 columns');
+        }
+
+        // Initialize manual items array
+        if (!window.manualItems) {
+          window.manualItems = [];
+        }
+
+        // Store items globally for submission (existing + manual)
+        window.currentApprovalItems = items;
+
+        // Build form with manual add section
+        let itemsHtml = '<form id="addStockForm">';
+        
+        // Manual Add Form Section
+        itemsHtml += `
+          <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 8px;">
+            <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
+              <i data-feather="plus-circle" style="width: 16px; height: 16px; margin-right: 8px;"></i> Add Item Manually
+            </div>
+            <div class="card-body" style="padding: 16px;">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Category</label>
+                  <select class="form-select form-select-sm" id="manualCategory" style="font-size: 0.9rem;">
+                    <option value="">All Category</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Product</label>
+                  <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
+                    <option value="">Loading Products...</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Available Stock</label>
+                  <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Request Quantity</label>
+                  <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        itemsHtml += '</form>';
+        modalBody.innerHTML = itemsHtml;
+
+        // Wait for DOM to be ready before initializing
+        setTimeout(() => {
+          // Initialize categories and products dropdown
+          loadCategoriesForModal();
+          
+          // Load all products initially (without category filter)
+          setTimeout(() => {
+            loadProductsByCategory(''); // Empty category will fetch all products
+          }, 300);
+          
+          // Setup event listeners for manual form
+          setupManualFormListeners();
+        }, 100);
+        
+        // Show Submit button if manual items exist
+        if (submitBtn) {
+          const hasItems = window.manualItems && window.manualItems.length > 0;
+          if (hasItems) {
+            submitBtn.style.display = 'inline-block';
+          } else {
+            submitBtn.style.display = 'none';
+          }
+        }
+        
+        // Replace feather icons (for empty state icon)
+        if (typeof feather !== 'undefined') {
+          feather.replace();
+        }
+      } else {
+        console.error('Invalid response data:', data);
+        modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval items. Invalid response.</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching approval details:', error);
+      modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval details: ' + (error.message || 'Unknown error') + '</div>';
+    });
+  };
+
+  // Forward declaration for Submit Add Stock function (defined later)
+  // Issue Stock Function (early definition)
+  window.submitIssueStock = function() {
+    console.log('submitIssueStock called');
+    
+    // Use manual items from window.manualItems
+    if (!window.manualItems || window.manualItems.length === 0) {
+      alert('No items added. Please add items using the form above.');
+      return;
+    }
+
+    // Validate and collect data from manual items
+    const stockData = [];
+    let hasError = false;
+    let errorMessage = '';
+
+    window.manualItems.forEach(item => {
+      const spareId = item.spare_id || 0;
+      const productName = item.product_name || 'N/A';
+      const availableStock = item.available_stock || 0;
+      const issueQty = item.requested_qty || 0;
+
+      if (spareId === 0) {
+        hasError = true;
+        errorMessage = `Invalid product: ${productName}`;
+        return;
+      }
+
+      if (issueQty < 0) {
+        hasError = true;
+        errorMessage = `Issue quantity cannot be negative for ${productName}`;
+        return;
+      }
+
+      if (issueQty > availableStock) {
+        hasError = true;
+        errorMessage = `Issue quantity (${issueQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
+        return;
+      }
+
+      if (issueQty === 0) {
+        // Skip items with 0 quantity
+        return;
+      }
+      
+      // For manual items, tempId is a string like "manual_1234567890"
+      // For existing items, item_id is a number
+      // Only send item_id if it's a valid integer (existing item), otherwise null
+      const itemId = (item.item_id && !isNaN(parseInt(item.item_id))) ? parseInt(item.item_id) : null;
+      
+      stockData.push({
+        spare_id: spareId,
+        item_id: itemId,
+        issue_quantity: issueQty,
+        product_name: productName,
+        available_stock: availableStock
+      });
+    });
+
+    if (hasError) {
+      alert(errorMessage);
+      return;
+    }
+
+    if (stockData.length === 0) {
+      alert('Please add items with valid quantity using the form above.');
+      return;
+    }
+
+    // Confirm before submitting
+    const confirmMessage = `Are you sure you want to ISSUE stock for the following items?\n\n` +
+      stockData.map(item => `${item.product_name}: ${item.issue_quantity} units (Available: ${item.available_stock})`).join('\n');
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Disable submit button
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Issuing Stock...';
+    }
+
+    // Send requests for each item to ISSUE stock (decrease inventory)
+    const promises = stockData.map(item => {
+      return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+          quantity: item.issue_quantity,
+          item_id: item.item_id,
+          approval_id: window.currentApprovalId || null,
+          reason: `Stock issued from approval - Product: ${item.product_name}`
+        }),
+        credentials: 'same-origin'
+      });
+    });
+
+    // Process all requests
+    Promise.all(promises)
+      .then(responses => Promise.all(responses.map(r => r.json())))
+      .then(results => {
+        const successCount = results.filter(r => r.success).length;
+        const failedCount = results.length - successCount;
+
+        if (failedCount === 0) {
+          alert(`Successfully issued stock for all ${successCount} item(s)!`);
+          bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
+          // Optionally reload the page to refresh stock quantities
+          // window.location.reload();
+        } else {
+          alert(`Issued stock for ${successCount} item(s), but ${failedCount} item(s) failed.`);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error issuing stock: ' + error.message);
+      })
+      .finally(() => {
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i data-feather="check-circle"></i> Issue Stock';
+          feather.replace();
+        }
+      });
+  };
 
   // Initialize event listeners on page load
   document.addEventListener('DOMContentLoaded', function() {
@@ -1118,6 +1888,266 @@
       }
     });
   }
+
+  // Open Add Stock Modal
+  function openAddStockModal(approvalId) {
+    const modalBody = document.getElementById('addStockModalBody');
+    if (!modalBody) {
+      alert('Modal not found');
+      return;
+    }
+
+    // Show loading
+    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    // Fetch approval details
+    fetch(`/admin/approvals/${approvalId}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.approval && data.approval.items) {
+        const items = data.approval.items;
+        
+        if (items.length === 0) {
+          modalBody.innerHTML = '<div class="alert alert-info">No items found in this approval.</div>';
+          return;
+        }
+
+        let itemsHtml = '<form id="addStockForm"><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Product Name</th><th>Requested Quantity</th><th>Total Quantity</th></tr></thead><tbody>';
+
+        // Store items globally for submission
+        window.currentApprovalItems = items;
+
+        items.forEach((item, index) => {
+          const productName = item.spare_name || 'N/A';
+          const requestedQty = item.quantity_requested || 0;
+          const approvedQty = item.quantity_approved !== null ? item.quantity_approved : 0;
+          const spareId = item.spare_id || 0;
+          // Total quantity = approved quantity (or we can make it editable)
+          const totalQty = approvedQty;
+          
+          itemsHtml += `
+            <tr>
+              <td>${productName}</td>
+              <td>${requestedQty}</td>
+              <td>
+                <input type="number" 
+                       class="form-control form-control-sm total-quantity-input" 
+                       name="items[${item.id}][total_quantity]" 
+                       value="${totalQty}" 
+                       min="0" 
+                       data-spare-id="${spareId}"
+                       data-item-id="${item.id}"
+                       data-product-name="${productName}"
+                       style="width: 100px; text-align: center;">
+              </td>
+            </tr>
+          `;
+        });
+
+        itemsHtml += '</tbody></table></div></form>';
+        modalBody.innerHTML = itemsHtml;
+        
+        // Show Submit button
+        const submitBtn = document.getElementById('submitAddStockBtn');
+        if (submitBtn) {
+          submitBtn.style.display = 'inline-block';
+        }
+        
+        // Replace feather icons
+        feather.replace();
+        
+        // Show modal
+        new bootstrap.Modal(document.getElementById('addStockModal')).show();
+      } else {
+        modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval items.</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval details: ' + error.message + '</div>';
+    });
+  }
+
+  // Submit Issue Stock Form
+  function submitIssueStock() {
+    // Use manual items from window.manualItems
+    if (!window.manualItems || window.manualItems.length === 0) {
+      alert('No items added. Please add items using the form above.');
+      return;
+    }
+
+    // Validate and collect data from manual items
+    const stockData = [];
+    let hasError = false;
+    let errorMessage = '';
+
+    window.manualItems.forEach(item => {
+      const spareId = item.spare_id || 0;
+      const productName = item.product_name || 'N/A';
+      const availableStock = item.available_stock || 0;
+      const issueQty = item.requested_qty || 0;
+
+      if (spareId === 0) {
+        hasError = true;
+        errorMessage = `Invalid product: ${productName}`;
+        return;
+      }
+
+      if (issueQty < 0) {
+        hasError = true;
+        errorMessage = `Issue quantity cannot be negative for ${productName}`;
+        return;
+      }
+
+      if (issueQty > availableStock) {
+        hasError = true;
+        errorMessage = `Issue quantity (${issueQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
+        return;
+      }
+
+      if (issueQty === 0) {
+        // Skip items with 0 quantity
+        return;
+      }
+      
+      // For manual items, tempId is a string like "manual_1234567890"
+      // For existing items, item_id is a number
+      // Only send item_id if it's a valid integer (existing item), otherwise null
+      const itemId = (item.item_id && !isNaN(parseInt(item.item_id))) ? parseInt(item.item_id) : null;
+      
+      stockData.push({
+        spare_id: spareId,
+        item_id: itemId,
+        issue_quantity: issueQty,
+        product_name: productName,
+        available_stock: availableStock
+      });
+    });
+
+    if (hasError) {
+      alert(errorMessage);
+      return;
+    }
+
+    if (stockData.length === 0) {
+      alert('Please add items with valid quantity using the form above.');
+      return;
+    }
+
+    // Confirm before submitting
+    const confirmMessage = `Are you sure you want to ISSUE stock for the following items?\n\n` +
+      stockData.map(item => `${item.product_name}: ${item.issue_quantity} units (Available: ${item.available_stock})`).join('\n');
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Disable submit button
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Issuing Stock...';
+    }
+
+    // Send requests for each item to ISSUE stock (decrease inventory)
+    const promises = stockData.map(item => {
+      return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+          quantity: item.issue_quantity,
+          item_id: item.item_id,
+          approval_id: window.currentApprovalId || null,
+          reason: `Stock issued from approval - Product: ${item.product_name}`
+        }),
+        credentials: 'same-origin'
+      });
+    });
+
+    // Process all requests
+    Promise.all(promises)
+      .then(responses => Promise.all(responses.map(r => r.json())))
+      .then(results => {
+        const successCount = results.filter(r => r.success).length;
+        const failedCount = results.length - successCount;
+
+        if (failedCount === 0) {
+          alert(`Successfully issued stock for all ${successCount} item(s)!`);
+          bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
+          // Optionally reload the page to refresh stock quantities
+          // window.location.reload();
+        } else {
+          alert(`Issued stock for ${successCount} item(s), but ${failedCount} item(s) failed.`);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error issuing stock: ' + error.message);
+      })
+      .finally(() => {
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i data-feather="check-circle"></i> Issue Stock';
+          feather.replace();
+        }
+      });
+  }
+
+  // Make functions globally accessible
+  window.openAddStockModal = openAddStockModal;
+  window.submitIssueStock = submitIssueStock;
+
+  // Event delegation for Add Stock buttons (works for dynamically loaded buttons too)
+  document.addEventListener('click', function(e) {
+    const addStockBtn = e.target.closest('.add-stock-btn');
+    if (addStockBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const approvalId = addStockBtn.getAttribute('data-approval-id') || addStockBtn.getAttribute('onclick')?.match(/\d+/)?.[0];
+      if (approvalId && window.openAddStockModal) {
+        window.openAddStockModal(parseInt(approvalId));
+      } else {
+        console.error('Add Stock button clicked but approval ID or function not found', {
+          approvalId: approvalId,
+          hasFunction: !!window.openAddStockModal
+        });
+      }
+    }
+    
+    // Event delegation for Submit button in Add Stock Modal
+    const submitBtn = e.target.closest('#submitAddStockBtn');
+    if (submitBtn && !submitBtn.disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Submit button clicked in Add Stock Modal');
+      if (window.submitAddStock) {
+        window.submitAddStock();
+      } else {
+        console.error('submitAddStock function not found');
+        alert('Error: Submit function not available. Please refresh the page.');
+      }
+    }
+  });
 
   // Initialize rows on page load
   document.addEventListener('DOMContentLoaded', function() {

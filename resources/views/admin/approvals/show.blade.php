@@ -290,53 +290,12 @@
   </div>
 </div>
 
-@if($approval->status === 'pending')
-<!-- APPROVAL ACTIONS -->
-<div class="card-glass mt-4">
-  <div class="card-body">
-    <form id="approveForm" action="{{ route('admin.approvals.approve', $approval->id) }}" method="POST" onsubmit="return confirmApproval()">
-      @csrf
-      <div class="row mb-3">
-        <div class="col-md-12">
-          <label for="remarks" class="form-label text-white">
-            <i data-feather="message-square" class="me-2"></i>Remarks (Optional)
-          </label>
-          <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="Enter remarks about this approval..." style="background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff;">{{ old('remarks') }}</textarea>
-          <small class="text-muted">Add any remarks about this approval (optional)</small>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-6">
-          <button type="submit" class="btn btn-success w-100" style="padding: 12px; font-size: 15px; font-weight: 600;">
-            <i data-feather="check-circle" class="me-2"></i>Approve
-          </button>
-        </div>
-        <div class="col-md-6">
-          <button type="button" class="btn btn-danger w-100" id="rejectBtn" style="padding: 12px; font-size: 15px; font-weight: 600;">
-            <i data-feather="x-circle" class="me-2"></i>Reject
-          </button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-@endif
+{{-- Approval Actions section removed as per user request --}}
 
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
-    
-    // Attach event listener to reject button
-    const rejectBtn = document.getElementById('rejectBtn');
-    if (rejectBtn) {
-      rejectBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        rejectApproval(e);
-        return false;
-      });
-    }
   });
 
   function updateApprovedQuantity(itemId, value, requested, available) {
@@ -367,115 +326,12 @@
     }
   }
 
-  function confirmApproval() {
-    const form = document.getElementById('approveForm');
-    if (!form) return false;
-    
-    const inputs = form.querySelectorAll('.approved-qty-input');
-    let hasError = false;
-    let message = 'Confirm approval with the following quantities:\n\n';
-    
-    inputs.forEach(input => {
-      const itemId = input.dataset.itemId;
-      const requested = parseInt(input.dataset.requested);
-      const available = parseInt(input.dataset.available);
-      const approved = parseInt(input.value) || 0;
-      
-      if (approved > available) {
-        hasError = true;
-        input.classList.add('is-invalid');
-      } else {
-        input.classList.remove('is-invalid');
-        const itemName = input.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
-        message += itemName + ': ' + approved + ' / ' + requested + ' (Available: ' + available + ')\n';
-        
-        if (approved < requested) {
-          message += '  ⚠️ Less than requested\n';
-        }
-      }
-    });
-    
-    if (hasError) {
-      alert('Error: Some quantities exceed available stock. Please adjust.');
-      return false;
-    }
-    
-    return confirm(message + '\nProceed with approval?');
-  }
-
   function showWarning(message) {
     // Simple alert for now - can be enhanced with toast notifications
     alert(message);
   }
 
-  function rejectApproval(e) {
-    // Prevent any default behavior
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    const remarks = prompt('Please enter rejection reason (required):');
-    if (remarks === null) {
-      return false; // User cancelled
-    }
-    if (!remarks || remarks.trim() === '') {
-      alert('Rejection reason is required');
-      return false;
-    }
-    
-    // Use fetch API for POST request with form data
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (!csrfToken) {
-      alert('CSRF token not found. Please refresh the page.');
-      return false;
-    }
-    
-    // Create form data
-    const formData = new FormData();
-    formData.append('remarks', remarks.trim());
-    formData.append('_token', csrfToken);
-    
-    const rejectUrl = '{{ route("admin.approvals.reject", $approval->id) }}';
-    console.log('Rejecting approval via POST to:', rejectUrl);
-    
-    fetch(rejectUrl, {
-      method: 'POST',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
-      },
-      body: formData,
-      credentials: 'same-origin'
-    })
-    .then(response => {
-      console.log('Response status:', response.status);
-      if (!response.ok && response.status === 422) {
-        return response.json().then(data => {
-          throw new Error(data.message || 'Validation failed');
-        });
-      }
-      if (!response.ok) {
-        throw new Error('HTTP error! status: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Response data:', data);
-      if (data.success || !data.errors) {
-        alert('Approval rejected successfully!');
-        window.location.reload();
-      } else {
-        alert('Failed to reject: ' + (data.message || 'Unknown error'));
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Error rejecting request: ' + error.message);
-    });
-    
-    return false;
-  }
+  // confirmApproval and rejectApproval functions removed as per user request
 </script>
 @endpush
 @endsection
