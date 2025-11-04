@@ -17,12 +17,12 @@
 </div>
 
 <!-- FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content; min-width: 300px;">
   <form id="rolesFiltersForm" method="GET" action="{{ route('admin.roles.index') }}">
   <div class="row g-2 align-items-end">
-    <div class="col-12 col-md-4">
+    <div class="col-auto">
       <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search roles..." 
-             value="{{ request('search') }}" oninput="handleRolesSearchInput()">
+             value="{{ request('search') }}" oninput="handleRolesSearchInput()" style="width: 280px;">
     </div>
   </div>
   </form>

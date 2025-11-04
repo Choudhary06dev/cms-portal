@@ -17,7 +17,7 @@
 </div>
 
 <!-- FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <form id="usersFiltersForm" method="GET" action="{{ route('admin.users.index') }}">
   <div class="row g-2 align-items-end">
     <div class="col-auto">

@@ -35,7 +35,7 @@
 @endif
 
 <!-- Filters -->
-<div class="card-glass mb-3">
+<div class="card-glass mb-3" style="display: inline-block; width: fit-content;">
   <form method="GET" action="{{ route('admin.complaint-titles.index') }}" class="d-flex flex-wrap align-items-end gap-2">
     <div style="min-width: 200px; flex: 0 0 240px;">
       <label class="form-label small text-muted mb-1">Category</label>

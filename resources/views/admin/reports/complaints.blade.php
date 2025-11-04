@@ -21,7 +21,7 @@
 </div>
 
 <!-- DATE FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <div class="card-body">
     <form id="complaintsReportFiltersForm" method="GET" class="row g-3">
       <div class="col-md-6">
@@ -64,9 +64,23 @@
           </tr>
         </thead>
         <tbody>
+          @php
+            // Status display names mapping
+            $statusDisplayNames = [
+              'assigned' => 'Assigned',
+              'in_progress' => 'In-Process',
+              'resolved' => 'Addressed',
+              'work_performa' => 'Work Performa',
+              'maint_performa' => 'Maint Performa',
+              'priced_performa' => 'Maint/Work Priced',
+              'product_na' => 'Product N/A',
+            ];
+          @endphp
           @foreach($reportData as $rowKey => $row)
           <tr class="{{ $rowKey === 'total' ? 'table-total-row' : '' }}">
-            <td class="fw-bold" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ $row['name'] }}</td>
+            <td class="fw-bold" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
+              {{ $statusDisplayNames[$rowKey] ?? $row['name'] }}
+            </td>
             @foreach($categories as $catKey => $catName)
               @php
                 $cellData = $row['categories'][$catKey] ?? ['count' => 0, 'percentage' => 0];

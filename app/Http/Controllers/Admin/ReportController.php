@@ -526,6 +526,16 @@ class ReportController extends Controller
         // Row categories/statuses - based on complaint statuses from Complaint model
         $rows = \App\Models\Complaint::getStatuses();
         
+        // Remove new and closed statuses from report
+        unset($rows['new']);
+        unset($rows['closed']);
+        
+        // Add performa-related statuses (same as approvals dropdown)
+        $rows['work_performa'] = 'Work Performa';
+        $rows['maint_performa'] = 'Maint Performa';
+        $rows['priced_performa'] = 'Maint/Work Priced';
+        $rows['product_na'] = 'Product N/A';
+        
         // Base query for all complaints in date range
         // Note: $user already defined above
         $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
@@ -567,17 +577,41 @@ class ReportController extends Controller
                 
                 $count = 0;
                 
-                // Row mapping logic - based on complaint status
-                if ($rowKey === 'new') {
-                    $count = $catComplaints->where('status', 'new')->count();
-                } elseif ($rowKey === 'assigned') {
+                // Row mapping logic - based on complaint status (new and closed removed)
+                if ($rowKey === 'assigned') {
                     $count = $catComplaints->where('status', 'assigned')->count();
                 } elseif ($rowKey === 'in_progress') {
                     $count = $catComplaints->where('status', 'in_progress')->count();
                 } elseif ($rowKey === 'resolved') {
                     $count = $catComplaints->where('status', 'resolved')->count();
-                } elseif ($rowKey === 'closed') {
-                    $count = $catComplaints->where('status', 'closed')->count();
+                } elseif ($rowKey === 'work_performa') {
+                    // Count complaints with work performa (in_progress status with work performa badge/approval)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               ($complaint->spareApprovals->where('status', 'pending')->count() > 0 ||
+                                strpos($complaint->description ?? '', 'Work Performa') !== false);
+                    })->count();
+                } elseif ($rowKey === 'maint_performa') {
+                    // Count complaints with maint performa (in_progress status with maint performa badge/approval)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               (strpos($complaint->description ?? '', 'Maint Performa') !== false ||
+                                strpos($complaint->description ?? '', 'Maint') !== false);
+                    })->count();
+                } elseif ($rowKey === 'priced_performa') {
+                    // Count complaints with priced performa (in_progress status with priced performa badge)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               (strpos($complaint->description ?? '', 'Priced') !== false ||
+                                strpos($complaint->description ?? '', 'Maint/Work Priced') !== false);
+                    })->count();
+                } elseif ($rowKey === 'product_na') {
+                    // Count complaints with product N/A (in_progress status with product N/A badge)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               (strpos($complaint->description ?? '', 'Product N/A') !== false ||
+                                strpos($complaint->description ?? '', 'N/A') !== false);
+                    })->count();
                 }
                 
                 $percentage = $catTotal > 0 ? round(($count / $catTotal) * 100, 1) : 0;

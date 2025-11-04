@@ -17,7 +17,7 @@
     </div>
 
 <!-- FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <form id="slaFiltersForm" method="GET" action="{{ route('admin.sla.index') }}">
   <div class="row g-2 align-items-end">
     <div class="col-12 col-md-4">

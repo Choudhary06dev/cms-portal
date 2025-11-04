@@ -22,7 +22,7 @@
 </div>
 
 <!-- DATE FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <div class="card-body">
     <form id="sparesReportFiltersForm" method="GET" class="row g-3">
       <div class="col-md-4">

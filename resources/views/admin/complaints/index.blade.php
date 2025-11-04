@@ -17,7 +17,7 @@
     </div>
 
     <!-- FILTERS -->
-    <div class="card-glass mb-4">
+    <div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
         <div class="card-header">
             <h5 class="card-title mb-0 text-white">
                 <i data-feather="filter" class="me-2"></i>Filters

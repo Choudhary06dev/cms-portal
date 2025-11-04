@@ -19,7 +19,7 @@
 </div>
 
 <!-- FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}" onsubmit="event.preventDefault(); submitApprovalsFilters(event); return false;">
   <div class="row g-2 align-items-end">
     <div class="col-auto">
@@ -120,10 +120,10 @@
           
           // Status colors mapping
           $statusColors = [
-            'in_progress' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'], // Red
-            'resolved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'], // Green
+            'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
+            'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Darker Green
             'work_performa' => ['bg' => '#0ea5e9', 'text' => '#ffffff', 'border' => '#0284c7'], // Sky Blue
-            'maint_performa' => ['bg' => '#fef08a', 'text' => '#854d0e', 'border' => '#eab308'], // Light Yellow
+            'maint_performa' => ['bg' => '#fef08a', 'text' => '#ffffff', 'border' => '#eab308'], // Light Yellow
             'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
           ];
           
@@ -145,14 +145,22 @@
             <div class="text-white">{{ $displayText }}</div>
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
-          <td>
-            <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600;"></span>
+          <td style="color: white !important;">
+            <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important;"></span>
           </td>
           <td>
+            @php
+              // Get product and price information
+              $complaintSpare = $complaint->spareParts->first();
+              $pricePerForma = 'N/A';
+              
+              if ($complaintSpare && $complaintSpare->spare && $complaintSpare->spare->unit_price) {
+                $pricePerForma = 'PKR ' . number_format($complaintSpare->spare->unit_price, 2);
+              }
+            @endphp
             @if($complaintStatus == 'resolved')
-              <div class="status-chip" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }};">
-                <span class="status-indicator" style="background-color: {{ $statusColors['resolved']['bg'] }}; border-color: {{ $statusColors['resolved']['border'] }};"></span>
-                <span style="font-size: 11px; font-weight: 700;">Addressed</span>
+              <div class="status-chip" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }}; width: 140px; height: 28px; justify-content: center;">
+                <span style="font-size: 11px; font-weight: 700; color: white !important;">Addressed</span>
               </div>
             @elseif($complaintStatus == 'in_progress')
               <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }};">
@@ -161,12 +169,14 @@
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="in_progress"
-                      style="min-width: 110px; max-width: 140px; font-size: 11px; font-weight: 700;">
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa">Work Performa</option>
                 <option value="maint_performa">Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
               </select>
               </div>
             @elseif($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false))
@@ -176,12 +186,14 @@
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="work_performa"
-                      style="min-width: 110px; max-width: 140px; font-size: 11px; font-weight: 700;">
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa" {{ $complaintStatus == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
                 <option value="maint_performa">Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
               </select>
               </div>
             @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Maint') !== false))
@@ -191,12 +203,14 @@
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="maint_performa"
-                      style="min-width: 110px; max-width: 140px; font-size: 11px; font-weight: 700;">
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa">Work Performa</option>
                 <option value="maint_performa" {{ $complaintStatus == 'maint_performa' ? 'selected' : '' }}>Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
               </select>
               </div>
             @else
@@ -206,12 +220,14 @@
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="assigned"
-                      style="min-width: 110px; max-width: 140px; font-size: 7px; font-weight: 700;">
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa">Work Performa</option>
                 <option value="maint_performa">Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
               </select>
               </div>
             @endif
@@ -285,6 +301,11 @@
   .status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
   .status-approved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
   
+  /* Performa badge - ensure white text for all badges including Product N/A (only badges, not heading) */
+  .table td .performa-badge {
+    color: white !important;
+  }
+  
   /* Table text styling for all themes */
   .table td {
     color: #1e293b !important;
@@ -304,14 +325,28 @@
     color: #94a3b8 !important;
   }
   
+  /* Performa Required column - white text (only values, not heading) */
+  .table td:nth-child(9) {
+    color: white !important;
+  }
+  
+  .table td:nth-child(9) .performa-badge {
+    color: white !important;
+  }
+  
   /* Compact status select box */
   .status-select {
-    min-width: 100px !important;
-    max-width: 120px !important;
+    width: 140px !important;
     padding: 2px 6px !important;
     font-size: 11px !important;
     height: 28px !important;
     line-height: 1.4 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    text-align: center !important;
+    text-align-last: center !important;
     /* Make native arrow consistent */
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -324,9 +359,29 @@
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
   }
   
+  .status-select:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+  
+  .status-select:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+  }
+  
   .status-select option {
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+    background-color: #ffffff;
+    color: #1f2937;
+    min-height: 36px;
+  }
+  
+  .status-select option:disabled {
+    color: #9ca3af;
+    font-style: italic;
   }
 
   /* Live color indicator next to status select (works across browsers) */
@@ -347,12 +402,15 @@
     gap: 6px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: 1px solid transparent;
-    min-height: 32px;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    height: 28px;
+    width: 140px;
+    justify-content: center;
+    color: white !important;
   }
   .status-chip .status-select {
     background: transparent !important;
-    color: inherit !important;
+    color: white !important;
     border: none !important;
     padding-left: 0 !important;
     /* keep right padding for arrow */
@@ -363,6 +421,7 @@
   .status-chip span {
     font-size: 11px;
     font-weight: 700;
+    color: white !important;
   }
   
 </style>
@@ -611,9 +670,12 @@
         if (typeof initPerformaBadges === 'function') {
           initPerformaBadges();
         }
-        if (typeof initStatusSelects === 'function') {
-          initStatusSelects();
-        }
+        // Run initStatusSelects after initPerformaBadges to ensure correct values
+        setTimeout(function() {
+          if (typeof initStatusSelects === 'function') {
+            initStatusSelects();
+          }
+        }, 50);
         console.log('Table updated successfully');
       } else {
         console.error('Table body not found in response');
@@ -629,9 +691,12 @@
             if (typeof initPerformaBadges === 'function') {
               initPerformaBadges();
             }
-            if (typeof initStatusSelects === 'function') {
-              initStatusSelects();
-            }
+            // Run initStatusSelects after initPerformaBadges to ensure correct values
+            setTimeout(function() {
+              if (typeof initStatusSelects === 'function') {
+                initStatusSelects();
+              }
+            }, 50);
             console.log('Table updated via direct extraction');
           } else {
             throw new Error('Could not find table body in response');
@@ -867,10 +932,12 @@
 
   // Status colors mapping for JavaScript
   const statusColors = {
-    'in_progress': { bg: '#ef4444', text: '#ffffff', border: '#dc2626' }, // Red
-    'resolved': { bg: '#22c55e', text: '#ffffff', border: '#16a34a' }, // Green
+    'in_progress': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Darker Red
+    'resolved': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Darker Green
     'work_performa': { bg: '#0ea5e9', text: '#ffffff', border: '#0284c7' }, // Sky Blue
-    'maint_performa': { bg: '#fef08a', text: '#854d0e', border: '#eab308' }, // Light Yellow
+    'maint_performa': { bg: '#fef08a', text: '#ffffff', border: '#eab308' }, // Light Yellow
+    'priced_performa': { bg: '#f59e0b', text: '#ffffff', border: '#d97706' }, // Orange
+    'product_na': { bg: '#8b5cf6', text: '#ffffff', border: '#7c3aed' }, // Purple
     'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
   };
 
@@ -879,7 +946,8 @@
     const normalizedStatus = status === 'in-process' || status === 'in process' ? 'in_progress' : status;
     const color = statusColors[normalizedStatus] || statusColors['assigned'];
     select.style.backgroundColor = color.bg;
-    select.style.color = color.text;
+    select.style.color = '#ffffff';
+    select.style.setProperty('color', '#ffffff', 'important');
     select.style.borderColor = color.border;
     select.setAttribute('data-status-color', normalizedStatus);
     // Update the small status indicator dot next to the select
@@ -893,7 +961,8 @@
       }
       if (chip) {
         chip.style.backgroundColor = color.bg;
-        chip.style.color = color.text;
+        chip.style.color = '#ffffff';
+        chip.style.setProperty('color', '#ffffff', 'important');
         chip.style.borderColor = color.border;
       }
     }
@@ -925,13 +994,15 @@
           if (newStatus === 'work_performa') {
             performaBadge.textContent = 'Work Performa Required';
             performaBadge.style.backgroundColor = '#0ea5e9';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
             // Update select box color to sky blue
             updateStatusSelectColor(select, 'work_performa');
           } else {
             performaBadge.textContent = 'Maint Performa Required';
             performaBadge.style.backgroundColor = '#6366f1';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
             // Update select box color to light yellow
             updateStatusSelectColor(select, 'maint_performa');
           }
@@ -946,15 +1017,44 @@
         // Auto-set status to In-Process and continue to update backend
         const performaType = newStatus; // Store original performa type
         newStatus = 'in_progress';
+        // Keep dropdown value as in_progress and apply red color
         select.value = 'in_progress';
-        // Keep the performa color even though status is in_progress
-        if (performaType === 'work_performa') {
-          updateStatusSelectColor(select, 'work_performa');
-        } else if (performaType === 'maint_performa') {
-          updateStatusSelectColor(select, 'maint_performa');
-        }
+        updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
         skipConfirm = true;
         showSuccess(performaBadge?.textContent || 'Performa marked');
+      } else if (newStatus === 'priced_performa' || newStatus === 'product_na') {
+        // Handle Maint/Work Priced and Product N/A options
+        if (performaBadge) {
+          if (newStatus === 'priced_performa') {
+            performaBadge.textContent = 'Maint/Work Priced';
+            performaBadge.style.backgroundColor = '#f59e0b';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            performaBadge.style.display = 'inline-block';
+            // Keep status as in_progress and apply red color
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
+            newStatus = 'in_progress';
+          } else if (newStatus === 'product_na') {
+            performaBadge.textContent = 'Product N/A';
+            performaBadge.style.backgroundColor = '#8b5cf6';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            performaBadge.style.display = 'inline-block';
+            // Keep status as in_progress and apply red color
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
+            newStatus = 'in_progress';
+          }
+        }
+        // Persist selection locally
+        if (complaintId) {
+          const key = `performaRequired:${complaintId}`;
+          const val = newStatus === 'priced_performa' ? 'priced' : 'product_na';
+          try { localStorage.setItem(key, val); } catch (err) {}
+        }
+        skipConfirm = true;
+        showSuccess(performaBadge?.textContent || 'Option marked');
       } else {
         // Update color for regular status changes
         updateStatusSelectColor(select, newStatus);
@@ -971,8 +1071,17 @@
         return;
       }
 
-      // Clear Performa Required badge only if no persisted flag exists
-      if (performaBadge && complaintId) {
+      // Clear persisted performa flag when switching to real statuses (but not for product_na, priced_performa, work_performa, or maint_performa)
+      // Check localStorage to determine if this is a special option (since dropdown value is now 'in_progress')
+      let savedOptionForClear = null;
+      if (complaintId) {
+        try { savedOptionForClear = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOptionForClear = null; }
+      }
+      const isSpecialOption = savedOptionForClear === 'work' || savedOptionForClear === 'maint' || savedOptionForClear === 'priced' || savedOptionForClear === 'product_na' ||
+                             newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'priced_performa' || newStatus === 'product_na';
+      
+      // Clear Performa Required badge only if no persisted flag exists and not a special option
+      if (performaBadge && complaintId && !isSpecialOption) {
         let savedFlag = null;
         try { savedFlag = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedFlag = null; }
         if (!savedFlag) {
@@ -983,18 +1092,29 @@
           if (savedFlag === 'work') {
             performaBadge.textContent = 'Work Performa Required';
             performaBadge.style.backgroundColor = '#0ea5e9';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
           } else if (savedFlag === 'maint') {
             performaBadge.textContent = 'Maint Performa Required';
             performaBadge.style.backgroundColor = '#6366f1';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+          } else if (savedFlag === 'priced') {
+            performaBadge.textContent = 'Maint/Work Priced';
+            performaBadge.style.backgroundColor = '#f59e0b';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+          } else if (savedFlag === 'product_na') {
+            performaBadge.textContent = 'Product N/A';
+            performaBadge.style.backgroundColor = '#8b5cf6';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
           }
           performaBadge.style.display = 'inline-block';
         }
       }
-
-      // Clear persisted performa flag when switching to real statuses
-      if (complaintId) {
+      
+      if (complaintId && !isSpecialOption) {
         try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
       }
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -1013,6 +1133,26 @@
         }
       }
 
+      // Preserve color if special options are selected (check localStorage to determine which special option)
+      let savedOption = null;
+      if (complaintId) {
+        try { savedOption = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOption = null; }
+      }
+      // Determine special option type based on localStorage or previous selection
+      const preserveColor = savedOption === 'work' || savedOption === 'maint' || savedOption === 'priced' || savedOption === 'product_na' ||
+                           newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'priced_performa' || newStatus === 'product_na';
+      // Store the special option type to restore color after fetch
+      let specialOptionType = null;
+      if (newStatus === 'work_performa' || savedOption === 'work') {
+        specialOptionType = 'work_performa';
+      } else if (newStatus === 'maint_performa' || savedOption === 'maint') {
+        specialOptionType = 'maint_performa';
+      } else if (newStatus === 'priced_performa' || savedOption === 'priced') {
+        specialOptionType = 'priced_performa';
+      } else if (newStatus === 'product_na' || savedOption === 'product_na') {
+        specialOptionType = 'product_na';
+      }
+      
       select.style.opacity = '0.6';
       select.disabled = true;
 
@@ -1045,12 +1185,31 @@
           const badge = document.createElement('span');
           badge.className = 'badge';
           const resolvedColor = statusColors['resolved'];
-          badge.style.cssText = `background-color: ${resolvedColor.bg}; color: ${resolvedColor.text}; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid ${resolvedColor.border};`;
+          badge.style.cssText = `background-color: ${resolvedColor.bg}; color: #ffffff !important; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid ${resolvedColor.border}; width: 140px; height: 28px; display: inline-flex; align-items: center; justify-content: center;`;
+          badge.style.setProperty('color', '#ffffff', 'important');
           badge.textContent = 'Addressed';
           select.replaceWith(badge);
         } else {
           // Update color for other status changes
-          updateStatusSelectColor(select, newStatus);
+          // Restore dropdown value to in_progress and apply red color
+          if (specialOptionType) {
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress');
+          } else {
+            // Check if current select value is a special option to preserve their colors
+            const currentSelectValue = select.value;
+            if (currentSelectValue === 'product_na') {
+              updateStatusSelectColor(select, 'product_na');
+            } else if (currentSelectValue === 'priced_performa') {
+              updateStatusSelectColor(select, 'priced_performa');
+            } else if (currentSelectValue === 'work_performa') {
+              updateStatusSelectColor(select, 'work_performa');
+            } else if (currentSelectValue === 'maint_performa') {
+              updateStatusSelectColor(select, 'maint_performa');
+            } else {
+              updateStatusSelectColor(select, newStatus);
+            }
+          }
         }
         showSuccess('Complaint status updated successfully!');
         if (select.isConnected) select.dataset.oldStatus = newStatus;
@@ -1064,6 +1223,22 @@
         if (select.isConnected && select.value !== 'resolved') {
           select.style.opacity = '1';
           select.disabled = false;
+          // Restore dropdown value to in_progress and apply red color
+          if (specialOptionType) {
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress');
+          } else if (preserveColor) {
+            const finalSelectValue = select.value;
+            if (finalSelectValue === 'product_na') {
+              updateStatusSelectColor(select, 'product_na');
+            } else if (finalSelectValue === 'priced_performa') {
+              updateStatusSelectColor(select, 'priced_performa');
+            } else if (finalSelectValue === 'work_performa') {
+              updateStatusSelectColor(select, 'work_performa');
+            } else if (finalSelectValue === 'maint_performa') {
+              updateStatusSelectColor(select, 'maint_performa');
+            }
+          }
         }
       });
     }
@@ -1087,17 +1262,35 @@
       if (saved === 'work') {
         badge.textContent = 'Work Performa Required';
         badge.style.backgroundColor = '#0ea5e9';
-        badge.style.color = '#fff';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
-        // Update select box color to sky blue
-        updateStatusSelectColor(sel, 'work_performa');
+        sel.value = 'in_progress'; // Set dropdown value to in_progress
+        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
       } else if (saved === 'maint') {
         badge.textContent = 'Maint Performa Required';
         badge.style.backgroundColor = '#6366f1';
-        badge.style.color = '#fff';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
-        // Update select box color to light yellow
-        updateStatusSelectColor(sel, 'maint_performa');
+        sel.value = 'in_progress'; // Set dropdown value to in_progress
+        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
+      } else if (saved === 'priced') {
+        badge.textContent = 'Maint/Work Priced';
+        badge.style.backgroundColor = '#f59e0b';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress'; // Set dropdown value to in_progress
+        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
+      } else if (saved === 'product_na') {
+        badge.textContent = 'Product N/A';
+        badge.style.backgroundColor = '#8b5cf6';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress'; // Set dropdown value to in_progress
+        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
       }
     });
   }
@@ -1105,16 +1298,23 @@
   function initStatusSelects() {
     document.querySelectorAll('.status-select').forEach(function(sel){
       if (!sel.dataset.oldStatus) sel.dataset.oldStatus = sel.value;
-      // Initialize colors based on current status or data attribute
+      // Check if there's a localStorage value - set dropdown value to in_progress but keep color red
+      const complaintId = sel.getAttribute('data-complaint-id');
+      if (complaintId) {
+        let saved;
+        try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
+        // Set dropdown value to in_progress if special option exists
+        if (saved === 'work' || saved === 'maint' || saved === 'priced' || saved === 'product_na') {
+          sel.value = 'in_progress';
+        }
+      }
+      // Initialize colors based on current status (always red for in_progress)
       const statusColor = sel.getAttribute('data-status-color');
+      const currentValue = sel.value;
       if (statusColor) {
         updateStatusSelectColor(sel, statusColor);
-      } else {
-        // Update color based on current value
-        const currentValue = sel.value;
-        if (currentValue) {
-          updateStatusSelectColor(sel, currentValue);
-        }
+      } else if (currentValue) {
+        updateStatusSelectColor(sel, currentValue);
       }
     });
   }
@@ -1122,7 +1322,10 @@
   // Initialize rows on page load
   document.addEventListener('DOMContentLoaded', function() {
     initPerformaBadges();
-    initStatusSelects();
+    // Run initStatusSelects after initPerformaBadges to ensure colors are set correctly
+    setTimeout(function() {
+      initStatusSelects();
+    }, 100);
   });
 
   // Store initial status on page load
