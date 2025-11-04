@@ -342,7 +342,46 @@ class ComplaintController extends Controller
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
-        return view('admin.complaints.edit', compact('complaint', 'employees', 'categories'));
+        // Provide cities/sectors for dropdowns (match create() UX)
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+
+        // Derive defaults from existing complaint city/sector names
+        $defaultCityId = null;
+        $defaultSectorId = null;
+        $sectors = collect();
+
+        if ($complaint->city && Schema::hasTable('cities')) {
+            $city = City::where('name', $complaint->city)->first();
+            if ($city) {
+                $defaultCityId = $city->id;
+                if (Schema::hasTable('sectors')) {
+                    $sectors = Sector::where('city_id', $city->id)
+                        ->where('status', 'active')
+                        ->orderBy('name')
+                        ->get();
+                    if ($complaint->sector) {
+                        $sector = Sector::where('city_id', $city->id)
+                            ->where('name', $complaint->sector)
+                            ->first();
+                        if ($sector) {
+                            $defaultSectorId = $sector->id;
+                        }
+                    }
+                }
+            }
+        }
+
+        return view('admin.complaints.edit', compact(
+            'complaint',
+            'employees',
+            'categories',
+            'cities',
+            'sectors',
+            'defaultCityId',
+            'defaultSectorId'
+        ));
     }
 
     /**
@@ -367,6 +406,8 @@ class ComplaintController extends Controller
             'spare_parts.0.quantity' => 'nullable|integer|min:1',
             'city' => 'nullable|string|max:100',
             'sector' => 'nullable|string|max:100',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
             'email' => 'nullable|string|max:150',
             'phone' => 'nullable|string|max:50',
@@ -378,6 +419,22 @@ class ComplaintController extends Controller
                 ->withInput();
         }
 
+        // Resolve city/sector names from IDs if provided (dropdowns)
+        $cityName = null;
+        $sectorName = null;
+        if ($request->city_id) {
+            $city = City::find($request->city_id);
+            $cityName = $city?->name;
+        }
+        if ($request->sector_id) {
+            $sector = Sector::find($request->sector_id);
+            $sectorName = $sector?->name;
+        }
+
+        // Fallback to text inputs if present
+        $cityName = $cityName ?? ($request->city ?: null);
+        $sectorName = $sectorName ?? ($request->sector ?: null);
+
         // Find or create client by name and update details
         $client = Client::firstOrCreate(
             ['client_name' => trim($request->client_name)],
@@ -386,8 +443,8 @@ class ComplaintController extends Controller
                 'email' => $request->input('email', ''),
                 'phone' => $request->input('phone', ''),
                 'address' => $request->input('address'),
-                'city' => $request->city ?? null,
-                'sector' => $request->sector ?? null,
+                'city' => $cityName,
+                'sector' => $sectorName,
                 'status' => 'active',
             ]
         );
@@ -397,8 +454,8 @@ class ComplaintController extends Controller
             'email' => $request->input('email', $client->email),
             'phone' => $request->input('phone', $client->phone),
             'address' => $request->input('address', $client->address),
-            'city' => $request->city ?? $client->city,
-            'sector' => $request->sector ?? $client->sector,
+            'city' => $cityName ?? $client->city,
+            'sector' => $sectorName ?? $client->sector,
         ])->save();
 
         $oldStatus = $complaint->status;
@@ -407,8 +464,8 @@ class ComplaintController extends Controller
         $complaint->update([
             'title' => $request->title,
             'client_id' => $client->id,
-            'city' => $request->city,
-            'sector' => $request->sector,
+            'city' => $cityName,
+            'sector' => $sectorName,
             'category' => $request->category,
             'priority' => $request->priority,
             'description' => $request->description,

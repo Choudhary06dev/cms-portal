@@ -81,9 +81,7 @@
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->product_code ?? 'N/A' }}</td>
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->brand_name ?? 'N/A' }}</td>
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->item_name }}</td>
-          <td style="padding: 0.4rem 0.5rem;">
-            <span class="badge bg-info" style="font-size: 0.75rem;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
-          </td>
+          <td style="padding: 0.4rem 0.5rem;">{{ ucfirst($spare->category ?? 'N/A') }}</td>
           <td style="padding: 0.4rem 0.5rem;"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
           <td style="padding: 0.4rem 0.5rem;"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
           <td style="padding: 0.4rem 0.5rem;">{{ number_format((float)($spare->stock_quantity ?? 0), 0) }}</td>

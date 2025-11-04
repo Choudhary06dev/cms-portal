@@ -156,17 +156,17 @@
       font-size: 0.8rem !important;
     }
     .btn-accent { 
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
+      background: linear-gradient(135deg, #60a5fa, #3b82f6); 
       border:none; 
       color:#fff; 
       font-weight:700; 
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
       transition: none !important;
     }
     .btn-accent:hover { 
-      background: linear-gradient(135deg, #2563eb, #1e40af); 
+      background: linear-gradient(135deg, #3b82f6, #2563eb); 
       transform: none !important;
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.3);
     }
     .btn-sm { padding: 6px 12px; font-size: 12px; }
     .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
@@ -207,6 +207,7 @@
     .btn-close { filter: invert(1); }
     .avatar-sm { width: 40px; height: 40px; }
     .avatar-lg { width: 80px; height: 80px; }
+
     
     /* Adjust content margin for topbar */
     .content {
