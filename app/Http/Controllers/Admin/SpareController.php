@@ -74,9 +74,25 @@ class SpareController extends Controller
         }
 
         $spares = $query->with(['stockLogs', 'city', 'sector'])->orderBy('id', 'desc')->paginate(15);
-        $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')
-            : collect();
+        
+        // Get categories from complaint_categories table
+        $dbCategories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
+            : [];
+        
+        // Get unique categories from spares table
+        $spareCategories = Spare::whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->toArray();
+        
+        // Merge and get unique categories
+        $allCategories = array_unique(array_merge($dbCategories, $spareCategories));
+        sort($allCategories);
+        
+        $categories = collect($allCategories);
 
         return view('admin.spares.index', compact('spares', 'categories'));
     }
@@ -494,6 +510,84 @@ class SpareController extends Controller
     }
 
     /**
+     * Issue stock from spare part (for AJAX requests)
+     */
+    public function issueStock(Request $request, Spare $spare)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'quantity' => 'required|integer|min:1',
+                'remarks' => 'nullable|string',
+                'item_id' => 'nullable|integer',
+                'approval_id' => 'nullable|integer',
+                'reason' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $quantity = (int)$request->quantity;
+
+            // Check if stock is sufficient
+            if (!$spare->isStockSufficient($quantity)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient stock available. Available: ' . $spare->stock_quantity . ', Requested: ' . $quantity
+                ], 400);
+            }
+
+            // Use reason or remarks for stock log
+            $remarks = $request->reason ?? $request->remarks ?? 'Stock issued from approval';
+            $referenceId = $request->item_id ?? $request->approval_id ?? null;
+
+            // Issue stock (decrease inventory)
+            $result = $spare->removeStock(
+                $quantity,
+                $remarks,
+                $referenceId
+            );
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to issue stock. Please try again.'
+                ], 500);
+            }
+
+            // Reload spare to get updated stock quantity
+            $spare->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock issued successfully',
+                'data' => [
+                    'spare_id' => $spare->id,
+                    'item_name' => $spare->item_name,
+                    'quantity_issued' => $quantity,
+                    'remaining_stock' => $spare->stock_quantity,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error issuing stock', [
+                'spare_id' => $spare->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while issuing stock: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get low stock items
      */
     public function getLowStock()
@@ -729,5 +823,88 @@ class SpareController extends Controller
 
         // Implementation for export
         return response()->json(['message' => 'Export functionality not implemented yet']);
+    }
+
+    /**
+     * Get all categories for dropdown
+     */
+    public function getCategories(Request $request)
+    {
+        try {
+            // Get categories from ComplaintCategory table
+            $dbCategories = [];
+            if (\Schema::hasTable('complaint_categories')) {
+                $dbCategories = \App\Models\ComplaintCategory::orderBy('name')->pluck('name')->toArray();
+            }
+            
+            // Get unique categories from spares table
+            $spareCategories = Spare::whereNotNull('category')
+                ->where('category', '!=', '')
+                ->distinct()
+                ->orderBy('category')
+                ->pluck('category')
+                ->toArray();
+            
+            // Merge and get unique categories
+            $allCategories = array_unique(array_merge($dbCategories, $spareCategories));
+            sort($allCategories);
+            
+            return response()->json([
+                'success' => true,
+                'categories' => $allCategories
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting categories', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading categories: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get products by category
+     */
+    public function getProductsByCategory(Request $request)
+    {
+        try {
+            $category = $request->get('category');
+            
+            // If no category provided, return all products
+            if (!$category || $category === '') {
+                $products = Spare::orderBy('item_name')
+                    ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
+            } else {
+                // Filter by category (including products without category if category is empty string)
+                $products = Spare::where(function($query) use ($category) {
+                    $query->where('category', $category);
+                    // Also include products with null or empty category if searching for "Uncategorized"
+                    if (strtolower($category) === 'uncategorized' || $category === '') {
+                        $query->orWhereNull('category')
+                              ->orWhere('category', '');
+                    }
+                })
+                ->orderBy('item_name')
+                ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'products' => $products
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting products by category', [
+                'category' => $request->get('category'),
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading products: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

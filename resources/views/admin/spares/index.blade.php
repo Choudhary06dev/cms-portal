@@ -27,11 +27,10 @@
       </div>
       <div class="col-auto">
         <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
-        <select class="form-select" name="category" onchange="submitSparesFilters()" style="font-size: 0.9rem; width: 140px;">
-          <option value="">All</option>
-          @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::orderBy('name')->pluck('name') : collect())
-          @foreach($catOptions as $cat)
-          <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+        <select class="form-select" name="category" id="categoryFilter" onchange="submitSparesFilters()" style="font-size: 0.9rem; width: 160px;">
+          <option value="">All Categories</option>
+          @foreach($categories as $cat)
+          <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
         </select>
       </div>

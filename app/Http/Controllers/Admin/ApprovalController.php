@@ -292,9 +292,12 @@ class ApprovalController extends Controller
                     'items' => $approval->items->map(function($item) {
                         return [
                             'id' => $item->id,
+                            'spare_id' => $item->spare_id ?? null,
                             'spare_name' => $item->spare->item_name ?? 'N/A',
+                            'category' => $item->spare->category ?? 'N/A',
                             'quantity_requested' => (int)$item->quantity_requested,
                             'quantity_approved' => $item->quantity_approved !== null ? (int)$item->quantity_approved : null,
+                            'available_stock' => (int)($item->spare->stock_quantity ?? 0),
                             'unit_price' => $item->spare->unit_price ?? 0
                         ];
                     })
