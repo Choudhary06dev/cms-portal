@@ -20,10 +20,8 @@ return new class extends Migration
             // Category from complaint_categories table
             $table->string('category', 100);
             // Location columns for city/sector-based filtering
-            $table->unsignedBigInteger('city_id')->nullable()->after('category');
-            $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
-            $table->unsignedBigInteger('sector_id')->nullable()->after('city_id');
-            $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
+            $table->unsignedBigInteger('city_id')->nullable();
+            $table->unsignedBigInteger('sector_id')->nullable();
             $table->decimal('unit_price', 10, 2)->nullable();
             // Stock metrics
             $table->integer('total_received_quantity')->default(0);
@@ -46,6 +44,19 @@ return new class extends Migration
             $table->text('remarks')->nullable();
             $table->timestamps();
         });
+
+        // Add foreign key constraints for city_id and sector_id if tables exist
+        // This allows the migration to work even if cities/sectors tables are created later
+        if (Schema::hasTable('cities')) {
+            Schema::table('spares', function (Blueprint $table) {
+                $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
+            });
+        }
+        if (Schema::hasTable('sectors')) {
+            Schema::table('spares', function (Blueprint $table) {
+                $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
+            });
+        }
     }
 
     /**
@@ -53,6 +64,14 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Drop foreign keys if they exist
+        if (Schema::hasTable('spares')) {
+            Schema::table('spares', function (Blueprint $table) {
+                $table->dropForeign(['city_id']);
+                $table->dropForeign(['sector_id']);
+            });
+        }
+        
         Schema::dropIfExists('spare_stock_logs');
         Schema::dropIfExists('spares');
     }
