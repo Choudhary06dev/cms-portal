@@ -219,6 +219,17 @@ class Complaint extends Model
     }
 
     /**
+     * Get 4-digit complaint ID
+     */
+    public function getComplaintIdAttribute(): string
+    {
+        // Generate 4-digit complaint ID based on complaint id
+        // Use modulo to ensure it's always 4 digits (0001-9999)
+        $complaintNumber = ($this->id % 10000);
+        return str_pad($complaintNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * Get hours elapsed since creation
      */
     public function getHoursElapsedAttribute(): int
@@ -300,6 +311,43 @@ class Complaint extends Model
 
         static::creating(function ($complaint) {
             // Auto-generate ticket number will be handled by accessor
+        });
+
+        // Automatically create approval performa when complaint is created
+        static::created(function ($complaint) {
+            try {
+                // Check if approval performa already exists (avoid duplicates)
+                $existingApproval = \App\Models\SpareApprovalPerforma::where('complaint_id', $complaint->id)->first();
+                
+                if (!$existingApproval) {
+                    // Get employee for requested_by
+                    $requestedByEmployee = null;
+                    
+                    if ($complaint->assigned_employee_id) {
+                        $requestedByEmployee = \App\Models\Employee::find($complaint->assigned_employee_id);
+                    }
+                    
+                    // If no assigned employee, get first available employee
+                    if (!$requestedByEmployee) {
+                        $requestedByEmployee = \App\Models\Employee::first();
+                    }
+                    
+                    // Create approval performa if we have an employee
+                    if ($requestedByEmployee) {
+                        \App\Models\SpareApprovalPerforma::create([
+                            'complaint_id' => $complaint->id,
+                            'requested_by' => $requestedByEmployee->id,
+                            'status' => 'pending',
+                            'remarks' => 'Auto-created for new complaint',
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail complaint creation
+                \Log::error('Failed to create approval performa for complaint: ' . $complaint->id, [
+                    'error' => $e->getMessage()
+                ]);
+            }
         });
 
         // Auto-set closed_at when status becomes 'resolved' or 'closed'

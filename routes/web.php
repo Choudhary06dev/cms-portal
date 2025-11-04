@@ -12,7 +12,6 @@ use App\Http\Controllers\Admin\ComplaintCrudController as AdminComplaintCrudCont
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
-use App\Http\Controllers\Admin\ClientController as AdminClientController;
 use App\Http\Controllers\Admin\SpareController as AdminSpareController;
 use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
 use App\Http\Controllers\Admin\SlaController as AdminSlaController;
@@ -21,7 +20,6 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\ComplaintTitleController as AdminComplaintTitleController;
 use App\Http\Controllers\Admin\SectorController as AdminSectorController;
 use App\Http\Controllers\Admin\CityController as AdminCityController;
-use App\Http\Controllers\Admin\DepartmentController as AdminDepartmentController;
 use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
 use App\Http\Controllers\SearchController;
 // Frontend routes are defined in routes/frontend.php and loaded here
@@ -113,7 +111,6 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::middleware(['permission:employees.view'])->group(function () {
         // Extra AJAX/helper routes (must come BEFORE resource routes to avoid conflicts)
-        Route::get('employees/designations', [AdminEmployeeController::class, 'getDesignationsByDepartment'])->name('employees.designations');
         Route::get('employees/sectors', [AdminEmployeeController::class, 'getSectorsByCity'])->name('employees.sectors');
         Route::get('employees/export', [AdminEmployeeController::class, 'export'])->name('employees.export');
         Route::post('employees/bulk-action', [AdminEmployeeController::class, 'bulkAction'])->name('employees.bulk-action');
@@ -136,20 +133,6 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::delete('employees/{employee}', [AdminEmployeeController::class, 'destroy'])->name('employees.destroy');
     });
 
-        // ===============================
-        // 👥 Clients
-        // ===============================
-        Route::middleware(['permission:clients.view'])->group(function () {
-            // Extra AJAX/helper routes (must come BEFORE resource routes to avoid conflicts)
-            Route::get('clients/sectors', [AdminClientController::class, 'getSectorsByCity'])->name('clients.sectors');
-            Route::get('clients/export', [AdminClientController::class, 'export'])->name('clients.export');
-            
-            // Resource routes
-            Route::resource('clients', AdminClientController::class);
-            Route::post('clients/{client}/toggle-status', [AdminClientController::class, 'toggleStatus'])->name('clients.toggle-status');
-            Route::get('clients/{client}/complaints', [AdminClientController::class, 'getComplaints'])->name('clients.complaints');
-        });
-    
     // ===============================
     // 🛠 Complaints
     // ===============================
@@ -191,12 +174,6 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         ->only(['index','store','update','destroy'])
         ->middleware(['permission:employees.view']);
 
-    // ===============================
-    // 🏢 Departments
-    // ===============================
-    Route::resource('department', AdminDepartmentController::class)
-        ->only(['index','store','update','destroy'])
-        ->middleware(['permission:employees.view']);
 
     // ===============================
     // 🏢 Designations
@@ -220,12 +197,10 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::post('sla/{sla}/toggle-status', [AdminSlaController::class, 'toggleStatus'])->name('sla.toggle-status');
     Route::get('reports', [AdminReportController::class, 'index'])->middleware(['permission:reports.view'])->name('reports.index');
     Route::get('reports/complaints', [AdminReportController::class, 'complaints'])->middleware(['permission:reports.view'])->name('reports.complaints');
-    Route::get('reports/clients', [AdminReportController::class, 'clients'])->middleware(['permission:reports.view'])->name('reports.clients');
     // Printable report routes
     Route::get('reports/complaints/print', [AdminReportController::class, 'printComplaints'])->middleware(['permission:reports.view'])->name('reports.complaints.print');
     Route::get('reports/employees/print', [AdminReportController::class, 'printEmployees'])->middleware(['permission:reports.view'])->name('reports.employees.print');
     Route::get('reports/spares/print', [AdminReportController::class, 'printSpares'])->middleware(['permission:reports.view'])->name('reports.spares.print');
-    Route::get('reports/clients/print', [AdminReportController::class, 'printClients'])->middleware(['permission:reports.view'])->name('reports.clients.print');
     Route::get('reports/spares', [AdminReportController::class, 'spares'])->middleware(['permission:reports.view'])->name('reports.spares');
     Route::get('reports/employees', [AdminReportController::class, 'employees'])->middleware(['permission:reports.view'])->name('reports.employees');
     Route::get('reports/financial', [AdminReportController::class, 'financial'])->middleware(['permission:reports.view'])->name('reports.financial');

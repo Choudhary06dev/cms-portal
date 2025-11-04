@@ -108,17 +108,17 @@
         <table class="table table-borderless">
           <tr>
             <td class="text-white"><strong>Registration Date/Time:</strong></td>
-            <td class="text-white">{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
+            <td class="text-white">{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
           </tr>
           <tr>
             <td class="text-white"><strong>Addressed Date/Time:</strong></td>
-            <td class="text-white">{{ $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : '-' }}</td>
+            <td class="text-white">{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '-' }}</td>
           </tr>
           <tr>
             <td class="text-white"><strong>Complaint ID:</strong></td>
             <td>
               <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-                {{ $complaint->complaint_id ?? $complaint->id }}
+                {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
               </a>
             </td>
           </tr>
@@ -137,7 +137,7 @@
           <tr>
             <td class="text-white"><strong>Complaint Nature & Type:</strong></td>
             <td>
-              <div class="text-white fw-bold">{{ $displayText }}</div>
+              <div class="text-white">{{ $displayText }}</div>
             </td>
           </tr>
           <tr>
@@ -147,13 +147,19 @@
           <tr>
             <td class="text-white"><strong>Status:</strong></td>
             <td>
-              @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
-                <span class="badge" style="background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">
-                  Addressed
-                </span>
-              @else
-                <span class="badge bg-secondary">{{ $statusDisplay }}</span>
-              @endif
+              @php
+                $statusColors = [
+                  'in_progress' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'], // Red
+                  'resolved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'], // Green
+                  'closed' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'],   // Green
+                  'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Gray
+                  'new' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'],      // Gray
+                ];
+                $color = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
+              @endphp
+              <span class="badge" style="background-color: {{ $color['bg'] }}; color: {{ $color['text'] }}; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid {{ $color['border'] }};">
+                {{ $statusDisplay }}
+              </span>
             </td>
           </tr>
           @if($complaint->city)
@@ -191,74 +197,7 @@
 </div>
 @endif
 
-<!-- APPROVAL INFORMATION -->
-<div class="card-glass mb-4">
-  <div class="card-header">
-    <h5 class="card-title mb-0 text-white">
-      <i data-feather="check-circle" class="me-2"></i>Approval Information
-    </h5>
-  </div>
-  <div class="card-body">
-    <div class="row">
-      <div class="col-md-6">
-        <table class="table table-borderless">
-          <tr>
-            <td class="text-white"><strong>Approval ID:</strong></td>
-            <td class="text-white">#{{ $approval->id }}</td>
-          </tr>
-          <tr>
-            <td class="text-white"><strong>Status:</strong></td>
-            <td>
-              <span class="badge 
-                @if($approval->status === 'pending') bg-warning
-                @elseif($approval->status === 'approved') bg-success
-                @elseif($approval->status === 'rejected') bg-danger
-                @else bg-secondary @endif">
-                {{ ucfirst($approval->status) }}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td class="text-white"><strong>Requested By:</strong></td>
-            <td class="text-white">{{ $approval->requestedBy->name ?? 'N/A' }}</td>
-          </tr>
-          <tr>
-            <td class="text-white"><strong>Approved By:</strong></td>
-            <td class="text-white">{{ $approval->approvedBy->name ?? 'N/A' }}</td>
-          </tr>
-        </table>
-      </div>
-      <div class="col-md-6">
-        <table class="table table-borderless">
-          <tr>
-            <td class="text-white"><strong>Created:</strong></td>
-            <td class="text-white">{{ $approval->created_at ? $approval->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
-          </tr>
-          <tr>
-            <td class="text-white"><strong>Approved/Rejected At:</strong></td>
-            <td class="text-white">{{ $approval->approved_at ? $approval->approved_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-    @if($approval->remarks && trim($approval->remarks) !== '')
-    <div class="row mt-3">
-      <div class="col-md-12">
-        <div class="card-glass" style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
-          <div class="card-body">
-            <h6 class="text-white mb-3" style="color: #93c5fd; font-weight: 600;">
-              <i data-feather="message-square" class="me-2"></i>Remarks
-            </h6>
-            <p class="text-white mb-0" style="color: #dbeafe; line-height: 1.6;">
-              {{ $approval->remarks }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-    @endif
-  </div>
-</div>
+{{-- Approval Information section removed as requested --}}
 
 <!-- REQUESTED ITEMS -->
 <div class="card-glass">

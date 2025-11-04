@@ -42,14 +42,16 @@
     <form method="POST" action="{{ route('admin.designation.store') }}" class="d-flex flex-wrap align-items-end gap-2">
       @csrf
       <div style="min-width: 200px; flex: 0 0 240px;">
-        <label class="form-label small text-muted mb-1">Department</label>
-        <select name="department_id" class="form-select @error('department_id') is-invalid @enderror" required>
-          <option value="">Select Department</option>
-          @foreach ($departments as $dept)
-            <option value="{{ $dept->id }}" {{ old('department_id') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
-          @endforeach
+        <label class="form-label small text-muted mb-1">Category</label>
+        <select name="category" class="form-select @error('category') is-invalid @enderror" required>
+          <option value="">Select Category</option>
+          @if(isset($categories) && $categories->count() > 0)
+            @foreach ($categories as $cat)
+              <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+            @endforeach
+          @endif
         </select>
-        @error('department_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 200px; flex: 0 0 240px;">
         <label class="form-label small text-muted mb-1">Name</label>
@@ -85,7 +87,7 @@
         <thead>
           <tr>
             <th style="width:70px">#</th>
-            <th>Department</th>
+            <th>Category</th>
             <th>Name</th>
             <th>Description</th>
             <th style="width:140px">Status</th>
@@ -96,7 +98,7 @@
         @forelse($designations as $designation)
           <tr>
             <td>{{ $designation->id }}</td>
-            <td>{{ $designation->department->name ?? 'N/A' }}</td>
+            <td>{{ ucfirst($designation->category ?? 'N/A') }}</td>
             <td>{{ $designation->name }}</td>
             <td>{{ $designation->description ? Str::limit($designation->description, 60) : '-' }}</td>
             <td>
@@ -105,7 +107,7 @@
             <td>
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editDesignationModal" 
-                        data-id="{{ $designation->id }}" data-department-id="{{ $designation->department_id }}" data-name="{{ $designation->name }}" data-status="{{ $designation->status }}" data-description="{{ $designation->description }}">
+                        data-id="{{ $designation->id }}" data-category="{{ $designation->category }}" data-name="{{ $designation->name }}" data-status="{{ $designation->status }}" data-description="{{ $designation->description }}">
                   Edit
                 </button>
                 <form action="{{ route('admin.designation.destroy', $designation) }}" method="POST" class="designation-delete-form" onsubmit="return confirm('Delete this designation?')">
@@ -143,12 +145,14 @@
         @method('PUT')
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Department</label>
-            <select name="department_id" id="editDesignationDepartmentId" class="form-select" required>
-              <option value="">Select Department</option>
-              @foreach ($departments as $dept)
-                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-              @endforeach
+            <label class="form-label">Category</label>
+            <select name="category" id="editDesignationCategory" class="form-select" required>
+              <option value="">Select Category</option>
+              @if(isset($categories) && $categories->count() > 0)
+                @foreach ($categories as $cat)
+                  <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
+                @endforeach
+              @endif
             </select>
           </div>
           <div class="mb-3">
@@ -230,20 +234,20 @@ document.addEventListener('DOMContentLoaded', function() {
   modalEl.addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;
     const id = button.getAttribute('data-id');
-    const departmentId = button.getAttribute('data-department-id');
+    const category = button.getAttribute('data-category');
     const name = button.getAttribute('data-name');
     const status = button.getAttribute('data-status');
     const description = button.getAttribute('data-description') || '';
 
     const form = document.getElementById('editDesignationForm');
-    const departmentSelect = document.getElementById('editDesignationDepartmentId');
+    const categorySelect = document.getElementById('editDesignationCategory');
     const nameInput = document.getElementById('editDesignationName');
     const statusSelect = document.getElementById('editDesignationStatus');
 
     if (form && id) {
       form.action = `${window.location.origin}/admin/designation/${id}`;
     }
-    if (departmentSelect && departmentId) departmentSelect.value = departmentId;
+    if (categorySelect && category) categorySelect.value = category;
     if (nameInput) nameInput.value = name || '';
     const descInput = document.getElementById('editDesignationDescription');
     if (descInput) descInput.value = description;

@@ -22,20 +22,26 @@
 <div class="card-glass mb-4">
   <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}" onsubmit="event.preventDefault(); submitApprovalsFilters(event); return false;">
   <div class="row g-2 align-items-end">
-    <div class="col-12 col-md-4">
-      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Enter Complaint ID or Address or Cell No (Auto Search)" 
-             value="{{ request('search') }}" autocomplete="off">
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Complaint ID or Address..." 
+             value="{{ request('search') }}" autocomplete="off" style="font-size: 0.9rem; width: 200px;">
     </div>
-    <div class="col-12 col-md-4">
-      <label class="form-label text-white small mb-1">Filter by Complaint Registration Date</label>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From Date</label>
       <input type="date" class="form-control" name="complaint_date" 
-             value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off">
+             value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
     </div>
-    <div class="col-12 col-md-4">
-      <label class="form-label text-white small mb-1">Nature <span class="text-danger">*</span></label>
-      <select class="form-select" name="category" autocomplete="off">
-        <option value="" {{ request('category') ? '' : 'selected' }}>Select</option>
-        @if(isset($categories))
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To Date</label>
+      <input type="date" class="form-control" name="date_to" 
+             value="{{ request('date_to') }}" placeholder="End Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+      <select class="form-select" name="category" autocomplete="off" style="font-size: 0.9rem; width: 140px;">
+        <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
+        @if(isset($categories) && $categories->count() > 0)
           @foreach($categories as $cat)
             <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
@@ -52,23 +58,21 @@
         @endif
       </select>
     </div>
-  </div>
-  <div class="row g-2 align-items-end mt-2">
-    <div class="col-12 col-md-2">
-      <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-secondary">
-        <i data-feather="x" class="me-2"></i>Clear Filters
-      </a>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetApprovalsFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+        <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+      </button>
     </div>
   </div>
   </form>
-  </div>
 </div>
 
 <!-- APPROVALS TABLE -->
 
 <div class="card-glass">
   <div class="table-responsive">
-        <table class="table table-dark">
+        <table class="table table-dark table-sm">
       <thead>
         <tr>
           <th>#</th>
@@ -78,7 +82,8 @@
           <th>Complainant Name</th>
           <th>Address</th>
           <th>Complaint Nature & Type</th>
-          <th>Mobile No.</th>
+          <th>Phone No.</th>
+          <th>Performa Required</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -91,70 +96,20 @@
         @if($complaint)
         @php
           $category = $complaint->category ?? 'N/A';
-          $department = $complaint->department ?? '';
-          
-          // Get product name from spare parts
-          $productName = '';
-          if ($complaint->spareParts && $complaint->spareParts->count() > 0) {
-            $firstSpare = $complaint->spareParts->first();
-            if ($firstSpare && $firstSpare->spare) {
-              $productName = $firstSpare->spare->item_name ?? '';
-              if ($complaint->spareParts->count() > 1) {
-                $productName .= ' (+' . ($complaint->spareParts->count() - 1) . ')';
-              }
-            }
-          }
-          
-          // Category to REQ type mapping
-          $reqTypeMap = [
-            'electric' => 'ELECTRECION REQ',
-            'technical' => 'TECHNICAL REQ',
-            'service' => 'SERVICE REQ',
-            'billing' => 'BILLING REQ',
-            'water' => 'PIPE FITTER REQ',
-            'sanitary' => 'SANITARY REQ',
-            'plumbing' => 'PLUMBING REQ',
-            'kitchen' => 'KITCHEN REQ',
-            'other' => 'OTHER REQ',
+          $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+          $categoryDisplay = [
+            'electric' => 'Electric',
+            'technical' => 'Technical',
+            'service' => 'Service',
+            'billing' => 'Billing',
+            'water' => 'Water Supply',
+            'sanitary' => 'Sanitary',
+            'plumbing' => 'Plumbing',
+            'kitchen' => 'Kitchen',
+            'other' => 'Other',
           ];
-          
-          $reqType = $reqTypeMap[strtolower($category)] ?? strtoupper($category) . ' REQ';
-          
-          // Format display text with category and product name
-          if ($department) {
-            if (strpos(strtoupper($department), 'B&R') !== false) {
-              if ($productName) {
-                $displayText = $department . ' - ' . $productName . ' - MASSON REQ';
-              } else {
-                $displayText = $department . ' - MASSON REQ';
-              }
-            } else {
-              if ($productName) {
-                $displayText = $department . ' - ' . $productName . ' - ' . $reqType;
-              } else {
-                $displayText = $department . ' - ' . $reqType;
-              }
-            }
-          } else {
-            $categoryDisplay = [
-              'electric' => 'Electric',
-              'technical' => 'Technical',
-              'service' => 'Service',
-              'billing' => 'Billing',
-              'water' => 'Water Supply',
-              'sanitary' => 'Sanitary',
-              'plumbing' => 'Plumbing',
-              'kitchen' => 'Kitchen',
-              'other' => 'Other',
-            ];
-            $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-            
-            if ($productName) {
-              $displayText = $catDisplay . ' - ' . $productName . ' - ' . $reqType;
-            } else {
-              $displayText = $catDisplay . ' - ' . $reqType;
-            }
-          }
+          $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+          $displayText = $catDisplay . ' - ' . $designation;
           
           // Convert 'new' status to 'assigned' for display
           $rawStatus = $complaint->status ?? 'new';
@@ -162,42 +117,96 @@
           $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
                           ($complaintStatus == 'resolved' ? 'Addressed' : 
                           ucfirst(str_replace('_', ' ', $complaintStatus)));
+          
+          // Status colors mapping
+          $statusColors = [
+            'in_progress' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'], // Red
+            'resolved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'], // Green
+            'work_performa' => ['bg' => '#0ea5e9', 'text' => '#ffffff', 'border' => '#0284c7'], // Sky Blue
+            'maint_performa' => ['bg' => '#fef08a', 'text' => '#854d0e', 'border' => '#eab308'], // Light Yellow
+            'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
+          ];
+          
+          // Get current status color or default
+          $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
         @endphp
         <tr>
           <td>{{ $loop->iteration }}</td>
-          <td>{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : 'N/A' }}</td>
-          <td>{{ $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : '' }}</td>
+          <td>{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
+          <td>{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '' }}</td>
           <td>
             <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-              {{ $complaint->complaint_id ?? $complaint->id }}
+              {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
             </a>
           </td>
           <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
           <td>{{ $complaint->client->address ?? 'N/A' }}</td>
           <td>
-            <div class="text-white fw-bold">{{ $displayText }}</div>
+            <div class="text-white">{{ $displayText }}</div>
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
           <td>
+            <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600;"></span>
+          </td>
+          <td>
             @if($complaintStatus == 'resolved')
-              <span class="badge" style="background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">
+              <span class="badge" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid {{ $statusColors['resolved']['border'] }};">
                 Addressed
               </span>
+            @elseif($complaintStatus == 'in_progress')
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="in_progress"
+                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border: 1px solid {{ $statusColors['in_progress']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
+                <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa">Work Performa</option>
+                <option value="maint_performa">Maint Performa</option>
+              </select>
+            @elseif($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false))
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="work_performa"
+                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border: 1px solid {{ $statusColors['work_performa']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
+                <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa" {{ $complaintStatus == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
+                <option value="maint_performa">Maint Performa</option>
+              </select>
+            @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Maint') !== false))
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="maint_performa"
+                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border: 1px solid {{ $statusColors['maint_performa']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
+                <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa">Work Performa</option>
+                <option value="maint_performa" {{ $complaintStatus == 'maint_performa' ? 'selected' : '' }}>Maint Performa</option>
+              </select>
             @else
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
-                      style="min-width: 120px; background-color: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 600; border-radius: 4px;">
+                      data-status-color="assigned"
+                      style="min-width: 100px; max-width: 120px; padding: 2px 6px; font-size: 11px; background-color: {{ $statusColors['assigned']['bg'] }}; color: {{ $statusColors['assigned']['text'] }}; border: 1px solid {{ $statusColors['assigned']['border'] }}; font-weight: 600; border-radius: 4px; height: 28px;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa">Work Performa</option>
+                <option value="maint_performa">Maint Performa</option>
               </select>
             @endif
           </td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-outline-info btn-sm" title="View Details">
-                <i data-feather="eye"></i>
+              <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
             </div>
           </td>
@@ -205,7 +214,7 @@
         @endif
           @empty
         <tr>
-          <td colspan="10" class="text-center py-4">
+          <td colspan="11" class="text-center py-4">
             <i data-feather="check-circle" class="feather-lg mb-2"></i>
             <div>No complaints found</div>
           </td>
@@ -281,6 +290,21 @@
   .theme-dark .table .text-muted,
   .theme-night .table .text-muted {
     color: #94a3b8 !important;
+  }
+  
+  /* Compact status select box */
+  .status-select {
+    min-width: 100px !important;
+    max-width: 120px !important;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .status-select option {
+    padding: 4px 8px;
+    font-size: 11px;
   }
   
 </style>
@@ -387,6 +411,24 @@
     }, 200);
   }
 
+  // Reset filters function
+  function resetApprovalsFilters() {
+    const form = document.getElementById('approvalsFiltersForm');
+    if (!form) return;
+    
+    // Clear all form inputs
+    form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+      if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+    });
+    
+    // Reset URL to base route
+    window.location.href = '{{ route('admin.approvals.index') }}';
+  }
+
   // Auto-submit for select filters - immediate filter on change
   function submitApprovalsFilters(e) {
     if (e) e.preventDefault();
@@ -454,6 +496,12 @@
       dateInput.addEventListener('change', submitApprovalsFilters);
     }
     
+    // Attach event listener to end date input
+    const endDateInput = form.querySelector('input[name="date_to"]');
+    if (endDateInput) {
+      endDateInput.addEventListener('change', submitApprovalsFilters);
+    }
+    
     // Attach event listener to category select
     const categorySelect = form.querySelector('select[name="category"]');
     if (categorySelect) {
@@ -501,7 +549,7 @@
     const paginationContainer = document.getElementById('approvalsPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     const fetchUrl = `{{ route('admin.approvals.index') }}?${params.toString()}`;
@@ -510,7 +558,7 @@
     
     // Show loading state
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
     
     fetch(fetchUrl, {
@@ -569,6 +617,13 @@
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
         feather.replace();
+        // Re-initialize performa badges and status old values after table refresh
+        if (typeof initPerformaBadges === 'function') {
+          initPerformaBadges();
+        }
+        if (typeof initStatusSelects === 'function') {
+          initStatusSelects();
+        }
         console.log('Table updated successfully');
       } else {
         console.error('Table body not found in response');
@@ -581,6 +636,12 @@
           if (extractedTbody && tbody) {
             tbody.innerHTML = extractedTbody.innerHTML;
             feather.replace();
+            if (typeof initPerformaBadges === 'function') {
+              initPerformaBadges();
+            }
+            if (typeof initStatusSelects === 'function') {
+              initStatusSelects();
+            }
             console.log('Table updated via direct extraction');
           } else {
             throw new Error('Could not find table body in response');
@@ -614,7 +675,7 @@
       
       // Show error message to user
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">' +
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">' +
           '<div class="alert alert-danger mb-0">' +
           '<strong>Error:</strong> ' + (error.message || 'Failed to load approvals. Please try again.') +
           '<br><small>If this persists, please refresh the page.</small>' +
@@ -811,147 +872,7 @@
     }, 6000);
   }
 
-  // Handle complaint status update from approvals view
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('status-select')) {
-      const select = e.target;
-      
-      const complaintId = select.getAttribute('data-complaint-id');
-      const newStatus = select.value;
-      let oldStatus = select.dataset.oldStatus || select.value;
-      
-      // Get actual status from data attribute (in case it was 'new' which is displayed as 'assigned')
-      const actualOldStatus = select.getAttribute('data-actual-status') || oldStatus;
-      
-      // Prevent changing from resolved if already addressed
-      if (actualOldStatus === 'resolved' && newStatus !== 'resolved') {
-        select.value = oldStatus;
-        showError('Cannot change status - Complaint is already addressed and cannot be modified.');
-        return;
-      }
-      
-      if (!complaintId || !newStatus) {
-        return;
-      }
-      
-      // Confirm status change
-      const statusLabels = {
-        'assigned': 'Assigned',
-        'in_progress': 'In-Process',
-        'resolved': 'Addressed'
-      };
-      
-      oldStatus = select.dataset.oldStatus || select.value;
-      
-      // Confirm status change
-      const confirmMsg = `Are you sure you want to change status to "${statusLabels[newStatus]}"?`;
-      if (!confirm(confirmMsg)) {
-        // Revert selection
-        select.value = oldStatus;
-        return;
-      }
-      
-      // Store old value for revert
-      select.dataset.oldStatus = select.value;
-      
-      // Show loading state
-      select.style.opacity = '0.6';
-      select.disabled = true;
-      
-      // Get CSRF token
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      // Update complaint status
-      fetch(`/admin/complaints/${complaintId}/update-status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          notes: `Status updated from approvals view`
-        })
-      })
-      .then(response => {
-        if (!response.ok && response.status === 422) {
-          return response.json().then(data => {
-            throw new Error(data.message || 'Validation failed');
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.success || !data.errors) {
-          // Update select styling based on new status
-          const isActiveStatus = ['assigned', 'in_progress'].includes(newStatus);
-          select.style.backgroundColor = isActiveStatus ? 'rgba(239, 68, 68, 0.25)' : 'rgba(34, 197, 94, 0.25)';
-          select.style.color = isActiveStatus ? '#ef4444' : '#22c55e';
-          select.style.borderColor = isActiveStatus ? '#ef4444' : '#22c55e';
-          
-          // Update addressed date/time cell if status is resolved
-          if (newStatus === 'resolved' && data.complaint && data.complaint.closed_at) {
-            const row = select.closest('tr');
-            const addressedDateCell = row.querySelector('td:nth-child(3)'); // 3rd column is Addressed Date/Time
-            if (addressedDateCell) {
-              addressedDateCell.textContent = data.complaint.closed_at;
-            }
-            
-            // Replace dropdown with green "Addressed" badge when status becomes addressed
-            const statusCell = select.closest('td');
-            const badge = document.createElement('span');
-            badge.className = 'badge';
-            badge.style.cssText = 'background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;';
-            badge.textContent = 'Addressed';
-            
-            // Store old status before replacing (use oldStatus from outer scope if available)
-            const oldStatusValue = oldStatus || select.value;
-            
-            // Replace select with badge
-            select.replaceWith(badge);
-            
-            // Update old status tracker (though select is now replaced)
-            // This is for reference only since badge doesn't have dataset
-          } else if (newStatus !== 'resolved') {
-            // Clear addressed date/time if status changed from resolved to something else
-            const row = select.closest('tr');
-            const addressedDateCell = row.querySelector('td:nth-child(3)');
-            if (addressedDateCell) {
-              addressedDateCell.textContent = '';
-            }
-          }
-          
-          showSuccess('Complaint status updated successfully!');
-          
-          // Update old status (only if select still exists)
-          if (select.isConnected) {
-            select.dataset.oldStatus = newStatus;
-          }
-        } else {
-          // Revert selection on error
-          select.value = oldStatus;
-          showError(data.message || 'Failed to update complaint status.');
-        }
-      })
-      .catch(error => {
-        console.error('Error updating status:', error);
-        // Revert selection on error
-        select.value = oldStatus;
-        showError(error.message || 'Failed to update complaint status.');
-        select.style.opacity = '1';
-        select.disabled = false;
-      })
-      .finally(() => {
-        // Only re-enable if select still exists in DOM and is not addressed
-        if (select.isConnected && select.value !== 'resolved') {
-          select.style.opacity = '1';
-          select.disabled = false;
-        }
-      });
-    }
-  });
+  // Removed duplicate status change handler (handled by comprehensive handler below)
   
   // Event delegation for approval buttons (document level for dynamic content)
   document.addEventListener('click', function(e) {
@@ -974,6 +895,251 @@
         rejectRequest(parseInt(approvalId));
       }
     }
+  });
+
+  // Status colors mapping for JavaScript
+  const statusColors = {
+    'in_progress': { bg: '#ef4444', text: '#ffffff', border: '#dc2626' }, // Red
+    'resolved': { bg: '#22c55e', text: '#ffffff', border: '#16a34a' }, // Green
+    'work_performa': { bg: '#0ea5e9', text: '#ffffff', border: '#0284c7' }, // Sky Blue
+    'maint_performa': { bg: '#fef08a', text: '#854d0e', border: '#eab308' }, // Light Yellow
+    'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
+  };
+
+  // Function to update status select box colors
+  function updateStatusSelectColor(select, status) {
+    const normalizedStatus = status === 'in-process' || status === 'in process' ? 'in_progress' : status;
+    const color = statusColors[normalizedStatus] || statusColors['assigned'];
+    select.style.backgroundColor = color.bg;
+    select.style.color = color.text;
+    select.style.borderColor = color.border;
+    select.setAttribute('data-status-color', normalizedStatus);
+  }
+
+  // Handle Performa Required dropdown changes
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('status-select')) {
+      const select = e.target;
+      let newStatus = (select.value || '').toString().trim();
+      const row = select.closest('tr');
+      const performaBadge = row ? row.querySelector('.performa-badge') : null;
+      const complaintId = select.getAttribute('data-complaint-id');
+      let skipConfirm = false;
+
+      // Normalize common variants to backend values
+      const normalize = (val) => {
+        const v = (val || '').toString().trim().toLowerCase();
+        if (v === 'in-process' || v === 'in process' || v === 'inprocess') return 'in_progress';
+        if (v === 'addressed' || v === 'done' || v === 'completed') return 'resolved';
+        if (v === 'assign' || v === 'assignment') return 'assigned';
+        return v;
+      };
+      newStatus = normalize(newStatus);
+
+      // Handle pseudo-statuses locally without backend call
+      if (newStatus === 'work_performa' || newStatus === 'maint_performa') {
+        if (performaBadge) {
+          if (newStatus === 'work_performa') {
+            performaBadge.textContent = 'Work Performa Required';
+            performaBadge.style.backgroundColor = '#0ea5e9';
+            performaBadge.style.color = '#fff';
+            // Update select box color to sky blue
+            updateStatusSelectColor(select, 'work_performa');
+          } else {
+            performaBadge.textContent = 'Maint Performa Required';
+            performaBadge.style.backgroundColor = '#6366f1';
+            performaBadge.style.color = '#fff';
+            // Update select box color to light yellow
+            updateStatusSelectColor(select, 'maint_performa');
+          }
+          performaBadge.style.display = 'inline-block';
+        }
+        // Persist selection locally so it survives reloads
+        if (complaintId) {
+          const key = `performaRequired:${complaintId}`;
+          const val = newStatus === 'work_performa' ? 'work' : 'maint';
+          try { localStorage.setItem(key, val); } catch (err) {}
+        }
+        // Auto-set status to In-Process and continue to update backend
+        const performaType = newStatus; // Store original performa type
+        newStatus = 'in_progress';
+        select.value = 'in_progress';
+        // Keep the performa color even though status is in_progress
+        if (performaType === 'work_performa') {
+          updateStatusSelectColor(select, 'work_performa');
+        } else if (performaType === 'maint_performa') {
+          updateStatusSelectColor(select, 'maint_performa');
+        }
+        skipConfirm = true;
+        showSuccess(performaBadge?.textContent || 'Performa marked');
+      } else {
+        // Update color for regular status changes
+        updateStatusSelectColor(select, newStatus);
+      }
+
+      // Real statuses only
+      const allowed = ['new','assigned','in_progress','resolved','closed'];
+      if (!allowed.includes(newStatus)) {
+        console.warn('Blocked unsupported status:', newStatus);
+        // Revert to old on invalid
+        const oldStatusLocal = select.dataset.oldStatus || 'assigned';
+        select.value = oldStatusLocal;
+        showError('Unsupported status selected.');
+        return;
+      }
+
+      // Clear Performa Required badge only if no persisted flag exists
+      if (performaBadge && complaintId) {
+        let savedFlag = null;
+        try { savedFlag = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedFlag = null; }
+        if (!savedFlag) {
+          performaBadge.style.display = 'none';
+          performaBadge.textContent = '';
+        } else {
+          // Ensure correct styling if persisted
+          if (savedFlag === 'work') {
+            performaBadge.textContent = 'Work Performa Required';
+            performaBadge.style.backgroundColor = '#0ea5e9';
+            performaBadge.style.color = '#fff';
+          } else if (savedFlag === 'maint') {
+            performaBadge.textContent = 'Maint Performa Required';
+            performaBadge.style.backgroundColor = '#6366f1';
+            performaBadge.style.color = '#fff';
+          }
+          performaBadge.style.display = 'inline-block';
+        }
+      }
+
+      // Clear persisted performa flag when switching to real statuses
+      if (complaintId) {
+        try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+      }
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (!complaintId || !csrfToken) {
+        console.error('Missing complaintId or CSRF token');
+        return;
+      }
+
+      const oldStatus = select.dataset.oldStatus || select.value;
+      const labelMap = { in_progress: 'In-Process', resolved: 'Addressed', assigned: 'Assigned', new: 'New', closed: 'Closed' };
+      const confirmMsg = `Are you sure you want to change status to "${labelMap[newStatus] || newStatus}"?`;
+      if (!skipConfirm) {
+        if (!confirm(confirmMsg)) {
+          select.value = oldStatus;
+          return;
+        }
+      }
+
+      select.style.opacity = '0.6';
+      select.disabled = true;
+
+      fetch(`/admin/complaints/${complaintId}/update-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus, notes: `Status updated from approvals view` })
+      })
+      .then(async (response) => {
+        const contentType = response.headers.get('content-type') || '';
+        const isJson = contentType.includes('application/json');
+        const data = isJson ? await response.json() : null;
+        if (!response.ok) {
+          const message = (data && (data.message || (data.errors && Object.values(data.errors)[0]?.[0]))) || `HTTP ${response.status}`;
+          throw new Error(message);
+        }
+        return data;
+      })
+      .then(data => {
+        const updated = data && data.complaint ? data.complaint : null;
+        if (updated && updated.closed_at && newStatus === 'resolved') {
+          const addressedDateCell = row?.querySelector('td:nth-child(3)');
+          if (addressedDateCell) addressedDateCell.textContent = updated.closed_at;
+          const statusCell = select.closest('td');
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          const resolvedColor = statusColors['resolved'];
+          badge.style.cssText = `background-color: ${resolvedColor.bg}; color: ${resolvedColor.text}; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid ${resolvedColor.border};`;
+          badge.textContent = 'Addressed';
+          select.replaceWith(badge);
+        } else {
+          // Update color for other status changes
+          updateStatusSelectColor(select, newStatus);
+        }
+        showSuccess('Complaint status updated successfully!');
+        if (select.isConnected) select.dataset.oldStatus = newStatus;
+      })
+      .catch(error => {
+        console.error('Error updating status:', error);
+        select.value = oldStatus;
+        showError(error.message || 'Failed to update complaint status.');
+      })
+      .finally(() => {
+        if (select.isConnected && select.value !== 'resolved') {
+          select.style.opacity = '1';
+          select.disabled = false;
+        }
+      });
+    }
+  });
+
+  // Helpers to initialize UI after load/refresh
+  function initPerformaBadges() {
+    document.querySelectorAll('.performa-badge').forEach(function(b){
+      if (!b.textContent) b.style.display = 'none';
+    });
+    // Restore persisted Performa Required selections per complaint
+    document.querySelectorAll('select.status-select[data-complaint-id]').forEach(function(sel){
+      const complaintId = sel.getAttribute('data-complaint-id');
+      if (!complaintId) return;
+      let saved;
+      try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
+      if (!saved) return;
+      const row = sel.closest('tr');
+      const badge = row ? row.querySelector('.performa-badge') : null;
+      if (!badge) return;
+      if (saved === 'work') {
+        badge.textContent = 'Work Performa Required';
+        badge.style.backgroundColor = '#0ea5e9';
+        badge.style.color = '#fff';
+        badge.style.display = 'inline-block';
+        // Update select box color to sky blue
+        updateStatusSelectColor(sel, 'work_performa');
+      } else if (saved === 'maint') {
+        badge.textContent = 'Maint Performa Required';
+        badge.style.backgroundColor = '#6366f1';
+        badge.style.color = '#fff';
+        badge.style.display = 'inline-block';
+        // Update select box color to light yellow
+        updateStatusSelectColor(sel, 'maint_performa');
+      }
+    });
+  }
+
+  function initStatusSelects() {
+    document.querySelectorAll('.status-select').forEach(function(sel){
+      if (!sel.dataset.oldStatus) sel.dataset.oldStatus = sel.value;
+      // Initialize colors based on current status or data attribute
+      const statusColor = sel.getAttribute('data-status-color');
+      if (statusColor) {
+        updateStatusSelectColor(sel, statusColor);
+      } else {
+        // Update color based on current value
+        const currentValue = sel.value;
+        if (currentValue) {
+          updateStatusSelectColor(sel, currentValue);
+        }
+      }
+    });
+  }
+
+  // Initialize rows on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    initPerformaBadges();
+    initStatusSelects();
   });
 
   // Store initial status on page load

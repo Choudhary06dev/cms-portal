@@ -10,18 +10,10 @@ class Designation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'department_id',
+        'category',
         'name',
         'description',
         'status',
     ];
-
-    /**
-     * Get the department that owns the designation.
-     */
-    public function department()
-    {
-        return $this->belongsTo(Department::class);
-    }
 }
 

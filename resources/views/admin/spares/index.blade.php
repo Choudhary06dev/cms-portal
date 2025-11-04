@@ -19,99 +19,106 @@
 <!-- FILTERS -->
 <div class="card-glass mb-4">
   <form id="sparesFiltersForm" method="GET" action="{{ route('admin.spares.index') }}">
-    <div class="row g-3">
-      <div class="col-md-4">
-        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search spares..." value="{{ request('search') }}" oninput="handleSparesSearchInput()">
+    <div class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
+               value="{{ request('search') }}" oninput="handleSparesSearchInput()" style="font-size: 0.9rem; width: 180px;">
       </div>
-      <div class="col-md-3">
-        <select class="form-select" name="category" onchange="submitSparesFilters()">
-          <option value="">All Categories</option>
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+        <select class="form-select" name="category" onchange="submitSparesFilters()" style="font-size: 0.9rem; width: 140px;">
+          <option value="">All</option>
           @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::orderBy('name')->pluck('name') : collect())
           @foreach($catOptions as $cat)
           <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
           @endforeach
         </select>
       </div>
-      <div class="col-md-3">
-        <select class="form-select" name="stock_status" onchange="submitSparesFilters()">
-          <option value="">All Status</option>
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Stock</label>
+        <select class="form-select" name="stock_status" onchange="submitSparesFilters()" style="font-size: 0.9rem; width: 130px;">
+          <option value="">All</option>
           <option value="in_stock" {{ request('stock_status') == 'in_stock' ? 'selected' : '' }}>In Stock</option>
           <option value="low_stock" {{ request('stock_status') == 'low_stock' ? 'selected' : '' }}>Low Stock</option>
           <option value="out_of_stock" {{ request('stock_status') == 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
         </select>
       </div>
-      
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetSparesFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+          <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+        </button>
+      </div>
     </div>
   </form>
 </div>
 
 <!-- SPARES TABLE -->
 <div class="card-glass">
-  <div class="table-responsive">
-    <table class="table table-dark">
+  <div class="table-responsive" style="overflow-x: auto;">
+    <table class="table table-dark table-sm" style="margin-bottom: 0;">
       <thead>
         <tr>
-          <th>Sr.No</th>
-          <th>Product Code</th>
-          <th>Brand Name</th>
-          <th>Product Name</th>
-          <th>Category</th>
-          <th class="text-end">Total Received</th>
-          <th class="text-end">issued Quantity</th>
-          <th class="text-end">Balance Quantity</th>
-          <th class="text-end">%age Utilized</th>
-          <th>Stock Status</th>
-          <th>Last Stock Out</th>
-          <th>Actions</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Sr.No</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Product Code</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Brand Name</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Product Name</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Category</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Total Received</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Issued Qty</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Balance Qty</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">% Utilized</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Stock Status</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Last Stock Out</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Actions</th>
         </tr>
       </thead>
       <tbody id="sparesTableBody">
         @forelse($spares as $spare)
         <tr>
-          <td class="text-muted">{{ $loop->iteration }}</td>
-          <td>{{ $spare->product_code ?? 'N/A' }}</td>
-          <td>{{ $spare->brand_name ?? 'N/A' }}</td>
-          <td>{{ $spare->item_name }}</td>
-          <td>
-            <span class="badge bg-info">{{ ucfirst($spare->category ?? 'N/A') }}</span>
+          <td class="text-muted" style="padding: 0.4rem 0.5rem;">{{ $loop->iteration }}</td>
+          <td style="padding: 0.4rem 0.5rem;">{{ $spare->product_code ?? 'N/A' }}</td>
+          <td style="padding: 0.4rem 0.5rem;">{{ $spare->brand_name ?? 'N/A' }}</td>
+          <td style="padding: 0.4rem 0.5rem;">{{ $spare->item_name }}</td>
+          <td style="padding: 0.4rem 0.5rem;">
+            <span class="badge bg-info" style="font-size: 0.75rem;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
           </td>
-          <td class="text-end"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
-          <td class="text-end"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
-          <td class="text-end">{{ number_format((float)($spare->stock_quantity ?? 0), 0) }}</td>
-          <td class="text-end">{{ number_format((float)($spare->utilization_percent ?? 0), 0) }}%</td>
-          <td>
+          <td style="padding: 0.4rem 0.5rem;"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
+          <td style="padding: 0.4rem 0.5rem;"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
+          <td style="padding: 0.4rem 0.5rem;">{{ number_format((float)($spare->stock_quantity ?? 0), 0) }}</td>
+          <td style="padding: 0.4rem 0.5rem;">{{ number_format((float)($spare->utilization_percent ?? 0), 0) }}%</td>
+          <td style="padding: 0.4rem 0.5rem;">
             @if(($spare->stock_quantity ?? 0) <= 0)
-              <span class="badge bg-danger">Out of Stock</span>
+              <span class="badge bg-danger" style="font-size: 0.75rem;">Out</span>
             @elseif(($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0))
-              <span class="badge bg-warning text-dark">Low Stock</span>
+              <span class="badge bg-warning text-dark" style="font-size: 0.75rem;">Low</span>
             @else
-              <span class="badge bg-success">In Stock</span>
+              <span class="badge bg-success" style="font-size: 0.75rem;">In</span>
             @endif
           </td>
-          <td>
+          <td style="padding: 0.4rem 0.5rem; font-size: 0.8rem;">
             @if(($spare->stock_quantity ?? 0) <= 0 && $spare->last_stock_out)
-              <span class="text-danger">{{ $spare->last_stock_out->format('d M Y h:i A') }}</span>
-              <small class="d-block text-muted">(Out of Stock)</small>
+              <span class="text-danger">{{ $spare->last_stock_out->format('d M Y') }}</span>
             @elseif($spare->last_stock_out)
-              {{ $spare->last_stock_out->format('d M Y h:i A') }}
+              {{ $spare->last_stock_out->format('d M Y') }}
             @else
               <span class="text-muted">Never</span>
             @endif
           </td>
-          <td>
+          <td style="padding: 0.4rem 0.5rem;">
             <div class="btn-group" role="group">
-              <button class="btn btn-outline-info btn-sm" onclick="viewSpare('{{ $spare->id }}')" title="View Details">
-                <i data-feather="eye"></i>
+              <button class="btn btn-outline-success btn-sm" style="padding: 3px 8px;" onclick="viewSpare('{{ $spare->id }}')" title="View">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </button>
-              <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-outline-warning btn-sm" title="Edit">
-                <i data-feather="edit"></i>
+              <a href="{{ route('admin.spares.edit', $spare) }}" class="btn btn-outline-primary btn-sm" style="padding: 3px 8px;" title="Edit">
+                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteSpare('{{ $spare->id }}')" title="Delete">
-                <i data-feather="trash-2"></i>
+              <button class="btn btn-outline-danger btn-sm" style="padding: 3px 8px;" onclick="deleteSpare('{{ $spare->id }}')" title="Delete">
+                <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
           </td>
-
         </tr>
 @empty
 <tr>
@@ -309,6 +316,24 @@
   // Auto-submit for select filters
   function submitSparesFilters() {
     loadSpares();
+  }
+
+  // Reset filters function
+  function resetSparesFilters() {
+    const form = document.getElementById('sparesFiltersForm');
+    if (!form) return;
+    
+    // Clear all form inputs
+    form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+      if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+    });
+    
+    // Reset URL to base route
+    window.location.href = '{{ route('admin.spares.index') }}';
   }
 
   // Load Spares via AJAX

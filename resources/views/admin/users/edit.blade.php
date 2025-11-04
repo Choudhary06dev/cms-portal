@@ -21,20 +21,6 @@
             @enderror
           </div>
         </div>
-        
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="email" class="form-label text-white">Email</label>
-            <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                   id="email" name="email" value="{{ old('email', $user->email) }}">
-            @error('email')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-      </div>
-      
-      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="phone" class="form-label text-white">Phone</label>
@@ -45,6 +31,9 @@
             @enderror
           </div>
         </div>
+      </div>
+      
+      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="role_id" class="form-label text-white">Role <span class="text-danger">*</span></label>
@@ -62,9 +51,6 @@
             @enderror
           </div>
         </div>
-      </div>
-      
-      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="password" class="form-label text-white">New Password</label>
@@ -76,11 +62,27 @@
             @enderror
           </div>
         </div>
+      </div>
+      
+      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="password_confirmation" class="form-label text-white">Confirm New Password</label>
             <input type="password" class="form-control" 
                    id="password_confirmation" name="password_confirmation">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="status" class="form-label text-white">Status</label>
+            <select class="form-select @error('status') is-invalid @enderror" 
+                    id="status" name="status">
+              <option value="active" {{ old('status', $user->status) == 'active' ? 'selected' : '' }}>Active</option>
+              <option value="inactive" {{ old('status', $user->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+            @error('status')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
           </div>
         </div>
       </div>
@@ -125,22 +127,7 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="status" class="form-label text-white">Status</label>
-            <select class="form-select @error('status') is-invalid @enderror" 
-                    id="status" name="status">
-              <option value="active" {{ old('status', $user->status) == 'active' ? 'selected' : '' }}>Active</option>
-              <option value="inactive" {{ old('status', $user->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-            </select>
-            @error('status')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-        <div class="col-md-6"></div>
-      </div>
+      
       
       <div class="d-flex justify-content-end gap-2 mt-4">
         <a href="{{ route('admin.users.index', $user) }}" class="btn btn-outline-secondary">

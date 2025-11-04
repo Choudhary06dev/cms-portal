@@ -61,54 +61,78 @@
               <div class="col-12">
                 <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label for="client_id" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
-                  <select class="form-select @error('client_id') is-invalid @enderror" 
-                          id="client_id" name="client_id" required>
-                    <option value="">Select Complainant</option>
-                    @if(isset($clients) && $clients->count() > 0)
-                      @foreach($clients as $client)
-                        <option value="{{ $client->id }}" 
-                                data-address="{{ $client->address ?? '' }}" 
-                                data-phone="{{ $client->phone ?? '' }}"
-                                data-city="{{ $client->city ?? '' }}"
-                                data-sector="{{ $client->sector ?? '' }}"
-                                {{ (string)old('client_id') === (string)$client->id ? 'selected' : '' }}>
-                          {{ $client->client_name }}
-                        </option>
-                      @endforeach
-                    @else
-                      <option value="" disabled>No clients available</option>
-                    @endif
-                  </select>
-                  @error('client_id')
+                  <label for="client_name" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
+                  <input type="text" 
+                         class="form-control @error('client_name') is-invalid @enderror" 
+                         id="client_name" 
+                         name="client_name" 
+                         value="{{ old('client_name') }}"
+                         placeholder="Enter complainant name"
+                         required>
+                  @error('client_name')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">Address</label>
-                  <input type="text" class="form-control" id="client_address" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <label for="city_id" class="form-label text-white">City</label>
+                  <select class="form-select @error('city_id') is-invalid @enderror" 
+                          id="city_id" name="city_id">
+                    <option value="">Select City</option>
+                    @if(isset($cities) && $cities->count() > 0)
+                      @foreach($cities as $city)
+                        <option value="{{ $city->id }}" {{ old('city_id', $defaultCityId ?? null) == $city->id ? 'selected' : '' }}>
+                          {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
+                        </option>
+                      @endforeach
+                    @endif
+                  </select>
+                  @error('city_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">Mobile No.</label>
-                  <input type="text" class="form-control" id="client_phone" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <label for="sector_id" class="form-label text-white">Sector</label>
+                  <select class="form-select @error('sector_id') is-invalid @enderror" 
+                          id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
+                    <option value="">{{ (old('city_id', $defaultCityId ?? null)) ? 'Loading sectors...' : 'Select City First' }}</option>
+                  </select>
+                  @error('sector_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">City</label>
-                  <input type="text" class="form-control" id="client_city" name="city" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <label for="address" class="form-label text-white">Address</label>
+                  <input type="text"
+                         class="form-control @error('address') is-invalid @enderror"
+                         id="address"
+                         name="address"
+                         value="{{ old('address') }}"
+                         placeholder="e.g., 00/0-ST-0-B-0">
+                  @error('address')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">Sector</label>
-                  <input type="text" class="form-control" id="client_sector" name="sector" readonly style="background-color: rgba(255, 255, 255, 0.05);">
+                  <label for="phone" class="form-label text-white">Phone No.</label>
+                  <input type="text"
+                         class="form-control @error('phone') is-invalid @enderror"
+                         id="phone"
+                         name="phone"
+                         value="{{ old('phone') }}"
+                         placeholder="Enter phone number">
+                  @error('phone')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
             </div>
@@ -141,6 +165,13 @@
                   <select class="form-select @error('title') is-invalid @enderror" 
                           id="title" name="title" autocomplete="off" required>
                   </select>
+                  <input type="text" 
+                         class="form-select @error('title') is-invalid @enderror" 
+                         id="title_other" 
+                         name="title_other" 
+                         placeholder="Enter custom title..."
+                         style="display: none;"
+                         value="{{ old('title_other') }}">
                   {{-- <small class="text-muted">Select category above to see complaint titles</small> --}}
                   @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -148,55 +179,10 @@
                 </div>
               </div>
               
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
-                  <select id="department" name="department" class="form-select @error('department') is-invalid @enderror" required>
-                    <option value="">Select Department</option>
-                    @if(isset($departments) && $departments->count() > 0)
-                      @foreach($departments as $dep)
-                        <option value="{{ $dep }}" {{ old('department') == $dep ? 'selected' : '' }}>{{ $dep }}</option>
-                      @endforeach
-                    @endif
-                  </select>
-                  @error('department')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
 
-              <!-- Product selection for Complaint Nature & Type -->
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label text-white">Product (for Complaint Nature & Type)</label>
-                  <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
-                          name="spare_parts[0][spare_id]" id="spare_select">
-                    <option value="">Select Product (Optional)</option>
-                    @foreach(\App\Models\Spare::orderBy('item_name')->get() as $spare)
-                      <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}" {{ (string)old('spare_parts.0.spare_id') === (string)$spare->id ? 'selected' : '' }}>
-                        {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
-                      </option>
-                    @endforeach
-                  </select>
-                  @error('spare_parts.0.spare_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
               
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label text-white">Quantity</label>
-                  <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                         name="spare_parts[0][quantity]" id="quantity_input" min="1" value="{{ old('spare_parts.0.quantity') }}">
-                  <div id="stock_warning" class="text-warning mt-1" style="display: none; font-size: 0.875rem;"></div>
-                  @error('spare_parts.0.quantity')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="priority" class="form-label text-white">Priority <span class="text-danger">*</span></label>
                   <select class="form-select @error('priority') is-invalid @enderror" 
@@ -214,7 +200,7 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="assigned_employee_id" class="form-label text-white">Assign Employee</label>
                   <select class="form-select @error('assigned_employee_id') is-invalid @enderror" 
@@ -222,7 +208,7 @@
                     <option value="">Select Employee (Optional)</option>
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}" data-department="{{ $employee->department }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
+                        <option value="{{ $employee->id }}" data-category="{{ $employee->department }}" data-city="{{ $employee->city_id }}" data-sector="{{ $employee->sector_id }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
                       @endforeach
                     @else
                       <option value="" disabled>No employees available</option>
@@ -340,114 +326,80 @@ document.addEventListener('DOMContentLoaded', function() {
   const spareSelect = document.getElementById('spare_select');
   const quantityInput = document.getElementById('quantity_input');
   const stockWarning = document.getElementById('stock_warning');
-  const departmentSelect = document.getElementById('department');
+  const categorySelect = document.getElementById('category');
+
+  // Stock validation and auto-adjustment (only if spare/quantity inputs exist)
+  if (spareSelect && quantityInput) {
+    function updateStockWarning() {
+      if (!spareSelect.value) {
+        stockWarning && (stockWarning.style.display = 'none');
+        return;
+      }
+
+      const selectedOption = spareSelect.options[spareSelect.selectedIndex];
+      const stock = selectedOption ? parseInt(selectedOption.getAttribute('data-stock') || 0) : 0;
+      const requestedQty = parseInt(quantityInput.value) || 0;
+
+      if (stockWarning) {
+        if (requestedQty > stock && stock > 0) {
+          // Auto-adjust quantity to available stock
+          quantityInput.value = stock;
+          stockWarning.textContent = `Insufficient stock! Quantity adjusted to available stock: ${stock}`;
+          stockWarning.style.display = 'block';
+          stockWarning.className = 'text-warning mt-1';
+        } else if (stock === 0) {
+          stockWarning.textContent = 'Warning: This product has zero stock available.';
+          stockWarning.style.display = 'block';
+          stockWarning.className = 'text-danger mt-1';
+        } else {
+          stockWarning.style.display = 'none';
+        }
+      }
+    }
+
+    // Update warning when product or quantity changes
+    spareSelect.addEventListener('change', updateStockWarning);
+    quantityInput.addEventListener('input', updateStockWarning);
+    quantityInput.addEventListener('change', updateStockWarning);
+
+    // Form submission validation
+    const form = document.querySelector('form[action*="complaints.store"]');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        // Validate quantity only if product is selected
+        if (spareSelect.value && (!quantityInput.value || parseInt(quantityInput.value) <= 0)) {
+          e.preventDefault();
+          alert('Please enter quantity for selected product.');
+          return false;
+        }
+        // If quantity is entered but no product selected
+        if (quantityInput.value && parseInt(quantityInput.value) > 0 && !spareSelect.value) {
+          e.preventDefault();
+          alert('Please select a product for the quantity.');
+          return false;
+        }
+      });
+    }
+  }
+
   const employeeSelect = document.getElementById('assigned_employee_id');
-  const clientSelect = document.getElementById('client_id');
-  const clientAddress = document.getElementById('client_address');
-  const clientPhone = document.getElementById('client_phone');
-  const clientCity = document.getElementById('client_city');
-  const clientSector = document.getElementById('client_sector');
 
-  // Auto-fill address, phone, city and sector when client is selected
-  if (clientSelect && clientAddress && clientPhone && clientCity && clientSector) {
-    clientSelect.addEventListener('change', function() {
-      const selectedOption = this.options[this.selectedIndex];
-      if (selectedOption && selectedOption.value) {
-        clientAddress.value = selectedOption.getAttribute('data-address') || '';
-        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
-        clientCity.value = selectedOption.getAttribute('data-city') || '';
-        clientSector.value = selectedOption.getAttribute('data-sector') || '';
-      } else {
-        clientAddress.value = '';
-        clientPhone.value = '';
-        clientCity.value = '';
-        clientSector.value = '';
-      }
-    });
-    
-    // Set initial values if client is pre-selected
-    if (clientSelect.value) {
-      const selectedOption = clientSelect.options[clientSelect.selectedIndex];
-      if (selectedOption) {
-        clientAddress.value = selectedOption.getAttribute('data-address') || '';
-        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
-        clientCity.value = selectedOption.getAttribute('data-city') || '';
-        clientSector.value = selectedOption.getAttribute('data-sector') || '';
-      }
-    }
-  }
-  
-  if (!spareSelect || !quantityInput) return;
-
-  function updateStockWarning() {
-    if (!spareSelect.value) {
-      stockWarning.style.display = 'none';
-      return;
-    }
-
-    const selectedOption = spareSelect.options[spareSelect.selectedIndex];
-    const stock = selectedOption ? parseInt(selectedOption.getAttribute('data-stock') || 0) : 0;
-    const requestedQty = parseInt(quantityInput.value) || 0;
-
-    if (requestedQty > stock && stock > 0) {
-      // Auto-adjust quantity to available stock
-      quantityInput.value = stock;
-      stockWarning.textContent = `Insufficient stock! Quantity adjusted to available stock: ${stock}`;
-      stockWarning.style.display = 'block';
-      stockWarning.className = 'text-warning mt-1';
-    } else if (stock === 0) {
-      stockWarning.textContent = 'Warning: This product has zero stock available.';
-      stockWarning.style.display = 'block';
-      stockWarning.className = 'text-danger mt-1';
-    } else {
-      stockWarning.style.display = 'none';
-    }
-  }
-
-  // Update warning when product or quantity changes
-  spareSelect.addEventListener('change', updateStockWarning);
-  quantityInput.addEventListener('input', updateStockWarning);
-  quantityInput.addEventListener('change', updateStockWarning);
-
-  // Form submission validation
-  const form = document.querySelector('form[action*="complaints.store"]');
-  if (form) {
-    console.log('Form found, attaching submit listener');
-    form.addEventListener('submit', function(e) {
-      console.log('Form submit event triggered');
-      console.log('Spare ID:', spareSelect.value);
-      console.log('Quantity:', quantityInput.value);
-      
-      // Validate quantity only if product is selected
-      if (spareSelect.value && (!quantityInput.value || parseInt(quantityInput.value) <= 0)) {
-        e.preventDefault();
-        alert('Please enter quantity for selected product.');
-        return false;
-      }
-      
-      // If quantity is entered but no product selected
-      if (quantityInput.value && parseInt(quantityInput.value) > 0 && !spareSelect.value) {
-        e.preventDefault();
-        alert('Please select a product for the quantity.');
-        return false;
-      }
-      
-      console.log('Form validation passed, submitting...');
-      // Let form submit naturally
-    });
-  } else {
-    console.error('Form not found!');
-  }
-
-  // Department -> Employee filter
+  // Employee filter: by Category, City, Sector
   function filterEmployees() {
-    if (!departmentSelect || !employeeSelect) return;
-    const dep = departmentSelect.value;
+    if (!employeeSelect) return;
+    const category = categorySelect ? categorySelect.value : '';
+    const cityId = document.getElementById('city_id') ? document.getElementById('city_id').value : '';
+    const sectorId = document.getElementById('sector_id') ? document.getElementById('sector_id').value : '';
     let firstVisible = null;
     Array.from(employeeSelect.options).forEach(opt => {
       if (!opt.value) return; // placeholder
-      const od = opt.getAttribute('data-department') || '';
-      const show = !dep || od === dep;
+      const optCategory = opt.getAttribute('data-category') || '';
+      const optCity = opt.getAttribute('data-city') || '';
+      const optSector = opt.getAttribute('data-sector') || '';
+      const matchCategory = !category || optCategory === category;
+      const matchCity = !cityId || String(optCity) === String(cityId);
+      const matchSector = !sectorId || String(optSector) === String(sectorId);
+      const show = matchCategory && matchCity && matchSector;
       opt.hidden = !show;
       if (show && !firstVisible) firstVisible = opt;
     });
@@ -457,14 +409,55 @@ document.addEventListener('DOMContentLoaded', function() {
       if (sel && sel.hidden) employeeSelect.value = '';
     }
   }
-  if (departmentSelect && employeeSelect) {
-    departmentSelect.addEventListener('change', filterEmployees);
+  if (employeeSelect) {
+    categorySelect && categorySelect.addEventListener('change', filterEmployees);
+    const citySelectEl = document.getElementById('city_id');
+    const sectorSelectEl = document.getElementById('sector_id');
+    citySelectEl && citySelectEl.addEventListener('change', filterEmployees);
+    sectorSelectEl && sectorSelectEl.addEventListener('change', filterEmployees);
     filterEmployees();
   }
 
   // Category -> Complaint Titles dynamic loading
-  const categorySelect = document.getElementById('category');
   const titleSelect = document.getElementById('title');
+  const titleOtherInput = document.getElementById('title_other');
+  
+  // Handle "Other" option selection
+  function handleTitleChange() {
+    if (!titleSelect || !titleOtherInput) return;
+    
+    const selectedValue = titleSelect.value;
+    
+    if (selectedValue === 'other') {
+      // Hide dropdown and show input field in same position
+      titleSelect.style.display = 'none';
+      titleOtherInput.style.display = 'block';
+      titleOtherInput.required = true;
+      titleSelect.removeAttribute('required');
+      // Focus on input field
+      setTimeout(() => titleOtherInput.focus(), 100);
+    } else {
+      // Show dropdown and hide input field
+      titleSelect.style.display = 'block';
+      titleOtherInput.style.display = 'none';
+      titleOtherInput.required = false;
+      titleSelect.required = true;
+    }
+  }
+  
+  if (titleSelect) {
+    titleSelect.addEventListener('change', handleTitleChange);
+  }
+  
+  // Sync title_other input to title field when typing
+  if (titleOtherInput) {
+    titleOtherInput.addEventListener('input', function() {
+      if (titleSelect.value === 'other') {
+        // Update title select value to "other" (it's already selected)
+        // The actual title value will be taken from title_other on submit
+      }
+    });
+  }
   
   if (categorySelect && titleSelect) {
     categorySelect.addEventListener('change', function() {
@@ -473,6 +466,14 @@ document.addEventListener('DOMContentLoaded', function() {
       // Clear existing options
       titleSelect.innerHTML = '<option value="">Loading titles...</option>';
       titleSelect.disabled = true;
+      if (titleOtherInput) {
+        titleOtherInput.style.display = 'none';
+        titleOtherInput.value = '';
+      }
+      // Ensure dropdown is visible when loading
+      if (titleSelect) {
+        titleSelect.style.display = 'block';
+      }
       
       if (!category) {
         titleSelect.innerHTML = '<option value="">Select Category first, then choose title</option>';
@@ -511,28 +512,193 @@ document.addEventListener('DOMContentLoaded', function() {
           titleSelect.appendChild(option);
         }
         
+        // Add "Other" option
+        const otherOption = document.createElement('option');
+        otherOption.value = 'other';
+        otherOption.textContent = 'Other';
+        titleSelect.appendChild(otherOption);
+        
         titleSelect.disabled = false;
+        // Restore previously selected title if any
+        const previous = titleSelect.getAttribute('data-prev');
+        if (previous) {
+          const opt = Array.from(titleSelect.options).find(o => o.value === previous);
+          if (opt) {
+            titleSelect.value = previous;
+          } else if (previous === 'other') {
+            // If previous was "other", restore it
+            titleSelect.value = 'other';
+            if (titleOtherInput) {
+              const oldOther = '{{ old('title_other') }}';
+              if (oldOther) {
+                titleOtherInput.value = oldOther;
+              }
+              // Hide dropdown and show input field
+              titleSelect.style.display = 'none';
+              titleOtherInput.style.display = 'block';
+              titleOtherInput.required = true;
+              titleSelect.removeAttribute('required');
+            }
+          }
+        }
+        handleTitleChange();
       })
       .catch(error => {
         console.error('Error loading complaint titles:', error);
-        titleSelect.innerHTML = '<option value="">Error loading titles. You can type manually.</option>';
-        // Allow manual input by converting to text input
-        const titleInput = document.createElement('input');
-        titleInput.type = 'text';
-        titleInput.className = titleSelect.className;
-        titleInput.id = titleSelect.id;
-        titleInput.name = titleSelect.name;
-        titleInput.required = titleSelect.required;
-        titleInput.value = '';
-        titleSelect.parentNode.replaceChild(titleInput, titleSelect);
+        titleSelect.innerHTML = '<option value="">Failed to load titles. Please try again.</option>';
+        titleSelect.disabled = false;
       });
     });
     
     // Trigger on page load if category is pre-selected
     if (categorySelect.value) {
+      // Preserve old title if present
+      if (titleSelect && titleSelect.value) {
+        titleSelect.setAttribute('data-prev', titleSelect.value);
+      } else if ('{{ old('title') }}') {
+        const oldTitle = @json(old('title'));
+        titleSelect.setAttribute('data-prev', oldTitle);
+        // If old title was "other", check for title_other
+        if (oldTitle === 'other' && titleOtherInput) {
+          const oldOther = '{{ old('title_other') }}';
+          if (oldOther) {
+            titleOtherInput.value = oldOther;
+          }
+          // Hide dropdown and show input field
+          titleSelect.style.display = 'none';
+          titleOtherInput.style.display = 'block';
+          titleOtherInput.required = true;
+          titleSelect.removeAttribute('required');
+        }
+      }
       categorySelect.dispatchEvent(new Event('change'));
     }
   }
+
+  // City -> Sector dynamic loading
+  const citySelect = document.getElementById('city_id');
+  const sectorSelect = document.getElementById('sector_id');
+  const addressInput = document.getElementById('address');
+  
+  if (citySelect && sectorSelect) {
+    citySelect.addEventListener('change', function() {
+      const cityId = this.value;
+      
+      if (!cityId) {
+        sectorSelect.innerHTML = '<option value="">Select City First</option>';
+        sectorSelect.disabled = true;
+        return;
+      }
+
+      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+      sectorSelect.disabled = true;
+
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            sectorSelect.appendChild(option);
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
+    });
+    
+    // If city is pre-selected (e.g., for Department Staff), load sectors and select default
+    const defaultCityId = '{{ old('city_id', $defaultCityId ?? '') }}';
+    const defaultSectorId = '{{ old('sector_id', $defaultSectorId ?? '') }}';
+    if (defaultCityId) {
+      citySelect.value = defaultCityId;
+      // Trigger fetch to load sectors, then select default
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${defaultCityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            if (defaultSectorId && String(sector.id) === String(defaultSectorId)) {
+              option.selected = true;
+            }
+            sectorSelect.appendChild(option);
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
+    }
+  }
+
+  // Form submit handler: sync title_other to title when "Other" is selected
+  const complaintForm = document.querySelector('form[action*="complaints.store"]');
+  if (complaintForm && titleSelect && titleOtherInput) {
+    complaintForm.addEventListener('submit', function(e) {
+      if (titleSelect.value === 'other') {
+        // Copy title_other value to title field before submit
+        if (!titleOtherInput.value || titleOtherInput.value.trim() === '') {
+          e.preventDefault();
+          alert('Please enter a custom complaint title.');
+          titleOtherInput.focus();
+          return false;
+        }
+        // Create a hidden input to send the actual title value
+        let hiddenTitle = document.getElementById('title_hidden');
+        if (!hiddenTitle) {
+          hiddenTitle = document.createElement('input');
+          hiddenTitle.type = 'hidden';
+          hiddenTitle.id = 'title_hidden';
+          hiddenTitle.name = 'title';
+          complaintForm.appendChild(hiddenTitle);
+        }
+        hiddenTitle.value = titleOtherInput.value.trim();
+        // Remove name from select so it doesn't send "other" as value
+        titleSelect.removeAttribute('name');
+        titleSelect.removeAttribute('required');
+      } else {
+        // Ensure title select has name and is required for non-other options
+        titleSelect.setAttribute('name', 'title');
+        titleSelect.required = true;
+        // Remove hidden input if it exists
+        const hiddenTitle = document.getElementById('title_hidden');
+        if (hiddenTitle) {
+          hiddenTitle.remove();
+        }
+      }
+    });
+  }
+
 });
 </script>
 @endpush

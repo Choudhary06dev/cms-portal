@@ -20,24 +20,33 @@
 <div class="card-glass mb-4">
   <form id="usersFiltersForm" method="GET" action="{{ route('admin.users.index') }}">
   <div class="row g-2 align-items-end">
-    <div class="col-12 col-md-4">
-      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search users..." 
-             value="{{ request('search') }}" oninput="handleUsersSearchInput()">
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
+             value="{{ request('search') }}" oninput="handleUsersSearchInput()" style="font-size: 0.9rem; width: 180px;">
     </div>
-    <div class="col-6 col-md-3">
-      <select class="form-select" name="role_id" onchange="submitUsersFilters()">
-        <option value="" {{ request('role_id') ? '' : 'selected' }}>All Roles</option>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Role</label>
+      <select class="form-select" name="role_id" onchange="submitUsersFilters()" style="font-size: 0.9rem; width: 140px;">
+        <option value="" {{ request('role_id') ? '' : 'selected' }}>All</option>
         @foreach($roles as $role)
         <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>{{ $role->role_name }}</option>
         @endforeach
       </select>
     </div>
-    <div class="col-6 col-md-3">
-      <select class="form-select" name="status" onchange="submitUsersFilters()">
-        <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Status</label>
+      <select class="form-select" name="status" onchange="submitUsersFilters()" style="font-size: 0.9rem; width: 120px;">
+        <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
         <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
       </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetUsersFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+        <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+      </button>
     </div>
   </div>
   </form>
@@ -46,12 +55,11 @@
 <!-- USERS TABLE -->
 <div class="card-glass">
   <div class="table-responsive">
-    <table class="table table-dark">
+    <table class="table table-dark table-sm">
       <thead>
         <tr>
           <th>ID</th>
           <th>Username</th>
-          <th>Email</th>
           <th>Role</th>
           <th>City</th>
           <th>Sector</th>
@@ -74,9 +82,12 @@
               </div>
             </div>
           </td>
-          <td>{{ $user->email ?? 'N/A' }}</td>
           <td>
-            <span class="badge bg-primary">{{ $user->role->role_name ?? 'No Role' }}</span>
+            @php
+              $rawRole = $user->role->role_name ?? 'No Role';
+              $prettyRole = $rawRole === 'No Role' ? $rawRole : ucwords(str_replace('_', ' ', strtolower($rawRole)));
+            @endphp
+            <span class="badge bg-primary" style="font-size: 0.85rem; padding: 6px 10px;">{{ $prettyRole }}</span>
           </td>
           <td>
             @php
@@ -107,14 +118,14 @@
           </td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-info btn-sm" title="View Details">
-                <i data-feather="eye"></i>
+              <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
-              <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline-warning btn-sm" title="Edit">
-                <i data-feather="edit"></i>
+              <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
+                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteUser({{ $user->id }})" title="Delete">
-                <i data-feather="trash-2"></i>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteUser({{ $user->id }})" title="Delete" style="padding: 3px 8px;">
+                <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
           </td>
@@ -156,6 +167,24 @@
   // Auto-submit for select filters
   function submitUsersFilters() {
     loadUsers();
+  }
+
+  // Reset filters function
+  function resetUsersFilters() {
+    const form = document.getElementById('usersFiltersForm');
+    if (!form) return;
+    
+    // Clear all form inputs
+    form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+      if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+    });
+    
+    // Reset URL to base route
+    window.location.href = '{{ route('admin.users.index') }}';
   }
 
   // Load Users via AJAX

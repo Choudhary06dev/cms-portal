@@ -84,25 +84,50 @@
     body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); color:#f1f5f9; min-height:100vh; }
     .sidebar {
       min-height:100vh;
-      width: 260px;
+      width: 220px;
       background: var(--sidebar-bg);
       border-right: 1px solid rgba(59, 130, 246, 0.2);
-      padding: 22px;
+      padding: 16px;
       position: fixed;
       left:0; top:50px; bottom:0;
       box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
       z-index: 999;
     }
     .brand { color: var(--accent); font-weight:700; font-size:18px; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-    .nav-link { color: #cbd5e1; border-radius:8px; transition: none !important; }
-    .nav-link:hover, .nav-link.active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); color: #fff; transform: none !important; }
-    .content { margin-left: 280px; padding: 28px; margin-top: 50px; }
+    .nav-link { 
+      color: #cbd5e1; 
+      border-radius:8px; 
+      transition: none !important; 
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.9rem;
+      display: flex !important;
+      align-items: center;
+    }
+    .nav-link:hover, .nav-link.active { 
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); 
+      color: #fff; 
+      transform: none !important; 
+    }
+    .nav-link i {
+      flex-shrink: 0 !important;
+      width: 18px !important;
+      height: 18px !important;
+      min-width: 18px !important;
+    }
+    .nav-link span, .nav-link .text-decoration-none {
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .content { margin-left: 230px; padding: 20px; margin-top: 50px; }
     /* Topbar styles are now in the navigation component */
     .card-glass { 
       background: var(--glass-bg); 
       border:1px solid rgba(59, 130, 246, 0.1); 
       border-radius:14px; 
-      padding:18px; 
+      padding:14px; 
       box-shadow: 0 8px 30px rgba(15, 23, 42, 0.4);
       backdrop-filter: blur(10px);
     }
@@ -110,6 +135,25 @@
       background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); 
       color:#e2e8f0; 
       border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.875rem !important;
+    }
+    .table td { 
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.875rem !important;
+    }
+    .table { 
+      font-size: 0.875rem !important;
+    }
+    .table-sm th,
+    .table-sm td {
+      padding: 0.4rem 0.5rem !important;
+      font-size: 0.8rem !important;
+    }
+    .compact-table th,
+    .compact-table td {
+      padding: 0.4rem 0.5rem !important;
+      font-size: 0.8rem !important;
     }
     .btn-accent { 
       background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
@@ -138,7 +182,7 @@
     .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
     .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
     .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; }
+    .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; white-space: nowrap; }
     .nav-item-parent .nav-link { position: relative; }
     .nav-arrow-btn:hover { opacity: 0.8; }
     .nav-arrow-btn:focus { outline: none; box-shadow: none; }
@@ -210,19 +254,16 @@
     @endif
     @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'department_staff'))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'active' : '' }}">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'active' : '' }}">
         <a href="{{ route('admin.employees.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
           <i data-feather="user-check" class="me-2"></i> Employees
         </a>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
         </button>
       </div>
-      <div class="collapse {{ request()->routeIs('admin.department.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'show' : '' }}" id="employeesSubmenu">
+      <div class="collapse {{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'show' : '' }}" id="employeesSubmenu">
         @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="{{ route('admin.department.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.department.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="briefcase" class="me-2"></i> Departments
-        </a>
         <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="award" class="me-2"></i> Designations
         </a>
@@ -238,11 +279,6 @@
        
       </div>
     </div>
-    @endif
-    @if($user && ($user->hasPermission('clients') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
-    <a href="{{ route('admin.clients.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
-      <i data-feather="briefcase" class="me-2"></i> Complainant
-    </a>
     @endif
     @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
     <div class="nav-item-parent mb-1">

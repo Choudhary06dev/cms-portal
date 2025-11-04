@@ -26,75 +26,85 @@
         <div class="card-body">
             <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
                 <div class="row g-2 align-items-end">
-                <div class="col-12 col-md-2">
-                    <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search complaints..." 
-                           value="{{ request('search') }}" oninput="handleComplaintsSearchInput()">
-                </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="priority" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('priority') ? '' : 'selected' }}>All Priority</option>
-                        <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
-                        <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
-                        <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
-                        <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="category" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('category') ? '' : 'selected' }}>All Categories</option>
-                        @if(isset($categories) && $categories->count() > 0)
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+                        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
+                               value="{{ request('search') }}" oninput="handleComplaintsSearchInput()" style="font-size: 0.9rem; width: 180px;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Priority</label>
+                        <select class="form-select" name="priority" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
+                            <option value="" {{ request('priority') ? '' : 'selected' }}>All</option>
+                            <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
+                            <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
+                            <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
+                            <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+                        <select class="form-select" name="category" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
+                            <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
+                            @if(isset($categories) && $categories->count() > 0)
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Employee</label>
+                        <select class="form-select" name="assigned_employee_id" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 170px;">
+                            <option value="" {{ request('assigned_employee_id') ? '' : 'selected' }}>All</option>
+                            @foreach($employees as $employee)
+                            <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
+                                {{ $employee->name }}
+                            </option>
                             @endforeach
-                        @endif
-                    </select>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From</label>
+                        <input type="date" class="form-control" name="date_from" 
+                               value="{{ request('date_from') }}" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 150px;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To</label>
+                        <input type="date" class="form-control" name="date_to" 
+                               value="{{ request('date_to') }}" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 150px;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Status</label>
+                        <select class="form-select" name="status" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
+                            <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
+                            <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
+                            <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                            <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                            <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                            <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetComplaintsFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+                            <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+                        </button>
+                    </div>
                 </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="client_id" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('client_id') ? '' : 'selected' }}>All Clients</option>
-                        @foreach($clients as $client)
-                        <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                            {{ $client->client_name }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select class="form-select" name="assigned_employee_id" onchange="submitComplaintsFilters()">
-                        <option value="" {{ request('assigned_employee_id') ? '' : 'selected' }}>All Employees</option>
-                        @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
-                            {{ $employee->name }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            
-            <div class="row g-2 align-items-end mt-2">
-                <div class="col-6 col-md-2">
-                    <input type="date" class="form-control" name="date_from" 
-                           value="{{ request('date_from') }}" placeholder="From Date" onchange="submitComplaintsFilters()">
-                </div>
-                <div class="col-6 col-md-2">
-                    <input type="date" class="form-control" name="date_to" 
-                           value="{{ request('date_to') }}" placeholder="To Date" onchange="submitComplaintsFilters()">
-                </div>
-            </div>
             </form>
         </div>
     </div>
 
     <!-- COMPLAINTS TABLE -->
-    <div class="card-glass" style="padding: 0 !important;">
-        <div class="card-header" style="padding: 12px 18px;">
+    <div class="card-glass" style="padding: 0 !important; border-radius: 12px; overflow: hidden;">
+        <div class="card-header" style="padding: 12px 18px; border-radius: 12px 12px 0 0;">
             <h5 class="card-title mb-0 text-white">
                 <i data-feather="list" class="me-2"></i>Complaints List
             </h5>
         </div>
         <div class="card-body" style="padding: 0 !important; margin: 0 !important;">
-            <div class="table-responsive-xl" style="margin: 0 !important; padding: 0 !important;">
-            <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important;">
+            <div class="table-responsive-xl" style="margin: 0 !important; padding: 0 !important; border-radius: 0 0 12px 12px; overflow: hidden;">
+            <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important; border-radius: 0 0 12px 12px;">
                 <thead>
                     <tr>
                         <th style="width: 40px; padding-left: 8px !important;">#</th>
@@ -104,7 +114,7 @@
                         <th style="width: 120px;">Complainant Name</th>
                         <th style="width: 150px;">Address</th>
                         <th style="width: 250px;">Complaint Nature & Type</th>
-                        <th style="width: 100px;">Mobile No.</th>
+                        <th style="width: 100px;">Phone No.</th>
                         <th style="width: 80px;">Actions</th>
                     </tr>
                 </thead>
@@ -112,11 +122,11 @@
                     @forelse($complaints as $complaint)
                         <tr>
                             <td>{{ ($complaints->currentPage() - 1) * $complaints->perPage() + $loop->iteration }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->format('d-m-Y H:i:s') : '' }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '' }}</td>
                             <td style="white-space: nowrap;">
                                 <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-                                    {{ $complaint->complaint_id ?? $complaint->id }}
+                                    {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
                                 </a>
                             </td>
                             <td style="white-space: nowrap;">{{ $complaint->client->client_name ?? 'N/A' }}</td>
@@ -124,74 +134,20 @@
                             <td>
                                 @php
                                     $category = $complaint->category ?? 'N/A';
-                                    $department = $complaint->department ?? '';
-                                    
-                                    // Get product name from spare parts
-                                    $productName = '';
-                                    if ($complaint->spareParts && $complaint->spareParts->count() > 0) {
-                                        $firstSpare = $complaint->spareParts->first();
-                                        if ($firstSpare && $firstSpare->spare) {
-                                            $productName = $firstSpare->spare->item_name ?? '';
-                                            // If multiple products, show count
-                                            if ($complaint->spareParts->count() > 1) {
-                                                $productName .= ' (+' . ($complaint->spareParts->count() - 1) . ')';
-                                            }
-                                        }
-                                    }
-                                    
-                                    // Category to REQ type mapping
-                                    $reqTypeMap = [
-                                        'electric' => 'ELECTRECION REQ',
-                                        'technical' => 'TECHNICAL REQ',
-                                        'service' => 'SERVICE REQ',
-                                        'billing' => 'BILLING REQ',
-                                        'water' => 'PIPE FITTER REQ',
-                                        'sanitary' => 'SANITARY REQ',
-                                        'plumbing' => 'PLUMBING REQ',
-                                        'kitchen' => 'KITCHEN REQ',
-                                        'other' => 'OTHER REQ',
+                                    $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+                                    $categoryDisplay = [
+                                        'electric' => 'Electric',
+                                        'technical' => 'Technical',
+                                        'service' => 'Service',
+                                        'billing' => 'Billing',
+                                        'water' => 'Water Supply',
+                                        'sanitary' => 'Sanitary',
+                                        'plumbing' => 'Plumbing',
+                                        'kitchen' => 'Kitchen',
+                                        'other' => 'Other',
                                     ];
-                                    
-                                    $reqType = $reqTypeMap[strtolower($category)] ?? strtoupper($category) . ' REQ';
-                                    
-                                    // Format display text with category and product name
-                                    if ($department) {
-                                        // If department exists, use format: "B&R - I - Product Name - MASSON REQ"
-                                        // Check for department patterns
-                                        if (strpos(strtoupper($department), 'B&R') !== false) {
-                                            if ($productName) {
-                                                $displayText = $department . ' - ' . $productName . ' - MASSON REQ';
-                                            } else {
-                                                $displayText = $department . ' - MASSON REQ';
-                                            }
-                                        } else {
-                                            if ($productName) {
-                                                $displayText = $department . ' - ' . $productName . ' - ' . $reqType;
-                                            } else {
-                                                $displayText = $department . ' - ' . $reqType;
-                                            }
-                                        }
-                                    } else {
-                                        // Use category-based format: "Electric - Product Name - ELECTRECION REQ"
-                                        $categoryDisplay = [
-                                            'electric' => 'Electric',
-                                            'technical' => 'Technical',
-                                            'service' => 'Service',
-                                            'billing' => 'Billing',
-                                            'water' => 'Water Supply',
-                                            'sanitary' => 'Sanitary',
-                                            'plumbing' => 'Plumbing',
-                                            'kitchen' => 'Kitchen',
-                                            'other' => 'Other',
-                                        ];
-                                        $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-                                        
-                                        if ($productName) {
-                                            $displayText = $catDisplay . ' - ' . $productName . ' - ' . $reqType;
-                                        } else {
-                                            $displayText = $catDisplay . ' - ' . $reqType;
-                                        }
-                                    }
+                                    $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                                    $displayText = $catDisplay . ' - ' . $designation;
                                 @endphp
                                 <div class="text-white">{{ $displayText }}</div>
                             </td>
@@ -236,6 +192,8 @@
             margin: 0 !important;
             border-collapse: collapse;
             width: 100% !important;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
         }
         .table-compact th {
             white-space: nowrap;
@@ -280,6 +238,8 @@
         .card-glass[style*="padding: 0"] {
             padding: 0 !important;
             margin: 0 !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
         }
         .card-glass[style*="padding: 0"] > .card-body {
             padding: 0 !important;
@@ -567,6 +527,24 @@
                 loadComplaints();
             }
         });
+
+        // Reset filters function
+        function resetComplaintsFilters() {
+            const form = document.getElementById('complaintsFiltersForm');
+            if (!form) return;
+            
+            // Clear all form inputs
+            form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+                if (input.type === 'select-one') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // Reset URL to base route
+            window.location.href = '{{ route('admin.complaints.index') }}';
+        }
 
         // Complaint Functions
         function viewComplaint(complaintId) {

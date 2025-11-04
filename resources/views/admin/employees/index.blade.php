@@ -20,20 +20,29 @@
 <div class="card-glass mb-4">
   <form id="employeesFiltersForm" method="GET" action="{{ route('admin.employees.index') }}">
   <div class="row g-2 align-items-end">
-    <div class="col-12 col-md-4">
-      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search employees..." 
-             value="{{ request('search') }}" oninput="handleEmployeesSearchInput()">
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
+             value="{{ request('search') }}" oninput="handleEmployeesSearchInput()" style="font-size: 0.9rem; width: 180px;">
     </div>
-    <div class="col-6 col-md-3">
-      <input type="text" class="form-control" name="department" placeholder="Department" 
-             value="{{ request('department') }}" oninput="handleEmployeesSearchInput()">
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+      <input type="text" class="form-control" name="category" placeholder="Category" 
+             value="{{ request('category') }}" oninput="handleEmployeesSearchInput()" style="font-size: 0.9rem; width: 140px;">
     </div>
-    <div class="col-6 col-md-3">
-      <select class="form-select" name="status" onchange="submitEmployeesFilters()">
-        <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Status</label>
+      <select class="form-select" name="status" onchange="submitEmployeesFilters()" style="font-size: 0.9rem; width: 120px;">
+        <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
         <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
       </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetEmployeesFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+        <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+      </button>
     </div>
   </div>
   </form>
@@ -42,12 +51,12 @@
 <!-- EMPLOYEES TABLE -->
 <div class="card-glass">
   <div class="table-responsive">
-    <table class="table table-dark" id="employeesTable">
+    <table class="table table-dark table-sm" id="employeesTable">
       <thead>
         <tr>
           <th>ID</th>
           <th>Employee</th>
-          <th>Department</th>
+          <th>Category</th>
           <th>Position</th>
           <th>City</th>
           <th>Sector</th>
@@ -72,7 +81,7 @@
               </div>
             </div>
           </td>
-          <td>{{ $employee->department ?? 'N/A' }}</td>
+          <td>{{ ucfirst($employee->department ?? 'N/A') }}</td>
           <td>{{ $employee->designation ?? 'N/A' }}</td>
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>
@@ -85,14 +94,14 @@
           <td>{{ $employee->date_of_hire ? $employee->date_of_hire->format('M d, Y') : 'N/A' }}</td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-outline-info btn-sm" title="View Details">
-                <i data-feather="eye"></i>
+              <a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
-              <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-outline-warning btn-sm" title="Edit">
-                <i data-feather="edit"></i>
+              <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
+                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteEmployee({{ $employee->id }})" title="Delete" data-employee-id="{{ $employee->id }}">
-                <i data-feather="trash-2"></i>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteEmployee({{ $employee->id }})" title="Delete" data-employee-id="{{ $employee->id }}" style="padding: 3px 8px;">
+                <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
               </button>
             </div>
           </td>
@@ -181,6 +190,24 @@
   // Auto-submit for select filters
   function submitEmployeesFilters() {
     loadEmployees();
+  }
+
+  // Reset filters function
+  function resetEmployeesFilters() {
+    const form = document.getElementById('employeesFiltersForm');
+    if (!form) return;
+    
+    // Clear all form inputs
+    form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+      if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+    });
+    
+    // Reset URL to base route
+    window.location.href = '{{ route('admin.employees.index') }}';
   }
 
   // Load Employees via AJAX

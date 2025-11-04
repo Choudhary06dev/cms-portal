@@ -31,50 +31,43 @@
               <div class="col-12">
                 <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="client_id" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
-                  <select class="form-select @error('client_id') is-invalid @enderror" 
-                          id="client_id" name="client_id" required>
-                    <option value="">Select Complainant</option>
-                    @foreach($clients as $client)
-                    <option value="{{ $client->id }}" 
-                            data-address="{{ $client->address ?? '' }}" 
-                            data-phone="{{ $client->phone ?? '' }}"
-                            data-city="{{ $client->city ?? '' }}"
-                            data-sector="{{ $client->sector ?? '' }}"
-                            {{ old('client_id', $complaint->client_id) == $client->id ? 'selected' : '' }}>
-                      {{ $client->client_name }}
-                    </option>
-                    @endforeach
-                  </select>
-                  @error('client_id')
+                  <label for="client_name" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
+                  <input type="text" 
+                         class="form-control @error('client_name') is-invalid @enderror" 
+                         id="client_name" 
+                         name="client_name" 
+                         value="{{ old('client_name', $complaint->client->client_name ?? '') }}"
+                         placeholder="Enter complainant name"
+                         required>
+                  @error('client_name')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label text-white">Address</label>
-                  <input type="text" class="form-control" id="client_address" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ $complaint->client->address ?? '' }}">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label text-white">Mobile No.</label>
-                  <input type="text" class="form-control" id="client_phone" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ $complaint->client->phone ?? '' }}">
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
                   <label class="form-label text-white">City</label>
-                  <input type="text" class="form-control" id="client_city" name="city" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ old('city', $complaint->city ?? $complaint->client->city ?? '') }}">
+                  <input type="text" class="form-control" id="client_city" name="city" value="{{ old('city', $complaint->city ?? $complaint->client->city ?? '') }}" placeholder="Enter city">
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label text-white">Sector</label>
-                  <input type="text" class="form-control" id="client_sector" name="sector" readonly style="background-color: rgba(255, 255, 255, 0.05);" value="{{ old('sector', $complaint->sector ?? $complaint->client->sector ?? '') }}">
+                  <input type="text" class="form-control" id="client_sector" name="sector" value="{{ old('sector', $complaint->sector ?? $complaint->client->sector ?? '') }}" placeholder="Enter sector">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label text-white">Address</label>
+                  <input type="text" class="form-control" id="client_address" name="address" value="{{ old('address', $complaint->client->address ?? '') }}" placeholder="e.g., 00/0-ST-0-B-0">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label class="form-label text-white">Phone No.</label>
+                  <input type="text" class="form-control" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number">
                 </div>
               </div>
             </div>
@@ -114,54 +107,8 @@
                 </div>
               </div>
               
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="department" class="form-label text-white">Department <span class="text-danger">*</span></label>
-                  <select id="department" name="department" class="form-select @error('department') is-invalid @enderror" required>
-                    <option value="">Select Department</option>
-                    @if(isset($departments) && $departments->count() > 0)
-                      @foreach($departments as $dep)
-                        <option value="{{ $dep }}" {{ old('department', $complaint->department) == $dep ? 'selected' : '' }}>{{ $dep }}</option>
-                      @endforeach
-                    @endif
-                  </select>
-                  @error('department')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
 
-              <!-- Product selection for Complaint Nature & Type -->
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label text-white">Product (for Complaint Nature & Type) <span class="text-danger">*</span></label>
-                  <select class="form-select @error('spare_parts.0.spare_id') is-invalid @enderror" 
-                          name="spare_parts[0][spare_id]" id="spare_select" required>
-                    <option value="">Select Product</option>
-                    @foreach(\App\Models\Spare::where('stock_quantity', '>', 0)->get() as $spare)
-                      <option value="{{ $spare->id }}" data-stock="{{ $spare->stock_quantity }}"
-                              {{ old('spare_parts.0.spare_id', $complaint->spareParts->first()?->spare_id) == $spare->id ? 'selected' : '' }}>
-                        {{ $spare->item_name }} (Stock: {{ $spare->stock_quantity }})
-                      </option>
-                    @endforeach
-                  </select>
-                  @error('spare_parts.0.spare_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
               
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label text-white">Quantity <span class="text-danger">*</span></label>
-                  <input type="number" class="form-control @error('spare_parts.0.quantity') is-invalid @enderror" 
-                         name="spare_parts[0][quantity]" id="quantity_input" min="1" 
-                         value="{{ old('spare_parts.0.quantity', $complaint->spareParts->first()?->quantity) }}" required>
-                  @error('spare_parts.0.quantity')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
 
               <div class="col-md-6">
                 <div class="mb-3">
@@ -187,7 +134,7 @@
                           id="assigned_employee_id" name="assigned_employee_id">
                     <option value="">Select Employee</option>
                     @foreach($employees as $emp)
-                    <option value="{{ $emp->id }}" data-department="{{ $emp->department }}"
+                    <option value="{{ $emp->id }}" data-category="{{ $emp->department }}"
                             {{ old('assigned_employee_id', $complaint->assigned_employee_id) == $emp->id ? 'selected' : '' }}>
                       {{ $emp->name ?? 'Employee #' . $emp->id }}
                     </option>
@@ -206,7 +153,7 @@
                 <div class="mb-3">
                   <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
                   <textarea class="form-control @error('description') is-invalid @enderror" 
-                            id="description" name="description" rows="4" required>{{ old('description', $complaint->description) }}</textarea>
+                            id="description" name="description" rows="4" >{{ old('description', $complaint->description) }}</textarea>
                   @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -298,61 +245,27 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const departmentSelect = document.getElementById('department');
+  const categorySelect = document.getElementById('category');
   const employeeSelect = document.getElementById('assigned_employee_id');
-  const clientSelect = document.getElementById('client_id');
-  const clientAddress = document.getElementById('client_address');
-  const clientPhone = document.getElementById('client_phone');
-  const clientCity = document.getElementById('client_city');
-  const clientSector = document.getElementById('client_sector');
-
-  // Auto-fill address, phone, city and sector when client is selected
-  if (clientSelect && clientAddress && clientPhone && clientCity && clientSector) {
-    clientSelect.addEventListener('change', function() {
-      const selectedOption = this.options[this.selectedIndex];
-      if (selectedOption && selectedOption.value) {
-        clientAddress.value = selectedOption.getAttribute('data-address') || '';
-        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
-        clientCity.value = selectedOption.getAttribute('data-city') || '';
-        clientSector.value = selectedOption.getAttribute('data-sector') || '';
-      } else {
-        clientAddress.value = '';
-        clientPhone.value = '';
-        clientCity.value = '';
-        clientSector.value = '';
-      }
-    });
-    
-    // Set initial values if client is pre-selected
-    if (clientSelect.value) {
-      const selectedOption = clientSelect.options[clientSelect.selectedIndex];
-      if (selectedOption) {
-        clientAddress.value = selectedOption.getAttribute('data-address') || '';
-        clientPhone.value = selectedOption.getAttribute('data-phone') || '';
-        clientCity.value = selectedOption.getAttribute('data-city') || '';
-        clientSector.value = selectedOption.getAttribute('data-sector') || '';
-      }
-    }
-  }
+  const addressInput = document.getElementById('client_address');
 
   function filterEmployees() {
-    if (!departmentSelect || !employeeSelect) return;
-    const dep = departmentSelect.value;
+    if (!categorySelect || !employeeSelect) return;
+    const category = categorySelect.value;
     Array.from(employeeSelect.options).forEach(opt => {
       if (!opt.value) return;
-      const od = opt.getAttribute('data-department') || '';
-      opt.hidden = dep && od !== dep;
+      const optCategory = opt.getAttribute('data-category') || '';
+      opt.hidden = category && optCategory !== category;
     });
     const sel = employeeSelect.selectedOptions[0];
     if (sel && sel.hidden) employeeSelect.value = '';
   }
-  if (departmentSelect && employeeSelect) {
-    departmentSelect.addEventListener('change', filterEmployees);
+  if (categorySelect && employeeSelect) {
+    categorySelect.addEventListener('change', filterEmployees);
     filterEmployees();
   }
 
   // Category -> Complaint Titles dynamic loading
-  const categorySelect = document.getElementById('category');
   const titleSelect = document.getElementById('title');
   const currentTitle = '{{ old('title', $complaint->title) }}';
   

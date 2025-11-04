@@ -8,9 +8,11 @@ use App\Models\SpareApprovalItem;
 use App\Models\Complaint;
 use App\Models\Employee;
 use App\Models\Spare;
+use App\Models\ComplaintCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ApprovalController extends Controller
 {
@@ -25,6 +27,37 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         try {
+            // Automatically create missing approval performas for complaints that don't have them
+            // This ensures all complaints appear in the approval modal
+            $complaintsWithoutApprovals = Complaint::whereDoesntHave('spareApprovals')->get();
+            if ($complaintsWithoutApprovals->count() > 0) {
+                $defaultEmployee = Employee::first();
+                if ($defaultEmployee) {
+                    foreach ($complaintsWithoutApprovals as $complaint) {
+                        try {
+                            $requestedByEmployee = $complaint->assigned_employee_id 
+                                ? Employee::find($complaint->assigned_employee_id)
+                                : $defaultEmployee;
+                            
+                            if (!$requestedByEmployee) {
+                                $requestedByEmployee = $defaultEmployee;
+                            }
+                            
+                            SpareApprovalPerforma::create([
+                                'complaint_id' => $complaint->id,
+                                'requested_by' => $requestedByEmployee->id,
+                                'status' => 'pending',
+                                'remarks' => 'Auto-created for existing complaint',
+                            ]);
+                        } catch (\Exception $e) {
+                            \Log::warning('Failed to create approval performa for complaint: ' . $complaint->id, [
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                }
+            }
+            
             // Start with base query and join complaints table for filtering/ordering
             $query = SpareApprovalPerforma::query()
                 ->join('complaints', 'spare_approval_performa.complaint_id', '=', 'complaints.id')
@@ -45,9 +78,14 @@ class ApprovalController extends Controller
                 }
             }
 
-            // Filter by Complaint Registration Date
+            // Filter by Complaint Registration Date (From Date)
             if ($request->has('complaint_date') && $request->complaint_date) {
-                $query->whereDate('complaints.created_at', $request->complaint_date);
+                $query->whereDate('complaints.created_at', '>=', $request->complaint_date);
+            }
+
+            // Filter by End Date (To Date) - works even when category is not selected
+            if ($request->has('date_to') && $request->date_to) {
+                $query->whereDate('complaints.created_at', '<=', $request->date_to);
             }
 
             // Filter by Nature (category)
@@ -74,13 +112,9 @@ class ApprovalController extends Controller
                 $query->where('spare_approval_performa.complaint_id', $request->complaint_id);
             }
 
-            // Filter by date range (for approval creation date)
-            if ($request->has('date_from') && $request->date_from) {
+            // Filter by date range (for approval creation date) - only if not using complaint date filters
+            if ($request->has('date_from') && $request->date_from && !$request->has('complaint_date') && !$request->has('date_to')) {
                 $query->whereDate('spare_approval_performa.created_at', '>=', $request->date_from);
-            }
-
-            if ($request->has('date_to') && $request->date_to) {
-                $query->whereDate('spare_approval_performa.created_at', '<=', $request->date_to);
             }
 
             // Order by complaint created_at (descending)
@@ -101,13 +135,30 @@ class ApprovalController extends Controller
             $complaints = Complaint::pending()->with('client')->get();
             $employees = Employee::where('status', 'active')->get();
             
-            // Get categories for Nature filter
-            $categories = Complaint::select('category')
-                ->distinct()
-                ->whereNotNull('category')
-                ->pluck('category')
-                ->unique()
-                ->values();
+            // Get categories for Nature filter - get from ComplaintCategory table if exists
+            if (Schema::hasTable('complaint_categories')) {
+                // Get categories from ComplaintCategory table
+                $categories = ComplaintCategory::orderBy('name')->pluck('name');
+            } else {
+                // Fallback: Get categories from complaints that have approvals
+                $categories = Complaint::join('spare_approval_performa', 'complaints.id', '=', 'spare_approval_performa.complaint_id')
+                    ->select('complaints.category')
+                    ->distinct()
+                    ->whereNotNull('complaints.category')
+                    ->pluck('category')
+                    ->unique()
+                    ->values();
+                
+                // If still empty, get from all complaints
+                if ($categories->isEmpty()) {
+                    $categories = Complaint::select('category')
+                        ->distinct()
+                        ->whereNotNull('category')
+                        ->pluck('category')
+                        ->unique()
+                        ->values();
+                }
+            }
 
             // Handle AJAX requests - return only table and pagination
             if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
