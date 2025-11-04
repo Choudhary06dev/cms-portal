@@ -265,36 +265,6 @@ document.addEventListener('DOMContentLoaded', function() {
     filterEmployees();
   }
 
-  // Address auto-format: ensure patterns like 00/0-ST-4-B-5
-  if (addressInput) {
-    function formatAddress(val) {
-      if (!val) return '';
-      let v = val.toUpperCase();
-      v = v.replace(/\s+/g, '');
-      // Ensure hyphen after number/number pattern e.g., 17/2 -> 17/2-
-      v = v.replace(/(\d+\/\d+)(?!-)/g, '$1-');
-      // Ensure hyphen after ST-<num> e.g., ST-4 -> ST-4-
-      v = v.replace(/(ST-\d+)(?!-)/g, '$1-');
-      // Collapse multiple hyphens
-      v = v.replace(/-+/g, '-');
-      // Trim leading hyphens
-      v = v.replace(/^-+/, '');
-      return v;
-    }
-
-    const applyFormat = () => {
-      const formatted = formatAddress(addressInput.value);
-      if (formatted !== addressInput.value) {
-        addressInput.value = formatted;
-        try { addressInput.setSelectionRange(formatted.length, formatted.length); } catch (_) {}
-      }
-    };
-
-    addressInput.addEventListener('input', applyFormat);
-    addressInput.addEventListener('blur', applyFormat);
-    // Initialize once on load
-    applyFormat();
-  }
   // Category -> Complaint Titles dynamic loading
   const titleSelect = document.getElementById('title');
   const currentTitle = '{{ old('title', $complaint->title) }}';

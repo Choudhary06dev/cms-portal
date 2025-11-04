@@ -83,7 +83,40 @@
                     <td class="text-center">{{ number_format($cellData['percentage'], 1) }}%</td>
                 @endforeach
                 @php
-                    $rowGrandTotal = array_sum(array_column($row['categories'], 'count'));
+                    // Calculate grand total: sum of all primary columns
+                    // Individual E&M NRC columns (Electric, Gas, Water Supply) should be EXCLUDED from Total
+                    // E&M NRC (Total) should be INCLUDED in Total
+                    $rowGrandTotal = 0;
+                    $emNrcTotalKeyLocal = $emNrcTotalKey ?? 'em_nrc_total';
+                    $hasEmNrcTotal = isset($row['categories'][$emNrcTotalKeyLocal]);
+                    
+                    foreach ($row['categories'] as $catKey => $catData) {
+                      // Always include E&M NRC Total if it exists
+                      if ($catKey === $emNrcTotalKeyLocal) {
+                        $rowGrandTotal += $catData['count'] ?? 0;
+                      } 
+                      // For other categories, check if it's an individual E&M NRC column
+                      elseif (isset($categories[$catKey])) {
+                        $catName = $categories[$catKey];
+                        
+                        // Skip individual E&M NRC columns (Electric, Gas, Water Supply) if E&M NRC Total exists
+                        $isIndividualEmNrc = false;
+                        if ($hasEmNrcTotal) {
+                          // Check if this is one of the 3 individual E&M NRC columns
+                          if (stripos($catName, 'E&M NRC') !== false && stripos($catName, 'Total') === false) {
+                            $isIndividualEmNrc = true;
+                          }
+                        }
+                        
+                        // Include all other columns (non-individual E&M NRC columns)
+                        if (!$isIndividualEmNrc) {
+                          $rowGrandTotal += $catData['count'] ?? 0;
+                        }
+                      } else {
+                        // Include if category key not found in categories array (fallback)
+                        $rowGrandTotal += $catData['count'] ?? 0;
+                      }
+                    }
                     $rowGrandPercent = $grandTotal > 0 ? ($rowGrandTotal / $grandTotal * 100) : 0;
                 @endphp
                 <td class="text-center fw-bold">{{ number_format($rowGrandTotal) }}</td>
