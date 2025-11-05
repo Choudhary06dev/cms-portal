@@ -212,8 +212,6 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::get('spares/{spare}/print-slip', [AdminSpareController::class, 'printSlip'])->middleware(['permission:spares.view'])->name('spares.print-slip');
     Route::post('spares/{spare}/add-stock', [AdminSpareController::class, 'addStock'])->middleware(['permission:spares.view'])->name('spares.add-stock');
     Route::post('spares/{spare}/issue-stock', [AdminSpareController::class, 'issueStock'])->middleware(['permission:spares.view'])->name('spares.issue-stock');
-    Route::get('stock-approval', [AdminApprovalController::class, 'stockApproval'])->middleware(['permission:approvals.view'])->name('stock-approval.index');
-    Route::post('stock-approval/{log}/update-status', [AdminApprovalController::class, 'updateStockStatus'])->middleware(['permission:approvals.view'])->name('stock-approval.update-status');
     Route::resource('approvals', AdminApprovalController::class)->except(['create', 'store'])->middleware(['permission:approvals.view']);
     Route::post('approvals/{approval}/approve', [AdminApprovalController::class, 'approve'])->middleware(['permission:approvals.view'])->name('approvals.approve');
     Route::post('approvals/{approval}/reject', [AdminApprovalController::class, 'reject'])->middleware(['permission:approvals.view'])->name('approvals.reject');
