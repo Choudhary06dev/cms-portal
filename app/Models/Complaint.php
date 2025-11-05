@@ -79,6 +79,14 @@ class Complaint extends Model
     }
 
     /**
+     * Get the feedback for the complaint.
+     */
+    public function feedback(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ComplaintFeedback::class);
+    }
+
+    /**
      * Get available complaint categories
      */
     public static function getCategories(): array

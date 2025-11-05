@@ -1086,7 +1086,7 @@
                   <td>{{ $complaint->getTicketNumberAttribute() }}</td>
                   <td>{{ $complaint->client->client_name }}</td>
                   <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
-                  <td><span class="status-badge status-{{ $complaint->status }}">{{ $complaint->getStatusDisplayAttribute() }}</span></td>
+                  <td><span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span></td>
                   <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
                 </tr>
                 @empty
@@ -1179,9 +1179,9 @@
                   <td>{{ $item->threshold_level }}</td>
                   <td>
                     @if($item->stock_quantity <= 0)
-                      <span class="badge bg-danger">Out of Stock</span>
+                      <span class="badge bg-danger" style="color: #ffffff !important;">Out of Stock</span>
                     @else
-                      <span class="badge bg-warning">Low Stock</span>
+                      <span class="badge bg-warning" style="color: #ffffff !important;">Low Stock</span>
                     @endif
                   </td>
                 </tr>

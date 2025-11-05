@@ -33,7 +33,7 @@
                   <tr>
                     <td class="text-white"><strong>Category:</strong></td>
                     <td>
-                      <span class="badge bg-info">{{ ucfirst($spare->category ?? 'N/A') }}</span>
+                      <span class="badge bg-info" style="color: #ffffff !important;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
                     </td>
                   </tr>
                   @if($spare->description)
@@ -61,7 +61,7 @@
                   <tr>
                     <td class="text-white"><strong>Stock Quantity:</strong></td>
                     <td>
-                      <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}">
+                      <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}" style="color: #ffffff !important;">
                         {{ number_format($spare->stock_quantity ?? 0, 0) }}
                       </span>
                     </td>

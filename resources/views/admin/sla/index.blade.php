@@ -79,7 +79,7 @@
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
           <td >{{ $rule->notifyTo->name ?? 'N/A' }}</td>
           <td>
-            <span class="status-badge status-{{ $rule->status ?? 'active' }}">
+            <span class="status-badge status-{{ $rule->status ?? 'active' }}" style="color: #ffffff !important;">
               {{ ucfirst($rule->status ?? 'active') }}
                 </span>
               </td>

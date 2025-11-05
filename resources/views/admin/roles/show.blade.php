@@ -60,7 +60,7 @@
                       <br><small class="text-muted">{{ $user->email }}</small>
                       @endif
                     </div>
-                    <span class="badge bg-{{ $user->status === 'active' ? 'success' : 'danger' }}">
+                    <span class="badge bg-{{ $user->status === 'active' ? 'success' : 'danger' }}" style="color: #ffffff !important;">
                       {{ ucfirst($user->status) }}
                     </span>
                   </div>

@@ -23,22 +23,22 @@
   <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}" onsubmit="event.preventDefault(); submitApprovalsFilters(event); return false;">
   <div class="row g-2 align-items-end">
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
       <input type="text" class="form-control" id="searchInput" name="search" placeholder="Complaint ID or Address..." 
              value="{{ request('search') }}" autocomplete="off" style="font-size: 0.9rem; width: 200px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From Date</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">From Date</label>
       <input type="date" class="form-control" name="complaint_date" 
              value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To Date</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">To Date</label>
       <input type="date" class="form-control" name="date_to" 
              value="{{ request('date_to') }}" placeholder="End Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
       <select class="form-select" name="category" autocomplete="off" style="font-size: 0.9rem; width: 140px;">
         <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
         @if(isset($categories) && $categories->count() > 0)
@@ -131,7 +131,7 @@
           $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
         @endphp
         <tr>
-          <td>{{ $loop->iteration }}</td>
+          <td>{{ $approval->id }}</td>
           <td>{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
           <td>{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '' }}</td>
           <td>
@@ -146,7 +146,11 @@
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
           <td style="color: white !important;">
-            <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important;"></span>
+            @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
+              <span style="color: white !important;">-</span>
+            @else
+              <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important;"></span>
+            @endif
           </td>
           <td>
             @php
@@ -163,7 +167,7 @@
                 <span style="font-size: 11px; font-weight: 700; color: white !important;">Addressed</span>
               </div>
             @elseif($complaintStatus == 'in_progress')
-              <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }};">
+              <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }}; position: relative;">
                 <span class="status-indicator" style="background-color: {{ $statusColors['in_progress']['bg'] }}; border-color: {{ $statusColors['in_progress']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
@@ -178,6 +182,7 @@
                 <option value="priced_performa">Maint/Work Priced</option>
                 <option value="product_na">Product N/A</option>
               </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
             @elseif($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false))
               <div class="status-chip" style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }};">
@@ -240,6 +245,43 @@
               <button type="button" class="btn btn-outline-primary btn-sm add-stock-btn" title="Issue Stock" data-approval-id="{{ $approval->id }}" onclick="openAddStockModal({{ $approval->id }})" style="padding: 3px 8px; cursor: pointer;">
                 <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
               </button>
+              @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
+                @php
+                  $hasFeedback = false;
+                  $feedbackId = null;
+                  // Safely check if feedback exists without triggering lazy loading errors
+                  try {
+                    if ($complaint && $complaint->relationLoaded('feedback')) {
+                      $feedback = $complaint->getRelation('feedback');
+                      if ($feedback && $feedback->id) {
+                        $hasFeedback = true;
+                        $feedbackId = $feedback->id;
+                      }
+                    } else {
+                      // Use exists() method to check without loading the relationship
+                      $hasFeedback = \App\Models\ComplaintFeedback::where('complaint_id', $complaint->id)->exists();
+                      if ($hasFeedback) {
+                        $feedback = \App\Models\ComplaintFeedback::where('complaint_id', $complaint->id)->first();
+                        if ($feedback) {
+                          $feedbackId = $feedback->id;
+                        }
+                      }
+                    }
+                  } catch (\Exception $e) {
+                    $hasFeedback = false;
+                    $feedbackId = null;
+                  }
+                @endphp
+                @if($hasFeedback && $feedbackId)
+                  <a href="{{ route('admin.feedback.edit', $feedbackId) }}" class="btn btn-outline-info btn-sm" title="Edit Feedback" style="padding: 3px 8px;">
+                    <i data-feather="message-circle" style="width: 16px; height: 16px;"></i>
+                  </a>
+                @else
+                  <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-outline-warning btn-sm" title="Add Feedback" style="padding: 3px 8px;">
+                    <i data-feather="message-square" style="width: 16px; height: 16px;"></i>
+                  </a>
+                @endif
+              @endif
             </div>
           </td>
         </tr>
@@ -379,8 +421,8 @@
     background-repeat: no-repeat !important;
     background-position: right 6px center !important;
     background-size: 12px 12px !important;
-    /* SVG arrow uses currentColor so it adapts to text color */
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+    /* SVG arrow uses white color */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
   }
   
   .status-select:hover {
@@ -1072,23 +1114,23 @@
             <div class="card-body" style="padding: 16px;">
               <div class="row g-3">
                 <div class="col-md-3">
-                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Category</label>
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Category</label>
                   <select class="form-select form-select-sm" id="manualCategory" style="font-size: 0.9rem;">
                     <option value="">All Category</option>
                   </select>
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Product</label>
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
                   <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
                     <option value="">Loading Products...</option>
                   </select>
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Available Stock</label>
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
                   <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label small text-muted mb-1" style="font-size: 0.85rem; font-weight: 600;">Request Quantity</label>
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
                   <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
                 </div>
               </div>
@@ -1952,13 +1994,33 @@
           const addressedDateCell = row?.querySelector('td:nth-child(3)');
           if (addressedDateCell) addressedDateCell.textContent = updated.closed_at;
           const statusCell = select.closest('td');
+          // Remove arrow and circle if they exist
+          const arrow = statusCell?.querySelector('i[data-feather="chevron-down"]');
+          const circle = statusCell?.querySelector('.status-indicator');
+          if (arrow) arrow.remove();
+          if (circle) circle.remove();
+          // Create simple Addressed badge without dropdown
           const badge = document.createElement('span');
           badge.className = 'badge';
           const resolvedColor = statusColors['resolved'];
           badge.style.cssText = `background-color: ${resolvedColor.bg}; color: #ffffff !important; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid ${resolvedColor.border}; width: 140px; height: 28px; display: inline-flex; align-items: center; justify-content: center;`;
           badge.style.setProperty('color', '#ffffff', 'important');
           badge.textContent = 'Addressed';
-          select.replaceWith(badge);
+          // Clear performa badge
+          const performaBadgeInRow = row?.querySelector('.performa-badge');
+          if (performaBadgeInRow) {
+            performaBadgeInRow.style.display = 'none';
+            performaBadgeInRow.textContent = '';
+          }
+          // Replace select with badge
+          const statusChip = select.closest('.status-chip');
+          if (statusChip) {
+            statusChip.innerHTML = '';
+            statusChip.appendChild(badge);
+            statusChip.style.cssText = `background-color: ${resolvedColor.bg}; color: ${resolvedColor.text}; border-color: ${resolvedColor.border}; width: 140px; height: 28px; justify-content: center;`;
+          } else {
+            select.replaceWith(badge);
+          }
         } else {
           // Update color for other status changes
           // Restore dropdown value to in_progress and apply red color

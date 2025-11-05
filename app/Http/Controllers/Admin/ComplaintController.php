@@ -293,7 +293,8 @@ class ComplaintController extends Controller
                 'logs.actionBy',
                 'spareParts.spare',
                 'spareParts.usedBy',
-                'spareApprovals.items.spare'
+                'spareApprovals.items.spare',
+                'feedback.enteredBy'
             ]);
 
             if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {

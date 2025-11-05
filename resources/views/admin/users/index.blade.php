@@ -21,12 +21,12 @@
   <form id="usersFiltersForm" method="GET" action="{{ route('admin.users.index') }}">
   <div class="row g-2 align-items-end">
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
       <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
              value="{{ request('search') }}" oninput="handleUsersSearchInput()" style="font-size: 0.9rem; width: 180px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Role</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Role</label>
       <select class="form-select" name="role_id" onchange="submitUsersFilters()" style="font-size: 0.9rem; width: 140px;">
         <option value="" {{ request('role_id') ? '' : 'selected' }}>All</option>
         @foreach($roles as $role)
@@ -35,7 +35,7 @@
       </select>
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Status</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
       <select class="form-select" name="status" onchange="submitUsersFilters()" style="font-size: 0.9rem; width: 120px;">
         <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
@@ -112,7 +112,7 @@
             @endif
           </td>
           <td>
-            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}">
+            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
               {{ ucfirst($user->status) }}
             </span>
           </td>

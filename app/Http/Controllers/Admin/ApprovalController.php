@@ -59,10 +59,12 @@ class ApprovalController extends Controller
             }
             
             // Start with base query and join complaints table for filtering/ordering
+            // Use distinct to avoid duplicates from joins
             $query = SpareApprovalPerforma::query()
                 ->join('complaints', 'spare_approval_performa.complaint_id', '=', 'complaints.id')
                 ->join('clients', 'complaints.client_id', '=', 'clients.id')
-                ->select('spare_approval_performa.*');
+                ->select('spare_approval_performa.*')
+                ->distinct();
 
             // Search functionality - by Complaint ID, Address, or Cell No (phone)
             if ($request->has('search') && $request->search) {
@@ -117,8 +119,8 @@ class ApprovalController extends Controller
                 $query->whereDate('spare_approval_performa.created_at', '>=', $request->date_from);
             }
 
-            // Order by complaint created_at (descending)
-            $query->orderBy('complaints.created_at', 'desc');
+            // Order by approval ID (descending) - newest first
+            $query->orderBy('spare_approval_performa.id', 'desc');
             
             $approvals = $query->paginate(15);
             

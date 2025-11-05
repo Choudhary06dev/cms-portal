@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ComplaintTitleController as AdminComplaintTitleCo
 use App\Http\Controllers\Admin\SectorController as AdminSectorController;
 use App\Http\Controllers\Admin\CityController as AdminCityController;
 use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\SearchController;
 // Frontend routes are defined in routes/frontend.php and loaded here
 
@@ -142,6 +143,21 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::post('complaints/{complaint}/update-status', [AdminComplaintController::class, 'updateStatus'])->name('complaints.update-status');
         Route::post('complaints/{complaint}/add-spare-parts', [AdminComplaintController::class, 'addSpareParts'])->name('complaints.add-spare-parts');
         Route::get('complaints/{complaint}/print-slip', [AdminComplaintController::class, 'printSlip'])->name('complaints.print-slip');
+    });
+
+    // ===============================
+    // 💬 Feedback
+    // ===============================
+    Route::middleware(['permission:complaints.view'])->group(function () {
+        // List route must come before parameterized routes
+        Route::get('feedbacks', [AdminFeedbackController::class, 'index'])->name('feedbacks.index');
+        // Create/Store routes
+        Route::get('complaints/{complaint}/feedback/create', [AdminFeedbackController::class, 'create'])->name('feedback.create');
+        Route::post('complaints/{complaint}/feedback', [AdminFeedbackController::class, 'store'])->name('feedback.store');
+        // Edit/Update/Delete routes - must come after list route
+        Route::get('feedbacks/{feedback}/edit', [AdminFeedbackController::class, 'edit'])->name('feedback.edit');
+        Route::put('feedbacks/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
+        Route::delete('feedbacks/{feedback}', [AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
     });
 
     // ===============================

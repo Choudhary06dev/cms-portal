@@ -42,7 +42,7 @@
     <form method="POST" action="{{ route('admin.designation.store') }}" class="d-flex flex-wrap align-items-end gap-2">
       @csrf
       <div style="min-width: 200px; flex: 0 0 240px;">
-        <label class="form-label small text-muted mb-1">Category</label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Category</label>
         <select name="category" class="form-select @error('category') is-invalid @enderror" required>
           <option value="">Select Category</option>
           @if(isset($categories) && $categories->count() > 0)
@@ -54,17 +54,17 @@
         @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 200px; flex: 0 0 240px;">
-        <label class="form-label small text-muted mb-1">Name</label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Name</label>
         <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Designation name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 200px; flex: 1 1 300px;">
-        <label class="form-label small text-muted mb-1">Description</label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
         <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Short description (optional)">
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 140px; flex: 0 0 160px;">
-        <label class="form-label small text-muted mb-1">Status</label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Status</label>
         <select name="status" class="form-select">
           <option value="active" {{ old('status','active')==='active'?'selected':'' }}>Active</option>
           <option value="inactive" {{ old('status')==='inactive'?'selected':'' }}>Inactive</option>
@@ -102,7 +102,7 @@
             <td>{{ $designation->name }}</td>
             <td>{{ $designation->description ? Str::limit($designation->description, 60) : '-' }}</td>
             <td>
-              <span class="badge {{ $designation->status==='active' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($designation->status) }}</span>
+              <span class="badge {{ $designation->status==='active' ? 'bg-success' : 'bg-secondary' }}" style="color: #ffffff !important;">{{ ucfirst($designation->status) }}</span>
             </td>
             <td>
               <div class="d-flex gap-2">

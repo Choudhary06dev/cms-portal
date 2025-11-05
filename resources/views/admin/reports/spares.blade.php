@@ -126,11 +126,11 @@
             <td class="text-end">{{ number_format($spare['usage_count'] ?? 0, 0) }}</td>
             <td>
               @if(($spare['current_stock'] ?? 0) <= 0)
-                <span class="badge bg-danger">Out of Stock</span>
+                <span class="badge bg-danger" style="color: #ffffff !important;">Out of Stock</span>
               @elseif(($spare['current_stock'] ?? 0) <= ($spare['spare']->threshold_level ?? 0))
-                <span class="badge bg-warning text-dark">Low Stock</span>
+                <span class="badge bg-warning" style="color: #ffffff !important;">Low Stock</span>
               @else
-                <span class="badge bg-success">In Stock</span>
+                <span class="badge bg-success" style="color: #ffffff !important;">In Stock</span>
               @endif
             </td>
           </tr>

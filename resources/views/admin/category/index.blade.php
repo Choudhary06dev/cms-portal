@@ -42,12 +42,12 @@
     <form method="POST" action="{{ route('admin.category.store') }}" class="d-flex flex-wrap align-items-end gap-2">
       @csrf
       <div style="min-width: 220px; flex: 0 0 260px;">
-        <label class="form-label small text-muted mb-1">Name</label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Name</label>
         <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Category name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 260px; flex: 1 1 380px;">
-        <label class="form-label small text-muted mb-1">Description</label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
         <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Short description (optional)">
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>

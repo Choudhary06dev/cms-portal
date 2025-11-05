@@ -23,7 +23,7 @@
         </div>
         <h4 class="text-white">{{ $employee->name ?? 'N/A' }}</h4>
         <p class="text-light">{{ $employee->designation ?? 'N/A' }}</p>
-        <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}">
+        <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
           {{ ucfirst($employee->status ?? 'inactive') }}
         </span>
       </div>
@@ -56,7 +56,7 @@
           </div>
           <div class="mb-3">
             <span class="text-muted">Status:</span>
-            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2">
+            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2" style="color: #ffffff !important;">
               {{ ucfirst($employee->status ?? 'inactive') }}
             </span>
           </div>

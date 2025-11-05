@@ -38,7 +38,7 @@
 <div class="card-glass mb-3" style="display: inline-block; width: fit-content;">
   <form method="GET" action="{{ route('admin.complaint-titles.index') }}" class="d-flex flex-wrap align-items-end gap-2">
     <div style="min-width: 200px; flex: 0 0 240px;">
-      <label class="form-label small text-muted mb-1">Category</label>
+      <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Category</label>
       <select name="category" class="form-select" onchange="this.form.submit()">
         <option value="">All Categories</option>
         @foreach($categories as $cat)
@@ -47,7 +47,7 @@
       </select>
     </div>
     <div style="min-width: 240px; flex: 1 1 320px;">
-      <label class="form-label small text-muted mb-1">Search</label>
+      <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Search</label>
       <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search titles or description...">
     </div>
     <div class="d-grid" style="flex: 0 0 120px;">
@@ -64,7 +64,7 @@
     <form method="POST" action="{{ route('admin.complaint-titles.store') }}" class="d-flex flex-wrap align-items-end gap-2">
       @csrf
       <div style="min-width: 200px; flex: 0 0 240px;">
-        <label class="form-label small text-muted mb-1">Category <span class="text-danger">*</span></label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Category <span class="text-danger">*</span></label>
         <select name="category" class="form-select @error('category') is-invalid @enderror" required>
           <option value="">Select Category</option>
           @foreach($categories as $cat)
@@ -74,12 +74,12 @@
         @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 280px; flex: 1 1 400px;">
-        <label class="form-label small text-muted mb-1">Title <span class="text-danger">*</span></label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Title <span class="text-danger">*</span></label>
         <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror" placeholder="Complaint title" required>
         @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 260px; flex: 1 1 380px;">
-        <label class="form-label small text-muted mb-1">Description</label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
         <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Description (optional)">
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
@@ -111,7 +111,7 @@
           <tr>
             <td>{{ $title->id }}</td>
             <td>
-              <span class="badge bg-info">{{ ucfirst($title->category) }}</span>
+              {{ ucfirst($title->category) }}
             </td>
             <td><strong>{{ $title->title }}</strong></td>
             <td>{{ $title->description ? Str::limit($title->description, 80) : '-' }}</td>

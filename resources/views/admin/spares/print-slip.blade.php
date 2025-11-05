@@ -61,9 +61,9 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        .status-in_stock { background: #e8f5e8; color: #388e3c; }
-        .status-low_stock { background: #fff3e0; color: #f57c00; }
-        .status-out_of_stock { background: #ffebee; color: #d32f2f; }
+        .status-in_stock { background: #e8f5e8; color: #ffffff !important; }
+        .status-low_stock { background: #fff3e0; color: #ffffff !important; }
+        .status-out_of_stock { background: #ffebee; color: #ffffff !important; }
 
         @media print {
             body { margin: 0; }
