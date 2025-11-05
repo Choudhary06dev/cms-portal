@@ -1835,6 +1835,9 @@
         skipConfirm = true;
         showSuccess(performaBadge?.textContent || 'Performa marked');
       } else if (newStatus === 'priced_performa' || newStatus === 'product_na') {
+        // Store original status before changing it for localStorage
+        const originalStatus = newStatus;
+        
         // Handle Maint/Work Priced and Product N/A options
         if (performaBadge) {
           if (newStatus === 'priced_performa') {
@@ -1859,10 +1862,10 @@
             newStatus = 'in_progress';
           }
         }
-        // Persist selection locally
+        // Persist selection locally - use originalStatus before it was changed
         if (complaintId) {
           const key = `performaRequired:${complaintId}`;
-          const val = newStatus === 'priced_performa' ? 'priced' : 'product_na';
+          const val = originalStatus === 'priced_performa' ? 'priced' : 'product_na';
           try { localStorage.setItem(key, val); } catch (err) {}
         }
         skipConfirm = true;
@@ -2021,6 +2024,44 @@
           } else {
             select.replaceWith(badge);
           }
+          
+          // Show feedback button automatically when status becomes resolved
+          const actionsCell = row?.querySelector('td:last-child');
+          if (actionsCell) {
+            const btnGroup = actionsCell.querySelector('.btn-group');
+            if (btnGroup) {
+              // Check if feedback button already exists
+              const existingFeedbackBtn = btnGroup.querySelector('a[href*="/feedback/"]');
+              if (!existingFeedbackBtn) {
+                // Get complaint ID from the row - it's in the 4th column (Complaint ID)
+                const complaintIdLink = row?.querySelector('td:nth-child(4) a');
+                let complaintId = null;
+                if (complaintIdLink) {
+                  const href = complaintIdLink.getAttribute('href');
+                  const match = href?.match(/\/(\d+)$/);
+                  complaintId = match ? match[1] : null;
+                }
+                // Alternative: get from data attribute if available
+                if (!complaintId && row) {
+                  complaintId = row.getAttribute('data-complaint-id');
+                }
+                if (complaintId) {
+                  // Create "Add Feedback" button
+                  const feedbackBtn = document.createElement('a');
+                  feedbackBtn.href = `/admin/complaints/${complaintId}/feedback/create`;
+                  feedbackBtn.className = 'btn btn-outline-warning btn-sm';
+                  feedbackBtn.title = 'Add Feedback';
+                  feedbackBtn.style.cssText = 'padding: 3px 8px;';
+                  feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 16px; height: 16px;"></i>';
+                  btnGroup.appendChild(feedbackBtn);
+                  // Reinitialize feather icons
+                  if (typeof feather !== 'undefined') {
+                    feather.replace();
+                  }
+                }
+              }
+            }
+          }
         } else {
           // Update color for other status changes
           // Restore dropdown value to in_progress and apply red color
@@ -2088,41 +2129,44 @@
       let saved;
       try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
       if (!saved) return;
+      
       const row = sel.closest('tr');
       const badge = row ? row.querySelector('.performa-badge') : null;
       if (!badge) return;
-      if (saved === 'work') {
-        badge.textContent = 'Work Performa Required';
-        badge.style.backgroundColor = '#0ea5e9';
-        badge.style.color = '#ffffff';
-        badge.style.setProperty('color', '#ffffff', 'important');
-        badge.style.display = 'inline-block';
-        sel.value = 'in_progress'; // Set dropdown value to in_progress
-        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
-      } else if (saved === 'maint') {
-        badge.textContent = 'Maint Performa Required';
-        badge.style.backgroundColor = '#6366f1';
-        badge.style.color = '#ffffff';
-        badge.style.setProperty('color', '#ffffff', 'important');
-        badge.style.display = 'inline-block';
-        sel.value = 'in_progress'; // Set dropdown value to in_progress
-        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
-      } else if (saved === 'priced') {
+      
+      // Restore based on saved value - check in order to prevent conflicts
+      if (saved === 'priced') {
         badge.textContent = 'Maint/Work Priced';
         badge.style.backgroundColor = '#f59e0b';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
-        sel.value = 'in_progress'; // Set dropdown value to in_progress
-        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
       } else if (saved === 'product_na') {
         badge.textContent = 'Product N/A';
         badge.style.backgroundColor = '#8b5cf6';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
-        sel.value = 'in_progress'; // Set dropdown value to in_progress
-        updateStatusSelectColor(sel, 'in_progress'); // Apply red color for in_progress
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
+      } else if (saved === 'work') {
+        badge.textContent = 'Work Performa Required';
+        badge.style.backgroundColor = '#0ea5e9';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
+      } else if (saved === 'maint') {
+        badge.textContent = 'Maint Performa Required';
+        badge.style.backgroundColor = '#6366f1';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
       }
     });
   }

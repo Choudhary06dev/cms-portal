@@ -249,20 +249,8 @@ class ComplaintController extends Controller
             ]);
         }
 
-        // Automatically create approval performa for new complaint
-        // This ensures the complaint appears in the approval modal
-        $requestedByEmployee = $complaint->assigned_employee_id 
-            ? Employee::find($complaint->assigned_employee_id)
-            : $currentEmployee;
-        
-        if ($requestedByEmployee) {
-            SpareApprovalPerforma::create([
-                'complaint_id' => $complaint->id,
-                'requested_by' => $requestedByEmployee->id,
-                'status' => 'pending',
-                'remarks' => 'Auto-created for new complaint',
-            ]);
-        }
+        // Note: Approval performa is automatically created by Complaint model's boot() method
+        // No need to create it here to avoid duplicates
 
         // Commit the transaction
         DB::commit();

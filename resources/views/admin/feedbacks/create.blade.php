@@ -127,19 +127,6 @@
         @enderror
       </div>
 
-      <!-- Staff Remarks -->
-      <div class="mb-3">
-        <label class="form-label text-white fw-bold mb-1" style="font-size: 0.9rem;">
-          Staff Remarks (Internal Notes)
-        </label>
-        <textarea class="form-control @error('remarks') is-invalid @enderror" 
-                  name="remarks" rows="2" 
-                  placeholder="Internal notes about the feedback...">{{ old('remarks') }}</textarea>
-        @error('remarks')
-          <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-      </div>
-
       <!-- Feedback Date -->
       <div class="mb-3">
         <label class="form-label text-white fw-bold mb-1" style="font-size: 0.9rem;">

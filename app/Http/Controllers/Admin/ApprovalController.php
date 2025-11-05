@@ -30,12 +30,19 @@ class ApprovalController extends Controller
         try {
             // Automatically create missing approval performas for complaints that don't have them
             // This ensures all complaints appear in the approval modal
+            // Only create if approval doesn't already exist to avoid duplicates
             $complaintsWithoutApprovals = Complaint::whereDoesntHave('spareApprovals')->get();
             if ($complaintsWithoutApprovals->count() > 0) {
                 $defaultEmployee = Employee::first();
                 if ($defaultEmployee) {
                     foreach ($complaintsWithoutApprovals as $complaint) {
                         try {
+                            // Double check if approval doesn't exist (race condition prevention)
+                            $existingApproval = SpareApprovalPerforma::where('complaint_id', $complaint->id)->first();
+                            if ($existingApproval) {
+                                continue; // Skip if approval already exists
+                            }
+                            
                             $requestedByEmployee = $complaint->assigned_employee_id 
                                 ? Employee::find($complaint->assigned_employee_id)
                                 : $defaultEmployee;
