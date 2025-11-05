@@ -816,52 +816,87 @@ class ApprovalController extends Controller
     public function stockApproval(Request $request)
     {
         try {
-            // Get all stock approval data from stock_approval_data table
-            // Only show records that were issued from approval modal (have approval_id)
-            $query = StockApprovalData::whereNotNull('approval_id')
-                ->with([
-                    'spare',
-                    'complaint.client',
-                    'complaint.assignedEmployee',
-                    'approval'
-                ]);
+            // Fetch from performa; LEFT JOIN items/spares so all performa rows appear
+            $query = DB::table('spare_approval_performa as sap')
+                ->leftJoin('spare_approval_items as sai', 'sai.performa_id', '=', 'sap.id')
+                ->leftJoin('spares as s', 'sai.spare_id', '=', 's.id')
+                ->leftJoin('complaints as c', 'sap.complaint_id', '=', 'c.id')
+                // Fallback to complaint_spares if approval_items missing
+                ->leftJoin('complaint_spares as cs', 'cs.complaint_id', '=', 'sap.complaint_id')
+                ->leftJoin('spares as s2', 'cs.spare_id', '=', 's2.id')
+                // Final fallback: complaint.spare_id
+                ->leftJoin('spares as s3', 'c.spare_id', '=', 's3.id');
 
-            // Filter by date
-            if ($request->has('complaint_date') && $request->complaint_date) {
-                $query->whereDate('issue_date', '>=', $request->complaint_date);
+            // Soft delete guards
+            if (Schema::hasColumn('spare_approval_performa', 'deleted_at')) {
+                $query->whereNull('sap.deleted_at');
+            }
+            if (Schema::hasColumn('spare_approval_items', 'deleted_at')) {
+                $query->whereNull('sai.deleted_at');
             }
 
-            if ($request->has('date_to') && $request->date_to) {
-                $query->whereDate('issue_date', '<=', $request->date_to);
-            }
+            // Columns for Stock Approval grid
+            $query->select([
+                DB::raw('COALESCE(sai.id, sap.id) as id'),
+                DB::raw('sap.id as approval_id'),
+                DB::raw('sap.complaint_id as complaint_id'),
+                DB::raw('sap.created_at as issue_date'),
+                DB::raw('sap.created_at as created_at'),
+                DB::raw('COALESCE(s.category, s2.category, s3.category) as spare_category'),
+                DB::raw('c.category as complaint_category'),
+                DB::raw('COALESCE(s.item_name, s2.item_name, s3.item_name) as product_name'),
+                DB::raw('CAST(COALESCE(s.stock_quantity, s2.stock_quantity, s3.stock_quantity, 0) AS SIGNED) as available_stock'),
+                DB::raw('CAST(COALESCE(sai.quantity_requested, cs.quantity, c.spare_quantity, 0) AS SIGNED) as requested_stock'),
+                DB::raw('COALESCE(sai.quantity_approved, sai.quantity_requested, 0) as approval_stock'),
+                DB::raw('COALESCE(sap.status, \'pending\') as status'),
+            ]);
 
-            // Filter by category
-            if ($request->has('category') && $request->category) {
-                $query->where('category', $request->category);
+            // Filters
+            if ($request->filled('complaint_date')) {
+                $query->whereDate('sap.created_at', '>=', $request->complaint_date);
             }
-
-            // Search functionality
-            if ($request->has('search') && $request->search) {
+            if ($request->filled('date_to')) {
+                $query->whereDate('sap.created_at', '<=', $request->date_to);
+            }
+            if ($request->filled('category')) {
+                $query->where(function($q) use ($request) {
+                    $q->where('s.category', $request->category)
+                      ->orWhere('s2.category', $request->category)
+                      ->orWhere('s3.category', $request->category)
+                      ->orWhere('c.category', $request->category);
+                });
+            }
+            if ($request->filled('search')) {
                 $search = trim($request->search);
-                if (!empty($search)) {
+                if ($search !== '') {
                     $query->where(function($q) use ($search) {
-                        $q->where('product_name', 'like', "%{$search}%")
-                          ->orWhere('category', 'like', "%{$search}%")
-                          ->orWhereHas('complaint', function($complaintQuery) use ($search) {
-                              $complaintQuery->where('id', 'like', "%{$search}%")
-                                            ->orWhereHas('client', function($clientQuery) use ($search) {
-                                                $clientQuery->where('client_name', 'like', "%{$search}%")
-                                                           ->orWhere('address', 'like', "%{$search}%");
-                                            });
-                          });
+                        $q->where('s.item_name', 'like', "%{$search}%")
+                          ->orWhere('s.category', 'like', "%{$search}%")
+                          ->orWhere('sap.complaint_id', 'like', "%{$search}%");
                     });
                 }
             }
 
-            // Get categories for filter dropdown
+            // Categories for filter
             $categories = ComplaintCategory::distinct()->pluck('name')->filter()->values();
 
-            $stockApprovals = $query->orderBy('issue_date', 'desc')->orderBy('created_at', 'desc')->paginate(15);
+            // Debug before pagination
+            \Log::info('Stock Approval Query', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings(),
+                'count' => $query->count()
+            ]);
+
+            $stockApprovals = $query
+                ->orderBy('sap.created_at', 'desc')
+                ->orderBy('id', 'desc')
+                ->paginate(15);
+
+            \Log::info('Stock Approval Results', [
+                'total' => $stockApprovals->total(),
+                'count' => $stockApprovals->count(),
+                'items' => $stockApprovals->items()
+            ]);
 
             return view('admin.stock-approval.index', [
                 'stockApprovals' => $stockApprovals,
@@ -924,4 +959,3 @@ class ApprovalController extends Controller
         }
     }
 }
-
