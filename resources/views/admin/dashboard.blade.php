@@ -958,48 +958,7 @@
       </div>
     </div>
 
-    <!-- APPROVALS STATISTICS -->
-    <div class="row mb-4">
-      <div class="col-md-4 mb-3">
-        <div class="card-glass">
-          <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-              <div class="h4 mb-1 text-warning" style="font-size: 2rem; font-weight: bold;">{{ $stats['pending_approvals'] ?? 0 }}</div>
-              <div class="text-muted" style="font-size: 0.9rem;">Pending Approvals</div>
-            </div>
-            <div class="text-warning">
-              <i data-feather="clock" class="feather-lg"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4 mb-3">
-        <div class="card-glass">
-          <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-              <div class="h4 mb-1 text-success" style="font-size: 2rem; font-weight: bold;">{{ $stats['approved_this_month'] ?? 0 }}</div>
-              <div class="text-muted" style="font-size: 0.9rem;">Approved This Month</div>
-            </div>
-            <div class="text-success">
-              <i data-feather="check-circle" class="feather-lg"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4 mb-3">
-        <div class="card-glass">
-          <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-              <div class="h4 mb-1 text-info" style="font-size: 2rem; font-weight: bold;">{{ $stats['total_approvals'] ?? 0 }}</div>
-              <div class="text-muted" style="font-size: 0.9rem;">Total Approvals</div>
-            </div>
-            <div class="text-info">
-              <i data-feather="file-text" class="feather-lg"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    
 
     <!-- ADDITIONAL STATS -->
     <div class="row mb-4 justify-content-center">
