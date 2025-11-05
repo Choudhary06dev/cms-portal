@@ -976,8 +976,8 @@
       </div>
       <div class="col-md-2 mb-3">
     <div class="card-glass text-center">
-      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_clients'] ?? 0 }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Complaintants</div>
+      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_complaints'] ?? 0 }}</div>
+      <div class="text-muted" style="font-size: 0.8rem;">Complaints</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
