@@ -9,6 +9,7 @@ use App\Models\Complaint;
 use App\Models\Employee;
 use App\Models\Spare;
 use App\Models\ComplaintCategory;
+use App\Models\StockApprovalData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -798,6 +799,120 @@ class ApprovalController extends Controller
     {
         // This would require Laravel Excel package
         return response()->json(['message' => 'Excel export requires Laravel Excel package']);
+    }
+
+    /**
+     * Display stock approval page
+     */
+    public function stockApproval(Request $request)
+    {
+        try {
+            // Get all stock approval data from stock_approval_data table
+            // Only show records that were issued from approval modal (have approval_id)
+            $query = StockApprovalData::whereNotNull('approval_id')
+                ->with([
+                    'spare',
+                    'complaint.client',
+                    'complaint.assignedEmployee',
+                    'approval'
+                ]);
+
+            // Filter by date
+            if ($request->has('complaint_date') && $request->complaint_date) {
+                $query->whereDate('issue_date', '>=', $request->complaint_date);
+            }
+
+            if ($request->has('date_to') && $request->date_to) {
+                $query->whereDate('issue_date', '<=', $request->date_to);
+            }
+
+            // Filter by category
+            if ($request->has('category') && $request->category) {
+                $query->where('category', $request->category);
+            }
+
+            // Search functionality
+            if ($request->has('search') && $request->search) {
+                $search = trim($request->search);
+                if (!empty($search)) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('product_name', 'like', "%{$search}%")
+                          ->orWhere('category', 'like', "%{$search}%")
+                          ->orWhereHas('complaint', function($complaintQuery) use ($search) {
+                              $complaintQuery->where('id', 'like', "%{$search}%")
+                                            ->orWhereHas('client', function($clientQuery) use ($search) {
+                                                $clientQuery->where('client_name', 'like', "%{$search}%")
+                                                           ->orWhere('address', 'like', "%{$search}%");
+                                            });
+                          });
+                    });
+                }
+            }
+
+            // Get categories for filter dropdown
+            $categories = ComplaintCategory::distinct()->pluck('name')->filter()->values();
+
+            $stockApprovals = $query->orderBy('issue_date', 'desc')->orderBy('created_at', 'desc')->paginate(15);
+
+            return view('admin.stock-approval.index', [
+                'stockApprovals' => $stockApprovals,
+                'categories' => $categories
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error loading stock approval page: ' . $e->getMessage());
+            return redirect()->route('admin.approvals.index')
+                ->with('error', 'Error loading stock approval page: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update stock status
+     */
+    public function updateStockStatus(Request $request, $log)
+    {
+        try {
+            $stockApproval = StockApprovalData::findOrFail($log);
+            
+            $validator = Validator::make($request->all(), [
+                'status' => 'required|in:pending,approved,rejected,request_for_stock',
+                'approval_stock' => 'required|integer|min:0',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $updateData = [
+                'status' => $request->status,
+                'approval_stock' => $request->approval_stock,
+            ];
+
+            // If status is approved, set approved_by and approved_at
+            if ($request->status === 'approved') {
+                $employee = Employee::first();
+                if ($employee) {
+                    $updateData['approved_by'] = $employee->id;
+                    $updateData['approved_at'] = now();
+                }
+            }
+
+            $stockApproval->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating stock status: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating status: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
 

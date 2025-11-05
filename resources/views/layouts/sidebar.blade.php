@@ -309,8 +309,15 @@
     </a>
     @endif
     @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
-    <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') ? 'active' : '' }}">
+    <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}">
       <i data-feather="eye" class="me-2"></i> View Complaints
+    </a>
+    @endif
+    @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
+    <a href="{{ route('admin.stock-approval.index') }}" 
+       class="nav-link d-block py-2 px-3 mb-1 stock-approval-link {{ request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}"
+       onclick="event.preventDefault(); window.location.href='{{ route('admin.stock-approval.index') }}'; return false;">
+      <i data-feather="check-circle" class="me-2"></i> Stock Approval
     </a>
     @endif
     @if($user && ($user->hasPermission('reports') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
@@ -619,6 +626,27 @@
     // Auto-refresh notifications every 30 seconds
     setInterval(loadNotifications, 30000);
   </script>
+  
+  <!-- Stock Approval Link Handler -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const stockApprovalLink = document.querySelector('.stock-approval-link');
+      if (stockApprovalLink) {
+        // Remove any existing click handlers and add our own
+        stockApprovalLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          const href = this.getAttribute('href');
+          if (href) {
+            window.location.href = href;
+          }
+          return false;
+        }, true); // Use capture phase to run before other handlers
+      }
+    });
+  </script>
+  
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   @stack('scripts')

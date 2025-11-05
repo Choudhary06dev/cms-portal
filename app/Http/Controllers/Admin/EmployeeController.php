@@ -226,6 +226,30 @@ class EmployeeController extends Controller
 
 
     /**
+     * Get designations by category (AJAX)
+     */
+    public function getDesignationsByCategory(Request $request)
+    {
+        if (!Schema::hasTable('designations')) {
+            return response()->json(['designations' => []]);
+        }
+
+        $category = $request->input('category');
+        
+        if (!$category) {
+            return response()->json(['designations' => []]);
+        }
+
+        // Get active designations for this category
+        $designations = Designation::where('category', $category)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        
+        return response()->json(['designations' => $designations]);
+    }
+
+    /**
      * Get sectors by city (AJAX)
      */
     public function getSectorsByCity(Request $request)
