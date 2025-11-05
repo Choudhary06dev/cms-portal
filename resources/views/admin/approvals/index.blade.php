@@ -2185,33 +2185,45 @@
           return;
         }
 
-        let itemsHtml = '<form id="addStockForm"><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Product Name</th><th>Requested Quantity</th><th>Total Quantity</th></tr></thead><tbody>';
+        let itemsHtml = '<form id="addStockForm"><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Category</th><th>Product</th><th>Total Stock</th><th>Request Stock</th></tr></thead><tbody>';
 
         // Store items globally for submission
         window.currentApprovalItems = items;
 
         items.forEach((item, index) => {
           const productName = item.spare_name || 'N/A';
+          const category = item.category || 'N/A';
+          const availableStock = item.available_stock || 0;
           const requestedQty = item.quantity_requested || 0;
-          const approvedQty = item.quantity_approved !== null ? item.quantity_approved : 0;
           const spareId = item.spare_id || 0;
-          // Total quantity = approved quantity (or we can make it editable)
-          const totalQty = approvedQty;
+          
+          // Format category display
+          const categoryDisplay = {
+            'electric': 'Electric',
+            'technical': 'Technical',
+            'service': 'Service',
+            'billing': 'Billing',
+            'water': 'Water Supply',
+            'sanitary': 'Sanitary',
+            'plumbing': 'Plumbing',
+            'kitchen': 'Kitchen',
+            'other': 'Other',
+          };
+          const catDisplay = categoryDisplay[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1);
           
           itemsHtml += `
             <tr>
+              <td>${catDisplay}</td>
               <td>${productName}</td>
-              <td>${requestedQty}</td>
               <td>
-                <input type="number" 
-                       class="form-control form-control-sm total-quantity-input" 
-                       name="items[${item.id}][total_quantity]" 
-                       value="${totalQty}" 
-                       min="0" 
-                       data-spare-id="${spareId}"
-                       data-item-id="${item.id}"
-                       data-product-name="${productName}"
-                       style="width: 100px; text-align: center;">
+                <span class="badge ${availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">
+                  ${availableStock}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-info" style="font-size: 12px;">
+                  ${requestedQty}
+                </span>
               </td>
             </tr>
           `;
@@ -2243,22 +2255,23 @@
 
   // Submit Issue Stock Form
   function submitIssueStock() {
-    // Use manual items from window.manualItems
-    if (!window.manualItems || window.manualItems.length === 0) {
-      alert('No items added. Please add items using the form above.');
+    // Use approval items from window.currentApprovalItems (loaded in modal)
+    if (!window.currentApprovalItems || window.currentApprovalItems.length === 0) {
+      alert('No items found. Please refresh and try again.');
       return;
     }
 
-    // Validate and collect data from manual items
+    // Validate and collect data from approval items
     const stockData = [];
     let hasError = false;
     let errorMessage = '';
 
-    window.manualItems.forEach(item => {
+    window.currentApprovalItems.forEach(item => {
       const spareId = item.spare_id || 0;
-      const productName = item.product_name || 'N/A';
+      const productName = item.spare_name || 'N/A';
       const availableStock = item.available_stock || 0;
-      const issueQty = item.requested_qty || 0;
+      const requestedQty = item.quantity_requested || 0;
+      const itemId = item.id || null;
 
       if (spareId === 0) {
         hasError = true;
@@ -2266,32 +2279,22 @@
         return;
       }
 
-      if (issueQty < 0) {
-        hasError = true;
-        errorMessage = `Issue quantity cannot be negative for ${productName}`;
+      if (requestedQty <= 0) {
+        // Skip items with 0 or negative quantity
         return;
       }
 
-      if (issueQty > availableStock) {
+      if (requestedQty > availableStock) {
         hasError = true;
-        errorMessage = `Issue quantity (${issueQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
+        errorMessage = `Requested quantity (${requestedQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
         return;
       }
-
-      if (issueQty === 0) {
-        // Skip items with 0 quantity
-        return;
-      }
-      
-      // For manual items, tempId is a string like "manual_1234567890"
-      // For existing items, item_id is a number
-      // Only send item_id if it's a valid integer (existing item), otherwise null
-      const itemId = (item.item_id && !isNaN(parseInt(item.item_id))) ? parseInt(item.item_id) : null;
       
       stockData.push({
         spare_id: spareId,
         item_id: itemId,
-        issue_quantity: issueQty,
+        approval_id: window.currentApprovalId || null,
+        issue_quantity: requestedQty,
         product_name: productName,
         available_stock: availableStock
       });

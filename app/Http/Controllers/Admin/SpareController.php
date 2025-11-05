@@ -9,6 +9,11 @@ use App\Models\ComplaintSpare;
 use App\Models\ComplaintCategory;
 use App\Models\City;
 use App\Models\Sector;
+use App\Models\StockAddData;
+use App\Models\StockApprovalData;
+use App\Models\Complaint;
+use App\Models\SpareApprovalPerforma;
+use App\Models\SpareApprovalItem;
 use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -468,11 +473,34 @@ class SpareController extends Controller
                 ->withErrors($validator);
         }
 
+        // Get available stock before adding
+        $availableStockBefore = $spare->stock_quantity;
+        
         $spare->addStock(
             $request->quantity,
             $request->remarks,
             $request->reference_id
         );
+
+        // Reload spare to get updated stock quantity
+        $spare->refresh();
+
+        // Create stock add data record
+        try {
+            StockAddData::create([
+                'spare_id' => $spare->id,
+                'add_date' => now(),
+                'category' => $spare->category,
+                'product_name' => $spare->item_name,
+                'quantity_added' => $request->quantity,
+                'available_stock_after' => $spare->stock_quantity,
+                'remarks' => $request->remarks,
+                'added_by' => auth()->user() && auth()->user()->employee ? auth()->user()->employee->id : null,
+                'reference_id' => $request->reference_id,
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to create stock add data: ' . $e->getMessage());
+        }
 
         return redirect()->back()
             ->with('success', 'Stock added successfully.');
@@ -544,6 +572,61 @@ class SpareController extends Controller
             // Use reason or remarks for stock log
             $remarks = $request->reason ?? $request->remarks ?? 'Stock issued from approval';
             $referenceId = $request->item_id ?? $request->approval_id ?? null;
+            
+            // Get approval_id from request (set when issuing from approval modal)
+            $approvalId = $request->approval_id ?? null;
+
+            // Get available stock before issuing
+            $availableStockBefore = $spare->stock_quantity;
+            
+            // Get complaint and approval details
+            $complaint = null;
+            $approval = null;
+            $approvalItem = null;
+            $requestedQty = 0;
+            
+            // First try to get approval if approval_id is provided
+            if ($approvalId) {
+                $approval = SpareApprovalPerforma::find($approvalId);
+                if ($approval) {
+                    $complaint = $approval->complaint;
+                }
+            }
+            
+            // Try to get complaint from reference_id if not already found
+            if (!$complaint && $referenceId) {
+                $complaint = Complaint::find($referenceId);
+                
+                // If not complaint, try to get from approval
+                if (!$complaint) {
+                    $approval = SpareApprovalPerforma::find($referenceId);
+                    if ($approval) {
+                        $complaint = $approval->complaint;
+                    }
+                }
+            }
+            
+            // Get approval item to find requested quantity
+            if ($spare && $complaint) {
+                $approvalItem = SpareApprovalItem::whereHas('performa', function($q) use ($complaint) {
+                    $q->where('complaint_id', $complaint->id);
+                })->where('spare_id', $spare->id)->first();
+                
+                if ($approvalItem) {
+                    $requestedQty = $approvalItem->quantity_requested;
+                    if (!$approval) {
+                        $approval = $approvalItem->performa;
+                    }
+                }
+            }
+            
+            // If approval_id was provided but approval not found, try to find it
+            if ($approvalId && !$approval) {
+                $approval = SpareApprovalPerforma::find($approvalId);
+                if ($approval && !$complaint) {
+                    $complaint = $approval->complaint;
+                }
+            }
 
             // Issue stock (decrease inventory)
             $result = $spare->removeStock(
@@ -561,6 +644,29 @@ class SpareController extends Controller
 
             // Reload spare to get updated stock quantity
             $spare->refresh();
+
+            // Create stock approval data record only if approval_id is provided (from approval modal)
+            if ($approvalId || ($approval && $approval->id)) {
+                try {
+                    StockApprovalData::create([
+                        'spare_id' => $spare->id,
+                        'complaint_id' => $complaint ? $complaint->id : null,
+                        'approval_id' => $approval ? $approval->id : $approvalId,
+                        'issue_date' => now(),
+                        'category' => $spare->category,
+                        'product_name' => $spare->item_name,
+                        'available_stock' => $availableStockBefore,
+                        'requested_stock' => $requestedQty,
+                        'approval_stock' => $quantity,
+                        'issued_quantity' => $quantity,
+                        'status' => 'pending',
+                        'remarks' => $remarks,
+                        'issued_by' => auth()->user() && auth()->user()->employee ? auth()->user()->employee->id : null,
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to create stock approval data: ' . $e->getMessage());
+                }
+            }
 
             return response()->json([
                 'success' => true,

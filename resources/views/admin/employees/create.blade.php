@@ -76,9 +76,10 @@
       <div class="col-md-6">
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
-          <input type="text" class="form-control @error('designation') is-invalid @enderror" 
-                 id="designation" name="designation" value="{{ old('designation') }}" 
-                 placeholder="Enter designation">
+          <select class="form-select @error('designation') is-invalid @enderror" 
+                  id="designation" name="designation" disabled>
+            <option value="">Select Category First</option>
+          </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -186,8 +187,51 @@
   feather.replace();
   
   document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('category');
+    const designationSelect = document.getElementById('designation');
     const citySelect = document.getElementById('city_id');
     const sectorSelect = document.getElementById('sector_id');
+    
+    // Handle category change to load designations
+    if (categorySelect && designationSelect) {
+      categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        designationSelect.innerHTML = '<option value="">Loading...</option>';
+        designationSelect.disabled = true;
+        
+        if (category) {
+          fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(category)}`, {
+            method: 'GET',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            designationSelect.innerHTML = '<option value="">Select Designation</option>';
+            
+            if (data.designations && data.designations.length > 0) {
+              data.designations.forEach(function(designation) {
+                const option = document.createElement('option');
+                option.value = designation.name;
+                option.textContent = designation.name;
+                designationSelect.appendChild(option);
+              });
+              designationSelect.disabled = false;
+            } else {
+              designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching designations:', error);
+            designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+          });
+        } else {
+          designationSelect.innerHTML = '<option value="">Select Category First</option>';
+        }
+      });
+    }
     
     // Handle city change
     if (citySelect && sectorSelect) {
