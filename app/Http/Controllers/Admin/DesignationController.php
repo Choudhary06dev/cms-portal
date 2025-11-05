@@ -63,6 +63,12 @@ class DesignationController extends Controller
         ];
         
         $validated = $request->validate($rules);
+        // If legacy column exists, set safe default without requiring department module
+        try {
+            if (Schema::hasColumn('designations', 'department_id') && !array_key_exists('department_id', $validated)) {
+                $validated['department_id'] = 0; // placeholder
+            }
+        } catch (\Exception $e) {}
         
         // Remove category if column doesn't exist
         try {
@@ -116,6 +122,12 @@ class DesignationController extends Controller
             ];
             
             $validated = $request->validate($rules);
+            // If legacy column exists, set safe default without requiring department module
+            try {
+                if (Schema::hasColumn('designations', 'department_id') && !array_key_exists('department_id', $validated)) {
+                    $validated['department_id'] = 0; // placeholder
+                }
+            } catch (\Exception $e) {}
             
             // Remove category if column doesn't exist
             try {
