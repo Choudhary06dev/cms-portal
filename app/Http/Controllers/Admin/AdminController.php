@@ -99,7 +99,6 @@ class AdminController extends Controller
             'total_spares' => Spare::count(),
             'low_stock_items' => Spare::lowStock()->count(),
             'out_of_stock_items' => Spare::outOfStock()->count(),
-            'pending_approvals' => SpareApprovalPerforma::pending()->count(),
             'employees_on_leave' => EmployeeLeave::active()->count(),
         ];
     }
