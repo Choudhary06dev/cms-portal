@@ -958,8 +958,9 @@
   window.openAddStockModal = function(approvalId) {
     console.log('openAddStockModal called with ID:', approvalId);
     
-    // Store approvalId globally for submitIssueStock
+      // Store approvalId globally for submitIssueStock
     window.currentApprovalId = approvalId;
+    console.log('Modal opened with approval_id:', approvalId);
     
     // Reset manual items array when modal opens
     window.manualItems = [];
@@ -1101,6 +1102,8 @@
 
         // Store items globally for submission (existing + manual)
         window.currentApprovalItems = items;
+        console.log('Approval items loaded:', items.length, 'items');
+        console.log('Current approval_id:', window.currentApprovalId);
 
         // Build form with manual add section
         let itemsHtml = '<form id="addStockForm">';
@@ -2261,6 +2264,9 @@
       return;
     }
 
+    console.log('submitIssueStock - currentApprovalId:', window.currentApprovalId);
+    console.log('submitIssueStock - currentApprovalItems:', window.currentApprovalItems);
+
     // Validate and collect data from approval items
     const stockData = [];
     let hasError = false;
@@ -2328,8 +2334,21 @@
       submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Issuing Stock...';
     }
 
+    // Log approval_id before sending
+    console.log('Issuing stock with approval_id:', window.currentApprovalId);
+    console.log('Stock data to send:', stockData);
+
     // Send requests for each item to ISSUE stock (decrease inventory)
     const promises = stockData.map(item => {
+      const requestBody = {
+        quantity: item.issue_quantity,
+        item_id: item.item_id,
+        approval_id: window.currentApprovalId || null,
+        reason: `Stock issued from approval - Product: ${item.product_name}`
+      };
+      
+      console.log('Sending request for item:', item.product_name, 'with approval_id:', requestBody.approval_id);
+      
       return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
         method: 'POST',
         headers: {
@@ -2338,12 +2357,7 @@
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken
         },
-        body: JSON.stringify({
-          quantity: item.issue_quantity,
-          item_id: item.item_id,
-          approval_id: window.currentApprovalId || null,
-          reason: `Stock issued from approval - Product: ${item.product_name}`
-        }),
+        body: JSON.stringify(requestBody),
         credentials: 'same-origin'
       });
     });

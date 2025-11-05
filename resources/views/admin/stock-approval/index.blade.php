@@ -77,9 +77,9 @@
           <th>#</th>
           <th>Date</th>
           <th>Category</th>
-          <th>Product</th>
+          <th>Product Name</th>
           <th>Total Quantity</th>
-          <th>Requested Quantity</th>
+          <th>Required Quantity</th>
           <th>Approval Quantity</th>
           <th>Status</th>
           <th>Actions</th>
@@ -110,25 +110,40 @@
             'kitchen' => 'Kitchen',
             'other' => 'Other',
           ];
-          $category = $stockApproval->category ?? 'N/A';
-          $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+          // Prefer spare category; fallback to complaint category
+          $category = $stockApproval->spare_category ?? $stockApproval->complaint_category ?? 'N/A';
+          $catDisplay = $category ? ($categoryDisplay[strtolower($category)] ?? ucfirst($category)) : 'N/A';
           
-          // Get complaint date for display
-          $complaintDate = $stockApproval->complaint ? ($stockApproval->complaint->created_at ? $stockApproval->complaint->created_at->format('M d, Y') : 'N/A') : ($stockApproval->issue_date ? $stockApproval->issue_date->format('M d, Y') : 'N/A');
+          // Get complaint date for display (handle both Eloquent and DB::table results)
+          try {
+            if (isset($stockApproval->complaint) && $stockApproval->complaint && isset($stockApproval->complaint->created_at)) {
+              $complaintDate = \Carbon\Carbon::parse($stockApproval->complaint->created_at)->format('M d, Y');
+            } elseif (!empty($stockApproval->issue_date)) {
+              $complaintDate = \Carbon\Carbon::parse($stockApproval->issue_date)->format('M d, Y');
+            } elseif (!empty($stockApproval->created_at)) {
+              $complaintDate = \Carbon\Carbon::parse($stockApproval->created_at)->format('M d, Y');
+            } else {
+              $complaintDate = 'N/A';
+            }
+          } catch (\Exception $e) {
+            $complaintDate = 'N/A';
+          }
         @endphp
         <tr>
           <td>{{ $loop->iteration }}</td>
           <td>{{ $complaintDate }}</td>
           <td>{{ $catDisplay }}</td>
-          <td>{{ $stockApproval->product_name }}</td>
+          <td>{{ $stockApproval->product_name ?? 'No item' }}</td>
           <td>
-            <span class="badge {{ $stockApproval->available_stock > 0 ? 'bg-success' : 'bg-danger' }}" style="font-size: 12px;">
-              {{ $stockApproval->available_stock }}
+            @php $avail = (int)($stockApproval->available_stock ?? 0); @endphp
+            <span class="badge {{ $avail > 0 ? 'bg-success' : 'bg-danger' }}" style="font-size: 12px;">
+              {{ $avail }}
             </span>
           </td>
           <td>
+            @php $req = (int)($stockApproval->requested_stock ?? 0); @endphp
             <span class="badge bg-info" style="font-size: 12px;">
-              {{ $stockApproval->requested_stock }}
+              {{ $req }}
             </span>
           </td>
           <td>

@@ -221,10 +221,7 @@
               </div>
             </div>
 
-            <div class="alert alert-info mt-3">
-              <strong>Note:</strong> Product and quantity are optional. If provided, they will be used in "Complaint Nature & Type" display and stock will be checked during approval process.
-            </div>
-
+           
             <div class="row">
               <div class="col-12">
                 <div class="mb-3">
