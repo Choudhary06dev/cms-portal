@@ -17,7 +17,7 @@
     </div>
 
     <!-- FILTERS -->
-    <div class="card-glass mb-4">
+    <div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
         <div class="card-header">
             <h5 class="card-title mb-0 text-white">
                 <i data-feather="filter" class="me-2"></i>Filters
@@ -27,12 +27,12 @@
             <form id="complaintsFiltersForm" method="GET" action="{{ route('admin.complaints.index') }}">
                 <div class="row g-2 align-items-end">
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+                        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
                         <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
                                value="{{ request('search') }}" oninput="handleComplaintsSearchInput()" style="font-size: 0.9rem; width: 180px;">
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Priority</label>
+                        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Priority</label>
                         <select class="form-select" name="priority" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
                             <option value="" {{ request('priority') ? '' : 'selected' }}>All</option>
                             <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low</option>
@@ -42,7 +42,7 @@
                         </select>
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+                        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
                         <select class="form-select" name="category" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
                             <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
                             @if(isset($categories) && $categories->count() > 0)
@@ -53,7 +53,7 @@
                         </select>
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Employee</label>
+                        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Employee</label>
                         <select class="form-select" name="assigned_employee_id" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 170px;">
                             <option value="" {{ request('assigned_employee_id') ? '' : 'selected' }}>All</option>
                             @foreach($employees as $employee)
@@ -64,17 +64,17 @@
                         </select>
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From</label>
+                        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">From</label>
                         <input type="date" class="form-control" name="date_from" 
                                value="{{ request('date_from') }}" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 150px;">
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To</label>
+                        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">To</label>
                         <input type="date" class="form-control" name="date_to" 
                                value="{{ request('date_to') }}" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 150px;">
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Status</label>
+                        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
                         <select class="form-select" name="status" onchange="submitComplaintsFilters()" style="font-size: 0.9rem; width: 140px;">
                             <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
                             <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
@@ -108,7 +108,11 @@
                 <thead>
                     <tr>
                         <th style="width: 40px; padding-left: 8px !important;">#</th>
+<<<<<<< HEAD
                         <th style="width: 130px;">	Registration Date/Time</th>
+=======
+                        <th style="width: 130px;">Registration Date/Time</th>
+>>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
                         <th style="width: 130px;">Completion Time</th>
                         <th style="width: 100px;">Complaint ID</th>
                         <th style="width: 120px;">Complainant Name</th>
@@ -617,7 +621,7 @@
                             <div class="mb-3" style="color: var(--text-primary);">
                                 <span style="color: var(--text-muted);">Status:</span>
                                 <span class="ms-2">
-                                    <span class="badge bg-${complaint.status === 'new' ? 'primary' : complaint.status === 'assigned' ? 'warning' : complaint.status === 'in_progress' ? 'info' : complaint.status === 'resolved' ? 'success' : 'secondary'}">
+                                    <span class="badge bg-${complaint.status === 'new' ? 'primary' : complaint.status === 'assigned' ? 'warning' : complaint.status === 'in_progress' ? 'info' : complaint.status === 'resolved' ? 'success' : 'secondary'}" style="color: #ffffff !important;">
                                         ${complaint.status ? complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1) : 'N/A'}
                                     </span>
                                 </span>

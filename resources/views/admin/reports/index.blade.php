@@ -195,7 +195,7 @@
     <form id="customReportForm">
       <div class="row g-2 align-items-end">
         <div class="col-auto">
-          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Report Type</label>
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Report Type</label>
           <select name="report_type" class="form-select" style="font-size: 0.9rem; width: 180px;" required>
             <option value="">Select Type</option>
             <option value="complaints">Complaints</option>
@@ -205,11 +205,11 @@
           </select>
         </div>
         <div class="col-auto">
-          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From Date</label>
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">From Date</label>
           <input type="date" name="date_from" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
         </div>
         <div class="col-auto">
-          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To Date</label>
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">To Date</label>
           <input type="date" name="date_to" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
         </div>
         <div class="col-auto">

@@ -17,21 +17,21 @@
 </div>
 
 <!-- FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <form id="employeesFiltersForm" method="GET" action="{{ route('admin.employees.index') }}">
   <div class="row g-2 align-items-end">
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
       <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
              value="{{ request('search') }}" oninput="handleEmployeesSearchInput()" style="font-size: 0.9rem; width: 180px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
       <input type="text" class="form-control" name="category" placeholder="Category" 
              value="{{ request('category') }}" oninput="handleEmployeesSearchInput()" style="font-size: 0.9rem; width: 140px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Status</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
       <select class="form-select" name="status" onchange="submitEmployeesFilters()" style="font-size: 0.9rem; width: 120px;">
         <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
@@ -87,7 +87,7 @@
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>
           <td>{{ $employee->phone ?: 'N/A' }}</td>
           <td>
-            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}">
+            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
               {{ ucfirst($employee->status ?? 'inactive') }}
             </span>
           </td>

@@ -32,19 +32,6 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="emp_id" class="form-label text-white">Employee ID</label>
-          <input type="text" class="form-control @error('emp_id') is-invalid @enderror" 
-                 id="emp_id" name="emp_id" value="{{ old('emp_id', $employee->emp_id) }}">
-          @error('emp_id')
-            <div class="invalid-feedback">{{ $message }}</div>
-          @enderror
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-6">
-        <div class="mb-3">
           <label for="email" class="form-label text-white">Email</label>
           <input type="email" class="form-control @error('email') is-invalid @enderror" 
                  id="email" name="email" value="{{ old('email', $employee->email) }}">
@@ -53,6 +40,9 @@
           @enderror
         </div>
       </div>
+    </div>
+
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="phone" class="form-label text-white">Phone</label>
@@ -63,9 +53,27 @@
           @enderror
         </div>
       </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
+          <select class="form-select @error('category') is-invalid @enderror" 
+                  id="category" name="category" required>
+            <option value="">Select Category</option>
+            @if(isset($categories) && $categories->count() > 0)
+              @foreach ($categories as $cat)
+                <option value="{{ $cat }}" {{ old('category', $employee->department) == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+              @endforeach
+            @endif
+          </select>
+          @error('category')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
     </div>
 
     <div class="row">
+<<<<<<< HEAD
         <div class="col-md-6">
           <div class="mb-3">
             <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
@@ -101,58 +109,70 @@
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
           </div>
+=======
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="designation" class="form-label text-white">Designation</label>
+          <select class="form-select @error('designation') is-invalid @enderror" 
+                  id="designation" name="designation" disabled>
+            <option value="">Select Category First</option>
+          </select>
+          @error('designation')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+>>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
         </div>
       </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="city_id" class="form-label text-white">City</label>
-            <select class="form-select @error('city_id') is-invalid @enderror" 
-                    id="city_id" name="city_id">
-              <option value="">Select City</option>
-              @if(isset($cities) && $cities->count() > 0)
-                @foreach ($cities as $city)
-                  <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id', $employee->city_id) == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
-                @endforeach
-              @endif
-            </select>
-            @error('city_id')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="sector_id" class="form-label text-white">Sector</label>
-            <select class="form-select @error('sector_id') is-invalid @enderror" 
-                    id="sector_id" name="sector_id" disabled>
-              <option value="">Select City First</option>
-            </select>
-            @error('sector_id')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="city_id" class="form-label text-white">City</label>
+          <select class="form-select @error('city_id') is-invalid @enderror" 
+                  id="city_id" name="city_id">
+            <option value="">Select City</option>
+            @if(isset($cities) && $cities->count() > 0)
+              @foreach ($cities as $city)
+                <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id', $employee->city_id) == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
+              @endforeach
+            @endif
+          </select>
+          @error('city_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
       </div>
+      </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="sector_id" class="form-label text-white">Sector</label>
+          <select class="form-select @error('sector_id') is-invalid @enderror" 
+                  id="sector_id" name="sector_id" disabled>
+            <option value="">Select City First</option>
+          </select>
+          @error('sector_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="status" class="form-label text-white">Status</label>
+          <select class="form-select @error('status') is-invalid @enderror" 
+                  id="status" name="status" required>
+            <option value="">Select Status</option>
+            <option value="active" {{ old('status', $employee->status) == 'active' ? 'selected' : '' }}>Active</option>
+            <option value="inactive" {{ old('status', $employee->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+          </select>
+          @error('status')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+        </div>
+      </div>
+    </div>
 
 
       <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="status" class="form-label text-white">Status</label>
-            <select class="form-select @error('status') is-invalid @enderror" 
-                    id="status" name="status" required>
-              <option value="">Select Status</option>
-              <option value="active" {{ old('status', $employee->status) == 'active' ? 'selected' : '' }}>Active</option>
-              <option value="inactive" {{ old('status', $employee->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-            </select>
-            @error('status')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
         <div class="col-md-6">
           <div class="mb-3">
             <label for="date_of_hire" class="form-label text-white">Date of Hire</label>
@@ -163,9 +183,6 @@
             @enderror
           </div>
         </div>
-      </div>
-
-      <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
             <label for="leave_quota" class="form-label text-white">Leave Quota (Days)</label>
@@ -209,6 +226,7 @@
   feather.replace();
   
   document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< HEAD
     // Filter designations by selected category
     const categorySelect = document.getElementById('category');
     const designationSelect = document.getElementById('designation');
@@ -236,10 +254,90 @@
       // Initialize on load
       filterDesignations();
     }
+=======
+    const categorySelect = document.getElementById('category');
+    const designationSelect = document.getElementById('designation');
+    const currentCategory = '{{ old('category', $employee->department) }}';
+    const currentDesignation = '{{ old('designation', $employee->designation) }}';
+>>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
     const citySelect = document.getElementById('city_id');
     const sectorSelect = document.getElementById('sector_id');
     const currentCity = '{{ old('city_id', $employee->city_id) }}';
     const currentSector = '{{ old('sector_id', $employee->sector_id) }}';
+    
+    // Load designations on page load if category is already selected
+    if (currentCategory && categorySelect && designationSelect) {
+      fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(currentCategory)}`, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        designationSelect.innerHTML = '<option value="">Select Designation</option>';
+        
+        if (data.designations && data.designations.length > 0) {
+          data.designations.forEach(function(designation) {
+            const option = document.createElement('option');
+            option.value = designation.name;
+            option.textContent = designation.name;
+            if (designation.name === currentDesignation) {
+              option.selected = true;
+            }
+            designationSelect.appendChild(option);
+          });
+          designationSelect.disabled = false;
+        } else {
+          designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching designations:', error);
+      });
+    }
+    
+    // Handle category change to load designations
+    if (categorySelect && designationSelect) {
+      categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        designationSelect.innerHTML = '<option value="">Loading...</option>';
+        designationSelect.disabled = true;
+        
+        if (category) {
+          fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(category)}`, {
+            method: 'GET',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            designationSelect.innerHTML = '<option value="">Select Designation</option>';
+            
+            if (data.designations && data.designations.length > 0) {
+              data.designations.forEach(function(designation) {
+                const option = document.createElement('option');
+                option.value = designation.name;
+                option.textContent = designation.name;
+                designationSelect.appendChild(option);
+              });
+              designationSelect.disabled = false;
+            } else {
+              designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching designations:', error);
+            designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+          });
+        } else {
+          designationSelect.innerHTML = '<option value="">Select Category First</option>';
+        }
+      });
+    }
     
     // Load sectors on page load if city is already selected
     if (currentCity && citySelect && sectorSelect) {

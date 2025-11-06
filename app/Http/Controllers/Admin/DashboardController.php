@@ -163,12 +163,7 @@ class DashboardController extends Controller
             'out_of_stock_items' => (clone $sparesQuery)->outOfStock()->count(),
             'total_spare_value' => (clone $sparesQuery)->sum(DB::raw('stock_quantity * unit_price')),
 
-            // Approval statistics
-            'pending_approvals' => SpareApprovalPerforma::where('status', 'pending')->count(),
-            'approved_this_month' => SpareApprovalPerforma::where('status', 'approved')
-                ->where('created_at', '>=', $thisMonth)->count(),
-            'total_approvals' => SpareApprovalPerforma::count(),
-            'rejected_approvals' => SpareApprovalPerforma::where('status', 'rejected')->count(),
+            // Approval statistics removed
 
             // SLA statistics
             'active_sla_rules' => SlaRule::where('status', 'active')->count(),

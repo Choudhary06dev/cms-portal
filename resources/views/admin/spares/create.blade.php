@@ -88,7 +88,7 @@
                                 <option value="">Select City</option>
                                 @if(isset($cities) && $cities->count() > 0)
                                     @foreach ($cities as $city)
-                                        <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                                        <option value="{{ $city->id }}" {{ old('city_id', $defaultCityId ?? null) == $city->id ? 'selected' : '' }}>
                                             {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                                         </option>
                                     @endforeach
@@ -104,8 +104,8 @@
                         <div class="mb-3">
                             <label for="sector_id" class="form-label text-white">Sector</label>
                             <select class="form-select @error('sector_id') is-invalid @enderror" 
-                                    id="sector_id" name="sector_id" disabled>
-                                <option value="">Select City First</option>
+                                    id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
+                                <option value="">{{ (old('city_id', $defaultCityId ?? null)) ? 'Loading sectors...' : 'Select City First' }}</option>
                             </select>
                             @error('sector_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (cityId) {
                 // Fetch sectors for this city
-                const url = `{{ route('admin.clients.sectors') }}?city_id=${cityId}`;
+                const url = `{{ route('admin.sectors.by-city') }}?city_id=${cityId}`;
                 
                 fetch(url, {
                     method: 'GET',
@@ -299,9 +299,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     sectorSelect.innerHTML = '<option value="">Select Sector</option>';
-                    
-                    if (data.sectors && data.sectors.length > 0) {
-                        data.sectors.forEach(function(sector) {
+                    const sectors = Array.isArray(data) ? data : (data.sectors || []);
+                    if (sectors && sectors.length > 0) {
+                        sectors.forEach(function(sector) {
                             const option = document.createElement('option');
                             option.value = sector.id;
                             option.textContent = sector.name;
@@ -322,9 +322,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Load sectors if city is already selected (for old values)
-        @if(old('city_id'))
-            citySelect.dispatchEvent(new Event('change'));
-        @endif
+        // If city is pre-selected based on defaults (department staff) or old value, load sectors and preselect default
+        const defaultCityId = '{{ old('city_id', $defaultCityId ?? '') }}';
+        const defaultSectorId = '{{ old('sector_id', $defaultSectorId ?? '') }}';
+        if (defaultCityId) {
+            citySelect.value = defaultCityId;
+            const url = `{{ route('admin.sectors.by-city') }}?city_id=${defaultCityId}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+                const sectors = Array.isArray(data) ? data : (data.sectors || []);
+                if (sectors && sectors.length > 0) {
+                    sectors.forEach(sector => {
+                        const option = document.createElement('option');
+                        option.value = sector.id;
+                        option.textContent = sector.name;
+                        if (defaultSectorId && String(sector.id) === String(defaultSectorId)) {
+                            option.selected = true;
+                        }
+                        sectorSelect.appendChild(option);
+                    });
+                    sectorSelect.disabled = false;
+                } else {
+                    sectorSelect.innerHTML = '<option value="">No Sector Available</option>';
+                }
+            })
+            .catch(() => {
+                sectorSelect.innerHTML = '<option value="">Error Loading Sectors</option>';
+            });
+        }
     }
 });
 </script>

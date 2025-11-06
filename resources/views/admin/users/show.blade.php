@@ -56,7 +56,7 @@
           </div>
           <div class="mb-2">
             <span class="text-muted">Status:</span>
-            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}">{{ ucfirst($user->status) }}</span>
+            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">{{ ucfirst($user->status) }}</span>
           </div>
           <div class="mb-2">
             <span class="text-muted">Created:</span>

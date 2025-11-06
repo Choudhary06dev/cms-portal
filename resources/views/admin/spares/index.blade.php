@@ -17,26 +17,25 @@
 </div>
 
 <!-- FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <form id="sparesFiltersForm" method="GET" action="{{ route('admin.spares.index') }}">
     <div class="row g-2 align-items-end">
       <div class="col-auto">
-        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
         <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
                value="{{ request('search') }}" oninput="handleSparesSearchInput()" style="font-size: 0.9rem; width: 180px;">
       </div>
       <div class="col-auto">
-        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
-        <select class="form-select" name="category" onchange="submitSparesFilters()" style="font-size: 0.9rem; width: 140px;">
-          <option value="">All</option>
-          @php($catOptions = \Illuminate\Support\Facades\Schema::hasTable('complaint_categories') ? \App\Models\ComplaintCategory::orderBy('name')->pluck('name') : collect())
-          @foreach($catOptions as $cat)
-          <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
+        <select class="form-select" name="category" id="categoryFilter" onchange="submitSparesFilters()" style="font-size: 0.9rem; width: 160px;">
+          <option value="">All Categories</option>
+          @foreach($categories as $cat)
+          <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
         </select>
       </div>
       <div class="col-auto">
-        <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Stock</label>
+        <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Stock</label>
         <select class="form-select" name="stock_status" onchange="submitSparesFilters()" style="font-size: 0.9rem; width: 130px;">
           <option value="">All</option>
           <option value="in_stock" {{ request('stock_status') == 'in_stock' ? 'selected' : '' }}>In Stock</option>
@@ -65,10 +64,10 @@
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Brand Name</th>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Product Name</th>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Category</th>
-          <th class="text-end" style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Total Received</th>
-          <th class="text-end" style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Issued Qty</th>
-          <th class="text-end" style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Balance Qty</th>
-          <th class="text-end" style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">% Utilized</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Total Received</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Issued Qty</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Balance Qty</th>
+          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">% Utilized</th>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Stock Status</th>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Last Stock Out</th>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Actions</th>
@@ -81,20 +80,18 @@
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->product_code ?? 'N/A' }}</td>
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->brand_name ?? 'N/A' }}</td>
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->item_name }}</td>
-          <td style="padding: 0.4rem 0.5rem;">
-            <span class="badge bg-info" style="font-size: 0.75rem;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
-          </td>
-          <td class="text-end" style="padding: 0.4rem 0.5rem;"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
-          <td class="text-end" style="padding: 0.4rem 0.5rem;"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
-          <td class="text-end" style="padding: 0.4rem 0.5rem;">{{ number_format((float)($spare->stock_quantity ?? 0), 0) }}</td>
-          <td class="text-end" style="padding: 0.4rem 0.5rem;">{{ number_format((float)($spare->utilization_percent ?? 0), 0) }}%</td>
+          <td style="padding: 0.4rem 0.5rem;">{{ ucfirst($spare->category ?? 'N/A') }}</td>
+          <td style="padding: 0.4rem 0.5rem;"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
+          <td style="padding: 0.4rem 0.5rem;"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
+          <td style="padding: 0.4rem 0.5rem;">{{ number_format((float)($spare->stock_quantity ?? 0), 0) }}</td>
+          <td style="padding: 0.4rem 0.5rem;">{{ number_format((float)($spare->utilization_percent ?? 0), 0) }}%</td>
           <td style="padding: 0.4rem 0.5rem;">
             @if(($spare->stock_quantity ?? 0) <= 0)
-              <span class="badge bg-danger" style="font-size: 0.75rem;">Out</span>
+              <span class="badge bg-danger" style="font-size: 0.75rem; color: #ffffff !important;">Out</span>
             @elseif(($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0))
-              <span class="badge bg-warning text-dark" style="font-size: 0.75rem;">Low</span>
+              <span class="badge bg-warning" style="font-size: 0.75rem; color: #ffffff !important;">Low</span>
             @else
-              <span class="badge bg-success" style="font-size: 0.75rem;">In</span>
+              <span class="badge bg-success" style="font-size: 0.75rem; color: #ffffff !important;">In</span>
             @endif
           </td>
           <td style="padding: 0.4rem 0.5rem; font-size: 0.8rem;">

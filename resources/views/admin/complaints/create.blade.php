@@ -84,7 +84,7 @@
                     <option value="">Select City</option>
                     @if(isset($cities) && $cities->count() > 0)
                       @foreach($cities as $city)
-                        <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                        <option value="{{ $city->id }}" {{ old('city_id', $defaultCityId ?? null) == $city->id ? 'selected' : '' }}>
                           {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                         </option>
                       @endforeach
@@ -99,8 +99,8 @@
                 <div class="mb-3">
                   <label for="sector_id" class="form-label text-white">Sector</label>
                   <select class="form-select @error('sector_id') is-invalid @enderror" 
-                          id="sector_id" name="sector_id" disabled>
-                    <option value="">Select City First</option>
+                          id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
+                    <option value="">{{ (old('city_id', $defaultCityId ?? null)) ? 'Loading sectors...' : 'Select City First' }}</option>
                   </select>
                   @error('sector_id')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -165,6 +165,13 @@
                   <select class="form-select @error('title') is-invalid @enderror" 
                           id="title" name="title" autocomplete="off" required>
                   </select>
+                  <input type="text" 
+                         class="form-select @error('title') is-invalid @enderror" 
+                         id="title_other" 
+                         name="title_other" 
+                         placeholder="Enter custom title..."
+                         style="display: none;"
+                         value="{{ old('title_other') }}">
                   {{-- <small class="text-muted">Select category above to see complaint titles</small> --}}
                   @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -201,7 +208,7 @@
                     <option value="">Select Employee (Optional)</option>
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
-                        <option value="{{ $employee->id }}" data-category="{{ $employee->department }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
+                        <option value="{{ $employee->id }}" data-category="{{ $employee->department }}" data-city="{{ $employee->city_id }}" data-sector="{{ $employee->sector_id }}" {{ (string)old('assigned_employee_id') === (string)$employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
                       @endforeach
                     @else
                       <option value="" disabled>No employees available</option>
@@ -214,10 +221,7 @@
               </div>
             </div>
 
-            <div class="alert alert-info mt-3">
-              <strong>Note:</strong> Product and quantity are optional. If provided, they will be used in "Complaint Nature & Type" display and stock will be checked during approval process.
-            </div>
-
+           
             <div class="row">
               <div class="col-12">
                 <div class="mb-3">
@@ -320,80 +324,79 @@ document.addEventListener('DOMContentLoaded', function() {
   const quantityInput = document.getElementById('quantity_input');
   const stockWarning = document.getElementById('stock_warning');
   const categorySelect = document.getElementById('category');
-  
-  if (!spareSelect || !quantityInput) return;
 
-  function updateStockWarning() {
-    if (!spareSelect.value) {
-      stockWarning.style.display = 'none';
-      return;
+  // Stock validation and auto-adjustment (only if spare/quantity inputs exist)
+  if (spareSelect && quantityInput) {
+    function updateStockWarning() {
+      if (!spareSelect.value) {
+        stockWarning && (stockWarning.style.display = 'none');
+        return;
+      }
+
+      const selectedOption = spareSelect.options[spareSelect.selectedIndex];
+      const stock = selectedOption ? parseInt(selectedOption.getAttribute('data-stock') || 0) : 0;
+      const requestedQty = parseInt(quantityInput.value) || 0;
+
+      if (stockWarning) {
+        if (requestedQty > stock && stock > 0) {
+          // Auto-adjust quantity to available stock
+          quantityInput.value = stock;
+          stockWarning.textContent = `Insufficient stock! Quantity adjusted to available stock: ${stock}`;
+          stockWarning.style.display = 'block';
+          stockWarning.className = 'text-warning mt-1';
+        } else if (stock === 0) {
+          stockWarning.textContent = 'Warning: This product has zero stock available.';
+          stockWarning.style.display = 'block';
+          stockWarning.className = 'text-danger mt-1';
+        } else {
+          stockWarning.style.display = 'none';
+        }
+      }
     }
 
-    const selectedOption = spareSelect.options[spareSelect.selectedIndex];
-    const stock = selectedOption ? parseInt(selectedOption.getAttribute('data-stock') || 0) : 0;
-    const requestedQty = parseInt(quantityInput.value) || 0;
+    // Update warning when product or quantity changes
+    spareSelect.addEventListener('change', updateStockWarning);
+    quantityInput.addEventListener('input', updateStockWarning);
+    quantityInput.addEventListener('change', updateStockWarning);
 
-    if (requestedQty > stock && stock > 0) {
-      // Auto-adjust quantity to available stock
-      quantityInput.value = stock;
-      stockWarning.textContent = `Insufficient stock! Quantity adjusted to available stock: ${stock}`;
-      stockWarning.style.display = 'block';
-      stockWarning.className = 'text-warning mt-1';
-    } else if (stock === 0) {
-      stockWarning.textContent = 'Warning: This product has zero stock available.';
-      stockWarning.style.display = 'block';
-      stockWarning.className = 'text-danger mt-1';
-    } else {
-      stockWarning.style.display = 'none';
+    // Form submission validation
+    const form = document.querySelector('form[action*="complaints.store"]');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        // Validate quantity only if product is selected
+        if (spareSelect.value && (!quantityInput.value || parseInt(quantityInput.value) <= 0)) {
+          e.preventDefault();
+          alert('Please enter quantity for selected product.');
+          return false;
+        }
+        // If quantity is entered but no product selected
+        if (quantityInput.value && parseInt(quantityInput.value) > 0 && !spareSelect.value) {
+          e.preventDefault();
+          alert('Please select a product for the quantity.');
+          return false;
+        }
+      });
     }
-  }
-
-  // Update warning when product or quantity changes
-  spareSelect.addEventListener('change', updateStockWarning);
-  quantityInput.addEventListener('input', updateStockWarning);
-  quantityInput.addEventListener('change', updateStockWarning);
-
-  // Form submission validation
-  const form = document.querySelector('form[action*="complaints.store"]');
-  if (form) {
-    console.log('Form found, attaching submit listener');
-    form.addEventListener('submit', function(e) {
-      console.log('Form submit event triggered');
-      console.log('Spare ID:', spareSelect.value);
-      console.log('Quantity:', quantityInput.value);
-      
-      // Validate quantity only if product is selected
-      if (spareSelect.value && (!quantityInput.value || parseInt(quantityInput.value) <= 0)) {
-        e.preventDefault();
-        alert('Please enter quantity for selected product.');
-        return false;
-      }
-      
-      // If quantity is entered but no product selected
-      if (quantityInput.value && parseInt(quantityInput.value) > 0 && !spareSelect.value) {
-        e.preventDefault();
-        alert('Please select a product for the quantity.');
-        return false;
-      }
-      
-      console.log('Form validation passed, submitting...');
-      // Let form submit naturally
-    });
-  } else {
-    console.error('Form not found!');
   }
 
   const employeeSelect = document.getElementById('assigned_employee_id');
 
-  // Category -> Employee filter
+  // Employee filter: by Category, City, Sector
   function filterEmployees() {
-    if (!categorySelect || !employeeSelect) return;
-    const category = categorySelect.value;
+    if (!employeeSelect) return;
+    const category = categorySelect ? categorySelect.value : '';
+    const cityId = document.getElementById('city_id') ? document.getElementById('city_id').value : '';
+    const sectorId = document.getElementById('sector_id') ? document.getElementById('sector_id').value : '';
     let firstVisible = null;
     Array.from(employeeSelect.options).forEach(opt => {
       if (!opt.value) return; // placeholder
       const optCategory = opt.getAttribute('data-category') || '';
-      const show = !category || optCategory === category;
+      const optCity = opt.getAttribute('data-city') || '';
+      const optSector = opt.getAttribute('data-sector') || '';
+      const matchCategory = !category || optCategory === category;
+      const matchCity = !cityId || String(optCity) === String(cityId);
+      const matchSector = !sectorId || String(optSector) === String(sectorId);
+      const show = matchCategory && matchCity && matchSector;
       opt.hidden = !show;
       if (show && !firstVisible) firstVisible = opt;
     });
@@ -403,13 +406,55 @@ document.addEventListener('DOMContentLoaded', function() {
       if (sel && sel.hidden) employeeSelect.value = '';
     }
   }
-  if (categorySelect && employeeSelect) {
-    categorySelect.addEventListener('change', filterEmployees);
+  if (employeeSelect) {
+    categorySelect && categorySelect.addEventListener('change', filterEmployees);
+    const citySelectEl = document.getElementById('city_id');
+    const sectorSelectEl = document.getElementById('sector_id');
+    citySelectEl && citySelectEl.addEventListener('change', filterEmployees);
+    sectorSelectEl && sectorSelectEl.addEventListener('change', filterEmployees);
     filterEmployees();
   }
 
   // Category -> Complaint Titles dynamic loading
   const titleSelect = document.getElementById('title');
+  const titleOtherInput = document.getElementById('title_other');
+  
+  // Handle "Other" option selection
+  function handleTitleChange() {
+    if (!titleSelect || !titleOtherInput) return;
+    
+    const selectedValue = titleSelect.value;
+    
+    if (selectedValue === 'other') {
+      // Hide dropdown and show input field in same position
+      titleSelect.style.display = 'none';
+      titleOtherInput.style.display = 'block';
+      titleOtherInput.required = true;
+      titleSelect.removeAttribute('required');
+      // Focus on input field
+      setTimeout(() => titleOtherInput.focus(), 100);
+    } else {
+      // Show dropdown and hide input field
+      titleSelect.style.display = 'block';
+      titleOtherInput.style.display = 'none';
+      titleOtherInput.required = false;
+      titleSelect.required = true;
+    }
+  }
+  
+  if (titleSelect) {
+    titleSelect.addEventListener('change', handleTitleChange);
+  }
+  
+  // Sync title_other input to title field when typing
+  if (titleOtherInput) {
+    titleOtherInput.addEventListener('input', function() {
+      if (titleSelect.value === 'other') {
+        // Update title select value to "other" (it's already selected)
+        // The actual title value will be taken from title_other on submit
+      }
+    });
+  }
   
   if (categorySelect && titleSelect) {
     categorySelect.addEventListener('change', function() {
@@ -418,6 +463,14 @@ document.addEventListener('DOMContentLoaded', function() {
       // Clear existing options
       titleSelect.innerHTML = '<option value="">Loading titles...</option>';
       titleSelect.disabled = true;
+      if (titleOtherInput) {
+        titleOtherInput.style.display = 'none';
+        titleOtherInput.value = '';
+      }
+      // Ensure dropdown is visible when loading
+      if (titleSelect) {
+        titleSelect.style.display = 'block';
+      }
       
       if (!category) {
         titleSelect.innerHTML = '<option value="">Select Category first, then choose title</option>';
@@ -456,13 +509,36 @@ document.addEventListener('DOMContentLoaded', function() {
           titleSelect.appendChild(option);
         }
         
+        // Add "Other" option
+        const otherOption = document.createElement('option');
+        otherOption.value = 'other';
+        otherOption.textContent = 'Other';
+        titleSelect.appendChild(otherOption);
+        
         titleSelect.disabled = false;
         // Restore previously selected title if any
         const previous = titleSelect.getAttribute('data-prev');
         if (previous) {
           const opt = Array.from(titleSelect.options).find(o => o.value === previous);
-          if (opt) titleSelect.value = previous;
+          if (opt) {
+            titleSelect.value = previous;
+          } else if (previous === 'other') {
+            // If previous was "other", restore it
+            titleSelect.value = 'other';
+            if (titleOtherInput) {
+              const oldOther = '{{ old('title_other') }}';
+              if (oldOther) {
+                titleOtherInput.value = oldOther;
+              }
+              // Hide dropdown and show input field
+              titleSelect.style.display = 'none';
+              titleOtherInput.style.display = 'block';
+              titleOtherInput.required = true;
+              titleSelect.removeAttribute('required');
+            }
+          }
         }
+        handleTitleChange();
       })
       .catch(error => {
         console.error('Error loading complaint titles:', error);
@@ -477,7 +553,20 @@ document.addEventListener('DOMContentLoaded', function() {
       if (titleSelect && titleSelect.value) {
         titleSelect.setAttribute('data-prev', titleSelect.value);
       } else if ('{{ old('title') }}') {
-        titleSelect.setAttribute('data-prev', @json(old('title')));
+        const oldTitle = @json(old('title'));
+        titleSelect.setAttribute('data-prev', oldTitle);
+        // If old title was "other", check for title_other
+        if (oldTitle === 'other' && titleOtherInput) {
+          const oldOther = '{{ old('title_other') }}';
+          if (oldOther) {
+            titleOtherInput.value = oldOther;
+          }
+          // Hide dropdown and show input field
+          titleSelect.style.display = 'none';
+          titleOtherInput.style.display = 'block';
+          titleOtherInput.required = true;
+          titleSelect.removeAttribute('required');
+        }
       }
       categorySelect.dispatchEvent(new Event('change'));
     }
@@ -530,47 +619,83 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    // If city is pre-selected, load its sectors
-    if (citySelect.value) {
-      citySelect.dispatchEvent(new Event('change'));
+    // If city is pre-selected (e.g., for Department Staff), load sectors and select default
+    const defaultCityId = '{{ old('city_id', $defaultCityId ?? '') }}';
+    const defaultSectorId = '{{ old('sector_id', $defaultSectorId ?? '') }}';
+    if (defaultCityId) {
+      citySelect.value = defaultCityId;
+      // Trigger fetch to load sectors, then select default
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${defaultCityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            if (defaultSectorId && String(sector.id) === String(defaultSectorId)) {
+              option.selected = true;
+            }
+            sectorSelect.appendChild(option);
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
     }
   }
 
-  // Address auto-format: e.g., 17/2-ST-9-B-9
-  if (addressInput) {
-    function formatAddress(val) {
-      if (!val) return '';
-      let v = val.toUpperCase();
-      // Remove spaces
-      v = v.replace(/\s+/g, '');
-      // Ensure hyphen after number/number pattern like 17/2 → 17/2-
-      v = v.replace(/(\d+\/\d+)(?!-)/g, '$1-');
-      // Ensure hyphen after ST-<num> like ST-9 → ST-9-
-      v = v.replace(/(ST-\d+)(?!-)/g, '$1-');
-      // Collapse multiple hyphens
-      v = v.replace(/-+/g, '-');
-      // Prevent leading hyphen
-      v = v.replace(/^-+/, '');
-      return v;
-    }
-
-    let lastAddress = addressInput.value;
-    const applyFormat = () => {
-      const formatted = formatAddress(addressInput.value);
-      if (formatted !== addressInput.value) {
-        const pos = addressInput.selectionStart;
-        addressInput.value = formatted;
-        // Best-effort caret restore: move to end when structure changed
-        try { addressInput.setSelectionRange(formatted.length, formatted.length); } catch (_) {}
+  // Form submit handler: sync title_other to title when "Other" is selected
+  const complaintForm = document.querySelector('form[action*="complaints.store"]');
+  if (complaintForm && titleSelect && titleOtherInput) {
+    complaintForm.addEventListener('submit', function(e) {
+      if (titleSelect.value === 'other') {
+        // Copy title_other value to title field before submit
+        if (!titleOtherInput.value || titleOtherInput.value.trim() === '') {
+          e.preventDefault();
+          alert('Please enter a custom complaint title.');
+          titleOtherInput.focus();
+          return false;
+        }
+        // Create a hidden input to send the actual title value
+        let hiddenTitle = document.getElementById('title_hidden');
+        if (!hiddenTitle) {
+          hiddenTitle = document.createElement('input');
+          hiddenTitle.type = 'hidden';
+          hiddenTitle.id = 'title_hidden';
+          hiddenTitle.name = 'title';
+          complaintForm.appendChild(hiddenTitle);
+        }
+        hiddenTitle.value = titleOtherInput.value.trim();
+        // Remove name from select so it doesn't send "other" as value
+        titleSelect.removeAttribute('name');
+        titleSelect.removeAttribute('required');
+      } else {
+        // Ensure title select has name and is required for non-other options
+        titleSelect.setAttribute('name', 'title');
+        titleSelect.required = true;
+        // Remove hidden input if it exists
+        const hiddenTitle = document.getElementById('title_hidden');
+        if (hiddenTitle) {
+          hiddenTitle.remove();
+        }
       }
-      lastAddress = addressInput.value;
-    };
-
-    addressInput.addEventListener('input', applyFormat);
-    addressInput.addEventListener('blur', applyFormat);
-    // Initialize on load
-    applyFormat();
+    });
   }
+
 });
 </script>
 @endpush

@@ -9,6 +9,7 @@ use App\Models\Complaint;
 use App\Models\Employee;
 use App\Models\Spare;
 use App\Models\ComplaintCategory;
+use App\Models\StockApprovalData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -27,11 +28,51 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         try {
+            // Automatically create missing approval performas for complaints that don't have them
+            // This ensures all complaints appear in the approval modal
+            // Only create if approval doesn't already exist to avoid duplicates
+            $complaintsWithoutApprovals = Complaint::whereDoesntHave('spareApprovals')->get();
+            if ($complaintsWithoutApprovals->count() > 0) {
+                $defaultEmployee = Employee::first();
+                if ($defaultEmployee) {
+                    foreach ($complaintsWithoutApprovals as $complaint) {
+                        try {
+                            // Double check if approval doesn't exist (race condition prevention)
+                            $existingApproval = SpareApprovalPerforma::where('complaint_id', $complaint->id)->first();
+                            if ($existingApproval) {
+                                continue; // Skip if approval already exists
+                            }
+                            
+                            $requestedByEmployee = $complaint->assigned_employee_id 
+                                ? Employee::find($complaint->assigned_employee_id)
+                                : $defaultEmployee;
+                            
+                            if (!$requestedByEmployee) {
+                                $requestedByEmployee = $defaultEmployee;
+                            }
+                            
+                            SpareApprovalPerforma::create([
+                                'complaint_id' => $complaint->id,
+                                'requested_by' => $requestedByEmployee->id,
+                                'status' => 'pending',
+                                'remarks' => 'Auto-created for existing complaint',
+                            ]);
+                        } catch (\Exception $e) {
+                            \Log::warning('Failed to create approval performa for complaint: ' . $complaint->id, [
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                }
+            }
+            
             // Start with base query and join complaints table for filtering/ordering
+            // Use distinct to avoid duplicates from joins
             $query = SpareApprovalPerforma::query()
                 ->join('complaints', 'spare_approval_performa.complaint_id', '=', 'complaints.id')
                 ->join('clients', 'complaints.client_id', '=', 'clients.id')
-                ->select('spare_approval_performa.*');
+                ->select('spare_approval_performa.*')
+                ->distinct();
 
             // Search functionality - by Complaint ID, Address, or Cell No (phone)
             if ($request->has('search') && $request->search) {
@@ -86,8 +127,8 @@ class ApprovalController extends Controller
                 $query->whereDate('spare_approval_performa.created_at', '>=', $request->date_from);
             }
 
-            // Order by complaint created_at (descending)
-            $query->orderBy('complaints.created_at', 'desc');
+            // Order by approval ID (descending) - newest first
+            $query->orderBy('spare_approval_performa.id', 'desc');
             
             $approvals = $query->paginate(15);
             
@@ -261,9 +302,12 @@ class ApprovalController extends Controller
                     'items' => $approval->items->map(function($item) {
                         return [
                             'id' => $item->id,
+                            'spare_id' => $item->spare_id ?? null,
                             'spare_name' => $item->spare->item_name ?? 'N/A',
+                            'category' => $item->spare->category ?? 'N/A',
                             'quantity_requested' => (int)$item->quantity_requested,
                             'quantity_approved' => $item->quantity_approved !== null ? (int)$item->quantity_approved : null,
+                            'available_stock' => (int)($item->spare->stock_quantity ?? 0),
                             'unit_price' => $item->spare->unit_price ?? 0
                         ];
                     })
@@ -765,5 +809,5 @@ class ApprovalController extends Controller
         // This would require Laravel Excel package
         return response()->json(['message' => 'Excel export requires Laravel Excel package']);
     }
-}
 
+}

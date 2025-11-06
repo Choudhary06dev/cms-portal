@@ -20,7 +20,7 @@ class DesignationController extends Controller
                 ->with('error', 'Run migrations to create designations table.');
         }
 
-        $designations = Designation::orderBy('name', 'asc')->paginate(15);
+        $designations = Designation::orderBy('id', 'desc')->paginate(15);
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
@@ -33,25 +33,52 @@ class DesignationController extends Controller
         if (!Schema::hasTable('designations')) {
             return back()->with('error', 'Run migrations to create designations table (php artisan migrate).');
         }
-        $validated = $request->validate([
+        
+        $rules = [
             'category' => 'required|string|max:100',
             'name' => [
                 'required',
                 'string',
                 'max:100',
                 function ($attribute, $value, $fail) use ($request) {
-                    $exists = Designation::where('name', $value)
-                        ->where('category', $request->category)
-                        ->where('status', 'active')
-                        ->exists();
-                    if ($exists) {
+                    $query = Designation::where('name', $value)
+                        ->where('status', 'active');
+                    
+                    // Check category if column exists
+                    try {
+                        if (Schema::hasColumn('designations', 'category')) {
+                            $query->where('category', $request->category);
+                        }
+                    } catch (\Exception $e) {
+                        // If column check fails, just check name
+                    }
+                    
+                    if ($query->exists()) {
                         $fail('The designation name has already been taken for this category.');
                     }
                 }
             ],
             'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
-        ]);
+        ];
+        
+        $validated = $request->validate($rules);
+        // If legacy column exists, set safe default without requiring department module
+        try {
+            if (Schema::hasColumn('designations', 'department_id') && !array_key_exists('department_id', $validated)) {
+                $validated['department_id'] = 0; // placeholder
+            }
+        } catch (\Exception $e) {}
+        
+        // Remove category if column doesn't exist
+        try {
+            if (!Schema::hasColumn('designations', 'category')) {
+                unset($validated['category']);
+            }
+        } catch (\Exception $e) {
+            // If check fails, assume column exists
+        }
+        
         Designation::create($validated);
         return back()->with('success', 'Designation created');
     }
@@ -72,12 +99,20 @@ class DesignationController extends Controller
                     'string',
                     'max:100',
                     function ($attribute, $value, $fail) use ($request, $id) {
-                        $exists = Designation::where('name', $value)
-                            ->where('category', $request->category)
+                        $query = Designation::where('name', $value)
                             ->where('status', 'active')
-                            ->where('id', '!=', $id)
-                            ->exists();
-                        if ($exists) {
+                            ->where('id', '!=', $id);
+                        
+                        // Check category if column exists
+                        try {
+                            if (Schema::hasColumn('designations', 'category')) {
+                                $query->where('category', $request->category);
+                            }
+                        } catch (\Exception $e) {
+                            // If column check fails, just check name
+                        }
+                        
+                        if ($query->exists()) {
                             $fail('The designation name has already been taken for this category.');
                         }
                     }
@@ -87,6 +122,22 @@ class DesignationController extends Controller
             ];
             
             $validated = $request->validate($rules);
+            // If legacy column exists, set safe default without requiring department module
+            try {
+                if (Schema::hasColumn('designations', 'department_id') && !array_key_exists('department_id', $validated)) {
+                    $validated['department_id'] = 0; // placeholder
+                }
+            } catch (\Exception $e) {}
+            
+            // Remove category if column doesn't exist
+            try {
+                if (!Schema::hasColumn('designations', 'category')) {
+                    unset($validated['category']);
+                }
+            } catch (\Exception $e) {
+                // If check fails, assume column exists
+            }
+            
             $designation->update($validated);
             return back()->with('success', 'Designation updated');
         } catch (\Exception $e) {

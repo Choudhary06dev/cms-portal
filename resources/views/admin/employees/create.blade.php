@@ -32,19 +32,6 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="emp_id" class="form-label text-white">Employee ID</label>
-          <input type="text" class="form-control @error('emp_id') is-invalid @enderror" 
-                 id="emp_id" name="emp_id" value="{{ old('emp_id') }}" autocomplete="off">
-          @error('emp_id')
-            <div class="invalid-feedback">{{ $message }}</div>
-          @enderror
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-6">
-        <div class="mb-3">
           <label for="email" class="form-label text-white">Email</label>
           <input type="email" class="form-control @error('email') is-invalid @enderror" 
                  id="email" name="email" value="{{ old('email') }}" autocomplete="off">
@@ -53,6 +40,9 @@
           @enderror
         </div>
       </div>
+    </div>
+    
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="phone" class="form-label text-white">Phone</label>
@@ -63,9 +53,6 @@
           @enderror
         </div>
       </div>
-    </div>
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
@@ -83,11 +70,14 @@
           @enderror
         </div>
       </div>
+    </div>
 
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
           <select class="form-select @error('designation') is-invalid @enderror" 
+<<<<<<< HEAD
                   id="designation" name="designation">
             <option value="">Select Designation</option>
             @if(isset($designations) && $designations->count() > 0)
@@ -97,15 +87,16 @@
                 </option>
               @endforeach
             @endif
+=======
+                  id="designation" name="designation" disabled>
+            <option value="">Select Category First</option>
+>>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
           </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
         </div>
       </div>
-    </div>
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="city_id" class="form-label text-white">City</label>
@@ -123,7 +114,9 @@
           @enderror
         </div>
       </div>
+    </div>
 
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="sector_id" class="form-label text-white">Sector</label>
@@ -136,10 +129,6 @@
           @enderror
         </div>
       </div>
-    </div>
-    
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="status" class="form-label text-white">Status</label>
@@ -153,6 +142,10 @@
           @enderror
         </div>
       </div>
+    </div>
+    
+
+    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="date_of_hire" class="form-label text-white">Date of Hire</label>
@@ -163,9 +156,6 @@
           @enderror
         </div>
       </div>
-    </div>
-
-    <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
           <label for="leave_quota" class="form-label text-white">Leave Quota (Days)</label>
@@ -177,8 +167,10 @@
           @enderror
         </div>
       </div>
+    </div>
 
-        <div class="col-md-6">
+    <div class="row">
+      <div class="col-md-12">
         <div class="mb-3">
           <label for="address" class="form-label text-white">Address</label>
           <textarea class="form-control @error('address') is-invalid @enderror" 
@@ -207,6 +199,7 @@
   feather.replace();
   
   document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< HEAD
     // Filter designations by selected category
     const categorySelect = document.getElementById('category');
     const designationSelect = document.getElementById('designation');
@@ -239,8 +232,53 @@
       // Initialize state on load
       filterDesignations();
     }
+=======
+    const categorySelect = document.getElementById('category');
+    const designationSelect = document.getElementById('designation');
+>>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
     const citySelect = document.getElementById('city_id');
     const sectorSelect = document.getElementById('sector_id');
+    
+    // Handle category change to load designations
+    if (categorySelect && designationSelect) {
+      categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        designationSelect.innerHTML = '<option value="">Loading...</option>';
+        designationSelect.disabled = true;
+        
+        if (category) {
+          fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(category)}`, {
+            method: 'GET',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            designationSelect.innerHTML = '<option value="">Select Designation</option>';
+            
+            if (data.designations && data.designations.length > 0) {
+              data.designations.forEach(function(designation) {
+                const option = document.createElement('option');
+                option.value = designation.name;
+                option.textContent = designation.name;
+                designationSelect.appendChild(option);
+              });
+              designationSelect.disabled = false;
+            } else {
+              designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching designations:', error);
+            designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+          });
+        } else {
+          designationSelect.innerHTML = '<option value="">Select Category First</option>';
+        }
+      });
+    }
     
     // Handle city change
     if (citySelect && sectorSelect) {

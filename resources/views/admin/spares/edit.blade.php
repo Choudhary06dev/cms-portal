@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (cityId) {
                 // Fetch sectors for this city
-                const url = `{{ route('admin.clients.sectors') }}?city_id=${cityId}`;
+                const url = `{{ route('admin.sectors.by-city') }}?city_id=${cityId}`;
                 
                 fetch(url, {
                     method: 'GET',
@@ -316,14 +316,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     sectorSelect.innerHTML = '<option value="">Select Sector</option>';
-                    
-                    if (data.sectors && data.sectors.length > 0) {
-                        data.sectors.forEach(function(sector) {
+                    const sectors = Array.isArray(data) ? data : (data.sectors || []);
+                    if (sectors && sectors.length > 0) {
+                        sectors.forEach(function(sector) {
                             const option = document.createElement('option');
                             option.value = sector.id;
                             option.textContent = sector.name;
                             // Preserve original selection if city hasn't changed
-                            if (cityId == @json($spare->city_id ?? old('city_id', '')) && sector.id == originalSectorId) {
+                            if (cityId == @json($spare->city_id ?? old('city_id', '')) && String(sector.id) === String(originalSectorId)) {
                                 option.selected = true;
                             }
                             sectorSelect.appendChild(option);

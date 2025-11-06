@@ -124,7 +124,16 @@ class ComplaintController extends Controller
         
         $sectors = collect(); // Will be loaded dynamically based on city selection
 
-        return view('admin.complaints.create', compact('employees', 'categories', 'cities', 'sectors'));
+        // Defaults for Department Staff: preselect their city and sector
+        $defaultCityId = null;
+        $defaultSectorId = null;
+        $authUser = Auth::user();
+        if ($authUser && $authUser->role && strtolower($authUser->role->role_name) === 'department_staff') {
+            $defaultCityId = $authUser->city_id;
+            $defaultSectorId = $authUser->sector_id;
+        }
+
+        return view('admin.complaints.create', compact('employees', 'categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId'));
     }
 
     /**
@@ -150,9 +159,6 @@ class ComplaintController extends Controller
             // Status removed from form - will be managed in approvals view, default to 'new'
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
-            'spare_parts' => 'nullable|array',
-            'spare_parts.*.spare_id' => 'nullable|exists:spares,id',
-            'spare_parts.*.quantity' => 'nullable|integer|min:1',
             'city' => 'nullable|string|max:100',
             'sector' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:500',
@@ -243,149 +249,8 @@ class ComplaintController extends Controller
             ]);
         }
 
-        // Handle spare parts (optional)
-        $totalCost = 0;
-        $usedParts = [];
-
-        // Only process spare parts if provided
-        if (!empty($request->spare_parts) && is_array($request->spare_parts)) {
-            foreach ($request->spare_parts as $part) {
-                if (empty($part['spare_id']) || empty($part['quantity'])) {
-                    Log::warning('Skipping empty spare part entry', ['part' => $part]);
-                    continue; // Skip empty entries
-                }
-
-            $spare = Spare::find($part['spare_id']);
-            
-            if (!$spare) {
-                throw new \Exception("Spare part not found: {$part['spare_id']}");
-            }
-
-            // Get employee ID for used_by
-            $usedByEmployeeId = $currentEmployee ? $currentEmployee->id : (Employee::first()?->id);
-            if (!$usedByEmployeeId) {
-                throw new \Exception("No employee found to assign as used_by. Please create an employee first.");
-            }
-
-            // Do not enforce stock at request time; stock will be checked at approval
-
-            // Create complaint spare record
-            try {
-                ComplaintSpare::create([
-                    'complaint_id' => $complaint->id,
-                    'spare_id' => $spare->id,
-                    'quantity' => (int)$part['quantity'],
-                    'used_by' => $usedByEmployeeId,
-                    'used_at' => now(),
-                ]);
-                Log::info('ComplaintSpare created', [
-                    'complaint_id' => $complaint->id,
-                    'spare_id' => $spare->id,
-                    'quantity' => $part['quantity']
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to create ComplaintSpare', [
-                    'complaint_id' => $complaint->id,
-                    'spare_id' => $spare->id,
-                    'error' => $e->getMessage()
-                ]);
-                throw $e;
-            }
-
-            // No stock deduction at complaint creation; happens on approval
-
-                $totalCost += $spare->unit_price * $part['quantity'];
-                $usedParts[] = "{$spare->item_name} (Qty: {$part['quantity']})";
-            }
-        }
-
-        // Log spare parts usage if any were added
-        if (!empty($usedParts) && $currentEmployee) {
-            ComplaintLog::create([
-                'complaint_id' => $complaint->id,
-                'action_by' => $currentEmployee->id,
-                'action' => 'spare_parts_added',
-                'remarks' => 'Added spare parts during creation: ' . implode(', ', $usedParts) . '. Total cost: PKR ' . number_format($totalCost, 2),
-            ]);
-        }
-
-        // Create approval performa for the complaint (only if spare parts are provided)
-        // Auto-approve if stock is available
-        if (!empty($request->spare_parts) && is_array($request->spare_parts)) {
-            try {
-                // Get any employee as fallback if current user doesn't have employee record
-                $requestedBy = $currentEmployee ? $currentEmployee->id : \App\Models\Employee::first()->id;
-                
-                if (!$requestedBy) {
-                    Log::error('No employee found to assign as requested_by');
-                    return redirect()->route('admin.complaints.index')
-                        ->with('error', 'Complaint created but approval could not be generated. Please create an employee first.');
-                }
-                
-                // Always create pending approval - never auto-approve
-                // Check stock availability to add reason for insufficient stock
-                $stockIssues = [];
-                foreach ($request->spare_parts as $part) {
-                    if (!empty($part['spare_id']) && !empty($part['quantity'])) {
-                        $spare = Spare::find($part['spare_id']);
-                        if ($spare) {
-                            $requestedQty = (int)$part['quantity'];
-                            $availableQty = (int)$spare->stock_quantity;
-                            if ($availableQty < $requestedQty) {
-                                $stockIssues[] = $spare->item_name . ' (Requested: ' . $requestedQty . ', Available: ' . $availableQty . ')';
-                            }
-                        }
-                    }
-                }
-                
-                // Create pending approval - never auto-approve
-                $approval = SpareApprovalPerforma::create([
-                    'complaint_id' => $complaint->id,
-                    'requested_by' => $requestedBy,
-                    'status' => 'pending',
-                    'approved_by' => null,
-                    'approved_at' => null,
-                    'remarks' => 'Auto-generated approval for complaint: ' . $complaint->title . 
-                        (count($stockIssues) > 0 ? ' - Stock insufficient: ' . implode(', ', $stockIssues) : ''),
-                ]);
-                
-                // Create approval items with requested quantities (no auto-approval)
-                foreach ($request->spare_parts as $part) {
-                    if (!empty($part['spare_id']) && !empty($part['quantity'])) {
-                        $spare = Spare::find($part['spare_id']);
-                        $requestedQty = (int)$part['quantity'];
-                        
-                        // Check stock and set reason if insufficient
-                        $availableQty = $spare ? (int)$spare->stock_quantity : 0;
-                        $reason = 'Requested from complaint creation';
-                        if ($availableQty < $requestedQty) {
-                            $reason = 'Insufficient stock: Requested ' . $requestedQty . ', Available ' . $availableQty;
-                        }
-                        
-                        $item = SpareApprovalItem::create([
-                            'performa_id' => $approval->id,
-                            'spare_id' => (int)$part['spare_id'],
-                            'quantity_requested' => $requestedQty,
-                            'quantity_approved' => null, // Will be set when manually approved
-                            'reason' => $reason,
-                        ]);
-                    }
-                }
-                
-                Log::info('Approval created successfully (pending for manual approval)', [
-                    'approval_id' => $approval->id,
-                    'complaint_id' => $complaint->id,
-                    'requested_by' => $requestedBy,
-                    'status' => 'pending',
-                    'stock_issues' => count($stockIssues) > 0 ? $stockIssues : null,
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to create approval', [
-                    'complaint_id' => $complaint->id,
-                    'error' => $e->getMessage()
-                ]);
-            }
-        }
+        // Note: Approval performa is automatically created by Complaint model's boot() method
+        // No need to create it here to avoid duplicates
 
         // Commit the transaction
         DB::commit();
@@ -416,7 +281,8 @@ class ComplaintController extends Controller
                 'logs.actionBy',
                 'spareParts.spare',
                 'spareParts.usedBy',
-                'spareApprovals.items.spare'
+                'spareApprovals.items.spare',
+                'feedback.enteredBy'
             ]);
 
             if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
@@ -465,7 +331,46 @@ class ComplaintController extends Controller
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
 
-        return view('admin.complaints.edit', compact('complaint', 'employees', 'categories'));
+        // Provide cities/sectors for dropdowns (match create() UX)
+        $cities = Schema::hasTable('cities')
+            ? City::where('status', 'active')->orderBy('name')->get()
+            : collect();
+
+        // Derive defaults from existing complaint city/sector names
+        $defaultCityId = null;
+        $defaultSectorId = null;
+        $sectors = collect();
+
+        if ($complaint->city && Schema::hasTable('cities')) {
+            $city = City::where('name', $complaint->city)->first();
+            if ($city) {
+                $defaultCityId = $city->id;
+                if (Schema::hasTable('sectors')) {
+                    $sectors = Sector::where('city_id', $city->id)
+                        ->where('status', 'active')
+                        ->orderBy('name')
+                        ->get();
+                    if ($complaint->sector) {
+                        $sector = Sector::where('city_id', $city->id)
+                            ->where('name', $complaint->sector)
+                            ->first();
+                        if ($sector) {
+                            $defaultSectorId = $sector->id;
+                        }
+                    }
+                }
+            }
+        }
+
+        return view('admin.complaints.edit', compact(
+            'complaint',
+            'employees',
+            'categories',
+            'cities',
+            'sectors',
+            'defaultCityId',
+            'defaultSectorId'
+        ));
     }
 
     /**
@@ -490,6 +395,8 @@ class ComplaintController extends Controller
             'spare_parts.0.quantity' => 'nullable|integer|min:1',
             'city' => 'nullable|string|max:100',
             'sector' => 'nullable|string|max:100',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
             'email' => 'nullable|string|max:150',
             'phone' => 'nullable|string|max:50',
@@ -501,6 +408,22 @@ class ComplaintController extends Controller
                 ->withInput();
         }
 
+        // Resolve city/sector names from IDs if provided (dropdowns)
+        $cityName = null;
+        $sectorName = null;
+        if ($request->city_id) {
+            $city = City::find($request->city_id);
+            $cityName = $city?->name;
+        }
+        if ($request->sector_id) {
+            $sector = Sector::find($request->sector_id);
+            $sectorName = $sector?->name;
+        }
+
+        // Fallback to text inputs if present
+        $cityName = $cityName ?? ($request->city ?: null);
+        $sectorName = $sectorName ?? ($request->sector ?: null);
+
         // Find or create client by name and update details
         $client = Client::firstOrCreate(
             ['client_name' => trim($request->client_name)],
@@ -509,8 +432,8 @@ class ComplaintController extends Controller
                 'email' => $request->input('email', ''),
                 'phone' => $request->input('phone', ''),
                 'address' => $request->input('address'),
-                'city' => $request->city ?? null,
-                'sector' => $request->sector ?? null,
+                'city' => $cityName,
+                'sector' => $sectorName,
                 'status' => 'active',
             ]
         );
@@ -520,8 +443,8 @@ class ComplaintController extends Controller
             'email' => $request->input('email', $client->email),
             'phone' => $request->input('phone', $client->phone),
             'address' => $request->input('address', $client->address),
-            'city' => $request->city ?? $client->city,
-            'sector' => $request->sector ?? $client->sector,
+            'city' => $cityName ?? $client->city,
+            'sector' => $sectorName ?? $client->sector,
         ])->save();
 
         $oldStatus = $complaint->status;
@@ -530,8 +453,8 @@ class ComplaintController extends Controller
         $complaint->update([
             'title' => $request->title,
             'client_id' => $client->id,
-            'city' => $request->city,
-            'sector' => $request->sector,
+            'city' => $cityName,
+            'sector' => $sectorName,
             'category' => $request->category,
             'priority' => $request->priority,
             'description' => $request->description,

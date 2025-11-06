@@ -21,7 +21,7 @@
 </div>
 
 <!-- DATE FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <div class="card-body">
     <form id="complaintsReportFiltersForm" method="GET" class="row g-3">
       <div class="col-md-6">
@@ -64,9 +64,23 @@
           </tr>
         </thead>
         <tbody>
+          @php
+            // Status display names mapping
+            $statusDisplayNames = [
+              'assigned' => 'Assigned',
+              'in_progress' => 'In-Process',
+              'resolved' => 'Addressed',
+              'work_performa' => 'Work Performa',
+              'maint_performa' => 'Maint Performa',
+              'priced_performa' => 'Maint/Work Priced',
+              'product_na' => 'Product N/A',
+            ];
+          @endphp
           @foreach($reportData as $rowKey => $row)
           <tr class="{{ $rowKey === 'total' ? 'table-total-row' : '' }}">
-            <td class="fw-bold" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ $row['name'] }}</td>
+            <td class="fw-bold" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
+              {{ $statusDisplayNames[$rowKey] ?? $row['name'] }}
+            </td>
             @foreach($categories as $catKey => $catName)
               @php
                 $cellData = $row['categories'][$catKey] ?? ['count' => 0, 'percentage' => 0];
@@ -75,7 +89,40 @@
               <td class="text-center" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['percentage'], 1) }}%</td>
             @endforeach
             @php
-              $rowGrandTotal = array_sum(array_column($row['categories'], 'count'));
+              // Calculate grand total: sum of all primary columns
+              // Individual E&M NRC columns (Electric, Gas, Water Supply) should be EXCLUDED from Total
+              // E&M NRC (Total) should be INCLUDED in Total
+              $rowGrandTotal = 0;
+              $emNrcTotalKeyLocal = $emNrcTotalKey ?? 'em_nrc_total';
+              $hasEmNrcTotal = isset($row['categories'][$emNrcTotalKeyLocal]);
+              
+              foreach ($row['categories'] as $catKey => $catData) {
+                // Always include E&M NRC Total if it exists
+                if ($catKey === $emNrcTotalKeyLocal) {
+                  $rowGrandTotal += $catData['count'] ?? 0;
+                } 
+                // For other categories, check if it's an individual E&M NRC column
+                elseif (isset($categories[$catKey])) {
+                  $catName = $categories[$catKey];
+                  
+                  // Skip individual E&M NRC columns (Electric, Gas, Water Supply) if E&M NRC Total exists
+                  $isIndividualEmNrc = false;
+                  if ($hasEmNrcTotal) {
+                    // Check if this is one of the 3 individual E&M NRC columns
+                    if (stripos($catName, 'E&M NRC') !== false && stripos($catName, 'Total') === false) {
+                      $isIndividualEmNrc = true;
+                    }
+                  }
+                  
+                  // Include all other columns (non-individual E&M NRC columns)
+                  if (!$isIndividualEmNrc) {
+                    $rowGrandTotal += $catData['count'] ?? 0;
+                  }
+                } else {
+                  // Include if category key not found in categories array (fallback)
+                  $rowGrandTotal += $catData['count'] ?? 0;
+                }
+              }
               $rowGrandPercent = $grandTotal > 0 ? ($rowGrandTotal / $grandTotal * 100) : 0;
             @endphp
             <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important;">{{ number_format($rowGrandTotal) }}</td>

@@ -23,7 +23,7 @@
         </div>
         <h4 class="text-white">{{ $employee->name ?? 'N/A' }}</h4>
         <p class="text-light">{{ $employee->designation ?? 'N/A' }}</p>
-        <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}">
+        <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
           {{ ucfirst($employee->status ?? 'inactive') }}
         </span>
       </div>
@@ -37,10 +37,7 @@
             <span class="text-muted">Name:</span>
             <span class="text-white ms-2">{{ $employee->name ?? 'N/A' }}</span>
           </div>
-          <div class="mb-3">
-            <span class="text-muted">Employee ID:</span>
-            <span class="text-white ms-2">{{ $employee->emp_id ?? 'N/A' }}</span>
-          </div>
+          
           <div class="mb-3">
             <span class="text-muted">Phone:</span>
             <span class="text-white ms-2">{{ $employee->phone ?? 'N/A' }}</span>
@@ -59,7 +56,7 @@
           </div>
           <div class="mb-3">
             <span class="text-muted">Status:</span>
-            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2">
+            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2" style="color: #ffffff !important;">
               {{ ucfirst($employee->status ?? 'inactive') }}
             </span>
           </div>
@@ -81,10 +78,7 @@
       <div class="row mt-4">
         <div class="col-md-6">
           <h6 class="text-white fw-bold mb-3">Additional Information</h6>
-          <div class="mb-3">
-            <span class="text-muted">Employee ID:</span>
-            <span class="text-white ms-2">{{ $employee->emp_id ?? 'N/A' }}</span>
-          </div>
+          
           <div class="mb-3">
             <span class="text-muted">Leave Quota:</span>
             <span class="text-white ms-2">{{ $employee->leave_quota ?? 'N/A' }} days</span>

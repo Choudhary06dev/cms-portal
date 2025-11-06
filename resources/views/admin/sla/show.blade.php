@@ -63,7 +63,7 @@
                   <tr>
                     <td class="text-white"><strong>Status:</strong></td>
                     <td>
-                      <span class="badge bg-{{ $sla->status === 'active' ? 'success' : 'danger' }}">
+                      <span class="badge bg-{{ $sla->status === 'active' ? 'success' : 'danger' }}" style="color: #ffffff !important;">
                         {{ ucfirst($sla->status) }}
                       </span>
                     </td>
@@ -178,17 +178,17 @@
                       <td>{{ $complaint->ticket_number }}</td>
                       <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
                       <td>
-                        <span class="badge bg-{{ $complaint->status === 'resolved' ? 'success' : ($complaint->status === 'closed' ? 'info' : 'warning') }}">
+                        <span class="badge bg-{{ $complaint->status === 'resolved' ? 'success' : ($complaint->status === 'closed' ? 'info' : 'warning') }}" style="color: #ffffff !important;">
                           {{ ucfirst($complaint->status) }}
                         </span>
                       </td>
                       <td>
-                        <span class="badge bg-{{ $complaint->isOverdue() ? 'danger' : 'success' }}">
+                        <span class="badge bg-{{ $complaint->isOverdue() ? 'danger' : 'success' }}" style="color: #ffffff !important;">
                           {{ $complaint->hours_elapsed }}h
                         </span>
                       </td>
                       <td>
-                        <span class="badge bg-{{ $complaint->isSlaBreached() ? 'danger' : 'success' }}">
+                        <span class="badge bg-{{ $complaint->isSlaBreached() ? 'danger' : 'success' }}" style="color: #ffffff !important;">
                           {{ $complaint->isSlaBreached() ? 'Breached' : 'Within SLA' }}
                         </span>
                       </td>

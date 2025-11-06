@@ -48,14 +48,41 @@
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label text-white">City</label>
-                  <input type="text" class="form-control" id="client_city" name="city" value="{{ old('city', $complaint->city ?? $complaint->client->city ?? '') }}" placeholder="Enter city">
+                  <label for="city_id" class="form-label text-white">City</label>
+                  <select class="form-select @error('city_id') is-invalid @enderror" 
+                          id="city_id" name="city_id">
+                    <option value="">Select City</option>
+                    @if(isset($cities) && $cities->count() > 0)
+                      @foreach($cities as $city)
+                        <option value="{{ $city->id }}" {{ (string)old('city_id', $defaultCityId ?? '') === (string)$city->id ? 'selected' : '' }}>
+                          {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
+                        </option>
+                      @endforeach
+                    @endif
+                  </select>
+                  @error('city_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label text-white">Sector</label>
-                  <input type="text" class="form-control" id="client_sector" name="sector" value="{{ old('sector', $complaint->sector ?? $complaint->client->sector ?? '') }}" placeholder="Enter sector">
+                  <label for="sector_id" class="form-label text-white">Sector</label>
+                  <select class="form-select @error('sector_id') is-invalid @enderror" 
+                          id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
+                    @php $hasCity = old('city_id', $defaultCityId ?? null); @endphp
+                    <option value="">{{ $hasCity ? 'Loading sectors...' : 'Select City First' }}</option>
+                    @if(isset($sectors) && $sectors->count() > 0)
+                      @foreach($sectors as $sector)
+                        <option value="{{ $sector->id }}" {{ (string)old('sector_id', $defaultSectorId ?? '') === (string)$sector->id ? 'selected' : '' }}>
+                          {{ $sector->name }}
+                        </option>
+                      @endforeach
+                    @endif
+                  </select>
+                  @error('sector_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
               <div class="col-md-4">
@@ -265,36 +292,6 @@ document.addEventListener('DOMContentLoaded', function() {
     filterEmployees();
   }
 
-  // Address auto-format: ensure patterns like 00/0-ST-4-B-5
-  if (addressInput) {
-    function formatAddress(val) {
-      if (!val) return '';
-      let v = val.toUpperCase();
-      v = v.replace(/\s+/g, '');
-      // Ensure hyphen after number/number pattern e.g., 17/2 -> 17/2-
-      v = v.replace(/(\d+\/\d+)(?!-)/g, '$1-');
-      // Ensure hyphen after ST-<num> e.g., ST-4 -> ST-4-
-      v = v.replace(/(ST-\d+)(?!-)/g, '$1-');
-      // Collapse multiple hyphens
-      v = v.replace(/-+/g, '-');
-      // Trim leading hyphens
-      v = v.replace(/^-+/, '');
-      return v;
-    }
-
-    const applyFormat = () => {
-      const formatted = formatAddress(addressInput.value);
-      if (formatted !== addressInput.value) {
-        addressInput.value = formatted;
-        try { addressInput.setSelectionRange(formatted.length, formatted.length); } catch (_) {}
-      }
-    };
-
-    addressInput.addEventListener('input', applyFormat);
-    addressInput.addEventListener('blur', applyFormat);
-    // Initialize once on load
-    applyFormat();
-  }
   // Category -> Complaint Titles dynamic loading
   const titleSelect = document.getElementById('title');
   const currentTitle = '{{ old('title', $complaint->title) }}';
@@ -378,6 +375,86 @@ document.addEventListener('DOMContentLoaded', function() {
     // Trigger on page load if category is pre-selected
     if (categorySelect.value) {
       categorySelect.dispatchEvent(new Event('change'));
+    }
+  }
+
+  // City -> Sector dynamic loading (mirror create view)
+  const citySelect = document.getElementById('city_id');
+  const sectorSelect = document.getElementById('sector_id');
+  if (citySelect && sectorSelect) {
+    citySelect.addEventListener('change', function() {
+      const cityId = this.value;
+      if (!cityId) {
+        sectorSelect.innerHTML = '<option value="">Select City First</option>';
+        sectorSelect.disabled = true;
+        return;
+      }
+      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+      sectorSelect.disabled = true;
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            sectorSelect.appendChild(option);
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
+    });
+
+    // Preselect defaults from server (existing complaint)
+    const defaultCityId = '{{ old('city_id', $defaultCityId ?? '') }}';
+    const defaultSectorId = '{{ old('sector_id', $defaultSectorId ?? '') }}';
+    if (defaultCityId) {
+      citySelect.value = defaultCityId;
+      fetch(`{{ route('admin.sectors.by-city') }}?city_id=${defaultCityId}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        if (data && data.length > 0) {
+          data.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            if (defaultSectorId && String(sector.id) === String(defaultSectorId)) {
+              option.selected = true;
+            }
+            sectorSelect.appendChild(option);
+          });
+        } else {
+          sectorSelect.innerHTML = '<option value=\"\">No sectors found for this city</option>';
+        }
+        sectorSelect.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error loading sectors:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        sectorSelect.disabled = false;
+      });
     }
   }
 });

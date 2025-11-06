@@ -19,26 +19,26 @@
 </div>
 
 <!-- FILTERS -->
-<div class="card-glass mb-4">
+<div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
   <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}" onsubmit="event.preventDefault(); submitApprovalsFilters(event); return false;">
   <div class="row g-2 align-items-end">
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Search</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
       <input type="text" class="form-control" id="searchInput" name="search" placeholder="Complaint ID or Address..." 
              value="{{ request('search') }}" autocomplete="off" style="font-size: 0.9rem; width: 200px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">From Date</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">From Date</label>
       <input type="date" class="form-control" name="complaint_date" 
              value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">To Date</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">To Date</label>
       <input type="date" class="form-control" name="date_to" 
              value="{{ request('date_to') }}" placeholder="End Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
     </div>
     <div class="col-auto">
-      <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">Category</label>
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
       <select class="form-select" name="category" autocomplete="off" style="font-size: 0.9rem; width: 140px;">
         <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
         @if(isset($categories) && $categories->count() > 0)
@@ -117,9 +117,21 @@
           $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
                           ($complaintStatus == 'resolved' ? 'Addressed' : 
                           ucfirst(str_replace('_', ' ', $complaintStatus)));
+          
+          // Status colors mapping
+          $statusColors = [
+            'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
+            'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Darker Green
+            'work_performa' => ['bg' => '#0ea5e9', 'text' => '#ffffff', 'border' => '#0284c7'], // Sky Blue
+            'maint_performa' => ['bg' => '#fef08a', 'text' => '#ffffff', 'border' => '#eab308'], // Light Yellow
+            'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
+          ];
+          
+          // Get current status color or default
+          $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
         @endphp
         <tr>
-          <td>{{ $loop->iteration }}</td>
+          <td>{{ $approval->id }}</td>
           <td>{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
           <td>{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '' }}</td>
           <td>
@@ -133,25 +145,96 @@
             <div class="text-white">{{ $displayText }}</div>
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
-          <td>
-            <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600;"></span>
+          <td style="color: white !important;">
+            @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
+              <span style="color: white !important;">-</span>
+            @else
+              <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important;"></span>
+            @endif
           </td>
           <td>
+            @php
+              // Get product and price information
+              $complaintSpare = $complaint->spareParts->first();
+              $pricePerForma = 'N/A';
+              
+              if ($complaintSpare && $complaintSpare->spare && $complaintSpare->spare->unit_price) {
+                $pricePerForma = 'PKR ' . number_format($complaintSpare->spare->unit_price, 2);
+              }
+            @endphp
             @if($complaintStatus == 'resolved')
-              <span class="badge" style="background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;">
-                Addressed
-              </span>
-            @else
+              <div class="status-chip" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }}; width: 140px; height: 28px; justify-content: center;">
+                <span style="font-size: 11px; font-weight: 700; color: white !important;">Addressed</span>
+              </div>
+            @elseif($complaintStatus == 'in_progress')
+              <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }}; position: relative;">
+                <span class="status-indicator" style="background-color: {{ $statusColors['in_progress']['bg'] }}; border-color: {{ $statusColors['in_progress']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
-                      style="min-width: 140px; background-color: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 600; border-radius: 4px;">
+                      data-status-color="in_progress"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_performa">Work Performa</option>
                 <option value="maint_performa">Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
               </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
+              </div>
+            @elseif($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false))
+              <div class="status-chip" style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['work_performa']['bg'] }}; border-color: {{ $statusColors['work_performa']['border'] }};"></span>
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="work_performa"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
+                <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa" {{ $complaintStatus == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
+                <option value="maint_performa">Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
+              </select>
+              </div>
+            @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Maint') !== false))
+              <div class="status-chip" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};"></span>
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="maint_performa"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
+                <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa">Work Performa</option>
+                <option value="maint_performa" {{ $complaintStatus == 'maint_performa' ? 'selected' : '' }}>Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
+              </select>
+              </div>
+            @else
+              <div class="status-chip" style="background-color: {{ $statusColors['assigned']['bg'] }}; color: {{ $statusColors['assigned']['text'] }}; border-color: {{ $statusColors['assigned']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['assigned']['bg'] }}; border-color: {{ $statusColors['assigned']['border'] }};"></span>
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="assigned"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
+                <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                <option value="work_performa">Work Performa</option>
+                <option value="maint_performa">Maint Performa</option>
+                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="product_na">Product N/A</option>
+              </select>
+              </div>
             @endif
           </td>
           <td>
@@ -159,6 +242,46 @@
               <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
                 <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
+              <button type="button" class="btn btn-outline-primary btn-sm add-stock-btn" title="Issue Stock" data-approval-id="{{ $approval->id }}" onclick="openAddStockModal({{ $approval->id }})" style="padding: 3px 8px; cursor: pointer;">
+                <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
+              </button>
+              @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
+                @php
+                  $hasFeedback = false;
+                  $feedbackId = null;
+                  // Safely check if feedback exists without triggering lazy loading errors
+                  try {
+                    if ($complaint && $complaint->relationLoaded('feedback')) {
+                      $feedback = $complaint->getRelation('feedback');
+                      if ($feedback && $feedback->id) {
+                        $hasFeedback = true;
+                        $feedbackId = $feedback->id;
+                      }
+                    } else {
+                      // Use exists() method to check without loading the relationship
+                      $hasFeedback = \App\Models\ComplaintFeedback::where('complaint_id', $complaint->id)->exists();
+                      if ($hasFeedback) {
+                        $feedback = \App\Models\ComplaintFeedback::where('complaint_id', $complaint->id)->first();
+                        if ($feedback) {
+                          $feedbackId = $feedback->id;
+                        }
+                      }
+                    }
+                  } catch (\Exception $e) {
+                    $hasFeedback = false;
+                    $feedbackId = null;
+                  }
+                @endphp
+                @if($hasFeedback && $feedbackId)
+                  <a href="{{ route('admin.feedback.edit', $feedbackId) }}" class="btn btn-outline-info btn-sm" title="Edit Feedback" style="padding: 3px 8px;">
+                    <i data-feather="message-circle" style="width: 16px; height: 16px;"></i>
+                  </a>
+                @else
+                  <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-outline-warning btn-sm" title="Add Feedback" style="padding: 3px 8px;">
+                    <i data-feather="message-square" style="width: 16px; height: 16px;"></i>
+                  </a>
+                @endif
+              @endif
             </div>
           </td>
         </tr>
@@ -179,6 +302,27 @@
   <div class="d-flex justify-content-center mt-3" id="approvalsPagination">
     <div>
       {{ $approvals->links() }}
+    </div>
+  </div>
+</div>
+
+<!-- Issue Stock Modal -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addStockModalLabel">Issue Stock</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" tabindex="0"></button>
+      </div>
+      <div class="modal-body" id="addStockModalBody">
+        <!-- Stock items will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" tabindex="0">Close</button>
+        <button type="button" class="btn btn-success" id="submitAddStockBtn" onclick="if(window.submitIssueStock) { window.submitIssueStock(); } else { alert('Submit function not available. Please refresh the page.'); }" style="display: none;" tabindex="0">
+          <i data-feather="check-circle"></i> Issue Stock
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -222,7 +366,11 @@
   .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
   .status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
   .status-approved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-  .status-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+  
+  /* Performa badge - ensure white text for all badges including Product N/A (only badges, not heading) */
+  .table td .performa-badge {
+    color: white !important;
+  }
   
   /* Table text styling for all themes */
   .table td {
@@ -243,6 +391,202 @@
     color: #94a3b8 !important;
   }
   
+  /* Performa Required column - white text (only values, not heading) */
+  .table td:nth-child(9) {
+    color: white !important;
+  }
+  
+  .table td:nth-child(9) .performa-badge {
+    color: white !important;
+  }
+  
+  /* Compact status select box */
+  .status-select {
+    width: 140px !important;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+    line-height: 1.4 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    /* Make native arrow consistent */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 22px !important; /* room for arrow */
+    background-repeat: no-repeat !important;
+    background-position: right 6px center !important;
+    background-size: 12px 12px !important;
+    /* SVG arrow uses white color */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+  }
+  
+  .status-select:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+  
+  .status-select:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+  }
+  
+  .status-select option {
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+    background-color: #ffffff;
+    color: #1f2937;
+    min-height: 36px;
+  }
+  
+  .status-select option:disabled {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* Live color indicator next to status select (works across browsers) */
+  .status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    border: 1px solid rgba(0,0,0,0.25);
+    vertical-align: middle;
+  }
+
+  /* Colored chip that wraps the whole status control */
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    height: 28px;
+    width: 140px;
+    justify-content: center;
+    color: white !important;
+  }
+  .status-chip .status-select {
+    background: transparent !important;
+    color: white !important;
+    border: none !important;
+    padding-left: 0 !important;
+    /* keep right padding for arrow */
+    padding-right: 22px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+  }
+  .status-chip span {
+    font-size: 11px;
+    font-weight: 700;
+    color: white !important;
+  }
+  
+  /* Ensure Add Stock button is clickable */
+  .add-stock-btn {
+    pointer-events: auto !important;
+    z-index: 10 !important;
+    position: relative !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+  }
+  
+  .add-stock-btn:hover {
+    opacity: 0.8 !important;
+  }
+  
+  .add-stock-btn:active {
+    opacity: 0.6 !important;
+  }
+  
+  .btn-group .add-stock-btn {
+    margin-left: 4px;
+  }
+  
+  /* Ensure Submit button in Add Stock Modal is clickable */
+  #submitAddStockBtn {
+    pointer-events: auto !important;
+    z-index: 1050 !important;
+    position: relative !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    display: inline-block !important;
+  }
+  
+  #submitAddStockBtn:hover {
+    opacity: 0.9 !important;
+  }
+  
+  #submitAddStockBtn:active {
+    opacity: 0.7 !important;
+  }
+  
+  #submitAddStockBtn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+  }
+  
+  /* Ensure modal footer buttons are clickable */
+  #addStockModal .modal-footer button {
+    pointer-events: auto !important;
+    z-index: 1050 !important;
+    position: relative !important;
+  }
+  
+  /* Add Stock Modal Table Styling */
+  #addStockModal .table {
+    margin-bottom: 0;
+  }
+  
+  #addStockModal .table thead th {
+    background-color: #0d6efd;
+    color: white;
+    border: 1px solid #0d6efd;
+    padding: 12px 15px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  
+  #addStockModal .table tbody td {
+    padding: 12px 15px;
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+  }
+  
+  #addStockModal .table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  #addStockModal .table tbody tr:hover {
+    background-color: #e9ecef;
+  }
+  
+  #addStockModal .table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  #addStockModal .total-quantity-input {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+  
+  #addStockModal .total-quantity-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    outline: none;
+  }
+  
 </style>
 @endpush
 
@@ -255,75 +599,7 @@
   let isProcessing = false;
 
   // viewApproval function removed - using direct link to show.blade.php page instead
-
-  function approveRequest(approvalId) {
-    if (confirm('Are you sure you want to approve this request?')) {
-      const remarks = prompt('Enter approval remarks (optional):');
-      
-      fetch(`/admin/approvals/${approvalId}/approve`, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-          remarks: remarks || ''
-        })
-      })
-      .then(response => {
-        return response.json().then(data => {
-          if (data.success || response.ok) {
-            showSuccess('Approval approved successfully!');
-            location.reload();
-          } else {
-            showError(data.message || 'Failed to approve request');
-          }
-        });
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        showError('Error approving request');
-      });
-    }
-  }
-
-  function rejectRequest(approvalId) {
-    const remarks = prompt('Please enter rejection reason (required):');
-    if (remarks === null) return; // User cancelled
-    if (!remarks || remarks.trim() === '') {
-      showError('Rejection reason is required');
-      return;
-    }
-    
-    fetch(`/admin/approvals/${approvalId}/reject`, {
-      method: 'POST',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      },
-      body: JSON.stringify({
-        remarks: remarks
-      })
-    })
-    .then(response => {
-      return response.json().then(data => {
-        if (data.success || response.ok) {
-          showSuccess('Approval rejected successfully!');
-          location.reload();
-        } else {
-          showError(data.message || 'Failed to reject request');
-        }
-      });
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showError('Error rejecting request');
-    });
-  }
+  // approveRequest and rejectRequest functions removed as per user request
 
   // Utility Functions
   function refreshPage() {
@@ -391,6 +667,658 @@
   window.handleApprovalsSearchInput = handleApprovalsSearchInput;
   window.submitApprovalsFilters = submitApprovalsFilters;
   window.loadApprovals = loadApprovals;
+  
+  // Helper function to escape HTML
+  function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  // Helper function to render item row
+  function renderItemRow(item) {
+    const canDelete = !item.isExisting;
+    return `
+      <tr data-item-id="${item.itemId}" data-spare-id="${item.spareId}" data-is-existing="${item.isExisting}">
+        <td style="vertical-align: middle; font-weight: 500; padding: 12px;">${escapeHtml(item.productName)}</td>
+        <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${escapeHtml(item.category)}</td>
+        <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${item.requestedQty}</td>
+        <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">
+          <span class="badge ${item.availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">${item.availableStock}</span>
+        </td>
+        <td style="vertical-align: middle; text-align: center; padding: 12px;">
+          <input type="number" 
+                 class="form-control form-control-sm issue-quantity-input" 
+                 name="items[${item.itemId}][issue_quantity]" 
+                 value="${item.issueQty}" 
+                 min="0" 
+                 max="${item.availableStock}"
+                 data-spare-id="${item.spareId}"
+                 data-item-id="${item.itemId}"
+                 data-product-name="${escapeHtml(item.productName)}"
+                 data-available-stock="${item.availableStock}"
+                 style="width: 120px; text-align: center; margin: 0 auto; display: block;">
+        </td>
+        <td style="vertical-align: middle; text-align: center; padding: 12px;">
+          ${canDelete ? `<button type="button" class="btn btn-danger btn-sm remove-item-btn" data-item-id="${item.itemId}" style="padding: 3px 8px;" title="Remove">
+            <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
+          </button>` : '<span class="text-muted">-</span>'}
+        </td>
+      </tr>
+    `;
+  }
+
+  // Load categories for modal dropdown
+  function loadCategoriesForModal() {
+    console.log('Loading categories for modal...');
+    const categorySelect = document.getElementById('manualCategory');
+    
+    if (!categorySelect) {
+      console.error('Category select element not found!');
+      // Retry after a short delay
+      setTimeout(() => {
+        loadCategoriesForModal();
+      }, 200);
+      return;
+    }
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch('/admin/spares/get-categories', {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Categories response:', data);
+      if (data.success && data.categories && Array.isArray(data.categories)) {
+        categorySelect.innerHTML = '<option value="">All Products</option>';
+        data.categories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat;
+          option.textContent = cat;
+          categorySelect.appendChild(option);
+        });
+        console.log(`✅ Loaded ${data.categories.length} categories`);
+      } else {
+        console.warn('⚠️ No categories found or invalid response:', data);
+        categorySelect.innerHTML = '<option value="">All Products</option>';
+      }
+    })
+    .catch(error => {
+      console.error('❌ Error loading categories:', error);
+      categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+    });
+  }
+
+  // Load products by category (or all products if category is empty)
+  function loadProductsByCategory(category) {
+    const productSelect = document.getElementById('manualProduct');
+    const availableStockInput = document.getElementById('manualAvailableStock');
+    
+    if (!productSelect) return;
+    
+    // If no category, show all products
+    if (!category) {
+      category = ''; // Empty category will fetch all products
+    }
+
+    productSelect.innerHTML = '<option value="">Loading...</option>';
+    productSelect.disabled = true;
+    availableStockInput.value = '';
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Build URL - if category is empty, don't send category parameter or send empty
+    const url = category 
+      ? `/admin/spares/get-products-by-category?category=${encodeURIComponent(category)}`
+      : `/admin/spares/get-products-by-category?category=`;
+    
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.products && data.products.length > 0) {
+        productSelect.innerHTML = '<option value="">Select Product</option>';
+        data.products.forEach(product => {
+          const option = document.createElement('option');
+          option.value = product.id;
+          option.textContent = product.item_name;
+          option.setAttribute('data-stock', product.stock_quantity || 0);
+          option.setAttribute('data-category', product.category || '');
+          productSelect.appendChild(option);
+        });
+        productSelect.disabled = false;
+      } else {
+        productSelect.innerHTML = '<option value="">No products found</option>';
+        productSelect.disabled = false; // Enable even if no products so user can try again
+      }
+    })
+    .catch(error => {
+      console.error('Error loading products:', error);
+      productSelect.innerHTML = '<option value="">Error loading products</option>';
+      productSelect.disabled = false;
+    });
+  }
+
+  // Add item to table
+  function addManualItemToTable() {
+    const categorySelect = document.getElementById('manualCategory');
+    const productSelect = document.getElementById('manualProduct');
+    const availableStockInput = document.getElementById('manualAvailableStock');
+    const requestQtyInput = document.getElementById('manualRequestQty');
+    
+    if (!categorySelect || !productSelect || !availableStockInput || !requestQtyInput) return;
+    
+    const category = categorySelect.value || '';
+    const productId = productSelect.value;
+    const productName = productSelect.options[productSelect.selectedIndex]?.textContent || 'N/A';
+    const productCategory = productSelect.options[productSelect.selectedIndex]?.getAttribute('data-category') || category || '';
+    const availableStock = parseInt(availableStockInput.value) || 0;
+    const requestQty = parseInt(requestQtyInput.value) || 0;
+
+    if (!productId) {
+      alert('Please select a product');
+      return;
+    }
+
+    if (requestQty <= 0) {
+      alert('Please enter a valid request quantity');
+      requestQtyInput.focus();
+      return;
+    }
+
+    if (requestQty > availableStock) {
+      alert(`Request quantity (${requestQty}) cannot exceed available stock (${availableStock})`);
+      requestQtyInput.focus();
+      return;
+    }
+
+    // Check if product already exists in manual items
+    const existingItem = window.manualItems?.find(item => item.spare_id == productId);
+    if (existingItem) {
+      alert('This product is already added. Please remove it first or update the quantity.');
+      return;
+    }
+
+    // Add to manual items array
+    if (!window.manualItems) {
+      window.manualItems = [];
+    }
+
+    const tempId = `manual_${Date.now()}`;
+    const newItem = {
+      tempId: tempId,
+      spare_id: parseInt(productId),
+      product_name: productName,
+      category: productCategory, // Use product's actual category from data attribute
+      requested_qty: requestQty,
+      available_stock: availableStock,
+      isExisting: false
+    };
+
+    window.manualItems.push(newItem);
+
+    // Reset form
+    categorySelect.value = '';
+    productSelect.innerHTML = '<option value="">Select Category First</option>';
+    productSelect.disabled = true;
+    availableStockInput.value = '';
+    requestQtyInput.value = '';
+
+    // Show submit button
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.style.display = 'inline-block';
+    }
+  }
+
+  // Setup manual form event listeners
+  function setupManualFormListeners() {
+    const categorySelect = document.getElementById('manualCategory');
+    const productSelect = document.getElementById('manualProduct');
+    const availableStockInput = document.getElementById('manualAvailableStock');
+    const requestQtyInput = document.getElementById('manualRequestQty');
+    
+    if (!categorySelect || !productSelect || !requestQtyInput) return;
+
+    // Category change
+    categorySelect.addEventListener('change', function() {
+      const category = this.value;
+      loadProductsByCategory(category);
+      availableStockInput.value = '';
+      requestQtyInput.value = '';
+    });
+
+    // Product change
+    productSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const stock = parseInt(selectedOption?.getAttribute('data-stock')) || 0;
+      availableStockInput.value = stock;
+      
+      // If request quantity is already entered, auto-add item
+      const qty = parseInt(requestQtyInput.value) || 0;
+      if (qty > 0 && qty <= stock && this.value) {
+        // Auto-add after a short delay to allow user to see the stock value
+        setTimeout(() => {
+          addManualItemToTable();
+        }, 300);
+      }
+    });
+
+    // Request quantity input - auto-add on Enter or blur
+    requestQtyInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const qty = parseInt(this.value) || 0;
+        const stock = parseInt(availableStockInput.value) || 0;
+        
+        if (qty > 0 && qty <= stock && productSelect.value) {
+          addManualItemToTable();
+        }
+      }
+    });
+
+    // Auto-add when quantity is entered and product is selected
+    requestQtyInput.addEventListener('blur', function() {
+      const qty = parseInt(this.value) || 0;
+      const stock = parseInt(availableStockInput.value) || 0;
+      
+      if (qty > 0 && qty <= stock && productSelect.value) {
+        addManualItemToTable();
+      }
+    });
+
+  }
+
+  // Forward declaration for Add Stock Modal function (defined later)
+  window.openAddStockModal = function(approvalId) {
+    console.log('openAddStockModal called with ID:', approvalId);
+    
+      // Store approvalId globally for submitIssueStock
+    window.currentApprovalId = approvalId;
+    console.log('Modal opened with approval_id:', approvalId);
+    
+    // Reset manual items array when modal opens
+    window.manualItems = [];
+    
+    // Find modal element
+    const modalElement = document.getElementById('addStockModal');
+    if (!modalElement) {
+      console.error('Modal element not found');
+      alert('Modal not found. Please refresh the page.');
+      return;
+    }
+
+    const modalBody = document.getElementById('addStockModalBody');
+    if (!modalBody) {
+      console.error('Modal body not found');
+      alert('Modal body not found. Please refresh the page.');
+      return;
+    }
+
+    // Show loading immediately
+    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Loading approval items...</p></div>';
+
+    // Show Submit button and hide it initially
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+
+    // Show modal immediately (before data loads)
+    let modalInstance = null;
+    try {
+      // Check if Bootstrap is available
+      if (typeof bootstrap === 'undefined' || typeof bootstrap.Modal === 'undefined') {
+        console.error('Bootstrap Modal not available');
+        alert('Bootstrap Modal library not loaded. Please refresh the page.');
+        return;
+      }
+
+      modalInstance = bootstrap.Modal.getInstance(modalElement);
+      if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(modalElement, {
+          backdrop: true,
+          keyboard: true,
+          focus: true
+        });
+      }
+      
+      // Fix accessibility: Set up event listeners before showing modal
+      const handleShown = function() {
+        // Bootstrap automatically removes aria-hidden on shown event
+        // But we ensure it's properly set
+        if (modalElement.hasAttribute('aria-hidden')) {
+          modalElement.removeAttribute('aria-hidden');
+        }
+        modalElement.setAttribute('aria-modal', 'true');
+        console.log('✅ Modal accessibility fixed');
+      };
+      
+      const handleHidden = function() {
+        modalElement.setAttribute('aria-hidden', 'true');
+        modalElement.removeAttribute('aria-modal');
+      };
+      
+      // Remove any existing listeners first
+      modalElement.removeEventListener('shown.bs.modal', handleShown);
+      modalElement.removeEventListener('hidden.bs.modal', handleHidden);
+      
+      // Add new listeners
+      modalElement.addEventListener('shown.bs.modal', handleShown, { once: true });
+      modalElement.addEventListener('hidden.bs.modal', handleHidden);
+      
+      // Show the modal
+      modalInstance.show();
+      console.log('Modal shown successfully');
+      
+      // Also fix immediately after a short delay (in case shown event fires before our listener)
+      setTimeout(() => {
+        if (modalElement.classList.contains('show') && modalElement.hasAttribute('aria-hidden')) {
+          modalElement.removeAttribute('aria-hidden');
+          modalElement.setAttribute('aria-modal', 'true');
+          console.log('✅ Modal accessibility fixed (delayed check)');
+        }
+      }, 200);
+      
+    } catch (error) {
+      console.error('Error showing modal:', error);
+      alert('Error opening modal: ' + error.message);
+      return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    // Fetch approval details
+    fetch(`/admin/approvals/${approvalId}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      console.log('Fetch response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Fetch response data:', data);
+      if (data.success && data.approval && data.approval.items) {
+        const items = data.approval.items || [];
+        
+        console.log('✅ Creating table with 5 columns:');
+        console.log('   1. Product Name (25% width)');
+        console.log('   2. Category (20% width)');
+        console.log('   3. Request Quantity (15% width)');
+        console.log('   4. Available Stock (15% width)');
+        console.log('   5. Issue Quantity (25% width)');
+        console.log('Items to display:', items.length);
+        console.log('Items data:', items);
+        
+        if (items.length === 0) {
+          console.warn('⚠️ No items found in approval ID:', approvalId);
+          console.info('ℹ️ Table structure with 5 columns (Product Name, Category, Request Quantity, Available Stock, Issue Quantity) will still be displayed');
+          console.info('ℹ️ Empty state message will be shown in the table');
+        } else {
+          console.log('✅ Items found:', items.length);
+          console.log('✅ Displaying items in table with 5 columns');
+        }
+
+        // Initialize manual items array
+        if (!window.manualItems) {
+          window.manualItems = [];
+        }
+
+        // Store items globally for submission (existing + manual)
+        window.currentApprovalItems = items;
+        console.log('Approval items loaded:', items.length, 'items');
+        console.log('Current approval_id:', window.currentApprovalId);
+
+        // Build form with manual add section
+        let itemsHtml = '<form id="addStockForm">';
+        
+        // Manual Add Form Section
+        itemsHtml += `
+          <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 8px;">
+            <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
+              <i data-feather="plus-circle" style="width: 16px; height: 16px; margin-right: 8px;"></i> Add Item Manually
+            </div>
+            <div class="card-body" style="padding: 16px;">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Category</label>
+                  <select class="form-select form-select-sm" id="manualCategory" style="font-size: 0.9rem;">
+                    <option value="">All Category</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
+                  <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
+                    <option value="">Loading Products...</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
+                  <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
+                  <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        itemsHtml += '</form>';
+        modalBody.innerHTML = itemsHtml;
+
+        // Wait for DOM to be ready before initializing
+        setTimeout(() => {
+          // Initialize categories and products dropdown
+          loadCategoriesForModal();
+          
+          // Load all products initially (without category filter)
+          setTimeout(() => {
+            loadProductsByCategory(''); // Empty category will fetch all products
+          }, 300);
+          
+          // Setup event listeners for manual form
+          setupManualFormListeners();
+        }, 100);
+        
+        // Show Submit button if manual items exist
+        if (submitBtn) {
+          const hasItems = window.manualItems && window.manualItems.length > 0;
+          if (hasItems) {
+            submitBtn.style.display = 'inline-block';
+          } else {
+            submitBtn.style.display = 'none';
+          }
+        }
+        
+        // Replace feather icons (for empty state icon)
+        if (typeof feather !== 'undefined') {
+          feather.replace();
+        }
+      } else {
+        console.error('Invalid response data:', data);
+        modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval items. Invalid response.</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching approval details:', error);
+      modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval details: ' + (error.message || 'Unknown error') + '</div>';
+    });
+  };
+
+  // Forward declaration for Submit Add Stock function (defined later)
+  // Issue Stock Function (early definition)
+  window.submitIssueStock = function() {
+    console.log('submitIssueStock called');
+    
+    // Use manual items from window.manualItems
+    if (!window.manualItems || window.manualItems.length === 0) {
+      alert('No items added. Please add items using the form above.');
+      return;
+    }
+
+    // Validate and collect data from manual items
+    const stockData = [];
+    let hasError = false;
+    let errorMessage = '';
+
+    window.manualItems.forEach(item => {
+      const spareId = item.spare_id || 0;
+      const productName = item.product_name || 'N/A';
+      const availableStock = item.available_stock || 0;
+      const issueQty = item.requested_qty || 0;
+
+      if (spareId === 0) {
+        hasError = true;
+        errorMessage = `Invalid product: ${productName}`;
+        return;
+      }
+
+      if (issueQty < 0) {
+        hasError = true;
+        errorMessage = `Issue quantity cannot be negative for ${productName}`;
+        return;
+      }
+
+      if (issueQty > availableStock) {
+        hasError = true;
+        errorMessage = `Issue quantity (${issueQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
+        return;
+      }
+
+      if (issueQty === 0) {
+        // Skip items with 0 quantity
+        return;
+      }
+      
+      // For manual items, tempId is a string like "manual_1234567890"
+      // For existing items, item_id is a number
+      // Only send item_id if it's a valid integer (existing item), otherwise null
+      const itemId = (item.item_id && !isNaN(parseInt(item.item_id))) ? parseInt(item.item_id) : null;
+      
+      stockData.push({
+        spare_id: spareId,
+        item_id: itemId,
+        issue_quantity: issueQty,
+        product_name: productName,
+        available_stock: availableStock
+      });
+    });
+
+    if (hasError) {
+      alert(errorMessage);
+      return;
+    }
+
+    if (stockData.length === 0) {
+      alert('Please add items with valid quantity using the form above.');
+      return;
+    }
+
+    // Confirm before submitting
+    const confirmMessage = `Are you sure you want to ISSUE stock for the following items?\n\n` +
+      stockData.map(item => `${item.product_name}: ${item.issue_quantity} units (Available: ${item.available_stock})`).join('\n');
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Disable submit button
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Issuing Stock...';
+    }
+
+    // Send requests for each item to ISSUE stock (decrease inventory)
+    const promises = stockData.map(item => {
+      return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+          quantity: item.issue_quantity,
+          item_id: item.item_id,
+          approval_id: window.currentApprovalId || null,
+          reason: `Stock issued from approval - Product: ${item.product_name}`
+        }),
+        credentials: 'same-origin'
+      });
+    });
+
+    // Process all requests
+    Promise.all(promises)
+      .then(responses => Promise.all(responses.map(r => r.json())))
+      .then(results => {
+        const successCount = results.filter(r => r.success).length;
+        const failedCount = results.length - successCount;
+
+        if (failedCount === 0) {
+          alert(`Successfully issued stock for all ${successCount} item(s)!`);
+          bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
+          // Optionally reload the page to refresh stock quantities
+          // window.location.reload();
+        } else {
+          alert(`Issued stock for ${successCount} item(s), but ${failedCount} item(s) failed.`);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error issuing stock: ' + error.message);
+      })
+      .finally(() => {
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i data-feather="check-circle"></i> Issue Stock';
+          feather.replace();
+        }
+      });
+  };
 
   // Initialize event listeners on page load
   document.addEventListener('DOMContentLoaded', function() {
@@ -557,9 +1485,12 @@
         if (typeof initPerformaBadges === 'function') {
           initPerformaBadges();
         }
-        if (typeof initStatusSelects === 'function') {
-          initStatusSelects();
-        }
+        // Run initStatusSelects after initPerformaBadges to ensure correct values
+        setTimeout(function() {
+          if (typeof initStatusSelects === 'function') {
+            initStatusSelects();
+          }
+        }, 50);
         console.log('Table updated successfully');
       } else {
         console.error('Table body not found in response');
@@ -575,9 +1506,12 @@
             if (typeof initPerformaBadges === 'function') {
               initPerformaBadges();
             }
-            if (typeof initStatusSelects === 'function') {
-              initStatusSelects();
-            }
+            // Run initStatusSelects after initPerformaBadges to ensure correct values
+            setTimeout(function() {
+              if (typeof initStatusSelects === 'function') {
+                initStatusSelects();
+              }
+            }, 50);
             console.log('Table updated via direct extraction');
           } else {
             throw new Error('Could not find table body in response');
@@ -809,29 +1743,45 @@
   }
 
   // Removed duplicate status change handler (handled by comprehensive handler below)
-  
-  // Event delegation for approval buttons (document level for dynamic content)
-  document.addEventListener('click', function(e) {
-    // Approve Request button
-    if (e.target.closest('.btn-approve-request')) {
-      e.preventDefault();
-      const button = e.target.closest('.btn-approve-request');
-      const approvalId = button.getAttribute('data-approval-id');
-      if (approvalId) {
-        approveRequest(parseInt(approvalId));
+  // Event delegation for approval/reject buttons removed as per user request
+
+  // Status colors mapping for JavaScript
+  const statusColors = {
+    'in_progress': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Darker Red
+    'resolved': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Darker Green
+    'work_performa': { bg: '#0ea5e9', text: '#ffffff', border: '#0284c7' }, // Sky Blue
+    'maint_performa': { bg: '#fef08a', text: '#ffffff', border: '#eab308' }, // Light Yellow
+    'priced_performa': { bg: '#f59e0b', text: '#ffffff', border: '#d97706' }, // Orange
+    'product_na': { bg: '#8b5cf6', text: '#ffffff', border: '#7c3aed' }, // Purple
+    'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
+  };
+
+  // Function to update status select box colors
+  function updateStatusSelectColor(select, status) {
+    const normalizedStatus = status === 'in-process' || status === 'in process' ? 'in_progress' : status;
+    const color = statusColors[normalizedStatus] || statusColors['assigned'];
+    select.style.backgroundColor = color.bg;
+    select.style.color = '#ffffff';
+    select.style.setProperty('color', '#ffffff', 'important');
+    select.style.borderColor = color.border;
+    select.setAttribute('data-status-color', normalizedStatus);
+    // Update the small status indicator dot next to the select
+    const td = select.closest('td');
+    if (td) {
+      const dot = td.querySelector('.status-indicator');
+      const chip = td.querySelector('.status-chip');
+      if (dot) {
+        dot.style.backgroundColor = color.bg;
+        dot.style.borderColor = color.border;
+      }
+      if (chip) {
+        chip.style.backgroundColor = color.bg;
+        chip.style.color = '#ffffff';
+        chip.style.setProperty('color', '#ffffff', 'important');
+        chip.style.borderColor = color.border;
       }
     }
-    
-    // Reject Request button
-    if (e.target.closest('.btn-reject-request')) {
-      e.preventDefault();
-      const button = e.target.closest('.btn-reject-request');
-      const approvalId = button.getAttribute('data-approval-id');
-      if (approvalId) {
-        rejectRequest(parseInt(approvalId));
-      }
-    }
-  });
+  }
 
   // Handle Performa Required dropdown changes
   document.addEventListener('change', function(e) {
@@ -859,11 +1809,17 @@
           if (newStatus === 'work_performa') {
             performaBadge.textContent = 'Work Performa Required';
             performaBadge.style.backgroundColor = '#0ea5e9';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            // Update select box color to sky blue
+            updateStatusSelectColor(select, 'work_performa');
           } else {
             performaBadge.textContent = 'Maint Performa Required';
             performaBadge.style.backgroundColor = '#6366f1';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            // Update select box color to light yellow
+            updateStatusSelectColor(select, 'maint_performa');
           }
           performaBadge.style.display = 'inline-block';
         }
@@ -874,10 +1830,52 @@
           try { localStorage.setItem(key, val); } catch (err) {}
         }
         // Auto-set status to In-Process and continue to update backend
+        const performaType = newStatus; // Store original performa type
         newStatus = 'in_progress';
+        // Keep dropdown value as in_progress and apply red color
         select.value = 'in_progress';
+        updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
         skipConfirm = true;
         showSuccess(performaBadge?.textContent || 'Performa marked');
+      } else if (newStatus === 'priced_performa' || newStatus === 'product_na') {
+        // Store original status before changing it for localStorage
+        const originalStatus = newStatus;
+        
+        // Handle Maint/Work Priced and Product N/A options
+        if (performaBadge) {
+          if (newStatus === 'priced_performa') {
+            performaBadge.textContent = 'Maint/Work Priced';
+            performaBadge.style.backgroundColor = '#f59e0b';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            performaBadge.style.display = 'inline-block';
+            // Keep status as in_progress and apply red color
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
+            newStatus = 'in_progress';
+          } else if (newStatus === 'product_na') {
+            performaBadge.textContent = 'Product N/A';
+            performaBadge.style.backgroundColor = '#8b5cf6';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            performaBadge.style.display = 'inline-block';
+            // Keep status as in_progress and apply red color
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
+            newStatus = 'in_progress';
+          }
+        }
+        // Persist selection locally - use originalStatus before it was changed
+        if (complaintId) {
+          const key = `performaRequired:${complaintId}`;
+          const val = originalStatus === 'priced_performa' ? 'priced' : 'product_na';
+          try { localStorage.setItem(key, val); } catch (err) {}
+        }
+        skipConfirm = true;
+        showSuccess(performaBadge?.textContent || 'Option marked');
+      } else {
+        // Update color for regular status changes
+        updateStatusSelectColor(select, newStatus);
       }
 
       // Real statuses only
@@ -891,8 +1889,17 @@
         return;
       }
 
-      // Clear Performa Required badge only if no persisted flag exists
-      if (performaBadge && complaintId) {
+      // Clear persisted performa flag when switching to real statuses (but not for product_na, priced_performa, work_performa, or maint_performa)
+      // Check localStorage to determine if this is a special option (since dropdown value is now 'in_progress')
+      let savedOptionForClear = null;
+      if (complaintId) {
+        try { savedOptionForClear = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOptionForClear = null; }
+      }
+      const isSpecialOption = savedOptionForClear === 'work' || savedOptionForClear === 'maint' || savedOptionForClear === 'priced' || savedOptionForClear === 'product_na' ||
+                             newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'priced_performa' || newStatus === 'product_na';
+      
+      // Clear Performa Required badge only if no persisted flag exists and not a special option
+      if (performaBadge && complaintId && !isSpecialOption) {
         let savedFlag = null;
         try { savedFlag = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedFlag = null; }
         if (!savedFlag) {
@@ -903,18 +1910,29 @@
           if (savedFlag === 'work') {
             performaBadge.textContent = 'Work Performa Required';
             performaBadge.style.backgroundColor = '#0ea5e9';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
           } else if (savedFlag === 'maint') {
             performaBadge.textContent = 'Maint Performa Required';
             performaBadge.style.backgroundColor = '#6366f1';
-            performaBadge.style.color = '#fff';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+          } else if (savedFlag === 'priced') {
+            performaBadge.textContent = 'Maint/Work Priced';
+            performaBadge.style.backgroundColor = '#f59e0b';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+          } else if (savedFlag === 'product_na') {
+            performaBadge.textContent = 'Product N/A';
+            performaBadge.style.backgroundColor = '#8b5cf6';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
           }
           performaBadge.style.display = 'inline-block';
         }
       }
-
-      // Clear persisted performa flag when switching to real statuses
-      if (complaintId) {
+      
+      if (complaintId && !isSpecialOption) {
         try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
       }
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -933,6 +1951,26 @@
         }
       }
 
+      // Preserve color if special options are selected (check localStorage to determine which special option)
+      let savedOption = null;
+      if (complaintId) {
+        try { savedOption = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOption = null; }
+      }
+      // Determine special option type based on localStorage or previous selection
+      const preserveColor = savedOption === 'work' || savedOption === 'maint' || savedOption === 'priced' || savedOption === 'product_na' ||
+                           newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'priced_performa' || newStatus === 'product_na';
+      // Store the special option type to restore color after fetch
+      let specialOptionType = null;
+      if (newStatus === 'work_performa' || savedOption === 'work') {
+        specialOptionType = 'work_performa';
+      } else if (newStatus === 'maint_performa' || savedOption === 'maint') {
+        specialOptionType = 'maint_performa';
+      } else if (newStatus === 'priced_performa' || savedOption === 'priced') {
+        specialOptionType = 'priced_performa';
+      } else if (newStatus === 'product_na' || savedOption === 'product_na') {
+        specialOptionType = 'product_na';
+      }
+      
       select.style.opacity = '0.6';
       select.disabled = true;
 
@@ -962,11 +2000,92 @@
           const addressedDateCell = row?.querySelector('td:nth-child(3)');
           if (addressedDateCell) addressedDateCell.textContent = updated.closed_at;
           const statusCell = select.closest('td');
+          // Remove arrow and circle if they exist
+          const arrow = statusCell?.querySelector('i[data-feather="chevron-down"]');
+          const circle = statusCell?.querySelector('.status-indicator');
+          if (arrow) arrow.remove();
+          if (circle) circle.remove();
+          // Create simple Addressed badge without dropdown
           const badge = document.createElement('span');
           badge.className = 'badge';
-          badge.style.cssText = 'background-color: #22c55e; color: white; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 6px;';
+          const resolvedColor = statusColors['resolved'];
+          badge.style.cssText = `background-color: ${resolvedColor.bg}; color: #ffffff !important; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid ${resolvedColor.border}; width: 140px; height: 28px; display: inline-flex; align-items: center; justify-content: center;`;
+          badge.style.setProperty('color', '#ffffff', 'important');
           badge.textContent = 'Addressed';
-          select.replaceWith(badge);
+          // Clear performa badge
+          const performaBadgeInRow = row?.querySelector('.performa-badge');
+          if (performaBadgeInRow) {
+            performaBadgeInRow.style.display = 'none';
+            performaBadgeInRow.textContent = '';
+          }
+          // Replace select with badge
+          const statusChip = select.closest('.status-chip');
+          if (statusChip) {
+            statusChip.innerHTML = '';
+            statusChip.appendChild(badge);
+            statusChip.style.cssText = `background-color: ${resolvedColor.bg}; color: ${resolvedColor.text}; border-color: ${resolvedColor.border}; width: 140px; height: 28px; justify-content: center;`;
+          } else {
+            select.replaceWith(badge);
+          }
+          
+          // Show feedback button automatically when status becomes resolved
+          const actionsCell = row?.querySelector('td:last-child');
+          if (actionsCell) {
+            const btnGroup = actionsCell.querySelector('.btn-group');
+            if (btnGroup) {
+              // Check if feedback button already exists
+              const existingFeedbackBtn = btnGroup.querySelector('a[href*="/feedback/"]');
+              if (!existingFeedbackBtn) {
+                // Get complaint ID from the row - it's in the 4th column (Complaint ID)
+                const complaintIdLink = row?.querySelector('td:nth-child(4) a');
+                let complaintId = null;
+                if (complaintIdLink) {
+                  const href = complaintIdLink.getAttribute('href');
+                  const match = href?.match(/\/(\d+)$/);
+                  complaintId = match ? match[1] : null;
+                }
+                // Alternative: get from data attribute if available
+                if (!complaintId && row) {
+                  complaintId = row.getAttribute('data-complaint-id');
+                }
+                if (complaintId) {
+                  // Create "Add Feedback" button
+                  const feedbackBtn = document.createElement('a');
+                  feedbackBtn.href = `/admin/complaints/${complaintId}/feedback/create`;
+                  feedbackBtn.className = 'btn btn-outline-warning btn-sm';
+                  feedbackBtn.title = 'Add Feedback';
+                  feedbackBtn.style.cssText = 'padding: 3px 8px;';
+                  feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 16px; height: 16px;"></i>';
+                  btnGroup.appendChild(feedbackBtn);
+                  // Reinitialize feather icons
+                  if (typeof feather !== 'undefined') {
+                    feather.replace();
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          // Update color for other status changes
+          // Restore dropdown value to in_progress and apply red color
+          if (specialOptionType) {
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress');
+          } else {
+            // Check if current select value is a special option to preserve their colors
+            const currentSelectValue = select.value;
+            if (currentSelectValue === 'product_na') {
+              updateStatusSelectColor(select, 'product_na');
+            } else if (currentSelectValue === 'priced_performa') {
+              updateStatusSelectColor(select, 'priced_performa');
+            } else if (currentSelectValue === 'work_performa') {
+              updateStatusSelectColor(select, 'work_performa');
+            } else if (currentSelectValue === 'maint_performa') {
+              updateStatusSelectColor(select, 'maint_performa');
+            } else {
+              updateStatusSelectColor(select, newStatus);
+            }
+          }
         }
         showSuccess('Complaint status updated successfully!');
         if (select.isConnected) select.dataset.oldStatus = newStatus;
@@ -980,6 +2099,22 @@
         if (select.isConnected && select.value !== 'resolved') {
           select.style.opacity = '1';
           select.disabled = false;
+          // Restore dropdown value to in_progress and apply red color
+          if (specialOptionType) {
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress');
+          } else if (preserveColor) {
+            const finalSelectValue = select.value;
+            if (finalSelectValue === 'product_na') {
+              updateStatusSelectColor(select, 'product_na');
+            } else if (finalSelectValue === 'priced_performa') {
+              updateStatusSelectColor(select, 'priced_performa');
+            } else if (finalSelectValue === 'work_performa') {
+              updateStatusSelectColor(select, 'work_performa');
+            } else if (finalSelectValue === 'maint_performa') {
+              updateStatusSelectColor(select, 'maint_performa');
+            }
+          }
         }
       });
     }
@@ -997,19 +2132,44 @@
       let saved;
       try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
       if (!saved) return;
+      
       const row = sel.closest('tr');
       const badge = row ? row.querySelector('.performa-badge') : null;
       if (!badge) return;
-      if (saved === 'work') {
+      
+      // Restore based on saved value - check in order to prevent conflicts
+      if (saved === 'priced') {
+        badge.textContent = 'Maint/Work Priced';
+        badge.style.backgroundColor = '#f59e0b';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
+      } else if (saved === 'product_na') {
+        badge.textContent = 'Product N/A';
+        badge.style.backgroundColor = '#8b5cf6';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
+      } else if (saved === 'work') {
         badge.textContent = 'Work Performa Required';
         badge.style.backgroundColor = '#0ea5e9';
-        badge.style.color = '#fff';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
       } else if (saved === 'maint') {
         badge.textContent = 'Maint Performa Required';
         badge.style.backgroundColor = '#6366f1';
-        badge.style.color = '#fff';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
       }
     });
   }
@@ -1017,13 +2177,308 @@
   function initStatusSelects() {
     document.querySelectorAll('.status-select').forEach(function(sel){
       if (!sel.dataset.oldStatus) sel.dataset.oldStatus = sel.value;
+      // Check if there's a localStorage value - set dropdown value to in_progress but keep color red
+      const complaintId = sel.getAttribute('data-complaint-id');
+      if (complaintId) {
+        let saved;
+        try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
+        // Set dropdown value to in_progress if special option exists
+        if (saved === 'work' || saved === 'maint' || saved === 'priced' || saved === 'product_na') {
+          sel.value = 'in_progress';
+        }
+      }
+      // Initialize colors based on current status (always red for in_progress)
+      const statusColor = sel.getAttribute('data-status-color');
+      const currentValue = sel.value;
+      if (statusColor) {
+        updateStatusSelectColor(sel, statusColor);
+      } else if (currentValue) {
+        updateStatusSelectColor(sel, currentValue);
+      }
     });
   }
+
+  // Open Add Stock Modal
+  function openAddStockModal(approvalId) {
+    const modalBody = document.getElementById('addStockModalBody');
+    if (!modalBody) {
+      alert('Modal not found');
+      return;
+    }
+
+    // Show loading
+    modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    // Fetch approval details
+    fetch(`/admin/approvals/${approvalId}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.approval && data.approval.items) {
+        const items = data.approval.items;
+        
+        if (items.length === 0) {
+          modalBody.innerHTML = '<div class="alert alert-info">No items found in this approval.</div>';
+          return;
+        }
+
+        let itemsHtml = '<form id="addStockForm"><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Category</th><th>Product</th><th>Total Stock</th><th>Request Stock</th></tr></thead><tbody>';
+
+        // Store items globally for submission
+        window.currentApprovalItems = items;
+
+        items.forEach((item, index) => {
+          const productName = item.spare_name || 'N/A';
+          const category = item.category || 'N/A';
+          const availableStock = item.available_stock || 0;
+          const requestedQty = item.quantity_requested || 0;
+          const spareId = item.spare_id || 0;
+          
+          // Format category display
+          const categoryDisplay = {
+            'electric': 'Electric',
+            'technical': 'Technical',
+            'service': 'Service',
+            'billing': 'Billing',
+            'water': 'Water Supply',
+            'sanitary': 'Sanitary',
+            'plumbing': 'Plumbing',
+            'kitchen': 'Kitchen',
+            'other': 'Other',
+          };
+          const catDisplay = categoryDisplay[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1);
+          
+          itemsHtml += `
+            <tr>
+              <td>${catDisplay}</td>
+              <td>${productName}</td>
+              <td>
+                <span class="badge ${availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">
+                  ${availableStock}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-info" style="font-size: 12px;">
+                  ${requestedQty}
+                </span>
+              </td>
+            </tr>
+          `;
+        });
+
+        itemsHtml += '</tbody></table></div></form>';
+        modalBody.innerHTML = itemsHtml;
+        
+        // Show Submit button
+        const submitBtn = document.getElementById('submitAddStockBtn');
+        if (submitBtn) {
+          submitBtn.style.display = 'inline-block';
+        }
+        
+        // Replace feather icons
+        feather.replace();
+        
+        // Show modal
+        new bootstrap.Modal(document.getElementById('addStockModal')).show();
+      } else {
+        modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval items.</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval details: ' + error.message + '</div>';
+    });
+  }
+
+  // Submit Issue Stock Form
+  function submitIssueStock() {
+    // Use approval items from window.currentApprovalItems (loaded in modal)
+    if (!window.currentApprovalItems || window.currentApprovalItems.length === 0) {
+      alert('No items found. Please refresh and try again.');
+      return;
+    }
+
+    console.log('submitIssueStock - currentApprovalId:', window.currentApprovalId);
+    console.log('submitIssueStock - currentApprovalItems:', window.currentApprovalItems);
+
+    // Validate and collect data from approval items
+    const stockData = [];
+    let hasError = false;
+    let errorMessage = '';
+
+    window.currentApprovalItems.forEach(item => {
+      const spareId = item.spare_id || 0;
+      const productName = item.spare_name || 'N/A';
+      const availableStock = item.available_stock || 0;
+      const requestedQty = item.quantity_requested || 0;
+      const itemId = item.id || null;
+
+      if (spareId === 0) {
+        hasError = true;
+        errorMessage = `Invalid product: ${productName}`;
+        return;
+      }
+
+      if (requestedQty <= 0) {
+        // Skip items with 0 or negative quantity
+        return;
+      }
+
+      if (requestedQty > availableStock) {
+        hasError = true;
+        errorMessage = `Requested quantity (${requestedQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
+        return;
+      }
+      
+      stockData.push({
+        spare_id: spareId,
+        item_id: itemId,
+        approval_id: window.currentApprovalId || null,
+        issue_quantity: requestedQty,
+        product_name: productName,
+        available_stock: availableStock
+      });
+    });
+
+    if (hasError) {
+      alert(errorMessage);
+      return;
+    }
+
+    if (stockData.length === 0) {
+      alert('Please add items with valid quantity using the form above.');
+      return;
+    }
+
+    // Confirm before submitting
+    const confirmMessage = `Are you sure you want to ISSUE stock for the following items?\n\n` +
+      stockData.map(item => `${item.product_name}: ${item.issue_quantity} units (Available: ${item.available_stock})`).join('\n');
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Disable submit button
+    const submitBtn = document.getElementById('submitAddStockBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Issuing Stock...';
+    }
+
+    // Log approval_id before sending
+    console.log('Issuing stock with approval_id:', window.currentApprovalId);
+    console.log('Stock data to send:', stockData);
+
+    // Send requests for each item to ISSUE stock (decrease inventory)
+    const promises = stockData.map(item => {
+      const requestBody = {
+        quantity: item.issue_quantity,
+        item_id: item.item_id,
+        approval_id: window.currentApprovalId || null,
+        reason: `Stock issued from approval - Product: ${item.product_name}`
+      };
+      
+      console.log('Sending request for item:', item.product_name, 'with approval_id:', requestBody.approval_id);
+      
+      return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify(requestBody),
+        credentials: 'same-origin'
+      });
+    });
+
+    // Process all requests
+    Promise.all(promises)
+      .then(responses => Promise.all(responses.map(r => r.json())))
+      .then(results => {
+        const successCount = results.filter(r => r.success).length;
+        const failedCount = results.length - successCount;
+
+        if (failedCount === 0) {
+          alert(`Successfully issued stock for all ${successCount} item(s)!`);
+          bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
+          // Optionally reload the page to refresh stock quantities
+          // window.location.reload();
+        } else {
+          alert(`Issued stock for ${successCount} item(s), but ${failedCount} item(s) failed.`);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error issuing stock: ' + error.message);
+      })
+      .finally(() => {
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i data-feather="check-circle"></i> Issue Stock';
+          feather.replace();
+        }
+      });
+  }
+
+  // Make functions globally accessible
+  window.openAddStockModal = openAddStockModal;
+  window.submitIssueStock = submitIssueStock;
+
+  // Event delegation for Add Stock buttons (works for dynamically loaded buttons too)
+  document.addEventListener('click', function(e) {
+    const addStockBtn = e.target.closest('.add-stock-btn');
+    if (addStockBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const approvalId = addStockBtn.getAttribute('data-approval-id') || addStockBtn.getAttribute('onclick')?.match(/\d+/)?.[0];
+      if (approvalId && window.openAddStockModal) {
+        window.openAddStockModal(parseInt(approvalId));
+      } else {
+        console.error('Add Stock button clicked but approval ID or function not found', {
+          approvalId: approvalId,
+          hasFunction: !!window.openAddStockModal
+        });
+      }
+    }
+    
+    // Event delegation for Submit button in Add Stock Modal
+    const submitBtn = e.target.closest('#submitAddStockBtn');
+    if (submitBtn && !submitBtn.disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Submit button clicked in Add Stock Modal');
+      if (window.submitAddStock) {
+        window.submitAddStock();
+      } else {
+        console.error('submitAddStock function not found');
+        alert('Error: Submit function not available. Please refresh the page.');
+      }
+    }
+  });
 
   // Initialize rows on page load
   document.addEventListener('DOMContentLoaded', function() {
     initPerformaBadges();
-    initStatusSelects();
+    // Run initStatusSelects after initPerformaBadges to ensure colors are set correctly
+    setTimeout(function() {
+      initStatusSelects();
+    }, 100);
   });
 
   // Store initial status on page load

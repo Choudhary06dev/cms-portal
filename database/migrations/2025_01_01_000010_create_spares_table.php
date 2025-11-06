@@ -42,16 +42,17 @@ return new class extends Migration
             $table->integer('quantity');
             $table->integer('reference_id')->nullable(); // complaint_id or purchase_id
             $table->text('remarks')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
-        
-        // Add foreign keys only if cities and sectors tables exist
+
+        // Add foreign key constraints for city_id and sector_id if tables exist
+        // This allows the migration to work even if cities/sectors tables are created later
         if (Schema::hasTable('cities')) {
             Schema::table('spares', function (Blueprint $table) {
                 $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
             });
         }
-        
         if (Schema::hasTable('sectors')) {
             Schema::table('spares', function (Blueprint $table) {
                 $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
@@ -64,6 +65,14 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Drop foreign keys if they exist
+        if (Schema::hasTable('spares')) {
+            Schema::table('spares', function (Blueprint $table) {
+                $table->dropForeign(['city_id']);
+                $table->dropForeign(['sector_id']);
+            });
+        }
+        
         Schema::dropIfExists('spare_stock_logs');
         Schema::dropIfExists('spares');
     }

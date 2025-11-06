@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ComplaintTitleController as AdminComplaintTitleCo
 use App\Http\Controllers\Admin\SectorController as AdminSectorController;
 use App\Http\Controllers\Admin\CityController as AdminCityController;
 use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\SearchController;
 // Frontend routes are defined in routes/frontend.php and loaded here
 
@@ -112,6 +113,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::middleware(['permission:employees.view'])->group(function () {
         // Extra AJAX/helper routes (must come BEFORE resource routes to avoid conflicts)
         Route::get('employees/sectors', [AdminEmployeeController::class, 'getSectorsByCity'])->name('employees.sectors');
+        Route::get('employees/designations', [AdminEmployeeController::class, 'getDesignationsByCategory'])->name('employees.designations');
         Route::get('employees/export', [AdminEmployeeController::class, 'export'])->name('employees.export');
         Route::post('employees/bulk-action', [AdminEmployeeController::class, 'bulkAction'])->name('employees.bulk-action');
         
@@ -142,6 +144,21 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::post('complaints/{complaint}/update-status', [AdminComplaintController::class, 'updateStatus'])->name('complaints.update-status');
         Route::post('complaints/{complaint}/add-spare-parts', [AdminComplaintController::class, 'addSpareParts'])->name('complaints.add-spare-parts');
         Route::get('complaints/{complaint}/print-slip', [AdminComplaintController::class, 'printSlip'])->name('complaints.print-slip');
+    });
+
+    // ===============================
+    // 💬 Feedback
+    // ===============================
+    Route::middleware(['permission:complaints.view'])->group(function () {
+        // List route must come before parameterized routes
+        Route::get('feedbacks', [AdminFeedbackController::class, 'index'])->name('feedbacks.index');
+        // Create/Store routes
+        Route::get('complaints/{complaint}/feedback/create', [AdminFeedbackController::class, 'create'])->name('feedback.create');
+        Route::post('complaints/{complaint}/feedback', [AdminFeedbackController::class, 'store'])->name('feedback.store');
+        // Edit/Update/Delete routes - must come after list route
+        Route::get('feedbacks/{feedback}/edit', [AdminFeedbackController::class, 'edit'])->name('feedback.edit');
+        Route::put('feedbacks/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
+        Route::delete('feedbacks/{feedback}', [AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
     });
 
     // ===============================
@@ -185,10 +202,16 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     // ⚙️ Spares, Approvals, SLA, Reports, Settings, Help
     // ===============================
+    // Routes without parameters must come BEFORE routes with parameters
+    Route::get('spares/get-categories', [AdminSpareController::class, 'getCategories'])->middleware(['permission:spares.view'])->name('spares.get-categories');
+    Route::get('spares/get-products-by-category', [AdminSpareController::class, 'getProductsByCategory'])->middleware(['permission:spares.view'])->name('spares.get-products-by-category');
+    
+    // Resource routes and routes with parameters
     Route::resource('spares', AdminSpareController::class)->middleware(['permission:spares.view']);
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::get('spares/{spare}/print-slip', [AdminSpareController::class, 'printSlip'])->middleware(['permission:spares.view'])->name('spares.print-slip');
     Route::post('spares/{spare}/add-stock', [AdminSpareController::class, 'addStock'])->middleware(['permission:spares.view'])->name('spares.add-stock');
+    Route::post('spares/{spare}/issue-stock', [AdminSpareController::class, 'issueStock'])->middleware(['permission:spares.view'])->name('spares.issue-stock');
     Route::resource('approvals', AdminApprovalController::class)->except(['create', 'store'])->middleware(['permission:approvals.view']);
     Route::post('approvals/{approval}/approve', [AdminApprovalController::class, 'approve'])->middleware(['permission:approvals.view'])->name('approvals.approve');
     Route::post('approvals/{approval}/reject', [AdminApprovalController::class, 'reject'])->middleware(['permission:approvals.view'])->name('approvals.reject');

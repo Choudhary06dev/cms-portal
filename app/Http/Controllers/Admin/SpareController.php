@@ -9,6 +9,10 @@ use App\Models\ComplaintSpare;
 use App\Models\ComplaintCategory;
 use App\Models\City;
 use App\Models\Sector;
+use App\Models\StockAddData;
+use App\Models\Complaint;
+use App\Models\SpareApprovalPerforma;
+use App\Models\SpareApprovalItem;
 use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -74,9 +78,25 @@ class SpareController extends Controller
         }
 
         $spares = $query->with(['stockLogs', 'city', 'sector'])->orderBy('id', 'desc')->paginate(15);
-        $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')
-            : collect();
+        
+        // Get categories from complaint_categories table
+        $dbCategories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
+            : [];
+        
+        // Get unique categories from spares table
+        $spareCategories = Spare::whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->toArray();
+        
+        // Merge and get unique categories
+        $allCategories = array_unique(array_merge($dbCategories, $spareCategories));
+        sort($allCategories);
+        
+        $categories = collect($allCategories);
 
         return view('admin.spares.index', compact('spares', 'categories'));
     }
@@ -106,8 +126,15 @@ class SpareController extends Controller
                     ->get()
                 : collect();
         }
+        // Defaults for Department Staff: preselect their city and sector
+        $defaultCityId = null;
+        $defaultSectorId = null;
+        if ($user && $user->role && strtolower($user->role->role_name) === 'department_staff') {
+            $defaultCityId = $user->city_id;
+            $defaultSectorId = $user->sector_id;
+        }
         
-        return view('admin.spares.create', compact('categories', 'cities', 'sectors'));
+        return view('admin.spares.create', compact('categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId'));
     }
 
     /**
@@ -445,11 +472,34 @@ class SpareController extends Controller
                 ->withErrors($validator);
         }
 
+        // Get available stock before adding
+        $availableStockBefore = $spare->stock_quantity;
+        
         $spare->addStock(
             $request->quantity,
             $request->remarks,
             $request->reference_id
         );
+
+        // Reload spare to get updated stock quantity
+        $spare->refresh();
+
+        // Create stock add data record
+        try {
+            StockAddData::create([
+                'spare_id' => $spare->id,
+                'add_date' => now(),
+                'category' => $spare->category,
+                'product_name' => $spare->item_name,
+                'quantity_added' => $request->quantity,
+                'available_stock_after' => $spare->stock_quantity,
+                'remarks' => $request->remarks,
+                'added_by' => auth()->user() && auth()->user()->employee ? auth()->user()->employee->id : null,
+                'reference_id' => $request->reference_id,
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to create stock add data: ' . $e->getMessage());
+        }
 
         return redirect()->back()
             ->with('success', 'Stock added successfully.');
@@ -484,6 +534,167 @@ class SpareController extends Controller
 
         return redirect()->back()
             ->with('success', 'Stock removed successfully.');
+    }
+
+    /**
+     * Issue stock from spare part (for AJAX requests)
+     */
+    public function issueStock(Request $request, Spare $spare)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'quantity' => 'required|integer|min:1',
+                'remarks' => 'nullable|string',
+                'item_id' => 'nullable|integer',
+                'approval_id' => 'nullable|integer',
+                'reason' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $quantity = (int)$request->quantity;
+
+            // Check if stock is sufficient
+            if (!$spare->isStockSufficient($quantity)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient stock available. Available: ' . $spare->stock_quantity . ', Requested: ' . $quantity
+                ], 400);
+            }
+
+            // Use reason or remarks for stock log
+            $remarks = $request->reason ?? $request->remarks ?? 'Stock issued from approval';
+            $referenceId = $request->item_id ?? $request->approval_id ?? null;
+            
+            // Get approval_id from request (set when issuing from approval modal)
+            $approvalId = $request->approval_id ?? null;
+            
+            // Debug logging
+            \Log::info('Stock issue request received', [
+                'spare_id' => $spare->id,
+                'approval_id' => $approvalId,
+                'item_id' => $request->item_id ?? null,
+                'quantity' => $quantity,
+                'all_request' => $request->all()
+            ]);
+
+            // Get available stock before issuing
+            $availableStockBefore = $spare->stock_quantity;
+            
+            // Get complaint and approval details
+            $complaint = null;
+            $approval = null;
+            $approvalItem = null;
+            $requestedQty = 0;
+            
+            // First try to get approval if approval_id is provided
+            if ($approvalId) {
+                $approval = SpareApprovalPerforma::find($approvalId);
+                if ($approval) {
+                    $complaint = $approval->complaint;
+                }
+            }
+            
+            // Try to get complaint from reference_id if not already found
+            if (!$complaint && $referenceId) {
+                $complaint = Complaint::find($referenceId);
+                
+                // If not complaint, try to get from approval
+                if (!$complaint) {
+                    $approval = SpareApprovalPerforma::find($referenceId);
+                    if ($approval) {
+                        $complaint = $approval->complaint;
+                    }
+                }
+            }
+            
+            // Get approval item to find requested quantity
+            if ($spare && $complaint) {
+                $approvalItem = SpareApprovalItem::whereHas('performa', function($q) use ($complaint) {
+                    $q->where('complaint_id', $complaint->id);
+                })->where('spare_id', $spare->id)->first();
+                
+                if ($approvalItem) {
+                    $requestedQty = $approvalItem->quantity_requested;
+                    if (!$approval) {
+                        $approval = $approvalItem->performa;
+                    }
+                }
+            }
+            
+            // If approval_id was provided but approval not found, try to find it
+            if ($approvalId && !$approval) {
+                $approval = SpareApprovalPerforma::find($approvalId);
+                if ($approval && !$complaint) {
+                    $complaint = $approval->complaint;
+                }
+            }
+
+            // Issue stock (decrease inventory)
+            $result = $spare->removeStock(
+                $quantity,
+                $remarks,
+                $referenceId
+            );
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to issue stock. Please try again.'
+                ], 500);
+            }
+
+            // Reload spare to get updated stock quantity
+            $spare->refresh();
+
+            // Create stock approval data record if approval_id is provided (from approval modal)
+            // Convert approval_id to integer if it's a string
+            $finalApprovalId = null;
+            if ($approvalId) {
+                $finalApprovalId = is_numeric($approvalId) ? (int)$approvalId : $approvalId;
+                \Log::info('Approval ID from request', ['approval_id' => $approvalId, 'final_approval_id' => $finalApprovalId]);
+            } elseif ($approval && $approval->id) {
+                $finalApprovalId = $approval->id;
+                \Log::info('Approval ID from approval object', ['approval_id' => $finalApprovalId]);
+            }
+            
+            \Log::info('Final approval ID check', [
+                'final_approval_id' => $finalApprovalId,
+                'approval_id_from_request' => $approvalId,
+                'approval_object_exists' => $approval ? true : false
+            ]);
+            
+            // StockApprovalData feature removed. No record creation.
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock issued successfully',
+                'data' => [
+                    'spare_id' => $spare->id,
+                    'item_name' => $spare->item_name,
+                    'quantity_issued' => $quantity,
+                    'remaining_stock' => $spare->stock_quantity,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error issuing stock', [
+                'spare_id' => $spare->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while issuing stock: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -722,5 +933,88 @@ class SpareController extends Controller
 
         // Implementation for export
         return response()->json(['message' => 'Export functionality not implemented yet']);
+    }
+
+    /**
+     * Get all categories for dropdown
+     */
+    public function getCategories(Request $request)
+    {
+        try {
+            // Get categories from ComplaintCategory table
+            $dbCategories = [];
+            if (\Schema::hasTable('complaint_categories')) {
+                $dbCategories = \App\Models\ComplaintCategory::orderBy('name')->pluck('name')->toArray();
+            }
+            
+            // Get unique categories from spares table
+            $spareCategories = Spare::whereNotNull('category')
+                ->where('category', '!=', '')
+                ->distinct()
+                ->orderBy('category')
+                ->pluck('category')
+                ->toArray();
+            
+            // Merge and get unique categories
+            $allCategories = array_unique(array_merge($dbCategories, $spareCategories));
+            sort($allCategories);
+            
+            return response()->json([
+                'success' => true,
+                'categories' => $allCategories
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting categories', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading categories: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get products by category
+     */
+    public function getProductsByCategory(Request $request)
+    {
+        try {
+            $category = $request->get('category');
+            
+            // If no category provided, return all products
+            if (!$category || $category === '') {
+                $products = Spare::orderBy('item_name')
+                    ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
+            } else {
+                // Filter by category (including products without category if category is empty string)
+                $products = Spare::where(function($query) use ($category) {
+                    $query->where('category', $category);
+                    // Also include products with null or empty category if searching for "Uncategorized"
+                    if (strtolower($category) === 'uncategorized' || $category === '') {
+                        $query->orWhereNull('category')
+                              ->orWhere('category', '');
+                    }
+                })
+                ->orderBy('item_name')
+                ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'products' => $products
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting products by category', [
+                'category' => $request->get('category'),
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading products: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

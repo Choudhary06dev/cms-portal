@@ -493,26 +493,15 @@ class ReportController extends Controller
         // Get user for location filtering
         $user = Auth::user();
         
-        // Get actual categories from ComplaintCategory table
+        // Get actual categories from ComplaintCategory table - this is the source of truth
         $actualCategories = \App\Models\ComplaintCategory::orderBy('name')
             ->pluck('name')
             ->toArray();
         
-        // Also get categories from complaints table that might not be in ComplaintCategory
-        // Apply location filtering to get only relevant categories
-        $complaintCategoriesQuery = Complaint::whereNotNull('category')
-            ->whereBetween('created_at', [$dateFromStart, $dateToEnd]);
-        
-        // Apply location-based filtering
-        $this->filterComplaintsByLocation($complaintCategoriesQuery, $user);
-        
-        $complaintCategories = $complaintCategoriesQuery->distinct()
-            ->orderBy('category')
-            ->pluck('category')
-            ->toArray();
-        
-        // Merge and remove duplicates
-        $allCategories = array_unique(array_merge($actualCategories, $complaintCategories));
+        // Use only categories from ComplaintCategory table (not from complaints table)
+        // This ensures we only show categories that are defined in the categories table
+        // and avoids showing old/renamed category names from existing complaints
+        $allCategories = $actualCategories;
         sort($allCategories);
         
         // Map categories to report format
@@ -536,6 +525,16 @@ class ReportController extends Controller
         
         // Row categories/statuses - based on complaint statuses from Complaint model
         $rows = \App\Models\Complaint::getStatuses();
+        
+        // Remove new and closed statuses from report
+        unset($rows['new']);
+        unset($rows['closed']);
+        
+        // Add performa-related statuses (same as approvals dropdown)
+        $rows['work_performa'] = 'Work Performa';
+        $rows['maint_performa'] = 'Maint Performa';
+        $rows['priced_performa'] = 'Maint/Work Priced';
+        $rows['product_na'] = 'Product N/A';
         
         // Base query for all complaints in date range
         // Note: $user already defined above
@@ -578,17 +577,41 @@ class ReportController extends Controller
                 
                 $count = 0;
                 
-                // Row mapping logic - based on complaint status
-                if ($rowKey === 'new') {
-                    $count = $catComplaints->where('status', 'new')->count();
-                } elseif ($rowKey === 'assigned') {
+                // Row mapping logic - based on complaint status (new and closed removed)
+                if ($rowKey === 'assigned') {
                     $count = $catComplaints->where('status', 'assigned')->count();
                 } elseif ($rowKey === 'in_progress') {
                     $count = $catComplaints->where('status', 'in_progress')->count();
                 } elseif ($rowKey === 'resolved') {
                     $count = $catComplaints->where('status', 'resolved')->count();
-                } elseif ($rowKey === 'closed') {
-                    $count = $catComplaints->where('status', 'closed')->count();
+                } elseif ($rowKey === 'work_performa') {
+                    // Count complaints with work performa (in_progress status with work performa badge/approval)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               ($complaint->spareApprovals->where('status', 'pending')->count() > 0 ||
+                                strpos($complaint->description ?? '', 'Work Performa') !== false);
+                    })->count();
+                } elseif ($rowKey === 'maint_performa') {
+                    // Count complaints with maint performa (in_progress status with maint performa badge/approval)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               (strpos($complaint->description ?? '', 'Maint Performa') !== false ||
+                                strpos($complaint->description ?? '', 'Maint') !== false);
+                    })->count();
+                } elseif ($rowKey === 'priced_performa') {
+                    // Count complaints with priced performa (in_progress status with priced performa badge)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               (strpos($complaint->description ?? '', 'Priced') !== false ||
+                                strpos($complaint->description ?? '', 'Maint/Work Priced') !== false);
+                    })->count();
+                } elseif ($rowKey === 'product_na') {
+                    // Count complaints with product N/A (in_progress status with product N/A badge)
+                    $count = $catComplaints->filter(function($complaint) {
+                        return $complaint->status === 'in_progress' && 
+                               (strpos($complaint->description ?? '', 'Product N/A') !== false ||
+                                strpos($complaint->description ?? '', 'N/A') !== false);
+                    })->count();
                 }
                 
                 $percentage = $catTotal > 0 ? round(($count / $catTotal) * 100, 1) : 0;
@@ -602,25 +625,113 @@ class ReportController extends Controller
             }
         }
         
+        // Identify E&M NRC related categories - the 3 specific columns
+        // E&M NRC (Electric), E&M NRC (Gas), E&M NRC (Water Supply)
+        $emNrcCategoryKeys = [];
+        $emNrcTotalKey = 'em_nrc_total';
+        
+        foreach ($categories as $catKey => $catName) {
+            // Check if category contains "E&M NRC" but not "Total"
+            if (stripos($catName, 'E&M NRC') !== false && stripos($catName, 'Total') === false) {
+                $emNrcCategoryKeys[] = $catKey;
+            }
+        }
+        
+        // Calculate E&M NRC Total for each row
+        $emNrcTotal = [];
+        foreach ($rows as $rowKey => $rowName) {
+            $emNrcTotal[$rowKey] = 0;
+            foreach ($emNrcCategoryKeys as $emKey) {
+                if (isset($reportData[$rowKey]['categories'][$emKey])) {
+                    $emNrcTotal[$rowKey] += $reportData[$rowKey]['categories'][$emKey]['count'];
+                }
+            }
+        }
+        
+        // Calculate E&M NRC Total for Total row
+        $emNrcTotalForTotalRow = 0;
+        foreach ($emNrcCategoryKeys as $emKey) {
+            $emNrcTotalForTotalRow += $categoryTotals[$emKey] ?? 0;
+        }
+        
+        // Reorganize categories: Place E&M NRC Total after individual E&M NRC columns
+        $reorganizedCategories = [];
+        $emNrcProcessed = [];
+        
+        foreach ($categories as $catKey => $catName) {
+            if (in_array($catKey, $emNrcCategoryKeys)) {
+                // Add E&M NRC category
+                $reorganizedCategories[$catKey] = $catName;
+                $emNrcProcessed[] = $catKey;
+                
+                // After adding all E&M NRC categories, add E&M NRC Total
+                if (count($emNrcProcessed) === count($emNrcCategoryKeys) && !isset($reorganizedCategories[$emNrcTotalKey])) {
+                    $reorganizedCategories[$emNrcTotalKey] = 'E&M NRC (Total)';
+                }
+            } else {
+                // Add non-E&M NRC categories
+                $reorganizedCategories[$catKey] = $catName;
+            }
+        }
+        
+        // If E&M NRC categories exist but total wasn't added (in case they were not consecutive)
+        if (!empty($emNrcCategoryKeys) && !isset($reorganizedCategories[$emNrcTotalKey])) {
+            // Find the position after last E&M NRC category
+            $tempCategories = [];
+            $foundLastEmNrc = false;
+            foreach ($reorganizedCategories as $key => $name) {
+                $tempCategories[$key] = $name;
+                if (in_array($key, $emNrcCategoryKeys) && $key === $emNrcCategoryKeys[count($emNrcCategoryKeys) - 1]) {
+                    $foundLastEmNrc = true;
+                }
+                if ($foundLastEmNrc && !isset($tempCategories[$emNrcTotalKey])) {
+                    // Insert after this E&M NRC category
+                    $tempCategories[$emNrcTotalKey] = 'E&M NRC (Total)';
+                    $foundLastEmNrc = false; // Prevent duplicate insertion
+                }
+            }
+            $reorganizedCategories = $tempCategories;
+        }
+        
+        // Add E&M NRC Total data to reportData
+        foreach ($reportData as $rowKey => &$row) {
+            $row['categories'][$emNrcTotalKey] = [
+                'count' => $emNrcTotal[$rowKey] ?? 0,
+                'percentage' => $emNrcTotalForTotalRow > 0 ? round((($emNrcTotal[$rowKey] ?? 0) / $emNrcTotalForTotalRow) * 100, 1) : 0,
+            ];
+        }
+        unset($row);
+        
+        // Add E&M NRC Total to categoryTotals
+        $categoryTotals[$emNrcTotalKey] = $emNrcTotalForTotalRow;
+        
         // Add Total row
         $reportData['total'] = ['name' => 'Total', 'categories' => []];
-        foreach ($categories as $catKey => $catName) {
-            $reportData['total']['categories'][$catKey] = [
-                'count' => $categoryTotals[$catKey],
-                'percentage' => $grandTotal > 0 ? round(($categoryTotals[$catKey] / $grandTotal) * 100, 1) : 0,
-            ];
+        foreach ($reorganizedCategories as $catKey => $catName) {
+            if ($catKey === $emNrcTotalKey) {
+                $reportData['total']['categories'][$catKey] = [
+                    'count' => $emNrcTotalForTotalRow,
+                    'percentage' => $grandTotal > 0 ? round(($emNrcTotalForTotalRow / $grandTotal) * 100, 1) : 0,
+                ];
+            } else {
+                $reportData['total']['categories'][$catKey] = [
+                    'count' => $categoryTotals[$catKey] ?? 0,
+                    'percentage' => $grandTotal > 0 ? round((($categoryTotals[$catKey] ?? 0) / $grandTotal) * 100, 1) : 0,
+                ];
+            }
         }
         
         // Prepare data for view
         $data = [
             'reportData' => $reportData,
-            'categories' => $categories,
+            'categories' => $reorganizedCategories,
             'rows' => $rows,
             'categoryTotals' => $categoryTotals,
             'grandTotal' => $grandTotal,
             'rowTotals' => $rowTotals,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
+            'emNrcTotalKey' => $emNrcTotalKey,
         ];
         
         // Export based on format
@@ -1162,8 +1273,40 @@ class ReportController extends Controller
                     $rowData[] = $percentage . '%';
                 }
                 
-                // Add Grand Total columns
-                $rowGrandTotal = array_sum(array_column($row['categories'], 'count'));
+                // Add Grand Total columns: sum of all primary columns
+                // Individual E&M NRC columns (Electric, Gas, Water Supply) should be EXCLUDED from Total
+                // E&M NRC (Total) should be INCLUDED in Total
+                $rowGrandTotal = 0;
+                $emNrcTotalKey = $data['emNrcTotalKey'] ?? 'em_nrc_total';
+                $hasEmNrcTotal = isset($row['categories'][$emNrcTotalKey]);
+                
+                foreach ($row['categories'] as $catKey => $catData) {
+                    // Always include E&M NRC Total if it exists
+                    if ($catKey === $emNrcTotalKey) {
+                        $rowGrandTotal += $catData['count'] ?? 0;
+                    } 
+                    // For other categories, check if it's an individual E&M NRC column
+                    elseif (isset($data['categories'][$catKey])) {
+                        $catName = $data['categories'][$catKey];
+                        
+                        // Skip individual E&M NRC columns (Electric, Gas, Water Supply) if E&M NRC Total exists
+                        $isIndividualEmNrc = false;
+                        if ($hasEmNrcTotal) {
+                            // Check if this is one of the 3 individual E&M NRC columns
+                            if (stripos($catName, 'E&M NRC') !== false && stripos($catName, 'Total') === false) {
+                                $isIndividualEmNrc = true;
+                            }
+                        }
+                        
+                        // Include all other columns (non-individual E&M NRC columns)
+                        if (!$isIndividualEmNrc) {
+                            $rowGrandTotal += $catData['count'] ?? 0;
+                        }
+                    } else {
+                        // Include if category key not found in categories array (fallback)
+                        $rowGrandTotal += $catData['count'] ?? 0;
+                    }
+                }
                 $rowGrandPercent = $data['grandTotal'] > 0 ? round(($rowGrandTotal / $data['grandTotal'] * 100), 1) : 0;
                 $rowData[] = $rowGrandTotal;
                 $rowData[] = $rowGrandPercent . '%';
