@@ -20,62 +20,62 @@
       <div class="col-12">
       <div class="row">
         <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3">Basic Information</h6>
+          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Basic Information</h6>
           <div class="mb-3">
-            <span class="text-muted">Item Name:</span>
-            <span class="text-white ms-2">{{ $spare->item_name ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Item Name:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->item_name ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Product Code:</span>
-            <span class="text-white ms-2">{{ $spare->product_code ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Product Code:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->product_code ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Brand Name:</span>
-            <span class="text-white ms-2">{{ $spare->brand_name ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Brand Name:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->brand_name ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Category:</span>
-            <span class="badge bg-info ms-2" style="color: #ffffff !important;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Category:</span>
+            <span class="badge bg-info ms-2" style="color: #ffffff !important; font-size: 0.875rem;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
           </div>
           @if($spare->description)
           <div class="mb-3 mt-4">
-            <h6 class="text-white fw-bold mb-3">Description</h6>
-            <p class="text-light">{{ $spare->description }}</p>
+            <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Description</h6>
+            <p class="text-light" style="font-size: 0.875rem;">{{ $spare->description }}</p>
           </div>
           @endif
         </div>
         
         <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3">Stock Information</h6>
+          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Stock Information</h6>
           <div class="mb-3">
-            <span class="text-muted">Stock Quantity:</span>
-            <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important;">
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Stock Quantity:</span>
+            <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important; font-size: 0.875rem;">
               {{ number_format($spare->stock_quantity ?? 0, 0) }}
             </span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Total Received:</span>
-            <span class="text-white ms-2">{{ number_format($spare->total_received_quantity ?? 0, 0) }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Total Received:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ number_format($spare->total_received_quantity ?? 0, 0) }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Issued Quantity:</span>
-            <span class="text-white ms-2">{{ number_format($spare->issued_quantity ?? 0, 0) }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Issued Quantity:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ number_format($spare->issued_quantity ?? 0, 0) }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Threshold Level:</span>
-            <span class="text-white ms-2">{{ number_format($spare->threshold_level ?? 0, 0) }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Threshold Level:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ number_format($spare->threshold_level ?? 0, 0) }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Supplier:</span>
-            <span class="text-white ms-2">{{ $spare->supplier ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Supplier:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->supplier ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Created:</span>
-            <span class="text-white ms-2">{{ $spare->created_at ? $spare->created_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Created:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->created_at ? $spare->created_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Last Updated:</span>
-            <span class="text-white ms-2">{{ $spare->updated_at ? $spare->updated_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Last Updated:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->updated_at ? $spare->updated_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
           </div>
         </div>
       </div>

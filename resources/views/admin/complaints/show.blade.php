@@ -35,33 +35,33 @@
       <div class="col-12">
       <div class="row">
         <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
+          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
           <div class="mb-3">
-            <span class="text-muted">Complainant Name:</span>
-            <span class="text-white ms-2">{{ $complaint->client->client_name ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complainant Name:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->client->client_name ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">City:</span>
-            <span class="text-white ms-2">{{ $complaint->city ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">City:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->city ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Sector:</span>
-            <span class="text-white ms-2">{{ $complaint->sector ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Sector:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->sector ?? 'N/A' }}</span>
           </div>
          
           <div class="mb-3">
-            <span class="text-muted">Address:</span>
-            <span class="text-white ms-2">{{ $complaint->client->address ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Address:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->client->address ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Phone No:</span>
-            <span class="text-white ms-2">{{ $complaint->client->phone ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Phone No:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->client->phone ?? 'N/A' }}</span>
           </div>
           
-          <h6 class="text-white fw-bold mb-3 mt-4">Additional Information</h6>
+          <h6 class="text-white fw-bold mb-3 mt-4" style="font-size: 1rem; font-weight: 700;">Additional Information</h6>
           <div class="mb-3">
-            <span class="text-muted">Complaint Nature & Type:</span>
-            <span class="text-white ms-2" style="font-weight: normal;">
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complaint Nature & Type:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem; font-weight: normal;">
               @php
                 $category = $complaint->category ?? 'N/A';
                 $designation = $complaint->assignedEmployee->designation ?? 'N/A';
@@ -83,36 +83,36 @@
             </span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Status:</span>
-            <span class="badge ms-2" style="background-color: {{ $currentStatusColor['bg'] }}; color: #ffffff !important; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid {{ $currentStatusColor['border'] }};">
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Status:</span>
+            <span class="badge ms-2" style="background-color: {{ $currentStatusColor['bg'] }}; color: #ffffff !important; padding: 6px 12px; font-size: 0.875rem; font-weight: 600; border-radius: 6px; border: 1px solid {{ $currentStatusColor['border'] }};">
               {{ $statusDisplay }}
             </span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Priority:</span>
-            <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important;">
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Priority:</span>
+            <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important; font-size: 0.875rem;">
               {{ ucfirst($complaint->priority) }}
             </span>
           </div>
         </div>
         
         <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3"><i data-feather="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Complaint Information</h6>
+          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;"><i data-feather="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Complaint Information</h6>
           <div class="mb-3">
-            <span class="text-muted">Complaint ID:</span>
-            <span class="text-white ms-2">{{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complaint ID:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Complaint Title:</span>
-            <span class="text-white ms-2">{{ $complaint->title ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complaint Title:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->title ?? 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Registration Date/Time:</span>
-            <span class="text-white ms-2">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Registration Date/Time:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Completion Time:</span>
-            <span class="text-white ms-2">
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Completion Time:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">
               @if($complaint->closed_at)
                 {{ $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') }}
               @elseif($complaint->status == 'resolved' || $complaint->status == 'closed')
@@ -123,14 +123,14 @@
             </span>
           </div>
           <div class="mb-3">
-            <span class="text-muted">Assigned Employee:</span>
-            <span class="text-white ms-2">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Assigned Employee:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</span>
           </div>
            
       <div class="row mt-3">
         <div class="col-12">
-          <h6 class="text-white fw-bold mb-3">Description</h6>
-          <p class="text-white mb-0">{{ $complaint->description ?? 'N/A' }}</p>
+          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Description</h6>
+          <p class="text-white mb-0" style="font-size: 0.875rem;">{{ $complaint->description ?? 'N/A' }}</p>
         </div>
       </div>
     </div>

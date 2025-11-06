@@ -84,7 +84,7 @@
     body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); color:#f1f5f9; min-height:100vh; }
     .sidebar {
       min-height:100vh;
-      width: 220px;
+      width: 240px;
       background: var(--sidebar-bg);
       border-right: 1px solid rgba(59, 130, 246, 0.2);
       padding: 16px;
@@ -116,16 +116,40 @@
       height: 18px !important;
       min-width: 18px !important;
     }
+    .nav-link i[data-feather="file-text"] {
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+    }
     .nav-link i svg {
       width: 18px !important;
       height: 18px !important;
+    }
+    .nav-link i[data-feather="file-text"] svg {
+      width: 20px !important;
+      height: 20px !important;
     }
     .nav-link span, .nav-link .text-decoration-none {
       white-space: nowrap !important;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .content { margin-left: 230px; padding: 20px; margin-top: 50px; }
+    .nav-link .text-decoration-none[href*="complaints"] {
+      overflow: visible !important;
+      text-overflow: clip !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+    }
+    .nav-link[style*="overflow: visible"] {
+      overflow: visible !important;
+      text-overflow: clip !important;
+    }
+    .nav-link[style*="overflow: visible"] .text-decoration-none {
+      overflow: visible !important;
+      text-overflow: clip !important;
+      max-width: none !important;
+    }
+    .content { margin-left: 250px; padding: 20px; margin-top: 50px; }
     /* Topbar styles are now in the navigation component */
     .card-glass { 
       background: var(--glass-bg); 
@@ -287,9 +311,10 @@
     @endif
     @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}">
-        <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
-          <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px; stroke-width: 2;"></i> Complaints Reg.
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important;">
+        <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center" style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; flex: 1 1 auto; min-width: 0;">
+          <i data-feather="file-text" class="me-2" style="width: 20px !important; height: 20px !important; stroke-width: 2.5 !important; min-width: 20px !important; flex-shrink: 0 !important;"></i> 
+          <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Reg.</span>
         </a>
         <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsSubmenu" aria-expanded="{{ request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
