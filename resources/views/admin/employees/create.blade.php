@@ -77,8 +77,20 @@
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
           <select class="form-select @error('designation') is-invalid @enderror" 
+<<<<<<< HEAD
+                  id="designation" name="designation">
+            <option value="">Select Designation</option>
+            @if(isset($designations) && $designations->count() > 0)
+              @foreach ($designations as $designation)
+                <option value="{{ $designation->name }}" data-category="{{ $designation->category }}" {{ old('designation') == $designation->name ? 'selected' : '' }}>
+                  {{ $designation->name }}
+                </option>
+              @endforeach
+            @endif
+=======
                   id="designation" name="designation" disabled>
             <option value="">Select Category First</option>
+>>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
           </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -187,8 +199,43 @@
   feather.replace();
   
   document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< HEAD
+    // Filter designations by selected category
     const categorySelect = document.getElementById('category');
     const designationSelect = document.getElementById('designation');
+    function filterDesignations() {
+      if (!categorySelect || !designationSelect) return;
+      const cat = (categorySelect.value || '').toString();
+      const current = designationSelect.value;
+      let firstVisible = null;
+      Array.from(designationSelect.options).forEach(opt => {
+        if (!opt.value) return; // skip placeholder
+        const optCat = opt.getAttribute('data-category') || '';
+        const show = !cat || optCat === cat;
+        opt.hidden = !show;
+        if (show && !firstVisible) firstVisible = opt;
+      });
+      // If current hidden, clear selection
+      const sel = designationSelect.selectedOptions[0];
+      if (sel && sel.hidden) {
+        designationSelect.value = '';
+      }
+      // Disable until category selected
+      if (!cat) {
+        designationSelect.disabled = true;
+      } else {
+        designationSelect.disabled = false;
+      }
+    }
+    if (categorySelect && designationSelect) {
+      categorySelect.addEventListener('change', filterDesignations);
+      // Initialize state on load
+      filterDesignations();
+    }
+=======
+    const categorySelect = document.getElementById('category');
+    const designationSelect = document.getElementById('designation');
+>>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
     const citySelect = document.getElementById('city_id');
     const sectorSelect = document.getElementById('sector_id');
     

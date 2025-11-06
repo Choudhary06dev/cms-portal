@@ -120,7 +120,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['role.rolePermissions', 'employee', 'complaintLogs', 'slaRules']);
+        $user->load(['role.rolePermissions', 'city', 'sector', 'slaRules']);
         return view('admin.users.show', compact('user'));
     }
 
@@ -383,10 +383,10 @@ class UserController extends Controller
 
             case 'delete':
                 // Check for related records before deletion
+                // Note: complaintLogs relationship is not functional since employees table doesn't have user_id
                 $usersWithRecords = User::whereIn('id', $userIds)
                     ->where(function($q) {
-                        $q->whereHas('complaintLogs')
-                          ->orWhereHas('slaRules');
+                        $q->whereHas('slaRules');
                     })
                     ->count();
 

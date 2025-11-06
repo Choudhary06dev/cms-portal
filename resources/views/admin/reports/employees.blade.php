@@ -103,7 +103,7 @@
             <td>{{ $loop->iteration }}</td>
             <td>{{ $emp['employee']->name ?? 'N/A' }}</td>
             <td>{{ $emp['employee']->department ?? 'N/A' }}</td>
-            <td>{{ $emp['employee']->designation ?? 'N/A' }}</td>
+            <td>{{ $emp['employee']->designation ?? '' }}</td>
             <td class="text-end">{{ number_format($emp['total_complaints']) }}</td>
             <td class="text-end">{{ number_format($emp['resolved_complaints']) }}</td>
             <td class="text-end">{{ number_format($emp['resolution_rate'], 1) }}%</td>

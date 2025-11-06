@@ -46,24 +46,6 @@
         <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="City name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
-      <div style="min-width: 200px; flex: 0 0 240px;">
-        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Province</label>
-        <select name="province" class="form-select @error('province') is-invalid @enderror">
-          <option value="">Select Province</option>
-                    <option value="Punjab" {{ old('province')==='Punjab'?'selected':'' }}>Punjab</option>
-          <option value="Sindh" {{ old('province')==='Sindh'?'selected':'' }}>Sindh</option>
-                    <option value="Balochistan" {{ old('province')==='Balochistan'?'selected':'' }}>Balochistan</option>
-          <option value="KPK" {{ old('province')==='KPK'?'selected':'' }}>KPK</option>
-          <option value="Federal" {{ old('province')==='Federal'?'selected':'' }}>Federal</option>
-          <option value="Azad Kashmir" {{ old('province')==='Azad Kashmir'?'selected':'' }}>Azad Kashmir</option>
-        </select>
-        @error('province')<div class="invalid-feedback">{{ $message }}</div>@enderror
-      </div>
-      <div style="min-width: 260px; flex: 1 1 380px;">
-        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
-        <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Short description (optional)">
-        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-      </div>
       <div style="min-width: 160px; flex: 0 0 180px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Status</label>
         <select name="status" class="form-select">
@@ -100,8 +82,6 @@
           <tr>
             <th style="width:70px">#</th>
             <th>Name</th>
-            <th>Province</th>
-            <th>Description</th>
             <th style="width:140px">Status</th>
             <th style="width:180px">Actions</th>
           </tr>
@@ -111,15 +91,13 @@
           <tr>
             <td>{{ $city->id }}</td>
             <td>{{ $city->name }}</td>
-            <td>{{ $city->province ?: '-' }}</td>
-            <td>{{ $city->description ? Str::limit($city->description, 80) : '-' }}</td>
             <td>
-              <span class="badge {{ $city->status==='active' ? 'bg-success' : 'bg-secondary' }}" style="color: #ffffff !important;">{{ ucfirst($city->status) }}</span>
+              <span class="badge {{ $city->status==='active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">{{ ucfirst($city->status) }}</span>
             </td>
             <td>
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editCityModal" 
-                        data-id="{{ $city->id }}" data-name="{{ $city->name }}" data-province="{{ $city->province }}" data-status="{{ $city->status }}" data-description="{{ $city->description }}">
+                        data-id="{{ $city->id }}" data-name="{{ $city->name }}" data-status="{{ $city->status }}">
                   Edit
                 </button>
                 <form action="{{ route('admin.city.destroy', $city) }}" method="POST" class="city-delete-form" onsubmit="return confirm('Delete this city?')">
@@ -132,7 +110,7 @@
           </tr>
           @empty
           <tr>
-            <td colspan="5" class="text-center text-muted">No cities yet.</td>
+            <td colspan="4" class="text-center text-muted">No cities yet.</td>
           </tr>
           @endforelse
         </tbody>
@@ -160,22 +138,7 @@
             <label class="form-label">Name</label>
             <input type="text" name="name" id="editCityName" class="form-control" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Province</label>
-            <select name="province" id="editCityProvince" class="form-select">
-              <option value="">Select Province</option>
-              <option value="Sindh">Sindh</option>
-              <option value="Punjab">Punjab</option>
-              <option value="KPK">KPK</option>
-              <option value="Balochistan">Balochistan</option>
-              <option value="Federal">Federal</option>
-              <option value="Azad Kashmir">Azad Kashmir</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea name="description" id="editCityDescription" class="form-control" rows="2" placeholder="Optional"></textarea>
-          </div>
+          
           <div class="mb-3">
             <label class="form-label">Status</label>
             <select name="status" id="editCityStatus" class="form-select">
@@ -239,22 +202,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const button = event.relatedTarget;
     const id = button.getAttribute('data-id');
     const name = button.getAttribute('data-name');
-    const province = button.getAttribute('data-province') || '';
     const status = button.getAttribute('data-status');
-    const description = button.getAttribute('data-description') || '';
-
     const form = document.getElementById('editCityForm');
     const nameInput = document.getElementById('editCityName');
-    const provinceSelect = document.getElementById('editCityProvince');
     const statusSelect = document.getElementById('editCityStatus');
 
     if (form && id) {
       form.action = `${window.location.origin}/admin/city/${id}`;
     }
     if (nameInput) nameInput.value = name || '';
-    if (provinceSelect) provinceSelect.value = province || '';
-    const descInput = document.getElementById('editCityDescription');
-    if (descInput) descInput.value = description;
     if (statusSelect) statusSelect.value = status || 'active';
   });
 });

@@ -144,17 +144,20 @@ class ComplaintController extends Controller
         // Debug: Log the request data
         Log::info('Complaint creation request', [
             'all_data' => $request->all(),
+            'title' => $request->title,
+            'title_other' => $request->title_other,
             'method' => $request->method(),
             'content_type' => $request->header('Content-Type')
         ]);
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
+            'title_other' => 'nullable|string|max:255',
             'client_name' => 'required|string|max:255',
             // Allow any category string (column changed to VARCHAR)
             'category' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
             // Status removed from form - will be managed in approvals view, default to 'new'
             'attachments' => 'nullable|array|max:5',
@@ -207,8 +210,34 @@ class ComplaintController extends Controller
                 ]
             );
 
+            // Handle custom title from "Other" option
+            // JavaScript sets title_other value in hidden input with name="title"
+            // But if title is still "other", use title_other field
+            $finalTitle = $request->title;
+            
+            // If title is "other", check for title_other field
+            if ($finalTitle === 'other' || strtolower($finalTitle) === 'other') {
+                if ($request->has('title_other') && !empty(trim($request->title_other))) {
+                    $finalTitle = trim($request->title_other);
+                } elseif ($request->has('title') && $request->title !== 'other') {
+                    // JavaScript might have already set custom title in title field
+                    $finalTitle = trim($request->title);
+                }
+            }
+            
+            // Final fallback - if still "other", try to get from title_other
+            if (empty($finalTitle) || strtolower($finalTitle) === 'other') {
+                $finalTitle = $request->input('title_other') ? trim($request->input('title_other')) : 'other';
+            }
+            
+            Log::info('Final title being saved', [
+                'final_title' => $finalTitle,
+                'original_title' => $request->title,
+                'title_other' => $request->title_other
+            ]);
+            
             $complaint = Complaint::create([
-                'title' => $request->title,
+                'title' => $finalTitle,
                 'client_id' => $client->id,
                 'city' => $cityName,
                 'sector' => $sectorName,
@@ -380,11 +409,12 @@ class ComplaintController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
+            'title_other' => 'nullable|string|max:255',
             'client_name' => 'required|string|max:255',
             // Allow any category string (column changed to VARCHAR)
             'category' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
             // Status removed from form - will be managed in approvals view, keep existing status
             'attachments' => 'nullable|array|max:5',
@@ -450,8 +480,21 @@ class ComplaintController extends Controller
         $oldStatus = $complaint->status;
         $oldAssignedTo = $complaint->assigned_employee_id;
 
+        // Use title_other if title is "other", otherwise use title
+        // Check both title_other field and if title itself is "other"
+        if ($request->title === 'other') {
+            $finalTitle = $request->title_other ? trim($request->title_other) : 'other';
+        } else {
+            $finalTitle = $request->title;
+        }
+        
+        // If finalTitle is still "other" or empty, use title_other if available
+        if (empty($finalTitle) || $finalTitle === 'other') {
+            $finalTitle = $request->title_other ? trim($request->title_other) : 'other';
+        }
+
         $complaint->update([
-            'title' => $request->title,
+            'title' => $finalTitle,
             'client_id' => $client->id,
             'city' => $cityName,
             'sector' => $sectorName,

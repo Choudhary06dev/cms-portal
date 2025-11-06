@@ -3,105 +3,91 @@
 @section('title', 'Spare Part Details — CMS Admin')
 
 @section('content')
-
-
-<!-- SPARE PART INFORMATION -->
-<div class="card-glass">
-  <div class="card-header">
-    <h5 class="card-title mb-0 text-white">
-      <i data-feather="package" class="me-2"></i>Product Details: {{ $spare->item_name }}
-    </h5>
+<!-- PAGE HEADER -->
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="text-white mb-2">Product Details</h2>
+      <p class="text-light">View product information and stock records</p>
+    </div>
   </div>
-  <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-4">
-                <h6 class="text-white fw-bold">Basic Information</h6>
-                <table class="table table-borderless">
-                  <tr>
-                    <td class="text-white"><strong>Item Name:</strong></td>
-                    <td class="text-white">{{ $spare->item_name }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Product Code:</strong></td>
-                    <td class="text-white">{{ $spare->product_code ?? 'N/A' }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Brand Name:</strong></td>
-                    <td class="text-white">{{ $spare->brand_name ?? 'N/A' }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Category:</strong></td>
-                    <td>
-                      <span class="badge bg-info" style="color: #ffffff !important;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
-                    </td>
-                  </tr>
-                  @if($spare->description)
-                  <tr>
-                    <td class="text-white"><strong>Description:</strong></td>
-                    <td class="text-white">{{ $spare->description }}</td>
-                  </tr>
-                  @endif
-                </table>
-              </div>
-            </div>
-            
-            <div class="col-md-6">
-              <div class="mb-4">
-                <h6 class="text-white fw-bold">Stock Information</h6>
-                <table class="table table-borderless">
-                  <tr>
-                    <td class="text-white"><strong>Total Received:</strong></td>
-                    <td class="text-white">{{ number_format($spare->total_received_quantity ?? 0, 0) }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Issued Quantity:</strong></td>
-                    <td class="text-white">{{ number_format($spare->issued_quantity ?? 0, 0) }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Stock Quantity:</strong></td>
-                    <td>
-                      <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}" style="color: #ffffff !important;">
-                        {{ number_format($spare->stock_quantity ?? 0, 0) }}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Threshold Level:</strong></td>
-                    <td class="text-white">{{ number_format($spare->threshold_level ?? 0, 0) }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Supplier:</strong></td>
-                    <td class="text-white">{{ $spare->supplier ?? 'N/A' }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Last Stock In:</strong></td>
-                    <td class="text-white">{{ $spare->last_stock_in_at ? $spare->last_stock_in_at->format('M d, Y H:i') : 'N/A' }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Created:</strong></td>
-                    <td class="text-white">{{ $spare->created_at->format('M d, Y H:i') }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-white"><strong>Last Updated:</strong></td>
-                    <td class="text-white">{{ $spare->updated_at->format('M d, Y H:i') }}</td>
-                  </tr>
-                </table>
-              </div>
-            </div>
-          </div>
+</div>
 
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="d-flex justify-content-between">
-                <a href="{{ route('admin.spares.index') }}" class="btn btn-secondary">
-                  <i data-feather="arrow-left"></i> Back to Product
-                </a>
-              </div>
-            </div>
+<!-- PRODUCT INFORMATION -->
+<div class="d-flex justify-content-center">
+  <div class="card-glass" style="max-width: 900px; width: 100%;">
+    <div class="row">
+      <div class="col-12">
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Basic Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Item Name:</span>
+            <span class="text-white ms-2">{{ $spare->item_name ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Product Code:</span>
+            <span class="text-white ms-2">{{ $spare->product_code ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Brand Name:</span>
+            <span class="text-white ms-2">{{ $spare->brand_name ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Category:</span>
+            <span class="badge bg-info ms-2" style="color: #ffffff !important;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
+          </div>
+          @if($spare->description)
+          <div class="mb-3 mt-4">
+            <h6 class="text-white fw-bold mb-3">Description</h6>
+            <p class="text-light">{{ $spare->description }}</p>
+          </div>
+          @endif
+        </div>
+        
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Stock Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Stock Quantity:</span>
+            <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important;">
+              {{ number_format($spare->stock_quantity ?? 0, 0) }}
+            </span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Total Received:</span>
+            <span class="text-white ms-2">{{ number_format($spare->total_received_quantity ?? 0, 0) }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Issued Quantity:</span>
+            <span class="text-white ms-2">{{ number_format($spare->issued_quantity ?? 0, 0) }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Threshold Level:</span>
+            <span class="text-white ms-2">{{ number_format($spare->threshold_level ?? 0, 0) }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Supplier:</span>
+            <span class="text-white ms-2">{{ $spare->supplier ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Created:</span>
+            <span class="text-white ms-2">{{ $spare->created_at ? $spare->created_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Last Updated:</span>
+            <span class="text-white ms-2">{{ $spare->updated_at ? $spare->updated_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+  
+    <hr class="my-4">
+    
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.spares.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Back to Products
+      </a>
     </div>
   </div>
 </div>

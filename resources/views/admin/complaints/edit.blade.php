@@ -178,7 +178,7 @@
             <div class="row mt-3">
               <div class="col-12">
                 <div class="mb-3">
-                  <label for="description" class="form-label text-white">Description <span class="text-danger">*</span></label>
+                  <label for="description" class="form-label text-white">Description</label>
                   <textarea class="form-control @error('description') is-invalid @enderror" 
                             id="description" name="description" rows="4" >{{ old('description', $complaint->description) }}</textarea>
                   @error('description')
@@ -346,6 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
               titleSelect.appendChild(option);
             }
           });
+
         }
         
         if (!currentTitle && (!data || data.length === 0)) {
@@ -460,5 +461,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
 
 

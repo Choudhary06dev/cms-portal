@@ -77,8 +77,8 @@
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
           <select class="form-select @error('designation') is-invalid @enderror" 
-                  id="designation" name="designation" disabled>
-            <option value="">Select Category First</option>
+                  id="designation" name="designation" {{ old('category', $employee->department) ? '' : 'disabled' }}>
+            <option value="">{{ old('category', $employee->department) ? 'Loading...' : 'Select Category First' }}</option>
           </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -199,6 +199,12 @@
     
     // Load designations on page load if category is already selected
     if (currentCategory && categorySelect && designationSelect) {
+      // Enable dropdown immediately if category exists
+      designationSelect.disabled = false;
+      
+      // Show loading state
+      designationSelect.innerHTML = '<option value="">Loading...</option>';
+      
       fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(currentCategory)}`, {
         method: 'GET',
         headers: {
@@ -208,25 +214,55 @@
       })
       .then(response => response.json())
       .then(data => {
+        // Start with empty select
         designationSelect.innerHTML = '<option value="">Select Designation</option>';
         
+        // First, add current designation if it exists (to ensure it's always available)
+        if (currentDesignation) {
+          const currentOption = document.createElement('option');
+          currentOption.value = currentDesignation;
+          currentOption.textContent = currentDesignation;
+          currentOption.selected = true;
+          designationSelect.appendChild(currentOption);
+        }
+        
+        // Then add all fetched designations
         if (data.designations && data.designations.length > 0) {
           data.designations.forEach(function(designation) {
+            // Skip if this designation is the same as current designation (already added)
+            if (currentDesignation && designation.name === currentDesignation) {
+              return;
+            }
             const option = document.createElement('option');
             option.value = designation.name;
             option.textContent = designation.name;
-            if (designation.name === currentDesignation) {
-              option.selected = true;
-            }
             designationSelect.appendChild(option);
           });
-          designationSelect.disabled = false;
-        } else {
+        }
+        
+        // If no designations found and no current designation, show message
+        if ((!data.designations || data.designations.length === 0) && !currentDesignation) {
           designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+        }
+        
+        // Ensure current designation is still selected after adding all options
+        if (currentDesignation) {
+          designationSelect.value = currentDesignation;
         }
       })
       .catch(error => {
         console.error('Error fetching designations:', error);
+        // If there's an error but we have current designation, show it
+        if (currentDesignation) {
+          designationSelect.innerHTML = '<option value="">Select Designation</option>';
+          const currentOption = document.createElement('option');
+          currentOption.value = currentDesignation;
+          currentOption.textContent = currentDesignation;
+          currentOption.selected = true;
+          designationSelect.appendChild(currentOption);
+        } else {
+          designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+        }
       });
     }
     
