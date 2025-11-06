@@ -331,11 +331,17 @@ class DashboardController extends Controller
         $employeesQuery = Employee::query();
         $this->filterEmployeesByLocation($employeesQuery, $user);
         
-        // Filter employees by category if provided (employees assigned to complaints of that category)
+        // Filter employees by selected filters based on their assigned complaints
         if ($category) {
             $employeesQuery->whereHas('assignedComplaints', function($q) use ($category) {
                 $q->where('category', $category);
             });
+        }
+        if ($cityId) {
+            $employeesQuery->where('city_id', $cityId);
+        }
+        if ($sectorId) {
+            $employeesQuery->where('sector_id', $sectorId);
         }
         
         $clientsQuery = Client::query();
