@@ -5,16 +5,9 @@
 @section('content')
 <!-- PAGE HEADER -->
 <div class="mb-3">
-  <div class="d-flex justify-content-between align-items-center">
-    <div>
-      <h5 class="text-white mb-1">Edit Complainant Feedback</h5>
-      <p class="text-light small mb-0">Update feedback information</p>
-    </div>
-    <div>
-      <a href="{{ route('admin.complaints.show', $feedback->complaint_id) }}" class="btn btn-outline-secondary" style="border-color: #6c757d; color: #6c757d;" onmouseover="this.style.backgroundColor='#0ea5e9'; this.style.borderColor='#0ea5e9'; this.style.color='#ffffff';" onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#6c757d'; this.style.color='#6c757d';">
-        <i data-feather="arrow-left" class="me-2"></i>Back to Complaint
-      </a>
-    </div>
+  <div>
+    <h5 class="text-white mb-1">Edit Complainant Feedback</h5>
+    <p class="text-light small mb-0">Update feedback information</p>
   </div>
 </div>
 
@@ -61,6 +54,25 @@
             <td class="text-white"><strong>Resolved Date:</strong></td>
             <td class="text-white">{{ $feedback->complaint->closed_at ? $feedback->complaint->closed_at->format('M d, Y H:i:s') : 'N/A' }}</td>
           </tr>
+          @php
+            $geUser = null;
+            if ($feedback->complaint->city) {
+              $city = \App\Models\City::where('name', $feedback->complaint->city)->first();
+              if ($city) {
+                $geUser = \App\Models\User::where('city_id', $city->id)
+                  ->whereHas('role', function($q) {
+                    $q->where('role_name', 'garrison_engineer');
+                  })
+                  ->first();
+              }
+            }
+          @endphp
+          @if($geUser)
+          <tr>
+            <td class="text-white"><strong>GE (City):</strong></td>
+            <td class="text-white">{{ $geUser->username ?? 'N/A' }}</td>
+          </tr>
+          @endif
         </table>
       </div>
     </div>
@@ -128,23 +140,8 @@
         @enderror
       </div>
 
-      <!-- Feedback Date -->
-      <div class="mb-3">
-        <label class="form-label text-white fw-bold mb-1" style="font-size: 0.9rem;">
-          Feedback Date (When complainant provided feedback)
-        </label>
-        <input type="datetime-local" class="form-control @error('feedback_date') is-invalid @enderror" 
-               name="feedback_date" value="{{ old('feedback_date', $feedback->feedback_date ? $feedback->feedback_date->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i')) }}">
-        @error('feedback_date')
-          <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-      </div>
-
       <!-- Submit Buttons -->
-      <div class="d-flex justify-content-between">
-        <a href="{{ route('admin.complaints.show', $feedback->complaint_id) }}" class="btn btn-outline-secondary" style="background-color: transparent; border-color: #6c757d; color: #6c757d;" onmouseover="this.style.backgroundColor='#0ea5e9'; this.style.borderColor='#0ea5e9'; this.style.color='#ffffff';" onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#6c757d'; this.style.color='#6c757d';">
-          <i data-feather="x" class="me-2"></i>Cancel
-        </a>
+      <div class="d-flex justify-content-end">
         <button type="submit" class="btn btn-primary">
           <i data-feather="save" class="me-2"></i>Update Feedback
         </button>

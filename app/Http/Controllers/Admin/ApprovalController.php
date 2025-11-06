@@ -14,9 +14,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\LocationFilterTrait;
 
 class ApprovalController extends Controller
 {
+    use LocationFilterTrait;
+    
     public function __construct()
     {
         // Middleware is applied in routes
@@ -28,10 +32,14 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         try {
+            $user = Auth::user();
+            
             // Automatically create missing approval performas for complaints that don't have them
             // This ensures all complaints appear in the approval modal
             // Only create if approval doesn't already exist to avoid duplicates
-            $complaintsWithoutApprovals = Complaint::whereDoesntHave('spareApprovals')->get();
+            $complaintsWithoutApprovalsQuery = Complaint::whereDoesntHave('spareApprovals');
+            $this->filterComplaintsByLocation($complaintsWithoutApprovalsQuery, $user);
+            $complaintsWithoutApprovals = $complaintsWithoutApprovalsQuery->get();
             if ($complaintsWithoutApprovals->count() > 0) {
                 $defaultEmployee = Employee::first();
                 if ($defaultEmployee) {
@@ -73,6 +81,13 @@ class ApprovalController extends Controller
                 ->join('clients', 'complaints.client_id', '=', 'clients.id')
                 ->select('spare_approval_performa.*')
                 ->distinct();
+            
+            // Apply location-based filtering through complaint relationship
+            if (!$this->canViewAllData($user)) {
+                $query->whereHas('complaint', function($q) use ($user) {
+                    $this->filterComplaintsByLocation($q, $user);
+                });
+            }
 
             // Search functionality - by Complaint ID, Address, or Cell No (phone)
             if ($request->has('search') && $request->search) {
@@ -142,29 +157,52 @@ class ApprovalController extends Controller
                 'items.spare'
             ]);
             
-            $complaints = Complaint::pending()->with('client')->get();
-            $employees = Employee::where('status', 'active')->get();
+            // Get complaints with location filtering
+            $complaintsQuery = Complaint::pending()->with('client');
+            $this->filterComplaintsByLocation($complaintsQuery, $user);
+            $complaints = $complaintsQuery->get();
+            
+            // Get employees with location filtering
+            $employeesQuery = Employee::where('status', 'active');
+            $this->filterEmployeesByLocation($employeesQuery, $user);
+            $employees = $employeesQuery->get();
             
             // Get categories for Nature filter - get from ComplaintCategory table if exists
             if (Schema::hasTable('complaint_categories')) {
                 // Get categories from ComplaintCategory table
                 $categories = ComplaintCategory::orderBy('name')->pluck('name');
             } else {
-                // Fallback: Get categories from complaints that have approvals
-                $categories = Complaint::join('spare_approval_performa', 'complaints.id', '=', 'spare_approval_performa.complaint_id')
+                // Fallback: Get categories from complaints that have approvals with location filtering
+                $categoriesQuery = Complaint::join('spare_approval_performa', 'complaints.id', '=', 'spare_approval_performa.complaint_id')
+                    ->join('clients', 'complaints.client_id', '=', 'clients.id')
                     ->select('complaints.category')
                     ->distinct()
-                    ->whereNotNull('complaints.category')
-                    ->pluck('category')
+                    ->whereNotNull('complaints.category');
+                
+                // Apply location filtering through client table
+                if (!$this->canViewAllData($user)) {
+                    $roleName = strtolower($user->role->role_name ?? '');
+                    if ($roleName === 'garrison_engineer' && $user->city_id && $user->city) {
+                        $categoriesQuery->where('clients.city', $user->city->name);
+                    } elseif (in_array($roleName, ['complaint_center', 'department_staff']) && $user->sector_id && $user->sector) {
+                        $categoriesQuery->where('clients.sector', $user->sector->name);
+                    }
+                }
+                
+                $categories = $categoriesQuery->pluck('category')
                     ->unique()
                     ->values();
                 
-                // If still empty, get from all complaints
+                // If still empty, get from all complaints with location filtering
                 if ($categories->isEmpty()) {
-                    $categories = Complaint::select('category')
+                    $categoriesQuery = Complaint::select('category')
                         ->distinct()
-                        ->whereNotNull('category')
-                        ->pluck('category')
+                        ->whereNotNull('category');
+                    
+                    // Apply location filtering
+                    $this->filterComplaintsByLocation($categoriesQuery, $user);
+                    
+                    $categories = $categoriesQuery->pluck('category')
                         ->unique()
                         ->values();
                 }
@@ -295,6 +333,11 @@ class ApprovalController extends Controller
                     'approved_at' => $approval->approved_at ? $approval->approved_at->format('M d, Y H:i') : null,
                     'remarks' => $approval->remarks,
                     'complaint_id' => $approval->complaint_id,
+                    'complaint' => $approval->complaint ? [
+                        'id' => $approval->complaint->id,
+                        'category' => $approval->complaint->category ?? null,
+                        'title' => $approval->complaint->title ?? 'N/A',
+                    ] : null,
                     'client_name' => $approval->complaint->client ? $approval->complaint->client->client_name : 'Deleted Client',
                     'complaint_title' => $approval->complaint->title ?? 'N/A',
                     'requested_by_name' => $approval->requestedBy->name ?? 'N/A',

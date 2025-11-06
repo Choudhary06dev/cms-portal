@@ -802,6 +802,73 @@
     color: #ffffff !important;
   }
   
+  /* Dark theme styles */
+  .theme-dark body {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+  }
+  
+  .theme-dark .content {
+    color: #e2e8f0 !important;
+  }
+  
+  .theme-dark .card-glass {
+    background: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid rgba(148, 163, 184, 0.1) !important;
+    color: #e2e8f0 !important;
+  }
+  
+  .theme-dark h1, .theme-dark h2, .theme-dark h3, 
+  .theme-dark h4, .theme-dark h5, .theme-dark h6 {
+    color: #e2e8f0 !important;
+  }
+  
+  .theme-dark .text-white {
+    color: #e2e8f0 !important;
+  }
+  
+  .theme-dark .text-muted {
+    color: #94a3b8 !important;
+  }
+  
+  .theme-dark .text-secondary {
+    color: #94a3b8 !important;
+  }
+  
+  .theme-dark .btn {
+    color: #e2e8f0 !important;
+  }
+  
+  /* Filter labels styling for dark and night themes - white text (override inline !important) */
+  /* Use maximum specificity to override inline styles - inline styles with !important require JavaScript */
+  /* CSS fallback with maximum specificity */
+  .theme-dark .card-glass.mb-4 .row .col-md-3 label.form-label.small.mb-1,
+  .theme-night .card-glass.mb-4 .row .col-md-3 label.form-label.small.mb-1,
+  .theme-dark .card-glass.mb-4 .row .col-sm-6 label.form-label.small.mb-1,
+  .theme-night .card-glass.mb-4 .row .col-sm-6 label.form-label.small.mb-1,
+  .theme-dark .card-glass.mb-4 form .row label,
+  .theme-night .card-glass.mb-4 form .row label,
+  .theme-dark .card-glass.mb-4 form .row .form-label,
+  .theme-night .card-glass.mb-4 form .row .form-label {
+    color: #ffffff !important;
+  }
+  
+  /* Override inline styles with !important - use attribute selector */
+  .theme-dark .card-glass.mb-4 label[style*="color: #1e293b"],
+  .theme-night .card-glass.mb-4 label[style*="color: #1e293b"],
+  .theme-dark .card-glass.mb-4 .form-label[style*="color: #1e293b"],
+  .theme-night .card-glass.mb-4 .form-label[style*="color: #1e293b"] {
+    color: #ffffff !important;
+  }
+  
+  /* Force all filter box labels to white in dark/night theme */
+  .theme-dark .card-glass.mb-4 label,
+  .theme-night .card-glass.mb-4 label,
+  .theme-dark .card-glass.mb-4 .form-label,
+  .theme-night .card-glass.mb-4 .form-label {
+    color: #ffffff !important;
+  }
+  
   /* NUCLEAR OPTION - Force ALL text to be black in light theme */
   .theme-light * {
     color: #000000 !important;
@@ -901,6 +968,95 @@
   <h2 class="text-white mb-2">Dashboard Overview</h2>
   <p class="text-light">Real-time complaint management system</p>
     </div>
+
+    <!-- FILTERS SECTION -->
+    @php
+      $user = Auth::user();
+      // Check user table: if city_id is null, user can see all cities, so show city filter
+      // If city_id is not null, user is assigned to specific city, so don't show city filter
+      $showCityFilter = $user && !$user->city_id;
+      // Check user table: if sector_id is null, user can see sectors (all or in their city), so show sector filter
+      // If sector_id is not null, user is assigned to specific sector, so don't show sector filter
+      $showSectorFilter = $user && !$user->sector_id;
+    @endphp
+    
+    @if($showCityFilter || $showSectorFilter || $categories->count() > 0 || (isset($complaintStatuses) && count($complaintStatuses) > 0) || true)
+    <div class="mb-4 d-flex justify-content-center">
+      <div class="card-glass" style="display: inline-block; width: fit-content; padding: 1.5rem; background: linear-gradient(135deg,rgb(154, 205, 239) 0%,rgb(153, 207, 237) 100%) !important; border: 1px solid #7dd3fc;">
+        <form id="dashboardFiltersForm" method="GET" action="{{ route('admin.dashboard') }}">
+          <div class="row g-2 align-items-end">
+          @if($showCityFilter && $cities->count() > 0)
+          <div class="col-auto">
+            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">GE (City)</label>
+            <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
+              <option value=""> Select GE</option>
+              @foreach($cities as $city)
+                <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $city->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          @endif
+          
+          @if($showSectorFilter && $sectors->count() > 0)
+          <div class="col-auto">
+            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Sector</label>
+            <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
+              <option value="">All Sectors</option>
+              @foreach($sectors as $sector)
+                <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          @endif
+          
+          @if($categories->count() > 0)
+          <div class="col-auto">
+            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Complaint Category</label>
+            <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
+              <option value="">All Categories</option>
+              @foreach($categories as $cat)
+                <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+              @endforeach
+            </select>
+          </div>
+          @endif
+          
+          @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
+          <div class="col-auto">
+            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Complaint Status</label>
+            <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
+              <option value="">All Statuses</option>
+              @foreach($complaintStatuses as $statusKey => $statusLabel)
+                <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
+              @endforeach
+            </select>
+          </div>
+          @endif
+          
+          <div class="col-auto">
+            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Date Range</label>
+            <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
+              <option value="">All Time</option>
+              <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
+              <option value="today" {{ (request('date_range') == 'today' || $dateRange == 'today') ? 'selected' : '' }}>Today</option>
+              <option value="this_week" {{ (request('date_range') == 'this_week' || $dateRange == 'this_week') ? 'selected' : '' }}>This Week</option>
+              <option value="last_week" {{ (request('date_range') == 'last_week' || $dateRange == 'last_week') ? 'selected' : '' }}>Last Week</option>
+              <option value="this_month" {{ (request('date_range') == 'this_month' || $dateRange == 'this_month') ? 'selected' : '' }}>This Month</option>
+              <option value="last_month" {{ (request('date_range') == 'last_month' || $dateRange == 'last_month') ? 'selected' : '' }}>Last Month</option>
+              <option value="last_6_months" {{ (request('date_range') == 'last_6_months' || $dateRange == 'last_6_months') ? 'selected' : '' }}>Last 6 Months</option>
+            </select>
+          </div>
+          
+          <div class="col-auto d-flex align-items-end">
+            <button type="button" class="btn" onclick="resetDashboardFilters()" style="font-size: 0.85rem; padding: 0.4rem 0.9rem; font-weight: 600; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none; color: #ffffff !important; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2); transition: all 0.2s ease;">
+              <i data-feather="refresh-cw" style="width: 13px; height: 13px; margin-right: 3px;"></i>Reset
+            </button>
+          </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    @endif
 
     <!-- STATISTICS CARDS -->
     <div class="row mb-4">
@@ -1045,7 +1201,15 @@
                   <td>{{ $complaint->getTicketNumberAttribute() }}</td>
                   <td>{{ $complaint->client->client_name }}</td>
                   <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
-                  <td><span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span></td>
+                  <td>
+                    @if($complaint->status === 'resolved' || $complaint->status === 'closed')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border: 1px solid #166534 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'in_progress')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @else
+                      <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @endif
+                  </td>
                   <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
                 </tr>
                 @empty
@@ -1059,14 +1223,19 @@
       </div>
     </div>
 
-    <!-- PENDING APPROVALS SECTION -->
+    <!-- APPROVALS SECTION -->
     @if(isset($pendingApprovals) && $pendingApprovals->count() > 0)
     <div class="row mt-4">
       <div class="col-12">
         <div class="card-glass">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0 text-warning">
-              <i data-feather="clock" class="me-2"></i>Pending Approvals
+              <i data-feather="clock" class="me-2"></i>
+              @if($approvalStatus)
+                {{ ucfirst($approvalStatus) }} Approvals
+              @else
+                In-progress Complaints
+              @endif
             </h5>
             <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-warning btn-sm">View All</a>
           </div>
@@ -1078,6 +1247,7 @@
                   <th>Complaint</th>
                   <th>Complaintant</th>
                   <th>Requested By</th>
+                  <th>Status</th>
                   <th>Items</th>
                   <th>Created</th>
                   <th>Actions</th>
@@ -1090,6 +1260,19 @@
                   <td>{{ $approval->complaint ? $approval->complaint->getTicketNumberAttribute() : 'N/A' }}</td>
                   <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
                   <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
+                  <td>
+                    @php
+                      $statusColors = [
+                        'pending' => ['bg' => '#f59e0b', 'text' => '#ffffff', 'border' => '#d97706'],
+                        'approved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'],
+                        'rejected' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'],
+                      ];
+                      $statusColor = $statusColors[$approval->status] ?? ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'];
+                    @endphp
+                    <span class="badge" style="background-color: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }}; border: 1px solid {{ $statusColor['border'] }}; padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600;">
+                      {{ $approval->getStatusDisplayAttribute() }}
+                    </span>
+                  </td>
                   <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
                   <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
                   <td>
@@ -1328,5 +1511,167 @@
         })
         .catch(error => console.error('Error updating dashboard:', error));
     }, 300000); // 5 minutes
+
+    // Dashboard Filters Functions
+    function applyDashboardFilters() {
+      const form = document.getElementById('dashboardFiltersForm');
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+      
+      // Add filter values to params
+      if (formData.get('city_id')) {
+        params.append('city_id', formData.get('city_id'));
+      }
+      if (formData.get('sector_id')) {
+        params.append('sector_id', formData.get('sector_id'));
+      }
+      if (formData.get('category')) {
+        params.append('category', formData.get('category'));
+      }
+      if (formData.get('complaint_status')) {
+        params.append('complaint_status', formData.get('complaint_status'));
+      }
+      if (formData.get('date_range')) {
+        params.append('date_range', formData.get('date_range'));
+      }
+      
+      // Reload dashboard with filters
+      window.location.href = '{{ route("admin.dashboard") }}?' + params.toString();
+    }
+
+    function resetDashboardFilters() {
+      window.location.href = '{{ route("admin.dashboard") }}';
+    }
+
+    // Dynamic sector loading for Director when city changes and auto-apply filters
+    const cityFilter = document.getElementById('cityFilter');
+    const sectorFilter = document.getElementById('sectorFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    
+    // Auto-apply filters on change (like other modules)
+    if (cityFilter) {
+      cityFilter.addEventListener('change', function() {
+        @if($user && !$user->city_id)
+        // User can see all cities: Load sectors dynamically when city changes
+        const cityId = this.value;
+        
+        if (sectorFilter) {
+          sectorFilter.innerHTML = '<option value="">Loading sectors...</option>';
+          sectorFilter.disabled = true;
+          
+          if (cityId) {
+            // Fetch sectors for selected city
+            fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+              },
+              credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+              sectorFilter.innerHTML = '<option value="">All Sectors</option>';
+              const sectors = Array.isArray(data) ? data : (data.sectors || []);
+              if (sectors && sectors.length > 0) {
+                sectors.forEach(function(sector) {
+                  const option = document.createElement('option');
+                  option.value = sector.id;
+                  option.textContent = sector.name;
+                  sectorFilter.appendChild(option);
+                });
+              }
+              sectorFilter.disabled = false;
+              // Auto-apply filters after loading sectors
+              applyDashboardFilters();
+            })
+            .catch(error => {
+              console.error('Error loading sectors:', error);
+              sectorFilter.innerHTML = '<option value="">All Sectors</option>';
+              sectorFilter.disabled = false;
+              // Auto-apply filters even on error
+              applyDashboardFilters();
+            });
+          } else {
+            // Show all sectors if no city selected (Director) - reload page to get all sectors
+            sectorFilter.innerHTML = '<option value="">All Sectors</option>';
+            sectorFilter.disabled = false;
+            // Auto-apply filters
+            applyDashboardFilters();
+          }
+        } else {
+          // Auto-apply filters when city changes
+          applyDashboardFilters();
+        }
+        @else
+        // For GE: Auto-apply filters when city changes
+        applyDashboardFilters();
+        @endif
+      });
+    }
+    
+    // Auto-apply filters when sector changes
+    if (sectorFilter) {
+      sectorFilter.addEventListener('change', function() {
+        applyDashboardFilters();
+      });
+    }
+    
+    // Auto-apply filters when category changes
+    if (categoryFilter) {
+      categoryFilter.addEventListener('change', function() {
+        applyDashboardFilters();
+      });
+    }
+    
+    // Auto-apply filters when complaint status changes
+    const complaintStatusFilter = document.getElementById('complaintStatusFilter');
+    if (complaintStatusFilter) {
+      complaintStatusFilter.addEventListener('change', function() {
+        applyDashboardFilters();
+      });
+    }
+    
+    // Auto-apply filters when date range changes
+    const dateRangeFilter = document.getElementById('dateRangeFilter');
+    if (dateRangeFilter) {
+      dateRangeFilter.addEventListener('change', function() {
+        applyDashboardFilters();
+      });
+    }
+    
+    // Override inline styles for filter labels in dark/night theme
+    function updateFilterLabelsColor() {
+      const body = document.body;
+      const isDarkTheme = body.classList.contains('theme-dark');
+      const isNightTheme = body.classList.contains('theme-night');
+      
+      if (isDarkTheme || isNightTheme) {
+        const filterLabels = document.querySelectorAll('.card-glass.mb-4 label.form-label');
+        filterLabels.forEach(function(label) {
+          if (label.style.color && label.style.color.includes('#1e293b')) {
+            label.style.setProperty('color', '#ffffff', 'important');
+          }
+        });
+      }
+    }
+    
+    // Run on page load
+    updateFilterLabelsColor();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          updateFilterLabelsColor();
+        }
+      });
+    });
+    
+    if (document.body) {
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
 </script>
 @endpush

@@ -242,9 +242,15 @@
               <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
                 <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </a>
-              <button type="button" class="btn btn-outline-primary btn-sm add-stock-btn" title="Issue Stock" data-approval-id="{{ $approval->id }}" onclick="openAddStockModal({{ $approval->id }})" style="padding: 3px 8px; cursor: pointer;">
-                <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
-              </button>
+              @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
+                <button type="button" class="btn btn-outline-secondary btn-sm add-stock-btn" title="Stock cannot be issued for addressed complaints" data-approval-id="{{ $approval->id }}" data-category="{{ $category }}" disabled style="padding: 3px 8px; cursor: not-allowed; opacity: 0.6;">
+                  <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
+                </button>
+              @else
+                <button type="button" class="btn btn-outline-primary btn-sm add-stock-btn" title="Issue Stock" data-approval-id="{{ $approval->id }}" data-category="{{ $category }}" onclick="openAddStockModal({{ $approval->id }}, '{{ $category }}')" style="padding: 3px 8px; cursor: pointer;">
+                  <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
+                </button>
+              @endif
               @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
                 @php
                   $hasFeedback = false;
@@ -273,12 +279,12 @@
                   }
                 @endphp
                 @if($hasFeedback && $feedbackId)
-                  <a href="{{ route('admin.feedback.edit', $feedbackId) }}" class="btn btn-outline-info btn-sm" title="Edit Feedback" style="padding: 3px 8px;">
-                    <i data-feather="message-circle" style="width: 16px; height: 16px;"></i>
+                  <a href="{{ route('admin.feedback.edit', $feedbackId) }}" class="btn btn-success btn-sm" title="Edit Feedback" style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important;">
+                    <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
                   </a>
                 @else
-                  <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-outline-warning btn-sm" title="Add Feedback" style="padding: 3px 8px;">
-                    <i data-feather="message-square" style="width: 16px; height: 16px;"></i>
+                  <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-outline-warning btn-sm" title="Add Feedback" style="padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;">
+                    <i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>
                   </a>
                 @endif
               @endif
@@ -488,6 +494,27 @@
     font-size: 11px;
     font-weight: 700;
     color: white !important;
+  }
+  
+  /* Always show number input spinner arrows (not only on hover) */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    opacity: 1;
+    -webkit-appearance: inner-spin-button;
+    appearance: auto;
+    margin: 0;
+  }
+
+  /* Ensure Firefox shows the spinner controls */
+  input[type=number] {
+    -moz-appearance: number-input;
+    appearance: number-input;
+  }
+
+  /* Ensure the spinner is visible on small control too */
+  #manualRequestQty::-webkit-inner-spin-button,
+  #manualRequestQty::-webkit-outer-spin-button {
+    opacity: 1 !important;
   }
   
   /* Ensure Add Stock button is clickable */
@@ -715,15 +742,15 @@
   }
 
   // Load categories for modal dropdown
-  function loadCategoriesForModal() {
-    console.log('Loading categories for modal...');
+  function loadCategoriesForModal(selectedCategory = null) {
+    console.log('Loading categories for modal...', selectedCategory);
     const categorySelect = document.getElementById('manualCategory');
     
     if (!categorySelect) {
       console.error('Category select element not found!');
       // Retry after a short delay
       setTimeout(() => {
-        loadCategoriesForModal();
+        loadCategoriesForModal(selectedCategory);
       }, 200);
       return;
     }
@@ -753,8 +780,18 @@
           const option = document.createElement('option');
           option.value = cat;
           option.textContent = cat;
+          if (selectedCategory && cat.toLowerCase() === selectedCategory.toLowerCase()) {
+            option.selected = true;
+          }
           categorySelect.appendChild(option);
         });
+        
+        // Auto-select complaint category if provided
+        if (selectedCategory) {
+          categorySelect.value = selectedCategory;
+          categorySelect.disabled = true; // Disable category dropdown
+        }
+        
         console.log(`✅ Loaded ${data.categories.length} categories`);
       } else {
         console.warn('⚠️ No categories found or invalid response:', data);
@@ -902,22 +939,42 @@
     const productSelect = document.getElementById('manualProduct');
     const availableStockInput = document.getElementById('manualAvailableStock');
     const requestQtyInput = document.getElementById('manualRequestQty');
+    const authorityYes = document.getElementById('authorityYes');
+    const authorityNo = document.getElementById('authorityNo');
+    const performaTypeCol = document.getElementById('performaTypeCol');
+    const authorityNoCol = document.getElementById('authorityNoCol');
+    const performaType = document.getElementById('performaType');
+    const authorityNumber = document.getElementById('authorityNumber');
     
-    if (!categorySelect || !productSelect || !requestQtyInput) return;
+    // Do not require categorySelect since it may be removed; only require the fields we use
+    if (!productSelect || !availableStockInput || !requestQtyInput) return;
 
-    // Category change
-    categorySelect.addEventListener('change', function() {
-      const category = this.value;
-      loadProductsByCategory(category);
-      availableStockInput.value = '';
-      requestQtyInput.value = '';
-    });
+    // Category change (only if category is not disabled)
+    if (categorySelect && !categorySelect.disabled) {
+      categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        loadProductsByCategory(category);
+        availableStockInput.value = '';
+        requestQtyInput.value = '';
+      });
+    }
 
     // Product change
     productSelect.addEventListener('change', function() {
       const selectedOption = this.options[this.selectedIndex];
       const stock = parseInt(selectedOption?.getAttribute('data-stock')) || 0;
       availableStockInput.value = stock;
+      
+      // Default request quantity to 1 when a product is selected and stock is available
+      if (stock > 0) {
+        if (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1) {
+          requestQtyInput.value = 1;
+        }
+        requestQtyInput.min = 1;
+        requestQtyInput.max = stock;
+      } else {
+        requestQtyInput.value = '';
+      }
       
       // If request quantity is already entered, auto-add item
       const qty = parseInt(requestQtyInput.value) || 0;
@@ -952,11 +1009,45 @@
       }
     });
 
+    // Authority Required toggle handlers (show tabs and authority no.)
+    if (authorityYes && authorityNo && performaTypeCol && authorityNoCol) {
+      const updateAuthorityVisibility = () => {
+        const required = authorityYes.checked;
+        performaTypeCol.classList.toggle('d-none', !required);
+        authorityNoCol.classList.toggle('d-none', !required);
+        if (!required) {
+          if (performaType) performaType.value = '';
+          if (authorityNumber) authorityNumber.value = '';
+        } else {
+          // Default to Work Performa when enabling
+          if (performaType && (!performaType.value || performaType.value === '')) {
+            performaType.value = 'work_performa';
+          }
+        }
+      };
+      authorityYes.addEventListener('change', updateAuthorityVisibility);
+      authorityNo.addEventListener('change', updateAuthorityVisibility);
+      // Initialize
+      updateAuthorityVisibility();
+    }
+
+    // Tabs: set active and store value in hidden input
+    const setActiveTab = (target) => {
+      if (!target || !performaType) return;
+      if (tabWork) tabWork.classList.remove('active');
+      if (tabMaint) tabMaint.classList.remove('active');
+      target.classList.add('active');
+      const val = target.getAttribute('data-value') || '';
+      performaType.value = val;
+    };
+    if (tabWork) tabWork.addEventListener('click', () => setActiveTab(tabWork));
+    if (tabMaint) tabMaint.addEventListener('click', () => setActiveTab(tabMaint));
+
   }
 
   // Forward declaration for Add Stock Modal function (defined later)
-  window.openAddStockModal = function(approvalId) {
-    console.log('openAddStockModal called with ID:', approvalId);
+  window.openAddStockModal = function(approvalId, category = null) {
+    console.log('openAddStockModal called with ID:', approvalId, 'Category:', category);
     
       // Store approvalId globally for submitIssueStock
     window.currentApprovalId = approvalId;
@@ -1112,17 +1203,10 @@
         itemsHtml += `
           <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 8px;">
             <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
-              <i data-feather="plus-circle" style="width: 16px; height: 16px; margin-right: 8px;"></i> Add Item Manually
             </div>
             <div class="card-body" style="padding: 16px;">
               <div class="row g-3">
-                <div class="col-md-3">
-                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Category</label>
-                  <select class="form-select form-select-sm" id="manualCategory" style="font-size: 0.9rem;">
-                    <option value="">All Category</option>
-                  </select>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-5">
                   <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
                   <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
                     <option value="">Loading Products...</option>
@@ -1137,6 +1221,35 @@
                   <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
                 </div>
               </div>
+
+              <!-- Authority Required Row -->
+              <div class="row g-3 mt-2 align-items-end" id="authorityRow">
+                <div class="col-md-3">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority Req</label>
+                  <div class="d-flex align-items-center" style="gap: 10px;">
+                    <div class="form-check form-check-inline" style="margin: 0;">
+                      <input class="form-check-input" type="radio" name="authorityRequired" id="authorityNo" value="no" checked>
+                      <label class="form-check-label" for="authorityNo" style="font-size: 0.85rem;">No</label>
+                    </div>
+                    <div class="form-check form-check-inline" style="margin: 0;">
+                      <input class="form-check-input" type="radio" name="authorityRequired" id="authorityYes" value="yes">
+                      <label class="form-check-label" for="authorityYes" style="font-size: 0.85rem;">Yes</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3 d-none" id="performaTypeCol">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Performa Type</label>
+                  <select class="form-select form-select-sm" id="performaType" style="font-size: 0.9rem;">
+                    <option value="">Select</option>
+                    <option value="work_performa">Work Performa</option>
+                    <option value="maint_performa">Maint Performa</option>
+                  </select>
+                </div>
+                <div class="col-md-3 d-none" id="authorityNoCol">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
+                  <input type="text" class="form-control form-control-sm" id="authorityNumber" placeholder="Enter Authority No." style="font-size: 0.9rem;">
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -1144,15 +1257,26 @@
         itemsHtml += '</form>';
         modalBody.innerHTML = itemsHtml;
 
+        // Get complaint category from stored global variable or approval response
+        const complaintCategory = window.currentComplaintCategory || data.approval?.complaint?.category || null;
+        console.log('Complaint category:', complaintCategory, 'From stored:', window.currentComplaintCategory, 'From response:', data.approval?.complaint?.category);
+        
         // Wait for DOM to be ready before initializing
         setTimeout(() => {
-          // Initialize categories and products dropdown
-          loadCategoriesForModal();
-          
-          // Load all products initially (without category filter)
-          setTimeout(() => {
-            loadProductsByCategory(''); // Empty category will fetch all products
-          }, 300);
+          // Load products for complaint category only (no category dropdown needed)
+          if (complaintCategory && complaintCategory.trim() !== '' && complaintCategory !== 'N/A') {
+            console.log('Loading products for category:', complaintCategory);
+            // Ensure category is passed correctly
+            loadProductsByCategory(complaintCategory.trim());
+          } else {
+            console.warn('No complaint category found');
+            // Don't load all products if category is missing - show empty
+            const productSelect = document.getElementById('manualProduct');
+            if (productSelect) {
+              productSelect.innerHTML = '<option value="">No category found - Please select a product manually</option>';
+              productSelect.disabled = false;
+            }
+          }
           
           // Setup event listeners for manual form
           setupManualFormListeners();
@@ -1272,6 +1396,32 @@
 
     // Send requests for each item to ISSUE stock (decrease inventory)
     const promises = stockData.map(item => {
+      // Build optional authority info string (appended in reason)
+      const authorityYes = document.getElementById('authorityYes');
+      const performaType = document.getElementById('performaType');
+      const authorityNumber = document.getElementById('authorityNumber');
+      let authorityInfo = '';
+      if (authorityYes && authorityYes.checked) {
+        // Validate performa type and authority number (both required now)
+        const perfVal = (performaType && performaType.value) ? performaType.value : '';
+        const authNo = authorityNumber && authorityNumber.value ? authorityNumber.value.trim() : '';
+        if (!perfVal) {
+          alert('Please select Performa Type');
+          throw new Error('Performa Type is required when Authority Req is Yes');
+        }
+        if (!authNo) {
+          alert('Please enter Authority No.');
+          throw new Error('Authority No. is required when Authority Req is Yes');
+        }
+        const typeLabel = (performaType && performaType.value)
+          ? (performaType.value === 'work_performa' ? 'Work Performa' : (performaType.value === 'maint_performa' ? 'Maint Performa' : ''))
+          : '';
+        if (typeLabel || authNo) {
+          authorityInfo = ` | Authority Req: ${typeLabel || 'Yes'}${authNo ? `, Authority No: ${authNo}` : ''}`;
+        } else {
+          authorityInfo = ' | Authority Req: Yes';
+        }
+      }
       return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
         method: 'POST',
         headers: {
@@ -1568,6 +1718,27 @@
         }
       }, 3000);
     });
+
+    // Authority Required toggle handlers
+    if (authorityYes && authorityNo && performaTypeCol && authorityNoCol) {
+      const updateAuthorityVisibility = () => {
+        const required = authorityYes.checked;
+        performaTypeCol.classList.toggle('d-none', !required);
+        authorityNoCol.classList.toggle('d-none', !required);
+        // Make fields required only when authority is required
+        if (performaType) performaType.required = required;
+        if (authorityNumber) authorityNumber.required = required;
+        if (!required) {
+          performaType.value = '';
+          authorityNumber.value = '';
+        }
+      };
+      authorityYes.addEventListener('change', updateAuthorityVisibility);
+      authorityNo.addEventListener('change', updateAuthorityVisibility);
+      // Initialize visibility on load
+      updateAuthorityVisibility();
+    }
+
   }
 
   // Handle pagination clicks
@@ -2054,8 +2225,8 @@
                   feedbackBtn.href = `/admin/complaints/${complaintId}/feedback/create`;
                   feedbackBtn.className = 'btn btn-outline-warning btn-sm';
                   feedbackBtn.title = 'Add Feedback';
-                  feedbackBtn.style.cssText = 'padding: 3px 8px;';
-                  feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 16px; height: 16px;"></i>';
+                  feedbackBtn.style.cssText = 'padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;';
+                  feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>';
                   btnGroup.appendChild(feedbackBtn);
                   // Reinitialize feather icons
                   if (typeof feather !== 'undefined') {
@@ -2199,7 +2370,7 @@
   }
 
   // Open Add Stock Modal
-  function openAddStockModal(approvalId) {
+  function openAddStockModal(approvalId, category = null) {
     const modalBody = document.getElementById('addStockModalBody');
     if (!modalBody) {
       alert('Modal not found');
@@ -2211,6 +2382,9 @@
 
     // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    // Store category globally for use in fetch response
+    window.currentComplaintCategory = category;
 
     // Fetch approval details
     fetch(`/admin/approvals/${approvalId}`, {
@@ -2388,7 +2562,7 @@
         quantity: item.issue_quantity,
         item_id: item.item_id,
         approval_id: window.currentApprovalId || null,
-        reason: `Stock issued from approval - Product: ${item.product_name}`
+        reason: `Stock issued from approval - Product: ${item.product_name}${authorityInfo}`
       };
       
       console.log('Sending request for item:', item.product_name, 'with approval_id:', requestBody.approval_id);
@@ -2447,8 +2621,9 @@
       e.preventDefault();
       e.stopPropagation();
       const approvalId = addStockBtn.getAttribute('data-approval-id') || addStockBtn.getAttribute('onclick')?.match(/\d+/)?.[0];
+      const category = addStockBtn.getAttribute('data-category') || null;
       if (approvalId && window.openAddStockModal) {
-        window.openAddStockModal(parseInt(approvalId));
+        window.openAddStockModal(parseInt(approvalId), category);
       } else {
         console.error('Add Stock button clicked but approval ID or function not found', {
           approvalId: approvalId,

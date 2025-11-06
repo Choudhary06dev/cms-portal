@@ -195,12 +195,31 @@
                 </tr>
                 <tr>
                   <td class="text-white"><strong>Feedback Date:</strong></td>
-                  <td class="text-white">{{ $complaint->feedback->feedback_date ? $complaint->feedback->feedback_date->format('M d, Y H:i:s') : 'N/A' }}</td>
+                  <td class="text-white">{{ $complaint->feedback->created_at ? $complaint->feedback->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
                 </tr>
                 <tr>
                   <td class="text-white"><strong>Entered By:</strong></td>
                   <td class="text-white">{{ $complaint->feedback->enteredBy->username ?? 'N/A' }}</td>
                 </tr>
+                @php
+                  $geUser = null;
+                  if ($complaint->city) {
+                    $city = \App\Models\City::where('name', $complaint->city)->first();
+                    if ($city) {
+                      $geUser = \App\Models\User::where('city_id', $city->id)
+                        ->whereHas('role', function($q) {
+                          $q->where('role_name', 'garrison_engineer');
+                        })
+                        ->first();
+                    }
+                  }
+                @endphp
+                @if($geUser)
+                <tr>
+                  <td class="text-white"><strong>GE (City):</strong></td>
+                  <td class="text-white">{{ $geUser->username ?? 'N/A' }}</td>
+                </tr>
+                @endif
                 <tr>
                   <td class="text-white"><strong>Entered At:</strong></td>
                   <td class="text-white">{{ $complaint->feedback->entered_at ? $complaint->feedback->entered_at->format('M d, Y H:i:s') : 'N/A' }}</td>
