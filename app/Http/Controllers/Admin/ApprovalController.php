@@ -322,6 +322,33 @@ class ApprovalController extends Controller
         // Refresh approval to get latest remarks from database
         $approval->refresh();
 
+        // Get previously issued stock from stock logs for this approval
+        $issuedStock = [];
+        try {
+            $stockLogs = \App\Models\SpareStockLog::where('reference_id', $approval->id)
+                ->where('change_type', 'out')
+                ->with('spare')
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            foreach ($stockLogs as $log) {
+                if ($log->spare) {
+                    $issuedStock[] = [
+                        'spare_id' => $log->spare_id,
+                        'spare_name' => $log->spare->item_name ?? 'N/A',
+                        'quantity_issued' => (int)$log->quantity,
+                        'issued_at' => $log->created_at ? $log->created_at->format('M d, Y H:i') : null,
+                        'remarks' => $log->remarks ?? null
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Failed to fetch issued stock logs', [
+                'approval_id' => $approval->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
         // Return JSON for AJAX requests
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
@@ -337,6 +364,8 @@ class ApprovalController extends Controller
                         'id' => $approval->complaint->id,
                         'category' => $approval->complaint->category ?? null,
                         'title' => $approval->complaint->title ?? 'N/A',
+                        'sector' => $approval->complaint->client->sector ?? null,
+                        'city' => $approval->complaint->client->city ?? null,
                     ] : null,
                     'client_name' => $approval->complaint->client ? $approval->complaint->client->client_name : 'Deleted Client',
                     'complaint_title' => $approval->complaint->title ?? 'N/A',
@@ -353,7 +382,8 @@ class ApprovalController extends Controller
                             'available_stock' => (int)($item->spare->stock_quantity ?? 0),
                             'unit_price' => $item->spare->unit_price ?? 0
                         ];
-                    })
+                    }),
+                    'issued_stock' => $issuedStock
                 ]
             ]);
         }

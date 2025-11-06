@@ -805,7 +805,7 @@
   }
 
   // Load products by category (or all products if category is empty)
-  function loadProductsByCategory(category) {
+  function loadProductsByCategory(category, sector = null, city = null) {
     const productSelect = document.getElementById('manualProduct');
     const availableStockInput = document.getElementById('manualAvailableStock');
     
@@ -822,10 +822,19 @@
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     
-    // Build URL - if category is empty, don't send category parameter or send empty
-    const url = category 
-      ? `/admin/spares/get-products-by-category?category=${encodeURIComponent(category)}`
-      : `/admin/spares/get-products-by-category?category=`;
+    // Build URL with category, sector, and city parameters
+    const params = new URLSearchParams();
+    if (category) {
+      params.append('category', category);
+    }
+    if (sector) {
+      params.append('sector', sector);
+    }
+    if (city) {
+      params.append('city', city);
+    }
+    
+    const url = `/admin/spares/get-products-by-category?${params.toString()}`;
     
     fetch(url, {
       method: 'GET',
@@ -868,9 +877,10 @@
     const availableStockInput = document.getElementById('manualAvailableStock');
     const requestQtyInput = document.getElementById('manualRequestQty');
     
-    if (!categorySelect || !productSelect || !availableStockInput || !requestQtyInput) return;
+    // Category select is optional, but other fields are required
+    if (!productSelect || !availableStockInput || !requestQtyInput) return;
     
-    const category = categorySelect.value || '';
+    const category = categorySelect ? categorySelect.value || '' : '';
     const productId = productSelect.value;
     const productName = productSelect.options[productSelect.selectedIndex]?.textContent || 'N/A';
     const productCategory = productSelect.options[productSelect.selectedIndex]?.getAttribute('data-category') || category || '';
@@ -920,11 +930,18 @@
     window.manualItems.push(newItem);
 
     // Reset form
-    categorySelect.value = '';
-    productSelect.innerHTML = '<option value="">Select Category First</option>';
-    productSelect.disabled = true;
+    if (categorySelect) {
+      categorySelect.value = '';
+    }
+    // Don't reset product select - keep it enabled so user can add more items
+    // productSelect.innerHTML = '<option value="">Select Category First</option>';
+    // productSelect.disabled = true;
     availableStockInput.value = '';
     requestQtyInput.value = '';
+
+    // Show success message
+    console.log('Item added:', newItem);
+    console.log('Total items:', window.manualItems.length);
 
     // Show submit button
     const submitBtn = document.getElementById('submitAddStockBtn');
@@ -965,6 +982,25 @@
       const stock = parseInt(selectedOption?.getAttribute('data-stock')) || 0;
       availableStockInput.value = stock;
       
+      // Check if authority is required first
+      const isAuthorityRequired = authorityYes && authorityYes.checked;
+      const hasAuthNo = isAuthorityRequired && authorityNumber && authorityNumber.value && authorityNumber.value.trim().length > 0;
+      
+      // If authority required and no authority number, lock the field
+      if (isAuthorityRequired && !hasAuthNo) {
+        requestQtyInput.disabled = true;
+        requestQtyInput.readOnly = true;
+        requestQtyInput.value = '';
+        requestQtyInput.placeholder = 'Enter Authority No.';
+        updateSubmitButtonState();
+        return; // Don't set default value or enable field
+      }
+      
+      // If not locked, set default value and enable field
+      requestQtyInput.disabled = false;
+      requestQtyInput.readOnly = false;
+      requestQtyInput.placeholder = 'Enter quantity';
+      
       // Default request quantity to 1 when a product is selected and stock is available
       if (stock > 0) {
         if (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1) {
@@ -976,38 +1012,39 @@
         requestQtyInput.value = '';
       }
       
-      // If request quantity is already entered, auto-add item
-      const qty = parseInt(requestQtyInput.value) || 0;
-      if (qty > 0 && qty <= stock && this.value) {
-        // Auto-add after a short delay to allow user to see the stock value
-        setTimeout(() => {
-          addManualItemToTable();
-        }, 300);
-      }
+      updateSubmitButtonState();
     });
 
-    // Request quantity input - auto-add on Enter or blur
+    // Request quantity input - enable submit button when valid
+    requestQtyInput.addEventListener('input', function() {
+      updateSubmitButtonState();
+    });
+    
     requestQtyInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        const qty = parseInt(this.value) || 0;
-        const stock = parseInt(availableStockInput.value) || 0;
-        
-        if (qty > 0 && qty <= stock && productSelect.value) {
-          addManualItemToTable();
+        if (!requestQtyInput.disabled && productSelect.value && requestQtyInput.value) {
+          const submitBtn = document.getElementById('submitAddStockBtn');
+          if (submitBtn && !submitBtn.disabled) {
+            window.submitIssueStock();
+          }
         }
       }
     });
-
-    // Auto-add when quantity is entered and product is selected
-    requestQtyInput.addEventListener('blur', function() {
-      const qty = parseInt(this.value) || 0;
-      const stock = parseInt(availableStockInput.value) || 0;
+    
+    // Function to update submit button state
+    function updateSubmitButtonState() {
+      const submitBtn = document.getElementById('submitAddStockBtn');
+      if (!submitBtn) return;
       
-      if (qty > 0 && qty <= stock && productSelect.value) {
-        addManualItemToTable();
-      }
-    });
+      const hasProduct = productSelect && productSelect.value;
+      const hasQty = requestQtyInput && !requestQtyInput.disabled && parseInt(requestQtyInput.value) > 0;
+      const stock = parseInt(availableStockInput.value) || 0;
+      const qty = parseInt(requestQtyInput.value) || 0;
+      const isValid = hasProduct && hasQty && qty <= stock && qty > 0;
+      
+      submitBtn.disabled = !isValid;
+    }
 
     // Authority Required toggle handlers (show tabs and authority no.)
     if (authorityYes && authorityNo && performaTypeCol && authorityNoCol) {
@@ -1015,6 +1052,35 @@
         const required = authorityYes.checked;
         performaTypeCol.classList.toggle('d-none', !required);
         authorityNoCol.classList.toggle('d-none', !required);
+        
+        // Make fields required only when authority is required
+        if (performaType) performaType.required = required;
+        if (authorityNumber) authorityNumber.required = required;
+        
+        // Lock/unlock request quantity based on authority requirement
+        if (requestQtyInput) {
+          if (required) {
+            const hasAuthNo = authorityNumber && authorityNumber.value && authorityNumber.value.trim().length > 0;
+            requestQtyInput.disabled = !hasAuthNo;
+            requestQtyInput.readOnly = !hasAuthNo;
+            requestQtyInput.placeholder = hasAuthNo ? 'Enter quantity' : 'Enter Authority No.';
+            if (!hasAuthNo) {
+              requestQtyInput.value = '';
+            }
+          } else {
+            requestQtyInput.disabled = false;
+            requestQtyInput.readOnly = false;
+            requestQtyInput.placeholder = 'Enter quantity';
+            // Set default 1 when enabling and valid stock exists
+            const stock = parseInt(availableStockInput.value) || 0;
+            if (stock > 0 && (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1)) {
+              requestQtyInput.value = 1;
+              requestQtyInput.min = 1;
+              requestQtyInput.max = stock;
+            }
+          }
+        }
+        
         if (!required) {
           if (performaType) performaType.value = '';
           if (authorityNumber) authorityNumber.value = '';
@@ -1024,24 +1090,39 @@
             performaType.value = 'work_performa';
           }
         }
+        
+        // Update submit button state
+        updateSubmitButtonState();
       };
       authorityYes.addEventListener('change', updateAuthorityVisibility);
       authorityNo.addEventListener('change', updateAuthorityVisibility);
       // Initialize
       updateAuthorityVisibility();
+      
+      // As user types Authority No., enable quantity when non-empty
+      if (authorityNumber) {
+        authorityNumber.addEventListener('input', () => {
+          const hasAuthNo = authorityNumber.value && authorityNumber.value.trim().length > 0;
+          if (requestQtyInput && authorityYes.checked) {
+            requestQtyInput.disabled = !hasAuthNo;
+            requestQtyInput.readOnly = !hasAuthNo;
+            requestQtyInput.placeholder = hasAuthNo ? 'Enter quantity' : 'Enter Authority No.';
+            if (!hasAuthNo) {
+              requestQtyInput.value = '';
+            } else {
+              // Set default 1 when enabling and valid stock exists
+              const stock = parseInt(availableStockInput.value) || 0;
+              if (stock > 0 && (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1)) {
+                requestQtyInput.value = 1;
+                requestQtyInput.min = 1;
+                requestQtyInput.max = stock;
+              }
+            }
+            updateSubmitButtonState();
+          }
+        });
+      }
     }
-
-    // Tabs: set active and store value in hidden input
-    const setActiveTab = (target) => {
-      if (!target || !performaType) return;
-      if (tabWork) tabWork.classList.remove('active');
-      if (tabMaint) tabMaint.classList.remove('active');
-      target.classList.add('active');
-      const val = target.getAttribute('data-value') || '';
-      performaType.value = val;
-    };
-    if (tabWork) tabWork.addEventListener('click', () => setActiveTab(tabWork));
-    if (tabMaint) tabMaint.addEventListener('click', () => setActiveTab(tabMaint));
 
   }
 
@@ -1053,7 +1134,7 @@
     window.currentApprovalId = approvalId;
     console.log('Modal opened with approval_id:', approvalId);
     
-    // Reset manual items array when modal opens
+    // Reset manual items array when modal opens (not needed anymore but keeping for compatibility)
     window.manualItems = [];
     
     // Find modal element
@@ -1167,6 +1248,7 @@
       console.log('Fetch response data:', data);
       if (data.success && data.approval && data.approval.items) {
         const items = data.approval.items || [];
+        const issuedStock = data.approval.issued_stock || [];
         
         console.log('✅ Creating table with 5 columns:');
         console.log('   1. Product Name (25% width)');
@@ -1176,6 +1258,7 @@
         console.log('   5. Issue Quantity (25% width)');
         console.log('Items to display:', items.length);
         console.log('Items data:', items);
+        console.log('Issued stock:', issuedStock);
         
         if (items.length === 0) {
           console.warn('⚠️ No items found in approval ID:', approvalId);
@@ -1193,11 +1276,25 @@
 
         // Store items globally for submission (existing + manual)
         window.currentApprovalItems = items;
+        window.lastIssuedStock = issuedStock.length > 0 ? issuedStock[0] : null; // Store last issued stock
         console.log('Approval items loaded:', items.length, 'items');
         console.log('Current approval_id:', window.currentApprovalId);
+        console.log('Last issued stock:', window.lastIssuedStock);
 
         // Build form with manual add section
         let itemsHtml = '<form id="addStockForm">';
+        
+        // Show previously issued stock info if exists
+        if (issuedStock.length > 0) {
+          const lastIssued = issuedStock[0];
+          itemsHtml += `
+            <div class="alert alert-info mb-3" style="font-size: 0.9rem;">
+              <strong>Previously Issued Stock:</strong><br>
+              <span>Product: <strong>${lastIssued.spare_name}</strong> | Quantity: <strong>${lastIssued.quantity_issued}</strong> units</span>
+              ${lastIssued.issued_at ? `<br><small>Issued on: ${lastIssued.issued_at}</small>` : ''}
+            </div>
+          `;
+        }
         
         // Manual Add Form Section
         itemsHtml += `
@@ -1216,7 +1313,7 @@
                   <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
                   <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-5">
                   <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
                   <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
                 </div>
@@ -1257,17 +1354,20 @@
         itemsHtml += '</form>';
         modalBody.innerHTML = itemsHtml;
 
-        // Get complaint category from stored global variable or approval response
+        // Get complaint category and location from stored global variable or approval response
         const complaintCategory = window.currentComplaintCategory || data.approval?.complaint?.category || null;
+        const complaintSector = data.approval?.complaint?.sector || null;
+        const complaintCity = data.approval?.complaint?.city || null;
         console.log('Complaint category:', complaintCategory, 'From stored:', window.currentComplaintCategory, 'From response:', data.approval?.complaint?.category);
+        console.log('Complaint sector:', complaintSector, 'Complaint city:', complaintCity);
         
         // Wait for DOM to be ready before initializing
         setTimeout(() => {
-          // Load products for complaint category only (no category dropdown needed)
+          // Load products for complaint category and sector only (no category dropdown needed)
           if (complaintCategory && complaintCategory.trim() !== '' && complaintCategory !== 'N/A') {
-            console.log('Loading products for category:', complaintCategory);
-            // Ensure category is passed correctly
-            loadProductsByCategory(complaintCategory.trim());
+            console.log('Loading products for category:', complaintCategory, 'sector:', complaintSector);
+            // Ensure category is passed correctly, along with sector for location filtering
+            loadProductsByCategory(complaintCategory.trim(), complaintSector, complaintCity);
           } else {
             console.warn('No complaint category found');
             // Don't load all products if category is missing - show empty
@@ -1280,16 +1380,43 @@
           
           // Setup event listeners for manual form
           setupManualFormListeners();
+          
+          // Populate form with last issued stock if exists
+          if (window.lastIssuedStock) {
+            const lastIssued = window.lastIssuedStock;
+            const productSelect = document.getElementById('manualProduct');
+            const availableStockInput = document.getElementById('manualAvailableStock');
+            const requestQtyInput = document.getElementById('manualRequestQty');
+            
+            if (productSelect && availableStockInput && requestQtyInput) {
+              // Wait for products to load, then select the previously issued product
+              setTimeout(() => {
+                // Find and select the product
+                for (let i = 0; i < productSelect.options.length; i++) {
+                  const option = productSelect.options[i];
+                  if (option.value == lastIssued.spare_id) {
+                    productSelect.value = lastIssued.spare_id;
+                    productSelect.dispatchEvent(new Event('change'));
+                    
+                    // Set quantity after product is selected
+                    setTimeout(() => {
+                      if (requestQtyInput) {
+                        requestQtyInput.value = lastIssued.quantity_issued;
+                        requestQtyInput.dispatchEvent(new Event('input'));
+                      }
+                    }, 100);
+                    break;
+                  }
+                }
+              }, 500);
+            }
+          }
         }, 100);
         
-        // Show Submit button if manual items exist
+        // Show Submit button always (will be enabled when product and quantity are selected)
         if (submitBtn) {
-          const hasItems = window.manualItems && window.manualItems.length > 0;
-          if (hasItems) {
-            submitBtn.style.display = 'inline-block';
-          } else {
-            submitBtn.style.display = 'none';
-          }
+          submitBtn.style.display = 'inline-block';
+          submitBtn.disabled = true; // Disabled by default, will be enabled when form is valid
         }
         
         // Replace feather icons (for empty state icon)
@@ -1312,69 +1439,48 @@
   window.submitIssueStock = function() {
     console.log('submitIssueStock called');
     
-    // Use manual items from window.manualItems
-    if (!window.manualItems || window.manualItems.length === 0) {
-      alert('No items added. Please add items using the form above.');
+    // Get form values directly
+    const productSelect = document.getElementById('manualProduct');
+    const availableStockInput = document.getElementById('manualAvailableStock');
+    const requestQtyInput = document.getElementById('manualRequestQty');
+    
+    if (!productSelect || !availableStockInput || !requestQtyInput) {
+      alert('Form fields not found. Please refresh the page.');
       return;
     }
-
-    // Validate and collect data from manual items
-    const stockData = [];
-    let hasError = false;
-    let errorMessage = '';
-
-    window.manualItems.forEach(item => {
-      const spareId = item.spare_id || 0;
-      const productName = item.product_name || 'N/A';
-      const availableStock = item.available_stock || 0;
-      const issueQty = item.requested_qty || 0;
-
-      if (spareId === 0) {
-        hasError = true;
-        errorMessage = `Invalid product: ${productName}`;
-        return;
-      }
-
-      if (issueQty < 0) {
-        hasError = true;
-        errorMessage = `Issue quantity cannot be negative for ${productName}`;
-        return;
-      }
-
-      if (issueQty > availableStock) {
-        hasError = true;
-        errorMessage = `Issue quantity (${issueQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
-        return;
-      }
-
-      if (issueQty === 0) {
-        // Skip items with 0 quantity
-        return;
-      }
-      
-      // For manual items, tempId is a string like "manual_1234567890"
-      // For existing items, item_id is a number
-      // Only send item_id if it's a valid integer (existing item), otherwise null
-      const itemId = (item.item_id && !isNaN(parseInt(item.item_id))) ? parseInt(item.item_id) : null;
-      
-      stockData.push({
-        spare_id: spareId,
-        item_id: itemId,
-        issue_quantity: issueQty,
-        product_name: productName,
-        available_stock: availableStock
-      });
-    });
-
-    if (hasError) {
-      alert(errorMessage);
+    
+    const productId = productSelect.value;
+    const productName = productSelect.options[productSelect.selectedIndex]?.textContent || 'N/A';
+    const availableStock = parseInt(availableStockInput.value) || 0;
+    const issueQty = parseInt(requestQtyInput.value) || 0;
+    
+    // Validate form
+    if (!productId) {
+      alert('Please select a product');
+      productSelect.focus();
       return;
     }
-
-    if (stockData.length === 0) {
-      alert('Please add items with valid quantity using the form above.');
+    
+    if (issueQty <= 0) {
+      alert('Please enter a valid request quantity');
+      requestQtyInput.focus();
       return;
     }
+    
+    if (issueQty > availableStock) {
+      alert(`Request quantity (${issueQty}) cannot exceed available stock (${availableStock})`);
+      requestQtyInput.focus();
+      return;
+    }
+    
+    // Prepare stock data
+    const stockData = [{
+      spare_id: parseInt(productId),
+      item_id: null,
+      issue_quantity: issueQty,
+      product_name: productName,
+      available_stock: availableStock
+    }];
 
     // Confirm before submitting
     const confirmMessage = `Are you sure you want to ISSUE stock for the following items?\n\n` +
@@ -1448,12 +1554,12 @@
         const failedCount = results.length - successCount;
 
         if (failedCount === 0) {
-          alert(`Successfully issued stock for all ${successCount} item(s)!`);
+          alert(`Successfully issued stock for ${productName} (${issueQty} units)!`);
           bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
-          // Optionally reload the page to refresh stock quantities
-          // window.location.reload();
+          // Reload the page to refresh stock quantities
+          window.location.reload();
         } else {
-          alert(`Issued stock for ${successCount} item(s), but ${failedCount} item(s) failed.`);
+          alert(`Failed to issue stock. Please try again.`);
         }
       })
       .catch(error => {
@@ -1728,6 +1834,22 @@
         // Make fields required only when authority is required
         if (performaType) performaType.required = required;
         if (authorityNumber) authorityNumber.required = required;
+        // Disable request quantity until Authority No. provided when required
+        if (requestQtyInput) {
+          if (required) {
+            const hasAuthNo = authorityNumber && authorityNumber.value && authorityNumber.value.trim().length > 0;
+            requestQtyInput.disabled = !hasAuthNo;
+            requestQtyInput.readOnly = !hasAuthNo;
+            requestQtyInput.placeholder = hasAuthNo ? 'Enter quantity' : 'Enter Authority No.';
+            if (!hasAuthNo) {
+              requestQtyInput.value = '';
+            }
+          } else {
+            requestQtyInput.disabled = false;
+            requestQtyInput.readOnly = false;
+            requestQtyInput.placeholder = 'Enter quantity';
+          }
+        }
         if (!required) {
           performaType.value = '';
           authorityNumber.value = '';
@@ -1737,7 +1859,45 @@
       authorityNo.addEventListener('change', updateAuthorityVisibility);
       // Initialize visibility on load
       updateAuthorityVisibility();
+      
+      // As user types Authority No., enable quantity when non-empty
+      if (authorityNumber) {
+        authorityNumber.addEventListener('input', () => {
+          const hasAuthNo = authorityNumber.value && authorityNumber.value.trim().length > 0;
+          if (requestQtyInput) {
+            requestQtyInput.disabled = authorityYes.checked ? !hasAuthNo : false;
+            requestQtyInput.readOnly = authorityYes.checked ? !hasAuthNo : false;
+            requestQtyInput.placeholder = authorityYes.checked && !hasAuthNo ? 'Enter Authority No.' : 'Enter quantity';
+            if (!requestQtyInput.disabled) {
+              // Set default 1 when enabling and valid stock exists
+              const stock = parseInt(availableStockInput.value) || 0;
+              if (stock > 0 && (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1)) {
+                requestQtyInput.value = 1;
+                requestQtyInput.min = 1;
+                requestQtyInput.max = stock;
+              }
+            }
+          }
+        });
+      }
     }
+
+    // Block wheel and arrow key increments when locked
+    const blockWhenLocked = (e) => {
+      if (!requestQtyInput) return;
+      if (requestQtyInput.disabled || requestQtyInput.readOnly) {
+        e.preventDefault();
+      }
+    };
+    requestQtyInput.addEventListener('wheel', blockWhenLocked, { passive: false });
+    requestQtyInput.addEventListener('keydown', (e) => {
+      const blockedKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
+      if (requestQtyInput.disabled || requestQtyInput.readOnly) {
+        if (blockedKeys.includes(e.key)) {
+          e.preventDefault();
+        }
+      }
+    });
 
   }
 

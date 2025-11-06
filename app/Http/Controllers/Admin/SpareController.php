@@ -672,6 +672,23 @@ class SpareController extends Controller
             
             // StockApprovalData feature removed. No record creation.
 
+            // Auto-update complaint status to "in_progress" if stock is issued from approval
+            if ($complaint && ($complaint->status === 'assigned' || $complaint->status === 'new')) {
+                try {
+                    $complaint->status = 'in_progress';
+                    $complaint->save();
+                    \Log::info('Complaint status auto-updated to in_progress after stock issue', [
+                        'complaint_id' => $complaint->id,
+                        'approval_id' => $finalApprovalId
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to auto-update complaint status', [
+                        'complaint_id' => $complaint->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Stock issued successfully',
@@ -982,24 +999,46 @@ class SpareController extends Controller
     {
         try {
             $category = $request->get('category');
+            $sectorName = $request->get('sector');
+            $cityName = $request->get('city');
             
-            // If no category provided, return all products
-            if (!$category || $category === '') {
-                $products = Spare::orderBy('item_name')
-                    ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
-            } else {
-                // Filter by category (including products without category if category is empty string)
-                $products = Spare::where(function($query) use ($category) {
-                    $query->where('category', $category);
+            $query = Spare::query();
+            
+            // Apply location filtering based on sector
+            if ($sectorName) {
+                // Find sector by name and filter spares by sector_id
+                $sector = \App\Models\Sector::where('name', $sectorName)->first();
+                if ($sector && $sector->id) {
+                    $query->where('sector_id', $sector->id);
+                } else {
+                    // If sector not found, return empty
+                    return response()->json([
+                        'success' => true,
+                        'products' => []
+                    ]);
+                }
+            } elseif ($cityName) {
+                // If only city is provided, filter by city_id
+                $city = \App\Models\City::where('name', $cityName)->first();
+                if ($city && $city->id) {
+                    $query->where('city_id', $city->id);
+                }
+            }
+            
+            // Apply category filter
+            if ($category && $category !== '') {
+                $query->where(function($q) use ($category) {
+                    $q->where('category', $category);
                     // Also include products with null or empty category if searching for "Uncategorized"
                     if (strtolower($category) === 'uncategorized' || $category === '') {
-                        $query->orWhereNull('category')
-                              ->orWhere('category', '');
+                        $q->orWhereNull('category')
+                          ->orWhere('category', '');
                     }
-                })
-                ->orderBy('item_name')
-                ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
+                });
             }
+            
+            $products = $query->orderBy('item_name')
+                ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
             
             return response()->json([
                 'success' => true,
@@ -1008,6 +1047,7 @@ class SpareController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error getting products by category', [
                 'category' => $request->get('category'),
+                'sector' => $request->get('sector'),
                 'error' => $e->getMessage()
             ]);
             
