@@ -87,6 +87,14 @@ class Complaint extends Model
     }
 
     /**
+     * Get the stock logs for the complaint.
+     */
+    public function stockLogs(): HasMany
+    {
+        return $this->hasMany(SpareStockLog::class, 'reference_id');
+    }
+
+    /**
      * Get available complaint categories
      */
     public static function getCategories(): array

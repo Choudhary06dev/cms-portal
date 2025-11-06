@@ -16,11 +16,6 @@
 
 <!-- COMPLAINT FORM -->
 <div class="card-glass">
-  <div class="card-header">
-    <h5 class="card-title mb-0 text-white">
-      <i data-feather="edit" class="me-2"></i>Edit Complaint: #{{ $complaint->id }}
-    </h5>
-  </div>
   <div class="card-body">
           <form action="{{ route('admin.complaints.update', $complaint) }}" method="POST">
             @csrf
@@ -128,6 +123,9 @@
                           id="title" name="title" required>
                     <option value="{{ old('title', $complaint->title) }}">{{ old('title', $complaint->title) }}</option>
                   </select>
+                  <input type="text" class="form-select @error('title') is-invalid @enderror"
+                          id="title_other" name="title_other" placeholder="Enter custom title..."
+                          style="display: none;" value="{{ old('title_other', $complaint->title) }}">
                   @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -276,6 +274,45 @@ document.addEventListener('DOMContentLoaded', function() {
   const employeeSelect = document.getElementById('assigned_employee_id');
   const addressInput = document.getElementById('client_address');
 
+  // Auto-replace space with hyphen in address field
+  if (addressInput) {
+    addressInput.addEventListener('keydown', function(e) {
+      // If space key is pressed
+      if (e.key === ' ' || e.keyCode === 32) {
+        e.preventDefault(); // Prevent default space
+        
+        // Get current cursor position
+        const cursorPos = this.selectionStart;
+        const currentValue = this.value;
+        
+        // Insert hyphen at cursor position
+        const newValue = currentValue.substring(0, cursorPos) + '-' + currentValue.substring(cursorPos);
+        this.value = newValue;
+        
+        // Set cursor position after the inserted hyphen
+        this.setSelectionRange(cursorPos + 1, cursorPos + 1);
+      }
+    });
+    
+    // Also handle paste events to replace spaces with hyphens
+    addressInput.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+      const replacedText = pastedText.replace(/\s+/g, '-');
+      
+      // Get current cursor position
+      const cursorPos = this.selectionStart;
+      const currentValue = this.value;
+      
+      // Insert replaced text at cursor position
+      const newValue = currentValue.substring(0, cursorPos) + replacedText + currentValue.substring(this.selectionEnd);
+      this.value = newValue;
+      
+      // Set cursor position after the inserted text
+      this.setSelectionRange(cursorPos + replacedText.length, cursorPos + replacedText.length);
+    });
+  }
+
   function filterEmployees() {
     if (!categorySelect || !employeeSelect) return;
     const category = categorySelect.value;
@@ -294,22 +331,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Category -> Complaint Titles dynamic loading
   const titleSelect = document.getElementById('title');
+  const titleOtherInput = document.getElementById('title_other');
   const currentTitle = '{{ old('title', $complaint->title) }}';
+  
+  // Handle "Other" option selection
+  function handleTitleChange() {
+    if (!titleSelect || !titleOtherInput) return;
+    
+    const selectedValue = titleSelect.value;
+    
+    if (selectedValue === 'other') {
+      // Hide dropdown and show input field
+      titleSelect.style.display = 'none';
+      titleOtherInput.style.display = 'block';
+      titleOtherInput.required = true;
+      titleSelect.removeAttribute('required');
+      // Focus on input field
+      setTimeout(() => titleOtherInput.focus(), 100);
+    } else {
+      // Show dropdown and hide input field
+      titleSelect.style.display = 'block';
+      titleOtherInput.style.display = 'none';
+      titleOtherInput.required = false;
+      titleSelect.required = true;
+    }
+  }
+  
+  // Set up title change event listener
+  if (titleSelect) {
+    titleSelect.addEventListener('change', handleTitleChange);
+  }
   
   if (categorySelect && titleSelect) {
     categorySelect.addEventListener('change', function() {
       const category = this.value;
       
-      // Clear existing options except current value
-      titleSelect.innerHTML = '';
+      // Clear existing options and show loading state
+      titleSelect.innerHTML = '<option value="">Loading titles...</option>';
       titleSelect.disabled = true;
+      titleSelect.style.pointerEvents = 'none';
+      
+      // Ensure dropdown is visible
+      if (titleSelect) {
+        titleSelect.style.display = 'block';
+      }
+      if (titleOtherInput) {
+        titleOtherInput.style.display = 'none';
+        titleOtherInput.value = '';
+      }
       
       if (!category) {
-        const option = document.createElement('option');
-        option.value = currentTitle;
-        option.textContent = currentTitle || 'Select Category first, then choose title';
-        titleSelect.appendChild(option);
+        titleSelect.innerHTML = '<option value="">Select Category first, then choose title</option>';
         titleSelect.disabled = false;
+        titleSelect.removeAttribute('disabled');
+        titleSelect.style.pointerEvents = 'auto';
+        titleSelect.style.cursor = 'pointer';
         return;
       }
       
@@ -322,61 +398,224 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         credentials: 'same-origin'
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(data => {
-        // Add current title as first option if it exists
-        if (currentTitle) {
-          const currentOption = document.createElement('option');
-          currentOption.value = currentTitle;
-          currentOption.textContent = currentTitle;
-          currentOption.selected = true;
-          titleSelect.appendChild(currentOption);
-        }
+        console.log('Titles data received:', data); // Debug log
+        // Clear options and add default
+        titleSelect.innerHTML = '<option value="">Select Complaint Title</option>';
         
-        if (data && data.length > 0) {
+        // Add titles from API
+        if (data && Array.isArray(data) && data.length > 0) {
           data.forEach(title => {
-            // Skip if it's already added as current title
-            if (title.title !== currentTitle) {
-              const option = document.createElement('option');
-              option.value = title.title;
-              option.textContent = title.title;
-              if (title.description) {
-                option.setAttribute('title', title.description);
-              }
-              titleSelect.appendChild(option);
+            const option = document.createElement('option');
+            option.value = title.title;
+            option.textContent = title.title;
+            if (title.description) {
+              option.setAttribute('title', title.description);
             }
+            titleSelect.appendChild(option);
           });
-
         }
         
-        if (!currentTitle && (!data || data.length === 0)) {
-          const option = document.createElement('option');
-          option.value = '';
-          option.textContent = 'No titles found for this category';
-          titleSelect.appendChild(option);
-        }
+        // Always add "Other" option at the end
+        const otherOption = document.createElement('option');
+        otherOption.value = 'other';
+        otherOption.textContent = 'Other';
+        titleSelect.appendChild(otherOption);
         
+        // Ensure dropdown is visible and enabled
+        titleSelect.style.display = 'block';
+        titleSelect.style.visibility = 'visible';
+        titleSelect.style.pointerEvents = 'auto';
+        titleSelect.style.opacity = '1';
+        titleSelect.style.cursor = 'pointer';
+        
+        // Remove disabled attribute completely
+        titleSelect.removeAttribute('disabled');
         titleSelect.disabled = false;
+        
+        // Force enable by setting readonly to false
+        titleSelect.readOnly = false;
+        titleSelect.removeAttribute('readonly');
+        
+        if (titleOtherInput) {
+          titleOtherInput.style.display = 'none';
+        }
+        
+        // Check if current title is a custom title (not in the list)
+        const isCustomTitle = currentTitle && !data.some(t => t.title === currentTitle);
+        if (isCustomTitle) {
+          // Current title is custom, select "Other" and show input field
+          titleSelect.value = 'other';
+          if (titleOtherInput) {
+            titleOtherInput.value = currentTitle;
+            // Hide dropdown and show input field
+            titleSelect.style.display = 'none';
+            titleOtherInput.style.display = 'block';
+            titleOtherInput.required = true;
+            titleSelect.removeAttribute('required');
+          }
+        } else if (currentTitle && data.some(t => t.title === currentTitle)) {
+          // Current title is in the list, select it
+          titleSelect.value = currentTitle;
+          // Ensure dropdown is visible
+          titleSelect.style.display = 'block';
+          if (titleOtherInput) {
+            titleOtherInput.style.display = 'none';
+          }
+        } else {
+          // No current title or not in list - ensure dropdown is visible
+          titleSelect.style.display = 'block';
+          if (titleOtherInput) {
+            titleOtherInput.style.display = 'none';
+          }
+          if (!data || data.length === 0) {
+            // No titles found - but we already have "Other" option, so just show message
+            const noTitleOption = document.createElement('option');
+            noTitleOption.value = '';
+            noTitleOption.textContent = 'No titles found for this category';
+            noTitleOption.disabled = true;
+            titleSelect.insertBefore(noTitleOption, titleSelect.firstChild);
+          }
+        }
+        
+        // Force re-enable dropdown multiple times to ensure it works
+        setTimeout(() => {
+          // Only enable if not "other" is selected
+          if (titleSelect.value !== 'other') {
+            titleSelect.disabled = false;
+            titleSelect.removeAttribute('disabled');
+            titleSelect.style.pointerEvents = 'auto';
+            titleSelect.style.cursor = 'pointer';
+            titleSelect.style.opacity = '1';
+            titleSelect.style.visibility = 'visible';
+            titleSelect.style.display = 'block';
+          }
+          console.log('Dropdown state:', {
+            disabled: titleSelect.disabled,
+            hasDisabledAttr: titleSelect.hasAttribute('disabled'),
+            pointerEvents: titleSelect.style.pointerEvents,
+            display: titleSelect.style.display,
+            value: titleSelect.value,
+            optionsCount: titleSelect.options.length
+          });
+        }, 50);
+        
+        setTimeout(() => {
+          if (titleSelect.value !== 'other') {
+            titleSelect.disabled = false;
+            titleSelect.removeAttribute('disabled');
+            titleSelect.style.pointerEvents = 'auto';
+            titleSelect.style.cursor = 'pointer';
+            titleSelect.style.display = 'block';
+          }
+        }, 200);
       })
       .catch(error => {
         console.error('Error loading complaint titles:', error);
+        titleSelect.innerHTML = '<option value="">Failed to load titles. Please try again.</option>';
         // Keep current title if available
         if (currentTitle) {
           const option = document.createElement('option');
           option.value = currentTitle;
           option.textContent = currentTitle;
           titleSelect.appendChild(option);
-        } else {
-          titleSelect.innerHTML = '<option value="">Error loading titles</option>';
         }
         titleSelect.disabled = false;
+        titleSelect.style.display = 'block';
+        if (titleOtherInput) {
+          titleOtherInput.style.display = 'none';
+        }
       });
     });
     
     // Trigger on page load if category is pre-selected
     if (categorySelect.value) {
       categorySelect.dispatchEvent(new Event('change'));
+    } else if (currentTitle) {
+      // If no category but has current title, check if it's a custom title
+      // This handles the case where title might be custom
+      const titleOptions = Array.from(titleSelect.options).map(opt => opt.value);
+      if (!titleOptions.includes(currentTitle) && currentTitle !== 'other') {
+        // Current title is not in dropdown, it's a custom title
+        // Add "Other" option and select it
+        const otherOption = document.createElement('option');
+        otherOption.value = 'other';
+        otherOption.textContent = 'Other';
+        titleSelect.appendChild(otherOption);
+        titleSelect.value = 'other';
+        if (titleOtherInput) {
+          titleOtherInput.value = currentTitle;
+          titleSelect.style.display = 'none';
+          titleOtherInput.style.display = 'block';
+          titleOtherInput.required = true;
+          titleSelect.removeAttribute('required');
+        }
+      }
     }
+  }
+  
+  // Form submit handler: sync title_other to title when "Other" is selected
+  const complaintForm = document.querySelector('form[action*="complaints.update"]');
+  if (complaintForm && titleSelect && titleOtherInput) {
+    complaintForm.addEventListener('submit', function(e) {
+      if (titleSelect.value === 'other' || titleOtherInput.style.display !== 'none') {
+        // User selected "Other" option
+        if (!titleOtherInput.value || titleOtherInput.value.trim() === '') {
+          e.preventDefault();
+          alert('Please enter a custom complaint title.');
+          titleOtherInput.focus();
+          return false;
+        }
+        
+        // Remove any existing hidden title input
+        const existingHiddenTitle = document.getElementById('title_hidden');
+        if (existingHiddenTitle) {
+          existingHiddenTitle.remove();
+        }
+        
+        // Remove name from select dropdown so it doesn't send "other"
+        titleSelect.removeAttribute('name');
+        titleSelect.disabled = true; // Disable to prevent sending value
+        
+        // Create hidden input with custom title value
+        const hiddenTitle = document.createElement('input');
+        hiddenTitle.type = 'hidden';
+        hiddenTitle.id = 'title_hidden';
+        hiddenTitle.name = 'title';
+        hiddenTitle.value = titleOtherInput.value.trim();
+        complaintForm.appendChild(hiddenTitle);
+        
+        // Also send title_other field explicitly
+        if (!document.getElementById('title_other_field')) {
+          const titleOtherField = document.createElement('input');
+          titleOtherField.type = 'hidden';
+          titleOtherField.id = 'title_other_field';
+          titleOtherField.name = 'title_other';
+          titleOtherField.value = titleOtherInput.value.trim();
+          complaintForm.appendChild(titleOtherField);
+        }
+      } else {
+        // Normal title selected - ensure select has name attribute
+        titleSelect.setAttribute('name', 'title');
+        titleSelect.disabled = false;
+        
+        // Remove hidden inputs if they exist
+        const hiddenTitle = document.getElementById('title_hidden');
+        if (hiddenTitle) {
+          hiddenTitle.remove();
+        }
+        const titleOtherField = document.getElementById('title_other_field');
+        if (titleOtherField) {
+          titleOtherField.remove();
+        }
+      }
+    });
   }
 
   // City -> Sector dynamic loading (mirror create view)

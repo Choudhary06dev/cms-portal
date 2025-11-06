@@ -31,10 +31,18 @@
             <span class="text-white ms-2">{{ $user->phone ?? 'N/A' }}</span>
           </div>
           
-          @if($user->address)
-          <div class="mb-3 mt-4">
-            <h6 class="text-white fw-bold mb-3">Address</h6>
-            <p class="text-light">{{ $user->address }}</p>
+         
+
+          @if($user->city)
+          <div class="mb-3">
+            <span class="text-muted">City:</span>
+            <span class="text-white ms-2">{{ $user->city->name ?? 'N/A' }}</span>
+          </div>
+          @endif
+          @if($user->sector)
+          <div class="mb-3">
+            <span class="text-muted">Sector:</span>
+            <span class="text-white ms-2">{{ $user->sector->name ?? 'N/A' }}</span>
           </div>
           @endif
         </div>
@@ -43,7 +51,7 @@
           <h6 class="text-white fw-bold mb-3">Account Information</h6>
           <div class="mb-3">
             <span class="text-muted">Role:</span>
-            <span class="badge bg-primary ms-2" style="color: #ffffff !important;">{{ $user->role->role_name ?? 'No Role' }}</span>
+            <span class="badge ms-2" style="background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.4);">{{ $user->role->role_name ?? 'No Role' }}</span>
           </div>
           <div class="mb-3">
             <span class="text-muted">Status:</span>
@@ -60,18 +68,7 @@
             <span class="text-muted">Created:</span>
             <span class="text-white ms-2">{{ $user->created_at ? $user->created_at->format('M d, Y') : 'N/A' }}</span>
           </div>
-          @if($user->city)
-          <div class="mb-3">
-            <span class="text-muted">City:</span>
-            <span class="text-white ms-2">{{ $user->city->name ?? 'N/A' }}</span>
-          </div>
-          @endif
-          @if($user->sector)
-          <div class="mb-3">
-            <span class="text-muted">Sector:</span>
-            <span class="text-white ms-2">{{ $user->sector->name ?? 'N/A' }}</span>
-          </div>
-          @endif
+        
           @if($user->country)
           <div class="mb-3">
             <span class="text-muted">Country:</span>
@@ -85,11 +82,7 @@
   
     <hr class="my-4">
     
-    <div class="d-flex gap-2">
-      <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-        <i data-feather="arrow-left" class="me-2"></i>Back to Users
-      </a>
-    </div>
+  
   </div>
 </div>
 @endsection

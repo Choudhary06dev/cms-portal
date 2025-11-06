@@ -62,7 +62,6 @@
           <th>City</th>
           <th>Sector</th>
           <th>Phone</th>
-          <th>Leave Quota</th>
           <th>Status</th>
           <th>Hire Date</th>
           <th>Actions</th>
@@ -89,7 +88,6 @@
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>
           <td>{{ $employee->phone ?: 'N/A' }}</td>
-          <td>{{ $employee->leave_quota ?? 0 }} days</td>
           <td>
             <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
               {{ ucfirst($employee->status ?? 'inactive') }}

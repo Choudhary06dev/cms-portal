@@ -48,10 +48,7 @@
             <span class="text-muted">Sector:</span>
             <span class="text-white ms-2">{{ $complaint->sector ?? 'N/A' }}</span>
           </div>
-          <div class="mb-3">
-            <span class="text-muted">Description:</span>
-            <span class="text-white ms-2">{{ $complaint->description ?? 'N/A' }}</span>
-          </div>
+         
           <div class="mb-3">
             <span class="text-muted">Address:</span>
             <span class="text-white ms-2">{{ $complaint->client->address ?? 'N/A' }}</span>
@@ -59,6 +56,43 @@
           <div class="mb-3">
             <span class="text-muted">Phone No:</span>
             <span class="text-white ms-2">{{ $complaint->client->phone ?? 'N/A' }}</span>
+          </div>
+          
+          <h6 class="text-white fw-bold mb-3 mt-4">Additional Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Complaint Nature & Type:</span>
+            <span class="text-white ms-2" style="font-weight: normal;">
+              @php
+                $category = $complaint->category ?? 'N/A';
+                $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+                $categoryDisplay = [
+                  'electric' => 'Electric',
+                  'technical' => 'Technical',
+                  'service' => 'Service',
+                  'billing' => 'Billing',
+                  'water' => 'Water Supply',
+                  'sanitary' => 'Sanitary',
+                  'plumbing' => 'Plumbing',
+                  'kitchen' => 'Kitchen',
+                  'other' => 'Other',
+                ];
+                $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                $displayText = $catDisplay . ' - ' . $designation;
+              @endphp
+              {{ $displayText }}
+            </span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Status:</span>
+            <span class="badge ms-2" style="background-color: {{ $currentStatusColor['bg'] }}; color: #ffffff !important; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid {{ $currentStatusColor['border'] }};">
+              {{ $statusDisplay }}
+            </span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Priority:</span>
+            <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important;">
+              {{ ucfirst($complaint->priority) }}
+            </span>
           </div>
         </div>
         
@@ -103,47 +137,6 @@
   </div>
         </div>
       </div>
-      
-      <div class="row mt-0">
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3">Additional Information</h6>
-          <div class="mb-3">
-            <span class="text-muted">Complaint Nature & Type:</span>
-            <span class="text-white ms-2" style="font-weight: normal;">
-              @php
-                $category = $complaint->category ?? 'N/A';
-                $designation = $complaint->assignedEmployee->designation ?? 'N/A';
-                $categoryDisplay = [
-                  'electric' => 'Electric',
-                  'technical' => 'Technical',
-                  'service' => 'Service',
-                  'billing' => 'Billing',
-                  'water' => 'Water Supply',
-                  'sanitary' => 'Sanitary',
-                  'plumbing' => 'Plumbing',
-                  'kitchen' => 'Kitchen',
-                  'other' => 'Other',
-                ];
-                $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-                $displayText = $catDisplay . ' - ' . $designation;
-              @endphp
-              {{ $displayText }}
-            </span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted">Status:</span>
-            <span class="badge ms-2" style="background-color: {{ $currentStatusColor['bg'] }}; color: #ffffff !important; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid {{ $currentStatusColor['border'] }};">
-              {{ $statusDisplay }}
-            </span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted">Priority:</span>
-            <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important;">
-              {{ ucfirst($complaint->priority) }}
-            </span>
-          </div>
-        </div>
-      </div>
    
   
   @if($complaint->attachments->count() > 0)
@@ -175,6 +168,110 @@
   
   </div>
 </div>
+
+<!-- REQUESTED ITEMS SECTION -->
+@php
+  // Get stock logs for this complaint (where reference_id = complaint_id)
+  $stockLogs = $complaint->stockLogs()->with('spare')->get();
+  
+  // Also get spare parts from complaint_spares table
+  $spareParts = $complaint->spareParts()->with('spare')->get();
+  
+  // Combine both sources - prefer stock logs, then spare parts
+  $requestedItems = collect();
+  
+  // First, add items from stock logs
+  foreach ($stockLogs as $log) {
+    if ($log->spare) {
+      $requestedItems->push((object)[
+        'id' => $log->id,
+        'spare' => $log->spare,
+        'quantity' => $log->quantity,
+        'quantity_requested' => $log->quantity,
+        'change_type' => $log->change_type,
+        'created_at' => $log->created_at,
+        'source' => 'stock_log'
+      ]);
+    }
+  }
+  
+  // Then, add items from spare parts that are not already in stock logs
+  foreach ($spareParts as $sparePart) {
+    if ($sparePart->spare) {
+      $existsInLogs = $stockLogs->contains(function($log) use ($sparePart) {
+        return $log->spare_id == $sparePart->spare_id;
+      });
+      
+      if (!$existsInLogs) {
+        $requestedItems->push((object)[
+          'id' => $sparePart->id,
+          'spare' => $sparePart->spare,
+          'quantity' => $sparePart->quantity,
+          'quantity_requested' => $sparePart->quantity,
+          'change_type' => 'out',
+          'created_at' => $sparePart->created_at,
+          'source' => 'spare_part'
+        ]);
+      }
+    }
+  }
+@endphp
+
+@if($requestedItems->count() > 0)
+<div class="d-flex justify-content-center mt-4">
+  <div style="max-width: 900px; width: 100%;">
+    <div class="card-glass">
+      <div class="card-header">
+        <h5 class="card-title mb-0 text-white">
+          <i data-feather="package" class="me-2"></i>Requested Items ({{ $requestedItems->count() }})
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table" style="margin-bottom: 0;">
+            <thead>
+              <tr style="background-color: rgba(59, 130, 246, 0.2); border-bottom: 2px solid rgba(59, 130, 246, 0.5);">
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none;">#</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none;">Item Name</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">Quantity</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">Available Stock</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">Date Added</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($requestedItems as $index => $item)
+              @php
+                $spareModel = $item->spare ?? null;
+                $itemName = $spareModel->item_name ?? 'N/A';
+                $availableQty = $spareModel->stock_quantity ?? 0;
+                $requestedQty = $item->quantity_requested ?? $item->quantity ?? 0;
+              @endphp
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <td style="color: #e2e8f0; padding: 12px; border: none; font-weight: 500;">{{ $index + 1 }}</td>
+                <td style="color: #ffffff; padding: 12px; border: none; font-weight: 500;">{{ $itemName }}</td>
+                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
+                  <span class="badge" style="background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 6px 12px; font-weight: 600;">
+                    {{ number_format((int)$requestedQty, 0) }}
+                  </span>
+                </td>
+                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
+                  <span class="badge bg-{{ ((int)$availableQty <= 0) ? 'danger' : 'success' }}" style="padding: 6px 12px; font-weight: 600;">
+                    {{ number_format((int)$availableQty, 0) }}
+                  </span>
+                </td>
+                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
+                  <small>{{ $item->created_at ? $item->created_at->timezone('Asia/Karachi')->format('M d, Y H:i') : 'N/A' }}</small>
+                </td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
 
 <!-- FEEDBACK SECTION -->
 @if($complaint->status == 'resolved' || $complaint->status == 'closed')
