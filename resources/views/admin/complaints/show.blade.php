@@ -344,10 +344,6 @@
                   <td class="text-white">{{ $geUser->username ?? 'N/A' }}</td>
                 </tr>
                 @endif
-                <tr>
-                  <td class="text-white"><strong>Entered At:</strong></td>
-                  <td class="text-white">{{ $complaint->feedback->entered_at ? $complaint->feedback->entered_at->format('M d, Y H:i:s') : 'N/A' }}</td>
-                </tr>
               </table>
             </div>
           </div>
