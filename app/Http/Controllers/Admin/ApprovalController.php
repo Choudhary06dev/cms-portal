@@ -260,6 +260,7 @@ class ApprovalController extends Controller
         $approval->load([
             'complaint.client',
             'complaint.spareParts.spare',
+            'complaint.stockLogs.spare',
             'requestedBy',
             'approvedBy',
             'items.spare'
@@ -550,6 +551,43 @@ class ApprovalController extends Controller
                 ], 500);
             }
             return redirect()->back()->with('error', $message);
+        }
+    }
+
+    /**
+     * Update reason for in-process status
+     */
+    public function updateReason(Request $request, SpareApprovalPerforma $approval)
+    {
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string|max:255',
+            'complaint_id' => 'nullable|exists:complaints,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Update approval remarks with the reason
+            $approval->update([
+                'remarks' => $request->reason,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reason updated successfully.',
+                'reason' => $request->reason
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating reason: ' . $e->getMessage()
+            ], 500);
         }
     }
 

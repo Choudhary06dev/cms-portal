@@ -39,6 +39,16 @@
           <h6 class="text-white fw-bold mb-3 mt-4">Additional Information</h6>
           
           <div class="mb-3">
+            <span class="text-muted">Sector:</span>
+            <span class="text-white ms-2">{{ $employee->sector ? $employee->sector->name : 'N/A' }}</span>
+          </div>
+          
+          <div class="mb-3">
+            <span class="text-muted">City:</span>
+            <span class="text-white ms-2">{{ $employee->city ? $employee->city->name : 'N/A' }}</span>
+          </div>
+          
+          <div class="mb-3">
             <span class="text-muted">Leave Quota:</span>
             <span class="text-white ms-2">{{ $employee->leave_quota ?? 'N/A' }} days</span>
           </div>
@@ -80,21 +90,13 @@
             <span class="text-muted">City:</span>
             <span class="text-white ms-2">{{ $employee->city ? $employee->city->name : 'N/A' }}</span>
           </div>
-          <div class="mb-3">
-            <span class="text-muted">Sector:</span>
-            <span class="text-white ms-2">{{ $employee->sector ? $employee->sector->name : 'N/A' }}</span>
-          </div>
         </div>
       </div>
     </div>
     
     <hr class="my-4">
     
-    <div class="d-flex gap-2">
-      <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
-        <i data-feather="arrow-left" class="me-2"></i>Cancal
-      </a>
-    </div>
+  
   </div>
 </div>
 @endsection

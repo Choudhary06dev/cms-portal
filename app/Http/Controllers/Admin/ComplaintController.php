@@ -311,6 +311,7 @@ class ComplaintController extends Controller
                 'spareParts.spare',
                 'spareParts.usedBy',
                 'spareApprovals.items.spare',
+                'stockLogs.spare',
                 'feedback.enteredBy'
             ]);
 

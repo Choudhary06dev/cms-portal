@@ -147,15 +147,7 @@
             </div>
           </div>
 
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="d-flex justify-content-start">
-                <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary">
-                  <i data-feather="arrow-left"></i> Back to Roles
-                </a>
-              </div>
-            </div>
-          </div>
+       
         </div>
       </div>
     </div>

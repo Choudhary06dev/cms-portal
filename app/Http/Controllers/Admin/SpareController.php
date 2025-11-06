@@ -570,15 +570,18 @@ class SpareController extends Controller
 
             // Use reason or remarks for stock log
             $remarks = $request->reason ?? $request->remarks ?? 'Stock issued from approval';
-            $referenceId = $request->item_id ?? $request->approval_id ?? null;
             
             // Get approval_id from request (set when issuing from approval modal)
             $approvalId = $request->approval_id ?? null;
+            
+            // Get complaint_id from request or from approval
+            $complaintId = $request->complaint_id ?? null;
             
             // Debug logging
             \Log::info('Stock issue request received', [
                 'spare_id' => $spare->id,
                 'approval_id' => $approvalId,
+                'complaint_id' => $complaintId,
                 'item_id' => $request->item_id ?? null,
                 'quantity' => $quantity,
                 'all_request' => $request->all()
@@ -598,27 +601,38 @@ class SpareController extends Controller
                 $approval = SpareApprovalPerforma::find($approvalId);
                 if ($approval) {
                     $complaint = $approval->complaint;
+                    // Set complaint_id from approval if not already set
+                    if ($complaint && !$complaintId) {
+                        $complaintId = $complaint->id;
+                    }
                 }
             }
             
-            // Try to get complaint from reference_id if not already found
-            if (!$complaint && $referenceId) {
-                $complaint = Complaint::find($referenceId);
-                
-                // If not complaint, try to get from approval
-                if (!$complaint) {
-                    $approval = SpareApprovalPerforma::find($referenceId);
-                    if ($approval) {
-                        $complaint = $approval->complaint;
+            // If complaint_id is provided, get complaint directly
+            if ($complaintId && !$complaint) {
+                $complaint = Complaint::find($complaintId);
+            }
+            
+            // Try to get complaint from item_id if not already found
+            $itemId = $request->item_id ?? null;
+            if (!$complaint && $itemId) {
+                $approvalItem = SpareApprovalItem::find($itemId);
+                if ($approvalItem && $approvalItem->performa) {
+                    $approval = $approvalItem->performa;
+                    $complaint = $approval->complaint;
+                    if ($complaint && !$complaintId) {
+                        $complaintId = $complaint->id;
                     }
                 }
             }
             
             // Get approval item to find requested quantity
             if ($spare && $complaint) {
-                $approvalItem = SpareApprovalItem::whereHas('performa', function($q) use ($complaint) {
-                    $q->where('complaint_id', $complaint->id);
-                })->where('spare_id', $spare->id)->first();
+                if (!$approvalItem) {
+                    $approvalItem = SpareApprovalItem::whereHas('performa', function($q) use ($complaint) {
+                        $q->where('complaint_id', $complaint->id);
+                    })->where('spare_id', $spare->id)->first();
+                }
                 
                 if ($approvalItem) {
                     $requestedQty = $approvalItem->quantity_requested;
@@ -633,8 +647,14 @@ class SpareController extends Controller
                 $approval = SpareApprovalPerforma::find($approvalId);
                 if ($approval && !$complaint) {
                     $complaint = $approval->complaint;
+                    if ($complaint && !$complaintId) {
+                        $complaintId = $complaint->id;
+                    }
                 }
             }
+
+            // Set reference_id to complaint_id (for stock logs to link to complaint)
+            $referenceId = $complaintId ?? $itemId ?? $approvalId ?? null;
 
             // Issue stock (decrease inventory)
             $result = $spare->removeStock(

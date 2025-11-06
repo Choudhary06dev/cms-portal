@@ -84,11 +84,7 @@
   
     <hr class="my-4">
     
-    <div class="d-flex gap-2">
-      <a href="{{ route('admin.spares.index') }}" class="btn btn-outline-secondary">
-        <i data-feather="arrow-left" class="me-2"></i>Back to Products
-      </a>
-    </div>
+  
   </div>
 </div>
 

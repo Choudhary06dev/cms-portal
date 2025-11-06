@@ -194,8 +194,7 @@
                                         Important</option>
                                     <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent -
                                         Critical</option>
-                                    <option value="emergency" {{ old('priority') == 'emergency' ? 'selected' : '' }}>
-                                        Emergency - Immediate</option>
+                                   
                                 </select>
                                 @error('priority')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -603,6 +602,45 @@
             const citySelect = document.getElementById('city_id');
             const sectorSelect = document.getElementById('sector_id');
             const addressInput = document.getElementById('address');
+
+            // Auto-replace space with hyphen in address field
+            if (addressInput) {
+                addressInput.addEventListener('keydown', function(e) {
+                    // If space key is pressed
+                    if (e.key === ' ' || e.keyCode === 32) {
+                        e.preventDefault(); // Prevent default space
+                        
+                        // Get current cursor position
+                        const cursorPos = this.selectionStart;
+                        const currentValue = this.value;
+                        
+                        // Insert hyphen at cursor position
+                        const newValue = currentValue.substring(0, cursorPos) + '-' + currentValue.substring(cursorPos);
+                        this.value = newValue;
+                        
+                        // Set cursor position after the inserted hyphen
+                        this.setSelectionRange(cursorPos + 1, cursorPos + 1);
+                    }
+                });
+                
+                // Also handle paste events to replace spaces with hyphens
+                addressInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                    const replacedText = pastedText.replace(/\s+/g, '-');
+                    
+                    // Get current cursor position
+                    const cursorPos = this.selectionStart;
+                    const currentValue = this.value;
+                    
+                    // Insert replaced text at cursor position
+                    const newValue = currentValue.substring(0, cursorPos) + replacedText + currentValue.substring(this.selectionEnd);
+                    this.value = newValue;
+                    
+                    // Set cursor position after the inserted text
+                    this.setSelectionRange(cursorPos + replacedText.length, cursorPos + replacedText.length);
+                });
+            }
 
             if (citySelect && sectorSelect) {
                 citySelect.addEventListener('change', function() {

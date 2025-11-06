@@ -74,9 +74,6 @@
               <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
                 <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
-              <a href="{{ route('admin.roles.permissions', $role) }}" class="btn btn-outline-secondary btn-sm" title="Permissions" style="padding: 3px 8px;">
-                <i data-feather="shield" style="width: 16px; height: 16px;"></i>
-              </a>
               <button class="btn btn-outline-danger btn-sm" onclick="deleteRole({{ $role->id }})" title="Delete" style="padding: 3px 8px;">
                 <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
               </button>
