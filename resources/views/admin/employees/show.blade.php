@@ -14,24 +14,12 @@
 </div>
 
 <!-- EMPLOYEE DETAILS -->
-<div class="card-glass">
-  <div class="row">
-    <div class="col-md-4">
-      <div class="text-center mb-4">
-        <div class="avatar-lg mx-auto mb-3" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 48px;">
-          {{ substr($employee->name ?? 'E', 0, 1) }}
-        </div>
-        <h4 class="text-white">{{ $employee->name ?? 'N/A' }}</h4>
-        <p class="text-light">{{ $employee->designation ?? 'N/A' }}</p>
-        <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
-          {{ ucfirst($employee->status ?? 'inactive') }}
-        </span>
-      </div>
-    </div>
-    
-    <div class="col-md-8">
-      <div class="row">
-        <div class="col-md-6">
+<div class="d-flex justify-content-center">
+  <div class="card-glass" style="max-width: 900px; width: 100%;">
+    <div class="row">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-md-6">
           <h6 class="text-white fw-bold mb-3">Basic Information</h6>
           <div class="mb-3">
             <span class="text-muted">Name:</span>
@@ -39,9 +27,28 @@
           </div>
           
           <div class="mb-3">
+            <span class="text-muted">Email:</span>
+            <span class="text-white ms-2">{{ $employee->email ?? 'N/A' }}</span>
+          </div>
+          
+          <div class="mb-3">
             <span class="text-muted">Phone:</span>
             <span class="text-white ms-2">{{ $employee->phone ?? 'N/A' }}</span>
           </div>
+          
+          <h6 class="text-white fw-bold mb-3 mt-4">Additional Information</h6>
+          
+          <div class="mb-3">
+            <span class="text-muted">Leave Quota:</span>
+            <span class="text-white ms-2">{{ $employee->leave_quota ?? 'N/A' }} days</span>
+          </div>
+          
+          @if($employee->address)
+          <div class="mb-3 mt-4">
+            <h6 class="text-white fw-bold mb-3">Address</h6>
+            <p class="text-light">{{ $employee->address }}</p>
+          </div>
+          @endif
         </div>
         
         <div class="col-md-6">
@@ -52,13 +59,18 @@
           </div>
           <div class="mb-3">
             <span class="text-muted">Designation:</span>
-            <span class="text-white ms-2">{{ $employee->designation ?? 'N/A' }}</span>
+            <span class="text-white ms-2">{{ $employee->designation ?? '' }}</span>
           </div>
           <div class="mb-3">
             <span class="text-muted">Status:</span>
             <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2" style="color: #ffffff !important;">
               {{ ucfirst($employee->status ?? 'inactive') }}
             </span>
+            @if($employee->status === 'inactive' && $employee->updated_at)
+              <span class="text-muted ms-2" style="font-size: 0.875rem;">
+                (Inactive since: {{ $employee->updated_at->setTimezone('Asia/Karachi')->format('M d, Y H:i:s') }})
+              </span>
+            @endif
           </div>
           <div class="mb-3">
             <span class="text-muted">Hire Date:</span>
@@ -74,33 +86,15 @@
           </div>
         </div>
       </div>
-      
-      <div class="row mt-4">
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3">Additional Information</h6>
-          
-          <div class="mb-3">
-            <span class="text-muted">Leave Quota:</span>
-            <span class="text-white ms-2">{{ $employee->leave_quota ?? 'N/A' }} days</span>
-          </div>
-        </div>
-        
-        @if($employee->address)
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3">Address</h6>
-          <p class="text-light">{{ $employee->address }}</p>
-        </div>
-        @endif
-      </div>
     </div>
-  </div>
-  
-  <hr class="my-4">
-  
-  <div class="d-flex gap-2">
-    <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to Employees
-    </a>
+    
+    <hr class="my-4">
+    
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.employees.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Cancal
+      </a>
+    </div>
   </div>
 </div>
 @endsection

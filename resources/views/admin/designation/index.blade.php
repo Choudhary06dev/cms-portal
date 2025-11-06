@@ -58,11 +58,6 @@
         <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Designation name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
-      <div style="min-width: 200px; flex: 1 1 300px;">
-        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
-        <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Short description (optional)">
-        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-      </div>
       <div style="min-width: 140px; flex: 0 0 160px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Status</label>
         <select name="status" class="form-select">
@@ -89,7 +84,6 @@
             <th style="width:70px">#</th>
             <th>Category</th>
             <th>Name</th>
-            <th>Description</th>
             <th style="width:140px">Status</th>
             <th style="width:180px">Actions</th>
           </tr>
@@ -100,14 +94,13 @@
             <td>{{ $designation->id }}</td>
             <td>{{ ucfirst($designation->category ?? 'N/A') }}</td>
             <td>{{ $designation->name }}</td>
-            <td>{{ $designation->description ? Str::limit($designation->description, 60) : '-' }}</td>
             <td>
-              <span class="badge {{ $designation->status==='active' ? 'bg-success' : 'bg-secondary' }}" style="color: #ffffff !important;">{{ ucfirst($designation->status) }}</span>
+              <span class="badge {{ $designation->status==='active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">{{ ucfirst($designation->status) }}</span>
             </td>
             <td>
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editDesignationModal" 
-                        data-id="{{ $designation->id }}" data-category="{{ $designation->category }}" data-name="{{ $designation->name }}" data-status="{{ $designation->status }}" data-description="{{ $designation->description }}">
+                        data-id="{{ $designation->id }}" data-category="{{ $designation->category }}" data-name="{{ $designation->name }}" data-status="{{ $designation->status }}">
                   Edit
                 </button>
                 <form action="{{ route('admin.designation.destroy', $designation) }}" method="POST" class="designation-delete-form" onsubmit="return confirm('Delete this designation?')">
@@ -120,7 +113,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="6" class="text-center text-muted">No designations yet.</td>
+            <td colspan="5" class="text-center text-muted">No designations yet.</td>
           </tr>
         @endforelse
         </tbody>
@@ -158,10 +151,6 @@
           <div class="mb-3">
             <label class="form-label">Name</label>
             <input type="text" name="name" id="editDesignationName" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea name="description" id="editDesignationDescription" class="form-control" rows="2" placeholder="Optional"></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label">Status</label>
@@ -237,8 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const category = button.getAttribute('data-category');
     const name = button.getAttribute('data-name');
     const status = button.getAttribute('data-status');
-    const description = button.getAttribute('data-description') || '';
-
     const form = document.getElementById('editDesignationForm');
     const categorySelect = document.getElementById('editDesignationCategory');
     const nameInput = document.getElementById('editDesignationName');
@@ -249,8 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (categorySelect && category) categorySelect.value = category;
     if (nameInput) nameInput.value = name || '';
-    const descInput = document.getElementById('editDesignationDescription');
-    if (descInput) descInput.value = description;
     if (statusSelect) statusSelect.value = status || 'active';
   });
 });

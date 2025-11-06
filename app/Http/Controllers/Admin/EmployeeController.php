@@ -361,7 +361,7 @@ class EmployeeController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'department' => $request->category, // Store category in department field for backward compatibility
-                'designation' => $request->designation,
+                'designation' => $request->designation ?? $employee->designation,
                 'phone' => $request->phone,
                 // 'emp_id' removed
                 'date_of_hire' => $request->date_of_hire,

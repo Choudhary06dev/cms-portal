@@ -14,145 +14,172 @@
 </div>
 
 <!-- COMPLAINT INFORMATION -->
-<div class="card-glass">
-  <div class="card-header">
-    <h5 class="card-title mb-0 text-white">
-      <i data-feather="alert-triangle" class="me-2"></i>Complaint Details: {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }} - {{ $complaint->title ?? 'N/A' }}
-    </h5>
-  </div>
-  <div class="card-body" style="margin-top: 20px;">
+@php
+  $rawStatus = $complaint->status ?? 'new';
+  $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
+  $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
+                  ($complaintStatus == 'resolved' ? 'Addressed' : 
+                  ucfirst(str_replace('_', ' ', $complaintStatus)));
+  $statusColors = [
+    'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'],
+    'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'],
+    'work_performa' => ['bg' => '#0ea5e9', 'text' => '#ffffff', 'border' => '#0284c7'],
+    'maint_performa' => ['bg' => '#fef08a', 'text' => '#ffffff', 'border' => '#eab308'],
+    'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'],
+  ];
+  $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
+@endphp
+<div class="d-flex justify-content-center">
+  <div class="card-glass" style="max-width: 900px; width: 100%;">
     <div class="row">
       <div class="col-12">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="mb-4">
-              <h6 class="text-white fw-bold mb-3">Complaint Information</h6>
-              <table class="table table-borderless">
-                <tr>
-                  <td class="text-white"><strong>Complaint ID:</strong></td>
-                  <td class="text-white">{{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}</td>
-                </tr>
-                <tr>
-                  <td class="text-white" style="text-align: left;"><strong>Complainant Name:</strong></td>
-                  <td class="text-white" style="text-align: left;">{{ $complaint->client->client_name ?? 'N/A' }}</td>
-                </tr>
-                <tr>
-                  <td class="text-white"><strong>Complaint Title:</strong></td>
-                  <td class="text-white">{{ $complaint->title ?? 'N/A' }}</td>
-                </tr>
-                <tr>
-                  <td class="text-white"><strong>Registration Date/Time:</strong></td>
-                  <td class="text-white">{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
-                </tr>
-                <tr>
-                  <td class="text-white"><strong>Completion Time:</strong></td>
-                  <td class="text-white">
-                    @if($complaint->closed_at)
-                      {{ $complaint->closed_at->format('Y-m-d H:i:s') }}
-                    @elseif($complaint->status == 'resolved' || $complaint->status == 'closed')
-                      {{ $complaint->updated_at->format('Y-m-d H:i:s') }}
-                    @else
-                      -
-                    @endif
-                  </td>
-                </tr>
-              </table>
-            </div>
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Complainant Name:</span>
+            <span class="text-white ms-2">{{ $complaint->client->client_name ?? 'N/A' }}</span>
           </div>
-          <div class="col-md-6">
-            <div class="mb-4">
-              <h6 class="text-white fw-bold mb-3">Additional Information</h6>
-              <table class="table table-borderless">
-                <tr>
-                  <td class="text-white"><strong>Complaint Nature & Type:</strong></td>
-                  <td>
-                    @php
-                      $category = $complaint->category ?? 'N/A';
-                      $designation = $complaint->assignedEmployee->designation ?? 'N/A';
-                      $categoryDisplay = [
-                        'electric' => 'Electric',
-                        'technical' => 'Technical',
-                        'service' => 'Service',
-                        'billing' => 'Billing',
-                        'water' => 'Water Supply',
-                        'sanitary' => 'Sanitary',
-                        'plumbing' => 'Plumbing',
-                        'kitchen' => 'Kitchen',
-                        'other' => 'Other',
-                      ];
-                      $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-                      $displayText = $catDisplay . ' - ' . $designation;
-                    @endphp
-                    <span class="text-white">{{ $displayText }}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-white"><strong>Status:</strong></td>
-                  <td>
-                    @php
-                      $statusDisplay = $complaint->status == 'in_progress' ? 'In-Process' : 
-                                      ($complaint->status == 'resolved' || $complaint->status == 'closed' ? 'Addressed' : 
-                                      ucfirst(str_replace('_', ' ', $complaint->status)));
-                      $statusBadgeClass = ($complaint->status == 'in_progress' || $complaint->status == 'new' || $complaint->status == 'assigned') ? 
-                                        'danger' : 'success';
-                    @endphp
-                    <span class="badge bg-{{ $statusBadgeClass }}" style="color: #ffffff !important;">
-                      {{ $statusDisplay }}
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-white"><strong>Priority:</strong></td>
-                  <td>
-                    <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }}" style="color: #ffffff !important;">
-                      {{ ucfirst($complaint->priority) }}
-                    </span>
-                  </td>
-                </tr>
-              </table>
-            </div>
+          <div class="mb-3">
+            <span class="text-muted">City:</span>
+            <span class="text-white ms-2">{{ $complaint->city ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Sector:</span>
+            <span class="text-white ms-2">{{ $complaint->sector ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Description:</span>
+            <span class="text-white ms-2">{{ $complaint->description ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Address:</span>
+            <span class="text-white ms-2">{{ $complaint->client->address ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Phone No:</span>
+            <span class="text-white ms-2">{{ $complaint->client->phone ?? 'N/A' }}</span>
           </div>
         </div>
-        <div class="row">
-          <div class="col-12">
-            <div class="mb-4">
-              <h6 class="text-white fw-bold">Description</h6>
-              <p class="text-white fw-bold mb-0">{{ $complaint->description }}</p>
-            </div>
+        
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3"><i data-feather="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Complaint Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Complaint ID:</span>
+            <span class="text-white ms-2">{{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}</span>
           </div>
+          <div class="mb-3">
+            <span class="text-muted">Complaint Title:</span>
+            <span class="text-white ms-2">{{ $complaint->title ?? 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Registration Date/Time:</span>
+            <span class="text-white ms-2">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Completion Time:</span>
+            <span class="text-white ms-2">
+              @if($complaint->closed_at)
+                {{ $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') }}
+              @elseif($complaint->status == 'resolved' || $complaint->status == 'closed')
+                {{ $complaint->updated_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') }}
+              @else
+                -
+              @endif
+            </span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Assigned Employee:</span>
+            <span class="text-white ms-2">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</span>
+          </div>
+           
+      <div class="row mt-3">
+        <div class="col-12">
+          <h6 class="text-white fw-bold mb-3">Description</h6>
+          <p class="text-white mb-0">{{ $complaint->description ?? 'N/A' }}</p>
         </div>
       </div>
     </div>
-
-    @if($complaint->attachments->count() > 0)
-    <div class="row mt-4">
-      <div class="col-12">
-        <h6 class="text-muted">Attachments</h6>
-        <div class="row">
-          @foreach($complaint->attachments as $attachment)
-          <div class="col-md-3 mb-3">
-            <div class="card">
-              <div class="card-body text-center">
-                <i data-feather="file" class="mb-2"></i>
-                <p class="card-text small">{{ $attachment->original_name }}</p>
-                <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                  View
-                </a>
-              </div>
-            </div>
-          </div>
-          @endforeach
+  </div>
         </div>
       </div>
+      
+      <div class="row mt-0">
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Additional Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Complaint Nature & Type:</span>
+            <span class="text-white ms-2" style="font-weight: normal;">
+              @php
+                $category = $complaint->category ?? 'N/A';
+                $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+                $categoryDisplay = [
+                  'electric' => 'Electric',
+                  'technical' => 'Technical',
+                  'service' => 'Service',
+                  'billing' => 'Billing',
+                  'water' => 'Water Supply',
+                  'sanitary' => 'Sanitary',
+                  'plumbing' => 'Plumbing',
+                  'kitchen' => 'Kitchen',
+                  'other' => 'Other',
+                ];
+                $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                $displayText = $catDisplay . ' - ' . $designation;
+              @endphp
+              {{ $displayText }}
+            </span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Status:</span>
+            <span class="badge ms-2" style="background-color: {{ $currentStatusColor['bg'] }}; color: #ffffff !important; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid {{ $currentStatusColor['border'] }};">
+              {{ $statusDisplay }}
+            </span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Priority:</span>
+            <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important;">
+              {{ ucfirst($complaint->priority) }}
+            </span>
+          </div>
+        </div>
+      </div>
+   
+  
+  @if($complaint->attachments->count() > 0)
+  <hr class="my-4">
+  <div class="row">
+    <div class="col-12">
+      <h6 class="text-white fw-bold mb-3">Attachments</h6>
+      <div class="row">
+        @foreach($complaint->attachments as $attachment)
+        <div class="col-md-3 mb-3">
+          <div class="card">
+            <div class="card-body text-center">
+              <i data-feather="file" class="mb-2"></i>
+              <p class="card-text small">{{ $attachment->original_name }}</p>
+              <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                View
+              </a>
+            </div>
+          </div>
+        </div>
+        @endforeach
+      </div>
     </div>
-    @endif
+  </div>
+  @endif
+  
+    <hr class="my-4">
+    
+  
   </div>
 </div>
 
 <!-- FEEDBACK SECTION -->
 @if($complaint->status == 'resolved' || $complaint->status == 'closed')
-<div class="row mt-4">
-  <div class="col-12">
+<div class="d-flex justify-content-center mt-4">
+  <div style="max-width: 900px; width: 100%;">
     <div class="card-glass">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0 text-white">
@@ -234,18 +261,11 @@
       </div>
     </div>
   </div>
+  </div>
 </div>
 @endif
 
 <!-- BACK BUTTON -->
-<div class="row mt-4">
-  <div class="col-12">
-    <div class="d-flex justify-content-start">
-      <a href="{{ route('admin.complaints.index') }}" class="btn btn-secondary">
-        <i data-feather="arrow-left"></i> Back to Complaints
-      </a>
-    </div>
-  </div>
-</div>
+
 
 @endsection

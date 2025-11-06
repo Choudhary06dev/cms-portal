@@ -56,11 +56,13 @@
         <tr>
           <th>ID</th>
           <th>Employee</th>
+          <th>Email</th>
           <th>Category</th>
           <th>Designation</th>
           <th>City</th>
           <th>Sector</th>
           <th>Phone</th>
+          <th>Leave Quota</th>
           <th>Status</th>
           <th>Hire Date</th>
           <th>Actions</th>
@@ -81,11 +83,13 @@
               </div>
             </div>
           </td>
+          <td>{{ $employee->email ?? 'N/A' }}</td>
           <td>{{ ucfirst($employee->department ?? 'N/A') }}</td>
-          <td>{{ $employee->designation ?? 'N/A' }}</td>
+          <td>{{ $employee->designation ?? '' }}</td>
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>
           <td>{{ $employee->phone ?: 'N/A' }}</td>
+          <td>{{ $employee->leave_quota ?? 0 }} days</td>
           <td>
             <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
               {{ ucfirst($employee->status ?? 'inactive') }}
@@ -108,7 +112,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="10" class="text-center text-muted py-4">
+          <td colspan="12" class="text-center text-muted py-4">
             <i data-feather="users" class="feather-lg mb-2"></i>
             <div>No employees found</div>
           </td>
@@ -235,7 +239,7 @@
     const paginationContainer = document.getElementById('employeesPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     fetch(`{{ route('admin.employees.index') }}?${params.toString()}`, {
@@ -269,7 +273,7 @@
     .catch(error => {
       console.error('Error loading employees:', error);
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
       }
     });
   }

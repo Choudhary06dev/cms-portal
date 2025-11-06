@@ -58,11 +58,6 @@
         <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Sector name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
-      <div style="min-width: 220px; flex: 1 1 300px;">
-        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
-        <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Short description (optional)">
-        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-      </div>
       <div style="min-width: 140px; flex: 0 0 160px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Status</label>
         <select name="status" class="form-select">
@@ -100,7 +95,6 @@
             <th style="width:70px">#</th>
             <th>City</th>
             <th>Sector Name</th>
-            <th>Description</th>
             <th style="width:140px">Status</th>
             <th style="width:180px">Actions</th>
           </tr>
@@ -111,14 +105,13 @@
             <td>{{ $sector->id }}</td>
             <td>{{ $sector->city ? $sector->city->name : 'N/A' }}</td>
             <td>{{ $sector->name }}</td>
-            <td>{{ $sector->description ? Str::limit($sector->description, 80) : '-' }}</td>
             <td>
-              <span class="badge {{ $sector->status==='active' ? 'bg-success' : 'bg-secondary' }}" style="color: #ffffff !important;">{{ ucfirst($sector->status) }}</span>
+              <span class="badge {{ $sector->status==='active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">{{ ucfirst($sector->status) }}</span>
             </td>
             <td>
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editSectorModal" 
-                        data-id="{{ $sector->id }}" data-city-id="{{ $sector->city_id }}" data-name="{{ $sector->name }}" data-status="{{ $sector->status }}" data-description="{{ $sector->description }}">
+                        data-id="{{ $sector->id }}" data-city-id="{{ $sector->city_id }}" data-name="{{ $sector->name }}" data-status="{{ $sector->status }}">
                   Edit
                 </button>
                 <form action="{{ route('admin.sector.destroy', $sector) }}" method="POST" class="sector-delete-form" onsubmit="return confirm('Delete this sector?')">
@@ -131,7 +124,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="6" class="text-center text-muted">No sectors yet.</td>
+            <td colspan="5" class="text-center text-muted">No sectors yet.</td>
           </tr>
         @endforelse
         </tbody>
@@ -169,10 +162,6 @@
           <div class="mb-3">
             <label class="form-label">Sector Name <span class="text-danger">*</span></label>
             <input type="text" name="name" id="editSectorName" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea name="description" id="editSectorDescription" class="form-control" rows="2" placeholder="Optional"></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label">Status</label>
@@ -239,8 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const cityId = button.getAttribute('data-city-id');
     const name = button.getAttribute('data-name');
     const status = button.getAttribute('data-status');
-    const description = button.getAttribute('data-description') || '';
-
     const form = document.getElementById('editSectorForm');
     const nameInput = document.getElementById('editSectorName');
     const citySelect = document.getElementById('editSectorCityId');
@@ -251,8 +238,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (nameInput) nameInput.value = name || '';
     if (citySelect && cityId) citySelect.value = cityId;
-    const descInput = document.getElementById('editSectorDescription');
-    if (descInput) descInput.value = description;
     if (statusSelect) statusSelect.value = status || 'active';
   });
 });

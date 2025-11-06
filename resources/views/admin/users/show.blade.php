@@ -8,90 +8,88 @@
   <div class="d-flex justify-content-between align-items-center">
     <div>
       <h2 class="text-white mb-2">User Details</h2>
-      <p class="text-light">View user information and details</p>
-    </div>
-      <form action="{{ route('admin.users.toggle-status', $user) }}" method="POST" class="d-inline">
-        @csrf
-        <button type="submit" class="btn btn-{{ $user->status === 'active' ? 'danger' : 'success' }}">
-          <i data-feather="{{ $user->status === 'active' ? 'user-x' : 'user-check' }}" class="me-2"></i>
-          {{ $user->status === 'active' ? 'Deactivate' : 'Activate' }}
-        </button>
-      </form>
+      <p class="text-light">View user information and records</p>
     </div>
   </div>
 </div>
 
 <!-- USER DETAILS -->
-<div class="card-glass">
-  <div class="card-body">
-    <div class="row">
-      <div class="col-md-6">
-        <div class="mb-4">
-          <h6 class="text-muted fw-bold">Basic Information</h6>
-          <div class="mb-2">
-            <span class="text-muted">Username:</span>
-            <span class="text-white">{{ $user->username }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="text-muted">Full Name:</span>
-            <span class="text-white">{{ $user->full_name ?? 'Not provided' }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="text-muted">Email:</span>
-            <span class="text-white">{{ $user->email ?? 'Not provided' }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="text-muted">Phone:</span>
-            <span class="text-white">{{ $user->phone ?? 'Not provided' }}</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-6">
-        <div class="mb-4">
-          <h6 class="text-muted fw-bold">Account Information</h6>
-          <div class="mb-2">
-            <span class="text-muted">Role:</span>
-            <span class="badge bg-primary">{{ $user->role->role_name ?? 'No Role' }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="text-muted">Status:</span>
-            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">{{ ucfirst($user->status) }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="text-muted">Created:</span>
-            <span class="text-white">{{ $user->created_at->format('M d, Y') }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Additional Information -->
-    @if($user->address || $user->city || $user->country)
+<div class="d-flex justify-content-center">
+  <div class="card-glass" style="max-width: 900px; width: 100%;">
     <div class="row">
       <div class="col-12">
-        <h6 class="text-muted fw-bold">Address Information</h6>
-        @if($user->address)
-        <div class="mb-2">
-          <span class="text-muted">Address:</span>
-          <span class="text-white">{{ $user->address }}</span>
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Basic Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Username:</span>
+            <span class="text-white ms-2">{{ $user->username ?? 'N/A' }}</span>
+          </div>
+          
+          <div class="mb-3">
+            <span class="text-muted">Phone:</span>
+            <span class="text-white ms-2">{{ $user->phone ?? 'N/A' }}</span>
+          </div>
+          
+          @if($user->address)
+          <div class="mb-3 mt-4">
+            <h6 class="text-white fw-bold mb-3">Address</h6>
+            <p class="text-light">{{ $user->address }}</p>
+          </div>
+          @endif
         </div>
-        @endif
-        @if($user->city)
-        <div class="mb-2">
-          <span class="text-muted">City:</span>
-          <span class="text-white">{{ $user->city }}</span>
+        
+        <div class="col-md-6">
+          <h6 class="text-white fw-bold mb-3">Account Information</h6>
+          <div class="mb-3">
+            <span class="text-muted">Role:</span>
+            <span class="badge bg-primary ms-2" style="color: #ffffff !important;">{{ $user->role->role_name ?? 'No Role' }}</span>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Status:</span>
+            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2" style="color: #ffffff !important;">
+              {{ ucfirst($user->status ?? 'inactive') }}
+            </span>
+            @if($user->status === 'inactive' && $user->updated_at)
+              <span class="text-muted ms-2" style="font-size: 0.875rem;">
+                (Inactive since: {{ $user->updated_at->setTimezone('Asia/Karachi')->format('M d, Y H:i:s') }})
+              </span>
+            @endif
+          </div>
+          <div class="mb-3">
+            <span class="text-muted">Created:</span>
+            <span class="text-white ms-2">{{ $user->created_at ? $user->created_at->format('M d, Y') : 'N/A' }}</span>
+          </div>
+          @if($user->city)
+          <div class="mb-3">
+            <span class="text-muted">City:</span>
+            <span class="text-white ms-2">{{ $user->city->name ?? 'N/A' }}</span>
+          </div>
+          @endif
+          @if($user->sector)
+          <div class="mb-3">
+            <span class="text-muted">Sector:</span>
+            <span class="text-white ms-2">{{ $user->sector->name ?? 'N/A' }}</span>
+          </div>
+          @endif
+          @if($user->country)
+          <div class="mb-3">
+            <span class="text-muted">Country:</span>
+            <span class="text-white ms-2">{{ $user->country }}</span>
+          </div>
+          @endif
         </div>
-        @endif
-        @if($user->country)
-        <div class="mb-2">
-          <span class="text-muted">Country:</span>
-          <span class="text-white">{{ $user->country }}</span>
-        </div>
-        @endif
       </div>
     </div>
-    @endif
+  </div>
+  
+    <hr class="my-4">
+    
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left" class="me-2"></i>Back to Users
+      </a>
+    </div>
   </div>
 </div>
 @endsection

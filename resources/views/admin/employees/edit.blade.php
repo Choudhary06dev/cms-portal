@@ -73,54 +73,16 @@
     </div>
 
     <div class="row">
-<<<<<<< HEAD
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
-            <select class="form-select @error('category') is-invalid @enderror" 
-                    id="category" name="category" required>
-              <option value="">Select Category</option>
-              @if(isset($categories) && $categories->count() > 0)
-                @foreach ($categories as $cat)
-                  <option value="{{ $cat }}" {{ old('category', $employee->department) == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-                @endforeach
-              @endif
-            </select>
-            @error('category')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="designation" class="form-label text-white">Designation</label>
-            <select class="form-select @error('designation') is-invalid @enderror" 
-                    id="designation" name="designation">
-              <option value="">Select Designation</option>
-              @if(isset($designations) && $designations->count() > 0)
-                @foreach ($designations as $designation)
-                  <option value="{{ $designation->name }}" data-category="{{ $designation->category }}" {{ old('designation', $employee->designation) == $designation->name ? 'selected' : '' }}>
-                    {{ $designation->name }}
-                  </option>
-                @endforeach
-              @endif
-            </select>
-            @error('designation')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-=======
       <div class="col-md-6">
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
           <select class="form-select @error('designation') is-invalid @enderror" 
-                  id="designation" name="designation" disabled>
-            <option value="">Select Category First</option>
+                  id="designation" name="designation" {{ old('category', $employee->department) ? '' : 'disabled' }}>
+            <option value="">{{ old('category', $employee->department) ? 'Loading...' : 'Select Category First' }}</option>
           </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
->>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
         </div>
       </div>
       <div class="col-md-6">
@@ -226,40 +188,10 @@
   feather.replace();
   
   document.addEventListener('DOMContentLoaded', function() {
-<<<<<<< HEAD
-    // Filter designations by selected category
-    const categorySelect = document.getElementById('category');
-    const designationSelect = document.getElementById('designation');
-    function filterDesignations() {
-      if (!categorySelect || !designationSelect) return;
-      const cat = (categorySelect.value || '').toString();
-      const current = designationSelect.value;
-      let firstVisible = null;
-      Array.from(designationSelect.options).forEach(opt => {
-        if (!opt.value) return; // skip placeholder
-        const optCat = opt.getAttribute('data-category') || '';
-        const show = !cat || optCat === cat;
-        opt.hidden = !show;
-        if (show && !firstVisible) firstVisible = opt;
-      });
-      const sel = designationSelect.selectedOptions[0];
-      if (sel && sel.hidden) {
-        designationSelect.value = '';
-      }
-      // Disable until category selected
-      designationSelect.disabled = !cat;
-    }
-    if (categorySelect && designationSelect) {
-      categorySelect.addEventListener('change', filterDesignations);
-      // Initialize on load
-      filterDesignations();
-    }
-=======
     const categorySelect = document.getElementById('category');
     const designationSelect = document.getElementById('designation');
     const currentCategory = '{{ old('category', $employee->department) }}';
     const currentDesignation = '{{ old('designation', $employee->designation) }}';
->>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
     const citySelect = document.getElementById('city_id');
     const sectorSelect = document.getElementById('sector_id');
     const currentCity = '{{ old('city_id', $employee->city_id) }}';
@@ -267,6 +199,12 @@
     
     // Load designations on page load if category is already selected
     if (currentCategory && categorySelect && designationSelect) {
+      // Enable dropdown immediately if category exists
+      designationSelect.disabled = false;
+      
+      // Show loading state
+      designationSelect.innerHTML = '<option value="">Loading...</option>';
+      
       fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(currentCategory)}`, {
         method: 'GET',
         headers: {
@@ -276,25 +214,55 @@
       })
       .then(response => response.json())
       .then(data => {
+        // Start with empty select
         designationSelect.innerHTML = '<option value="">Select Designation</option>';
         
+        // First, add current designation if it exists (to ensure it's always available)
+        if (currentDesignation) {
+          const currentOption = document.createElement('option');
+          currentOption.value = currentDesignation;
+          currentOption.textContent = currentDesignation;
+          currentOption.selected = true;
+          designationSelect.appendChild(currentOption);
+        }
+        
+        // Then add all fetched designations
         if (data.designations && data.designations.length > 0) {
           data.designations.forEach(function(designation) {
+            // Skip if this designation is the same as current designation (already added)
+            if (currentDesignation && designation.name === currentDesignation) {
+              return;
+            }
             const option = document.createElement('option');
             option.value = designation.name;
             option.textContent = designation.name;
-            if (designation.name === currentDesignation) {
-              option.selected = true;
-            }
             designationSelect.appendChild(option);
           });
-          designationSelect.disabled = false;
-        } else {
+        }
+        
+        // If no designations found and no current designation, show message
+        if ((!data.designations || data.designations.length === 0) && !currentDesignation) {
           designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+        }
+        
+        // Ensure current designation is still selected after adding all options
+        if (currentDesignation) {
+          designationSelect.value = currentDesignation;
         }
       })
       .catch(error => {
         console.error('Error fetching designations:', error);
+        // If there's an error but we have current designation, show it
+        if (currentDesignation) {
+          designationSelect.innerHTML = '<option value="">Select Designation</option>';
+          const currentOption = document.createElement('option');
+          currentOption.value = currentDesignation;
+          currentOption.textContent = currentDesignation;
+          currentOption.selected = true;
+          designationSelect.appendChild(currentOption);
+        } else {
+          designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+        }
       });
     }
     

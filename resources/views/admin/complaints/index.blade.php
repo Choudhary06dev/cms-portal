@@ -108,11 +108,8 @@
                 <thead>
                     <tr>
                         <th style="width: 40px; padding-left: 8px !important;">#</th>
-<<<<<<< HEAD
+
                         <th style="width: 130px;">	Registration Date/Time</th>
-=======
-                        <th style="width: 130px;">Registration Date/Time</th>
->>>>>>> 13e1197c5db25231c4276480c953cbf73ee9201f
                         <th style="width: 130px;">Completion Time</th>
                         <th style="width: 100px;">Complaint ID</th>
                         <th style="width: 120px;">Complainant Name</th>
@@ -126,8 +123,8 @@
                     @forelse($complaints as $complaint)
                         <tr>
                             <td>{{ ($complaints->currentPage() - 1) * $complaints->perPage() + $loop->iteration }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i:s') : '' }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
                             <td style="white-space: nowrap;">
                                 <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
                                     {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
@@ -153,7 +150,7 @@
                                     $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
                                     $displayText = $catDisplay . ' - ' . $designation;
                                 @endphp
-                                <div class="text-white">{{ $displayText }}</div>
+                                <div class="text-white" style="font-weight: normal;">{{ $displayText }}</div>
                             </td>
                             <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
                             <td>

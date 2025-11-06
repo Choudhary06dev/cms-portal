@@ -116,6 +116,10 @@
       height: 18px !important;
       min-width: 18px !important;
     }
+    .nav-link i svg {
+      width: 18px !important;
+      height: 18px !important;
+    }
     .nav-link span, .nav-link .text-decoration-none {
       white-space: nowrap !important;
       overflow: hidden;
@@ -285,7 +289,7 @@
     <div class="nav-item-parent mb-1">
       <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}">
         <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
-          <i data-feather="alert-circle" class="me-2"></i> Complaints
+          <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px; stroke-width: 2;"></i> Complaints Reg.
         </a>
         <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsSubmenu" aria-expanded="{{ request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
