@@ -121,6 +121,12 @@
           <div class="mb-3">
             <span class="text-muted fw-bold" style="font-size: 0.875rem;">Assigned Employee:</span>
             <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</span>
+            @if($complaint->assignedEmployee && $complaint->assignedEmployee->phone)
+              <span class="text-white ms-2" style="font-size: 0.875rem;">
+                <i data-feather="phone" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                {{ $complaint->assignedEmployee->phone }}
+              </span>
+            @endif
           </div>
           <div class="mb-3">
             <span class="text-muted fw-bold" style="font-size: 0.875rem;">Status:</span>
