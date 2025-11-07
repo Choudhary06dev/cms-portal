@@ -182,7 +182,12 @@
             @else
               @if(isset($approval->performa_type) && $approval->performa_type)
                 @php
-                  $performaTypeLabel = ucwords(str_replace('_', ' ', $approval->performa_type));
+                  // Handle special case for maint_performa to show "Maintenance Performa" instead of "Maint Performa"
+                  if ($approval->performa_type === 'maint_performa') {
+                    $performaTypeLabel = 'Maintenance Performa';
+                  } else {
+                    $performaTypeLabel = ucwords(str_replace('_', ' ', $approval->performa_type));
+                  }
                   // Always use performa type color when performa type is selected
                   // Color should change as soon as performa type is selected, regardless of waiting_for_authority
                   $badgeColor = $statusColors[$approval->performa_type]['bg'] ?? $statusColors['work_performa']['bg'];
@@ -253,7 +258,7 @@
                 <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
               </select>
               </div>
-            @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Maint') !== false))
+            @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && (strpos($performaBadge ?? '', 'Maint') !== false || strpos($performaBadge ?? '', 'Maintenance') !== false)))
               <div class="status-chip" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};">
                 <span class="status-indicator" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
@@ -1454,6 +1459,77 @@
       // Initialize
       updateAuthorityVisibility();
       
+      // Helper function to update badge in the table
+      const updatePerformaBadge = () => {
+        const approvalId = window.currentApprovalId;
+        if (!approvalId) return;
+        
+        // Find the row for this approval by looking for buttons with data-approval-id
+        const addStockBtns = document.querySelectorAll(`button.add-stock-btn[data-approval-id="${approvalId}"]`);
+        let approvalRow = null;
+        
+        for (let btn of addStockBtns) {
+          approvalRow = btn.closest('tr');
+          if (approvalRow) break;
+        }
+        
+        // Fallback: try finding by view links
+        if (!approvalRow) {
+          const viewLinks = document.querySelectorAll(`a[href*="/approvals/${approvalId}"]`);
+          for (let link of viewLinks) {
+            approvalRow = link.closest('tr');
+            if (approvalRow) break;
+          }
+        }
+        
+        if (approvalRow) {
+          const badge = approvalRow.querySelector('.performa-badge');
+          if (badge) {
+            // If performa is not required (No is selected), hide the badge
+            if (authorityNo && authorityNo.checked) {
+              badge.style.display = 'none';
+              badge.textContent = '';
+            } else if (authorityYes && authorityYes.checked && performaType && performaType.value) {
+              const perfVal = performaType.value;
+              // Update badge text and color immediately
+              let typeLabel = '';
+              if (perfVal === 'work_performa') {
+                typeLabel = 'Work Performa';
+              } else if (perfVal === 'maint_performa') {
+                typeLabel = 'Maintenance Performa';
+              } else {
+                // Convert snake_case to Title Case
+                typeLabel = perfVal.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              }
+              
+              badge.textContent = typeLabel;
+              
+              // Always use performa type color when performa type is selected
+              const color = perfVal === 'work_performa' ? '#60a5fa' : 
+                           perfVal === 'maint_performa' ? '#eab308' : '#60a5fa';
+              badge.style.backgroundColor = color;
+              badge.style.display = 'inline-block';
+              badge.style.color = '#ffffff';
+              badge.style.setProperty('color', '#ffffff', 'important');
+              badge.style.setProperty('background-color', color, 'important');
+            }
+          }
+        }
+      };
+      
+      // Update badge when performa type changes
+      if (performaType) {
+        performaType.addEventListener('change', updatePerformaBadge);
+      }
+      
+      // Update badge when performa required radio changes
+      if (authorityYes) {
+        authorityYes.addEventListener('change', updatePerformaBadge);
+      }
+      if (authorityNo) {
+        authorityNo.addEventListener('change', updatePerformaBadge);
+      }
+      
       // As user types Authority No., enable quantity when non-empty
       if (authorityNumber) {
         authorityNumber.addEventListener('input', () => {
@@ -1553,8 +1629,65 @@
         
         // Check if Performa Req = Yes and Performa Type is selected, then save approval
         const authorityYes = document.getElementById('authorityYes');
+        const authorityNo = document.getElementById('authorityNo');
         const performaType = document.getElementById('performaType');
         const authorityNumber = document.getElementById('authorityNumber');
+        
+        // Update badge immediately without page reload (using same logic as in modal)
+        const approvalId = window.currentApprovalId;
+        if (approvalId) {
+          // Find the row for this approval by looking for buttons with data-approval-id
+          const addStockBtns = document.querySelectorAll(`button.add-stock-btn[data-approval-id="${approvalId}"]`);
+          let approvalRow = null;
+          
+          for (let btn of addStockBtns) {
+            approvalRow = btn.closest('tr');
+            if (approvalRow) break;
+          }
+          
+          // Fallback: try finding by view links
+          if (!approvalRow) {
+            const viewLinks = document.querySelectorAll(`a[href*="/approvals/${approvalId}"]`);
+            for (let link of viewLinks) {
+              approvalRow = link.closest('tr');
+              if (approvalRow) break;
+            }
+          }
+          
+          if (approvalRow) {
+            const badge = approvalRow.querySelector('.performa-badge');
+            if (badge) {
+              // If performa is not required (No is selected), hide the badge
+              if (authorityNo && authorityNo.checked) {
+                badge.style.display = 'none';
+                badge.textContent = '';
+              } else if (authorityYes && authorityYes.checked && performaType && performaType.value) {
+                const perfVal = performaType.value;
+                // Update badge text and color immediately
+                let typeLabel = '';
+                if (perfVal === 'work_performa') {
+                  typeLabel = 'Work Performa';
+                } else if (perfVal === 'maint_performa') {
+                  typeLabel = 'Maintenance Performa';
+                } else {
+                  // Convert snake_case to Title Case
+                  typeLabel = perfVal.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                }
+                
+                badge.textContent = typeLabel;
+                
+                // Always use performa type color when performa type is selected
+                const color = perfVal === 'work_performa' ? '#60a5fa' : 
+                             perfVal === 'maint_performa' ? '#eab308' : '#60a5fa';
+                badge.style.backgroundColor = color;
+                badge.style.display = 'inline-block';
+                badge.style.color = '#ffffff';
+                badge.style.setProperty('color', '#ffffff', 'important');
+                badge.style.setProperty('background-color', color, 'important');
+              }
+            }
+          }
+        }
         
         if (authorityYes && authorityYes.checked && performaType && performaType.value) {
           const perfVal = performaType.value;
@@ -1583,49 +1716,6 @@
             .then(data => {
               if (data.success) {
                 console.log('Approval saved with performa type on modal close');
-                // Update badge without page reload
-                const approvalId = window.currentApprovalId;
-                if (approvalId) {
-                  // Find the row for this approval by looking for the view button link
-                  const viewLinks = document.querySelectorAll(`a[href*="/approvals/${approvalId}"]`);
-                  let approvalRow = null;
-                  
-                  for (let link of viewLinks) {
-                    approvalRow = link.closest('tr');
-                    if (approvalRow) break;
-                  }
-                  
-                  if (approvalRow) {
-                    const badge = approvalRow.querySelector('.performa-badge');
-                    if (badge) {
-                      const performaType = data.approval?.performa_type || perfVal;
-                      const isWaiting = data.approval?.waiting_for_authority ?? true;
-                      
-                      // Update badge text and color
-                      let typeLabel = '';
-                      if (performaType === 'work_performa') {
-                        typeLabel = 'Work Performa';
-                      } else if (performaType === 'maint_performa') {
-                        typeLabel = 'Maintenance Performa';
-                      } else {
-                        // Convert snake_case to Title Case
-                        typeLabel = performaType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                      }
-                      
-                      badge.textContent = typeLabel;
-                      
-                      // Always use performa type color when performa type is selected
-                      // Color should change as soon as performa type is selected, regardless of waiting_for_authority
-                      const color = performaType === 'work_performa' ? '#60a5fa' : 
-                                   performaType === 'maint_performa' ? '#eab308' : '#60a5fa';
-                      badge.style.backgroundColor = color;
-                      badge.style.display = 'inline-block';
-                      badge.style.color = '#ffffff';
-                      badge.style.setProperty('color', '#ffffff', 'important');
-                      badge.style.setProperty('background-color', color, 'important');
-                    }
-                  }
-                }
               } else {
                 console.error('Failed to save approval:', data.message);
               }
@@ -1753,7 +1843,7 @@
                   <select class="form-select form-select-sm" id="performaType" style="font-size: 0.9rem;">
                     <option value="">Select</option>
                     <option value="work_performa">Work Performa</option>
-                    <option value="maint_performa">Maint Performa</option>
+                    <option value="maint_performa">Maintenance Performa</option>
                   </select>
                 </div>
                 <div class="col-md-3 d-none" id="authorityNoCol">
@@ -2015,7 +2105,7 @@
       let authorityInfo = '';
       if (isPerformaRequired && perfVal && authNo) {
         const typeLabel = (performaType && performaType.value)
-          ? (performaType.value === 'work_performa' ? 'Work Performa' : (performaType.value === 'maint_performa' ? 'Maint Performa' : ''))
+          ? (performaType.value === 'work_performa' ? 'Work Performa' : (performaType.value === 'maint_performa' ? 'Maintenance Performa' : ''))
           : '';
         authorityInfo = ` | Performa Req: ${typeLabel || 'Yes'}, Authority No: ${authNo}`;
       }
@@ -2089,7 +2179,7 @@
                       if (performaType === 'work_performa') {
                         typeLabel = 'Work Performa';
                       } else if (performaType === 'maint_performa') {
-                        typeLabel = 'Maintenance Performa';
+                        typeLabel = 'Maint Performa';
                       } else {
                         typeLabel = performaType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                       }
@@ -2710,7 +2800,7 @@
             // Update select box color to light blue
             updateStatusSelectColor(select, 'work_performa');
           } else {
-            performaBadge.textContent = 'Maint Performa Required';
+            performaBadge.textContent = 'Maintenance Performa Required';
             performaBadge.style.backgroundColor = '#eab308';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
@@ -2819,7 +2909,7 @@
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
           } else if (savedFlag === 'maint') {
-            performaBadge.textContent = 'Maint Performa Required';
+            performaBadge.textContent = 'Maintenance Performa Required';
             performaBadge.style.backgroundColor = '#eab308';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
@@ -3097,7 +3187,7 @@
         sel.value = 'in_progress';
         updateStatusSelectColor(sel, 'in_progress');
       } else if (saved === 'maint') {
-        badge.textContent = 'Maint Performa Required';
+        badge.textContent = 'Maintenance Performa Required';
         badge.style.backgroundColor = '#eab308';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
