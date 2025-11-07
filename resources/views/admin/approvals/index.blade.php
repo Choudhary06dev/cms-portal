@@ -100,7 +100,7 @@
           <th>Phone No.</th>
           <th>Performa Required</th>
           <th>Status</th>
-          <th>Actions</th>
+          <th>Actions|Feedback</th>
         </tr>
       </thead>
       <tbody id="approvalsTableBody">
@@ -142,6 +142,8 @@
             'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
             'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
             'product_na' => ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'], // Gray
+            'un_authorized' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'], // Red
+            'pertains_to_ge_const_isld' => ['bg' => '#3b82f6', 'text' => '#ffffff', 'border' => '#2563eb'], // Blue
             'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
           ];
           
@@ -227,7 +229,9 @@
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                 <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
-                <option value="product_na">Product N/A</option>
+                <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
               </select>
               <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
@@ -244,7 +248,9 @@
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                 <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
-                <option value="product_na">Product N/A</option>
+                <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
               </select>
               </div>
             @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Maint') !== false))
@@ -260,7 +266,9 @@
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                 <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
-                <option value="product_na">Product N/A</option>
+                <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
               </select>
               </div>
             @else
@@ -276,7 +284,9 @@
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                 <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                 <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
-                <option value="product_na">Product N/A</option>
+                <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
               </select>
               </div>
             @endif
@@ -1472,7 +1482,7 @@
               </div>
 
               <div class="row g-3">
-                <div class="col-md-5">
+                <div class="col-md-4">
                   <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
                   <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
                     <option value="">Loading Products...</option>
@@ -1482,7 +1492,7 @@
                   <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
                   <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-3">
                   <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
                   <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
                 </div>
@@ -2356,6 +2366,8 @@
     'work_priced_performa': { bg: '#9333ea', text: '#ffffff', border: '#7e22ce' }, // Purple
     'maint_priced_performa': { bg: '#ea580c', text: '#ffffff', border: '#c2410c' }, // Dark Orange
     'product_na': { bg: '#6b7280', text: '#ffffff', border: '#4b5563' }, // Gray
+    'un_authorized': { bg: '#ef4444', text: '#ffffff', border: '#dc2626' }, // Red
+    'pertains_to_ge_const_isld': { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' }, // Blue
     'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
   };
 
@@ -2492,7 +2504,7 @@
       }
 
       // Real statuses only
-      const allowed = ['new','assigned','in_progress','resolved','closed'];
+      const allowed = ['new','assigned','in_progress','resolved','closed','un_authorized','pertains_to_ge_const_isld'];
       if (!allowed.includes(newStatus)) {
         console.warn('Blocked unsupported status:', newStatus);
         // Revert to old on invalid
@@ -2706,6 +2718,10 @@
               updateStatusSelectColor(select, 'work_performa');
             } else if (currentSelectValue === 'maint_performa') {
               updateStatusSelectColor(select, 'maint_performa');
+            } else if (currentSelectValue === 'un_authorized') {
+              updateStatusSelectColor(select, 'un_authorized');
+            } else if (currentSelectValue === 'pertains_to_ge_const_isld') {
+              updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
             } else {
               updateStatusSelectColor(select, newStatus);
             }
