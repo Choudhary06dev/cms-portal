@@ -134,6 +134,58 @@
               {{ $statusDisplay }}
             </span>
           </div>
+          @php
+            // Extract performa type and authority number
+            $performaType = $approval->performa_type ?? null;
+            $performaTypeLabel = $performaType ? ucwords(str_replace('_', ' ', $performaType)) : null;
+            
+            // Extract authority number from remarks or stock logs
+            $authorityNumber = null;
+            
+            // First check approval remarks
+            if ($approval->remarks) {
+              // Look for "Authority No:" or "Authority No" in remarks - extract just the number
+              if (preg_match('/Authority\s+No[:\s]+([A-Za-z0-9\-]+)/i', $approval->remarks, $matches)) {
+                $authorityNumber = trim($matches[1]);
+              }
+              // Also check for "authority number:" pattern (case insensitive)
+              if (!$authorityNumber && preg_match('/authority\s+number[:\s]+([A-Za-z0-9\-]+)/i', $approval->remarks, $matches)) {
+                $authorityNumber = trim($matches[1]);
+              }
+              // Check for pattern like "Stock issued with authority number: ZHD346"
+              if (!$authorityNumber && preg_match('/authority\s+number[:\s]+([A-Za-z0-9\-]+)/i', $approval->remarks, $matches)) {
+                $authorityNumber = trim($matches[1]);
+              }
+            }
+            
+            // If not found in approval remarks, check stock logs
+            if (!$authorityNumber && $complaint) {
+              $stockLogs = \App\Models\SpareStockLog::where('reference_id', $approval->id)
+                ->where('change_type', 'out')
+                ->get();
+              
+              foreach ($stockLogs as $log) {
+                if ($log->remarks) {
+                  // Look for "Authority No:" or "Authority No" in stock log remarks
+                  if (preg_match('/Authority\s+No[:\s]+([A-Za-z0-9\-]+)/i', $log->remarks, $matches)) {
+                    $authorityNumber = trim($matches[1]);
+                    break;
+                  }
+                  // Also check for "authority number:" pattern
+                  if (!$authorityNumber && preg_match('/authority\s+number[:\s]+([A-Za-z0-9\-]+)/i', $log->remarks, $matches)) {
+                    $authorityNumber = trim($matches[1]);
+                    break;
+                  }
+                }
+              }
+            }
+          @endphp
+          @if($performaTypeLabel)
+          <div class="mb-3">
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Performa Type:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $performaTypeLabel }}</span>
+          </div>
+          @endif
           @if($complaintStatus === 'in_progress')
           <div class="mb-3">
             <span class="text-muted fw-bold" style="font-size: 0.875rem;">In-Process Reason:</span>
@@ -161,10 +213,10 @@
             </div>
             @endif
           </div>
-          @elseif($approval->remarks)
+          @elseif($authorityNumber)
           <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Previous Reason:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $approval->remarks }}</span>
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Authority No.:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $authorityNumber }}</span>
           </div>
           @endif
         </div>

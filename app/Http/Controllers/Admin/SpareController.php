@@ -1060,22 +1060,36 @@ class SpareController extends Controller
             
             // Apply location filtering based on sector
             if ($sectorName) {
-                // Find sector by name and filter spares by sector_id
-                $sector = \App\Models\Sector::where('name', $sectorName)->first();
-                if ($sector && $sector->id) {
-                    $query->where('sector_id', $sector->id);
-                } else {
-                    // If sector not found, return empty
-                    return response()->json([
-                        'success' => true,
-                        'products' => []
-                    ]);
+                // Find sector by name (handle both string name and object)
+                $sectorNameStr = is_string($sectorName) ? $sectorName : (is_object($sectorName) ? ($sectorName->name ?? null) : null);
+                
+                if ($sectorNameStr) {
+                    $sector = \App\Models\Sector::where('name', $sectorNameStr)->first();
+                    if ($sector && $sector->id) {
+                        $query->where('sector_id', $sector->id);
+                    } else {
+                        // If sector not found, try to find by ID if it's numeric
+                        if (is_numeric($sectorName)) {
+                            $query->where('sector_id', $sectorName);
+                        }
+                        // If sector not found and not numeric, don't filter by sector (show all products for category)
+                    }
                 }
             } elseif ($cityName) {
                 // If only city is provided, filter by city_id
-                $city = \App\Models\City::where('name', $cityName)->first();
-                if ($city && $city->id) {
-                    $query->where('city_id', $city->id);
+                // Handle both string name and object
+                $cityNameStr = is_string($cityName) ? $cityName : (is_object($cityName) ? ($cityName->name ?? null) : null);
+                
+                if ($cityNameStr) {
+                    $city = \App\Models\City::where('name', $cityNameStr)->first();
+                    if ($city && $city->id) {
+                        $query->where('city_id', $city->id);
+                    } else {
+                        // If city not found, try to find by ID if it's numeric
+                        if (is_numeric($cityName)) {
+                            $query->where('city_id', $cityName);
+                        }
+                    }
                 }
             }
             
