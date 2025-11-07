@@ -1517,9 +1517,105 @@
         }
       };
       
-      // Update badge when performa type changes
+      // Update badge and status when performa type changes
       if (performaType) {
-        performaType.addEventListener('change', updatePerformaBadge);
+        performaType.addEventListener('change', function() {
+          updatePerformaBadge();
+          
+          // If performa is selected and authority is required, update status to in_progress
+          if (authorityYes && authorityYes.checked && performaType.value) {
+            const approvalId = window.currentApprovalId;
+            if (approvalId) {
+              // Find the row for this approval
+              const addStockBtns = document.querySelectorAll(`button.add-stock-btn[data-approval-id="${approvalId}"]`);
+              let approvalRow = null;
+              
+              for (let btn of addStockBtns) {
+                approvalRow = btn.closest('tr');
+                if (approvalRow) break;
+              }
+              
+              // Fallback: try finding by view links
+              if (!approvalRow) {
+                const viewLinks = document.querySelectorAll(`a[href*="/approvals/${approvalId}"]`);
+                for (let link of viewLinks) {
+                  approvalRow = link.closest('tr');
+                  if (approvalRow) break;
+                }
+              }
+              
+              if (approvalRow) {
+                // Find the status select dropdown
+                const statusSelect = approvalRow.querySelector('select.status-select[data-complaint-id]');
+                if (statusSelect) {
+                  const complaintId = statusSelect.getAttribute('data-complaint-id');
+                  const currentStatus = statusSelect.value;
+                  
+                  // Only update if status is not already in_progress
+                  if (currentStatus !== 'in_progress') {
+                    // Update the select value
+                    statusSelect.value = 'in_progress';
+                    
+                    // Update the color - check if function exists in global scope
+                    if (typeof updateStatusSelectColor === 'function') {
+                      updateStatusSelectColor(statusSelect, 'in_progress');
+                    } else if (window.updateStatusSelectColor) {
+                      window.updateStatusSelectColor(statusSelect, 'in_progress');
+                    }
+                    
+                    // Update status via API
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    if (complaintId && csrfToken) {
+                      fetch(`/admin/complaints/${complaintId}/update-status`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'X-CSRF-TOKEN': csrfToken,
+                          'X-Requested-With': 'XMLHttpRequest',
+                          'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                          status: 'in_progress', 
+                          notes: `Status updated to In-Process when performa type selected` 
+                        })
+                      })
+                      .then(async (response) => {
+                        const contentType = response.headers.get('content-type') || '';
+                        const isJson = contentType.includes('application/json');
+                        const data = isJson ? await response.json() : null;
+                        if (!response.ok) {
+                          console.error('Failed to update status:', data?.message || 'Unknown error');
+                          // Revert the select value on error
+                          statusSelect.value = currentStatus;
+                          if (typeof updateStatusSelectColor === 'function') {
+                            updateStatusSelectColor(statusSelect, currentStatus);
+                          } else if (window.updateStatusSelectColor) {
+                            window.updateStatusSelectColor(statusSelect, currentStatus);
+                          }
+                        } else {
+                          console.log('Status updated to in_progress successfully');
+                          if (statusSelect.isConnected) {
+                            statusSelect.dataset.oldStatus = 'in_progress';
+                          }
+                        }
+                      })
+                      .catch(error => {
+                        console.error('Error updating status:', error);
+                        // Revert the select value on error
+                        statusSelect.value = currentStatus;
+                        if (typeof updateStatusSelectColor === 'function') {
+                          updateStatusSelectColor(statusSelect, currentStatus);
+                        } else if (window.updateStatusSelectColor) {
+                          window.updateStatusSelectColor(statusSelect, currentStatus);
+                        }
+                      });
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
       }
       
       // Update badge when performa required radio changes
