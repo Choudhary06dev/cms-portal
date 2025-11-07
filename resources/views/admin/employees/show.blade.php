@@ -23,36 +23,11 @@
 <div class="row mb-4">
   <div class="col-12">
     <div class="card-glass">
-      <div class="row align-items-center">
-        <div class="col-md-3 text-center mb-3 mb-md-0">
+      <div class="row align-items-center justify-content-center">
+        <div class="col-12 text-center">
           <div class="employee-avatar mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 3rem; font-weight: bold; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
             {{ strtoupper(substr($employee->name ?? 'E', 0, 1)) }}
           </div>
-        </div>
-        <div class="col-md-9">
-          <h3 class="text-white mb-2" style="font-size: 1.75rem; font-weight: 700;">{{ $employee->name ?? 'N/A' }}</h3>
-          <div class="d-flex flex-wrap gap-3 mb-3">
-            <span class="badge bg-primary" style="font-size: 0.9rem; padding: 8px 16px;">
-              <i data-feather="briefcase" class="me-1" style="width: 14px; height: 14px;"></i>
-              {{ $employee->designation ?? 'N/A' }}
-            </span>
-            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.9rem; padding: 8px 16px;">
-              <i data-feather="{{ $employee->status === 'active' ? 'check-circle' : 'x-circle' }}" class="me-1" style="width: 14px; height: 14px;"></i>
-              {{ ucfirst($employee->status ?? 'inactive') }}
-            </span>
-            @if($employee->department)
-            <span class="badge bg-info" style="font-size: 0.9rem; padding: 8px 16px;">
-              <i data-feather="building" class="me-1" style="width: 14px; height: 14px;"></i>
-              {{ $employee->department }}
-            </span>
-            @endif
-          </div>
-          @if($employee->phone)
-          <div class="text-light">
-            <i data-feather="phone" class="me-2" style="width: 16px; height: 16px;"></i>
-            <span>{{ $employee->phone }}</span>
-          </div>
-          @endif
         </div>
       </div>
     </div>
@@ -66,7 +41,6 @@
     <div class="card-glass h-100">
       <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
         <i data-feather="user" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
-        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Basic Information</h5>
       </div>
       
       <div class="info-item mb-3">
@@ -98,6 +72,30 @@
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Address</div>
             <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $employee->address }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($employee->city)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">City</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $employee->city->name ?? $employee->city ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($employee->sector)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Sector</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $employee->sector->name ?? $employee->sector ?? 'N/A' }}</div>
           </div>
         </div>
       </div>

@@ -378,6 +378,10 @@ class ApprovalController extends Controller
             ]);
         }
 
+        if (request()->get('format') === 'html') {
+            return view('admin.approvals.show', compact('approval'));
+        }
+
         // Return JSON for AJAX requests
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([

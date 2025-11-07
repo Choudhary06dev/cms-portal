@@ -315,6 +315,11 @@ class ComplaintController extends Controller
                 'feedback.enteredBy'
             ]);
 
+            // Check if format=html is requested, return HTML even for AJAX
+            if (request()->get('format') === 'html') {
+                return view('admin.complaints.show', compact('complaint'));
+            }
+            
             if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
                 // Exclude state from client data in JSON response for modal
                 $complaintData = $complaint->toArray();

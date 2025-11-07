@@ -155,9 +155,9 @@
                             <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+                                    <button onclick="viewComplaint({{ $complaint->id }})" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
                                         <i data-feather="eye" style="width: 16px; height: 16px;"></i>
-                                    </a>
+                                    </button>
                                     <a href="{{ route('admin.complaints.edit', $complaint->id) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
                                         <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                                     </a>
@@ -382,25 +382,91 @@
         .table-dark td:last-child {
             border-right: none;
         }
+        
+        /* Blur effect for background when modal is open */
+        body.modal-open-blur {
+            overflow: hidden;
+        }
+        
+        body.modal-open-blur::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1040;
+            pointer-events: none;
+        }
+        
+        /* Completely remove/hide Bootstrap backdrop */
+        body.modal-open-blur .modal-backdrop,
+        #complaintModal.modal.show ~ .modal-backdrop,
+        #complaintModal.modal.show + .modal-backdrop,
+        .modal-backdrop.show,
+        .modal-backdrop {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            background-color: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            pointer-events: none !important;
+        }
+        
+        /* Ensure modal content is above blur layer */
+        #complaintModal {
+            z-index: 1055 !important;
+        }
+        
+        #complaintModal .modal-dialog {
+            z-index: 1055 !important;
+            position: relative;
+        }
+        
+        #complaintModal .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1055 !important;
+            position: relative;
+        }
+        
+        #complaintModal .modal-body {
+            padding: 1.5rem;
+        }
+        
+        #complaintModal .btn-close {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 0.5rem !important;
+            opacity: 1 !important;
+        }
+        
+        #complaintModal .btn-close:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
     </style>
 @endpush
 
 <!-- Complaint Modal -->
 <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="complaintModalLabel">Complaint Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+                <h5 class="modal-title text-white" id="complaintModalLabel">
+                    <i data-feather="alert-triangle" class="me-2"></i>Complaint Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
             </div>
             <div class="modal-body" id="complaintModalBody">
-                <!-- Complaint details will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <a href="#" class="btn btn-info" id="printSlipBtn" target="_blank" style="display: none;">
-                    <i data-feather="printer"></i> Print Slip
-                </a>
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -432,6 +498,8 @@
 @push('scripts')
     <script>
         feather.replace();
+        
+        let currentComplaintId = null;
 
         // Debounced search input handler
         let complaintsSearchTimeout = null;
@@ -549,128 +617,201 @@
 
         // Complaint Functions
         function viewComplaint(complaintId) {
+            if (!complaintId) {
+                alert('Invalid complaint ID');
+                return;
+            }
+            
             currentComplaintId = complaintId;
-
-            // Modal buttons removed - only show and print functionality
-
-            // Show loading state
+            
+            const modalElement = document.getElementById('complaintModal');
             const modalBody = document.getElementById('complaintModalBody');
-            modalBody.innerHTML =
-                '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-
-            // Get CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-            // Fetch complaint data
-            fetch(`/admin/complaints/${complaintId}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    },
-                    credentials: 'same-origin'
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        const complaint = data.complaint;
-
-                        // Set print slip button
-                        const printSlipBtn = document.getElementById('printSlipBtn');
-                        if (printSlipBtn) {
-                            printSlipBtn.href = `/admin/complaints/${complaintId}/print-slip`;
-                            printSlipBtn.style.display = 'inline-block';
-                        }
-
-                        modalBody.innerHTML = `
-                    <div class="row" style="color: var(--text-primary);">
-                        <div class="col-md-6">
-                            <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Complaint Information</h6>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Title:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.title || 'N/A'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Category:</span>
-                                <span class="ms-2">
-                                    <span class="category-badge category-${complaint.category ? complaint.category.toLowerCase() : 'other'}">
-                                        ${complaint.category ? complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1) : 'N/A'}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Priority:</span>
-                                <span class="ms-2">
-                                    <span class="priority-badge priority-${complaint.priority ? complaint.priority.toLowerCase() : 'low'}">
-                                        ${complaint.priority ? complaint.priority.charAt(0).toUpperCase() + complaint.priority.slice(1) : 'N/A'}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Status:</span>
-                                <span class="ms-2">
-                                    <span class="badge bg-${complaint.status === 'new' ? 'primary' : complaint.status === 'assigned' ? 'warning' : complaint.status === 'in_progress' ? 'info' : complaint.status === 'resolved' ? 'success' : 'secondary'}" style="color: #ffffff !important;">
-                                        ${complaint.status ? complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1) : 'N/A'}
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Client & Assignment</h6>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Client:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.client ? complaint.client.client_name : 'N/A'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Assigned To:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.assigned_employee ? complaint.assigned_employee.name : 'Unassigned'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Created:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.created_at ? new Date(complaint.created_at).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                            <div class="mb-3" style="color: var(--text-primary);">
-                                <span style="color: var(--text-muted);">Last Updated:</span>
-                                <span style="color: var(--text-secondary);" class="ms-2">${complaint.updated_at ? new Date(complaint.updated_at).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h6 class="fw-bold mb-3" style="color: var(--text-primary);">Description</h6>
-                            <div class="card" style="background-color: var(--bg-secondary); border: 1px solid var(--border-primary);">
-                                <div class="card-body">
-                                    <p style="color: var(--text-primary);">${complaint.description || 'No description provided'}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                        document.getElementById('complaintModalLabel').textContent = 'Complaint Details';
-                        new bootstrap.Modal(document.getElementById('complaintModal')).show();
-                    } else {
-                        modalBody.innerHTML = '<div class="alert alert-danger">Error: ' + (data.message ||
-                            'Unknown error occurred') + '</div>';
-                        new bootstrap.Modal(document.getElementById('complaintModal')).show();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    modalBody.innerHTML = '<div class="alert alert-danger">Error loading complaint details: ' + error
-                        .message + '</div>';
-                    new bootstrap.Modal(document.getElementById('complaintModal')).show();
+            
+            // Show loading state
+            modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            
+            // Add blur effect to background first
+            document.body.classList.add('modal-open-blur');
+            
+            // Show modal WITHOUT backdrop so we can see the blurred background
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: false, // Disable Bootstrap backdrop completely
+                keyboard: true,
+                focus: true
+            });
+            modal.show();
+            
+            // Ensure any backdrop that might be created is removed
+            const removeBackdrop = () => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => {
+                    backdrop.remove(); // Remove from DOM
                 });
+            };
+            
+            // Use MutationObserver to catch and remove any backdrop creation
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+                            node.remove(); // Remove immediately if created
+                        }
+                    });
+                });
+                removeBackdrop();
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            // Remove any existing backdrops
+            removeBackdrop();
+            setTimeout(removeBackdrop, 10);
+            setTimeout(removeBackdrop, 50);
+            setTimeout(removeBackdrop, 100);
+            
+            // Clean up observer when modal is hidden
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                observer.disconnect();
+                removeBackdrop();
+            }, { once: true });
+            
+            // Load complaint details via AJAX - force HTML response
+            fetch(`/admin/complaints/${complaintId}?format=html`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'text/html',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json().then(data => {
+                        throw new Error('Received JSON instead of HTML. Please check the route.');
+                    });
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Check if response is actually JSON (starts with {)
+                if (html.trim().startsWith('{')) {
+                    console.error('Received JSON instead of HTML');
+                    modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Server returned JSON instead of HTML. Please check the route configuration.</div>';
+                    return;
+                }
+                
+                // Extract the content from the show page
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Get the content section - try multiple selectors
+                let contentSection = doc.querySelector('section.content');
+                if (!contentSection) {
+                    contentSection = doc.querySelector('.content');
+                }
+                if (!contentSection) {
+                    // Try to find the main content area
+                    const mainContent = doc.querySelector('main') || doc.querySelector('[role="main"]');
+                    if (mainContent) {
+                        contentSection = mainContent;
+                    } else {
+                        contentSection = doc.body;
+                    }
+                }
+                
+                // Extract the complaint details sections
+                let complaintContent = '';
+                
+                // Get all rows that contain complaint information (skip page header)
+                const allRows = contentSection.querySelectorAll('.row');
+                const seenRows = new Set();
+                
+                allRows.forEach(row => {
+                    // Skip rows that are in page headers
+                    const isInHeader = row.closest('.mb-4') && row.closest('.mb-4').querySelector('h2');
+                    
+                    // Check if this row contains card-glass elements
+                    const hasCardGlass = row.querySelector('.card-glass');
+                    
+                    if (!isInHeader && hasCardGlass) {
+                        const rowHTML = row.outerHTML;
+                        // Use a simple hash to avoid duplicates
+                        const rowId = rowHTML.substring(0, 200);
+                        if (!seenRows.has(rowId)) {
+                            seenRows.add(rowId);
+                            complaintContent += rowHTML;
+                        }
+                    }
+                });
+                
+                // If no rows found, fallback to extracting individual cards
+                if (!complaintContent) {
+                    const allCards = contentSection.querySelectorAll('.card-glass');
+                    const seenCards = new Set();
+                    
+                    allCards.forEach(card => {
+                        // Skip cards that are in page headers
+                        const parentRow = card.closest('.row');
+                        const isInHeader = parentRow && parentRow.closest('.mb-4') && parentRow.closest('.mb-4').querySelector('h2');
+                        
+                        if (!isInHeader) {
+                            const cardHTML = card.outerHTML;
+                            const cardId = cardHTML.substring(0, 300);
+                            if (!seenCards.has(cardId)) {
+                                seenCards.add(cardId);
+                                complaintContent += '<div class="mb-3">' + cardHTML + '</div>';
+                            }
+                        }
+                    });
+                }
+                
+                if (complaintContent) {
+                    modalBody.innerHTML = complaintContent;
+                    // Replace feather icons after content is loaded
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                } else {
+                    console.error('Could not find complaint content in response');
+                    console.log('Content section:', contentSection);
+                    console.log('Found cards:', contentSection.querySelectorAll('.card-glass').length);
+                    modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not load complaint details. Please refresh and try again.</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading complaint:', error);
+                modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading complaint details: ' + error.message + '. Please try again.</div>';
+            });
+            
+            // Replace feather icons when modal is shown
+            modalElement.addEventListener('shown.bs.modal', function() {
+                feather.replace();
+            });
+            
+            // Remove blur when modal is hidden
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                document.body.classList.remove('modal-open-blur');
+                feather.replace();
+            }, { once: true });
+        }
+        
+        // Function to close complaint modal and remove blur
+        function closeComplaintModal() {
+            const modalElement = document.getElementById('complaintModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+            document.body.classList.remove('modal-open-blur');
         }
 
         function editComplaint(complaintId) {

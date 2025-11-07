@@ -120,9 +120,9 @@
           </td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+              <button type="button" class="btn btn-outline-success btn-sm" title="View Details" onclick="viewUser({{ $user->id }})" style="padding: 3px 8px;">
                 <i data-feather="eye" style="width: 16px; height: 16px;"></i>
-              </a>
+              </button>
               <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
                 <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
@@ -151,11 +151,301 @@
     </div>
   </div>
 </div>
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+                <h5 class="modal-title text-white" id="userModalLabel">
+                    <i data-feather="user" class="me-2"></i>User Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeUserModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+            </div>
+            <div class="modal-body" id="userModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('styles')
+<style>
+  body.modal-open-blur {
+      overflow: hidden;
+  }
+  body.modal-open-blur::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 1040;
+      pointer-events: none;
+  }
+  body.modal-open-blur .modal-backdrop,
+  #userModal.modal.show ~ .modal-backdrop,
+  #userModal.modal.show + .modal-backdrop,
+  .modal-backdrop.show,
+  .modal-backdrop {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      pointer-events: none !important;
+  }
+  
+  /* Ensure modal content is above blur layer */
+  #userModal {
+      z-index: 1055 !important;
+  }
+  
+  #userModal .modal-dialog {
+      z-index: 1055 !important;
+      position: relative;
+  }
+  
+  #userModal .modal-content {
+      max-height: 90vh;
+      overflow-y: auto;
+      z-index: 1055 !important;
+      position: relative;
+  }
+  
+  #userModal .modal-body {
+      padding: 1.5rem;
+  }
+  
+  #userModal .btn-close {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 0.5rem !important;
+      opacity: 1 !important;
+  }
+  
+  #userModal .btn-close:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+  }
+</style>
+@endpush
 
 @push('scripts')
 <script>
   feather.replace();
+  
+  // User Functions
+  let currentUserId = null;
+  
+  function viewUser(userId) {
+    if (!userId) {
+      alert('Invalid user ID');
+      return;
+    }
+    
+    currentUserId = userId;
+    
+    const modalElement = document.getElementById('userModal');
+    const modalBody = document.getElementById('userModalBody');
+    
+    // Show loading state
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Add blur effect to background first
+    document.body.classList.add('modal-open-blur');
+    
+    // Show modal WITHOUT backdrop so we can see the blurred background
+    const modal = new bootstrap.Modal(modalElement, {
+      backdrop: false, // Disable Bootstrap backdrop completely
+      keyboard: true,
+      focus: true
+    });
+    modal.show();
+    
+    // Ensure any backdrop that might be created is removed
+    const removeBackdrop = () => {
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => {
+        backdrop.remove(); // Remove from DOM
+      });
+    };
+    
+    // Use MutationObserver to catch and remove any backdrop creation
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+            node.remove(); // Remove immediately if created
+          }
+        });
+      });
+      removeBackdrop();
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Remove any existing backdrops
+    removeBackdrop();
+    setTimeout(removeBackdrop, 10);
+    setTimeout(removeBackdrop, 50);
+    setTimeout(removeBackdrop, 100);
+    
+    // Clean up observer when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', function() {
+      observer.disconnect();
+      removeBackdrop();
+    }, { once: true });
+    
+    // Load user details via AJAX - force HTML response
+    fetch(`/admin/users/${userId}?format=html`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return response.json().then(data => {
+          throw new Error('Received JSON instead of HTML. Please check the route.');
+        });
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Check if response is actually JSON (starts with {)
+      if (html.trim().startsWith('{')) {
+        console.error('Received JSON instead of HTML');
+        modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Server returned JSON instead of HTML. Please check the route configuration.</div>';
+        return;
+      }
+      
+      // Extract the content from the show page
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Get the content section - try multiple selectors
+      let contentSection = doc.querySelector('section.content');
+      if (!contentSection) {
+        contentSection = doc.querySelector('.content');
+      }
+      if (!contentSection) {
+        // Try to find the main content area
+        const mainContent = doc.querySelector('main') || doc.querySelector('[role="main"]');
+        if (mainContent) {
+          contentSection = mainContent;
+        } else {
+          contentSection = doc.body;
+        }
+      }
+      
+      // Extract the user details sections
+      let userContent = '';
+      
+      // Get all rows that contain user information (skip page header)
+      const allRows = contentSection.querySelectorAll('.row');
+      const seenRows = new Set();
+      
+      allRows.forEach(row => {
+        // Skip rows that are in page headers
+        const isInHeader = row.closest('.mb-4') && row.closest('.mb-4').querySelector('h2');
+        
+        // Check if this row contains card-glass elements
+        const hasCardGlass = row.querySelector('.card-glass');
+        
+        if (!isInHeader && hasCardGlass) {
+          const rowHTML = row.outerHTML;
+          // Use a simple hash to avoid duplicates
+          const rowId = rowHTML.substring(0, 200);
+          if (!seenRows.has(rowId)) {
+            seenRows.add(rowId);
+            userContent += rowHTML;
+          }
+        }
+      });
+      
+      // Also extract standalone card-glass elements
+      const allCards = contentSection.querySelectorAll('.card-glass');
+      const seenCards = new Set();
+      
+      allCards.forEach(card => {
+        // Skip cards that are in page headers
+        const parentRow = card.closest('.row');
+        const isInHeader = parentRow && parentRow.closest('.mb-4') && parentRow.closest('.mb-4').querySelector('h2');
+        
+        // Skip if already added from rows
+        const cardHTML = card.outerHTML;
+        const cardId = cardHTML.substring(0, 300);
+        
+        if (!isInHeader && !seenCards.has(cardId) && !userContent.includes(cardHTML.substring(0, 100))) {
+          seenCards.add(cardId);
+          // Check if it's already in a row that was added
+          const isInAddedRow = parentRow && userContent.includes(parentRow.outerHTML.substring(0, 100));
+          if (!isInAddedRow) {
+            userContent += '<div class="mb-3">' + cardHTML + '</div>';
+          }
+        }
+      });
+      
+      if (userContent) {
+        modalBody.innerHTML = userContent;
+        // Replace feather icons after content is loaded
+        setTimeout(() => {
+          feather.replace();
+        }, 100);
+      } else {
+        console.error('Could not find user content in response');
+        console.log('Content section:', contentSection);
+        console.log('Found cards:', contentSection.querySelectorAll('.card-glass').length);
+        modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not load user details. Please refresh and try again.</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading user:', error);
+      modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading user details: ' + error.message + '. Please try again.</div>';
+    });
+    
+    // Replace feather icons when modal is shown
+    modalElement.addEventListener('shown.bs.modal', function() {
+      feather.replace();
+    });
+    
+    // Remove blur when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', function() {
+      document.body.classList.remove('modal-open-blur');
+      feather.replace();
+    }, { once: true });
+  }
+  
+  function closeUserModal() {
+    const modalElement = document.getElementById('userModal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+    document.body.classList.remove('modal-open-blur');
+  }
 
   // Debounced search input handler
   let usersSearchTimeout = null;

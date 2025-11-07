@@ -235,7 +235,11 @@ class SpareController extends Controller
      */
     public function show(Spare $spare)
     {
-        if (request()->ajax()) {
+        if (request()->get('format') === 'html') {
+            return view('admin.spares.show', compact('spare'));
+        }
+
+        if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
             // Return JSON for modal
         return response()->json([
             'id' => $spare->id,

@@ -13,7 +13,6 @@
   </div>
 </div>
 
-<!-- COMPLAINT INFORMATION -->
 @php
   $rawStatus = $complaint->status ?? 'new';
   $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
@@ -28,91 +27,208 @@
     'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'],
   ];
   $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
+  
+  $category = $complaint->category ?? 'N/A';
+  $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+  $categoryDisplay = [
+    'electric' => 'Electric',
+    'technical' => 'Technical',
+    'service' => 'Service',
+    'billing' => 'Billing',
+    'water' => 'Water Supply',
+    'sanitary' => 'Sanitary',
+    'plumbing' => 'Plumbing',
+    'kitchen' => 'Kitchen',
+    'other' => 'Other',
+  ];
+  $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+  $displayText = $catDisplay . ' - ' . $designation;
 @endphp
-<div class="d-flex justify-content-center">
-  <div class="card-glass" style="max-width: 900px; width: 100%;">
-    <div class="row">
-      <div class="col-12">
-      <div class="row">
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complainant Name:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->client->client_name ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">City:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->city ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Sector:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->sector ?? 'N/A' }}</span>
-          </div>
-         
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Address:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->client->address ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Phone No:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->client->phone ?? 'N/A' }}</span>
-          </div>
-          
-          <h6 class="text-white fw-bold mb-3 mt-4" style="font-size: 1rem; font-weight: 700;">Additional Information</h6>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complaint Nature & Type:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem; font-weight: normal;">
-              @php
-                $category = $complaint->category ?? 'N/A';
-                $designation = $complaint->assignedEmployee->designation ?? 'N/A';
-                $categoryDisplay = [
-                  'electric' => 'Electric',
-                  'technical' => 'Technical',
-                  'service' => 'Service',
-                  'billing' => 'Billing',
-                  'water' => 'Water Supply',
-                  'sanitary' => 'Sanitary',
-                  'plumbing' => 'Plumbing',
-                  'kitchen' => 'Kitchen',
-                  'other' => 'Other',
-                ];
-                $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-                $displayText = $catDisplay . ' - ' . $designation;
-              @endphp
-              {{ $displayText }}
-            </span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Status:</span>
-            <span class="badge ms-2" style="background-color: {{ $currentStatusColor['bg'] }}; color: #ffffff !important; padding: 6px 12px; font-size: 0.875rem; font-weight: 600; border-radius: 6px; border: 1px solid {{ $currentStatusColor['border'] }};">
-              {{ $statusDisplay }}
-            </span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Priority:</span>
-            <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important; font-size: 0.875rem;">
-              {{ ucfirst($complaint->priority) }}
-            </span>
+
+<!-- COMPLAINT PROFILE CARD -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="row align-items-center justify-content-center">
+        <div class="col-12 text-center">
+          <div class="employee-avatar mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 3rem; font-weight: bold; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
+            {{ strtoupper(substr($complaint->client->client_name ?? 'C', 0, 1)) }}
           </div>
         </div>
-        
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;"><i data-feather="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Complaint Information</h6>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complaint ID:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLAINT DETAILS -->
+<div class="row">
+  <!-- Personal Information -->
+  <div class="col-md-6 mb-4">
+    <div class="card-glass h-100">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="user" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Personal Information</h5>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="user" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Name</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->client->client_name ?? 'N/A' }}</div>
           </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Complaint Title:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->title ?? 'N/A' }}</span>
+        </div>
+      </div>
+      
+      @if($complaint->client->phone)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="phone" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Phone</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->client->phone }}</div>
           </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Registration Date/Time:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</span>
+        </div>
+      </div>
+      @endif
+      
+      @if($complaint->client->address)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="map-pin" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Address</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->client->address }}</div>
           </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Completion Time:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">
+        </div>
+      </div>
+      @endif
+      
+      @if($complaint->city)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">City</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->city }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($complaint->sector)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Sector</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->sector }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+    </div>
+  </div>
+  
+  <!-- Complaint Information -->
+  <div class="col-md-6 mb-4">
+    <div class="card-glass h-100">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="alert-triangle" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Complaint Information</h5>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="hash" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Complaint ID</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}</div>
+          </div>
+        </div>
+      </div>
+      
+      @if($complaint->title)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="file-text" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Complaint Title</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->title }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="tag" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Nature & Type</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $displayText }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="activity" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
+            <div>
+              <span class="badge" style="background-color: {{ $currentStatusColor['bg'] }}; color: #ffffff !important; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; border: 1px solid {{ $currentStatusColor['border'] }};">
+                {{ $statusDisplay }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      @if($complaint->priority)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="flag" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Priority</div>
+            <div>
+              <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px;">
+                {{ ucfirst($complaint->priority) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($complaint->assignedEmployee)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="user-check" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Assigned Employee</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="calendar" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Registration Date/Time</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      @if($complaint->closed_at || ($complaint->status == 'resolved' || $complaint->status == 'closed'))
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="check-circle" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Completion Time</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">
               @if($complaint->closed_at)
                 {{ $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') }}
               @elseif($complaint->status == 'resolved' || $complaint->status == 'closed')
@@ -120,113 +236,54 @@
               @else
                 -
               @endif
-            </span>
+            </div>
           </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Assigned Employee:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</span>
-          </div>
-          @php
-            // Get approval for this complaint
-            $approval = \App\Models\SpareApprovalPerforma::where('complaint_id', $complaint->id)->first();
-            
-            // Extract performa type and authority number
-            $performaType = $approval->performa_type ?? null;
-            $performaTypeLabel = $performaType ? ucwords(str_replace('_', ' ', $performaType)) : null;
-            
-            // Extract authority number from remarks or stock logs
-            $authorityNumber = null;
-            
-            if ($approval) {
-              // First check approval remarks
-              if ($approval->remarks) {
-                // Look for "Authority No:" or "Authority No" in remarks - extract just the number
-                if (preg_match('/Authority\s+No[:\s]+([A-Za-z0-9\-]+)/i', $approval->remarks, $matches)) {
-                  $authorityNumber = trim($matches[1]);
-                }
-                // Also check for "authority number:" pattern (case insensitive)
-                if (!$authorityNumber && preg_match('/authority\s+number[:\s]+([A-Za-z0-9\-]+)/i', $approval->remarks, $matches)) {
-                  $authorityNumber = trim($matches[1]);
-                }
-              }
-              
-              // If not found in approval remarks, check stock logs
-              if (!$authorityNumber) {
-                $stockLogs = \App\Models\SpareStockLog::where('reference_id', $approval->id)
-                  ->where('change_type', 'out')
-                  ->get();
-                
-                foreach ($stockLogs as $log) {
-                  if ($log->remarks) {
-                    // Look for "Authority No:" or "Authority No" in stock log remarks
-                    if (preg_match('/Authority\s+No[:\s]+([A-Za-z0-9\-]+)/i', $log->remarks, $matches)) {
-                      $authorityNumber = trim($matches[1]);
-                      break;
-                    }
-                    // Also check for "authority number:" pattern
-                    if (!$authorityNumber && preg_match('/authority\s+number[:\s]+([A-Za-z0-9\-]+)/i', $log->remarks, $matches)) {
-                      $authorityNumber = trim($matches[1]);
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-          @endphp
-          @if($performaTypeLabel)
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Performa Type:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $performaTypeLabel }}</span>
-          </div>
-          @endif
-          @if($authorityNumber)
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Authority No.:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $authorityNumber }}</span>
-          </div>
-          @endif
-           
-      <div class="row mt-3">
-        <div class="col-12">
-          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Description</h6>
-          <p class="text-white mb-0" style="font-size: 0.875rem;">{{ $complaint->description ?? 'N/A' }}</p>
         </div>
       </div>
+      @endif
     </div>
   </div>
-        </div>
+</div>
+
+@if($complaint->description)
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="file-text" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Description</h5>
       </div>
-   
-  
-  @if($complaint->attachments->count() > 0)
-  <hr class="my-4">
-  <div class="row">
-    <div class="col-12">
-      <h6 class="text-white fw-bold mb-3">Attachments</h6>
+      <p class="text-white mb-0" style="font-size: 0.95rem; font-weight: 400; line-height: 1.6;">{{ $complaint->description }}</p>
+    </div>
+  </div>
+</div>
+@endif
+
+@if($complaint->attachments->count() > 0)
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="paperclip" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Attachments</h5>
+      </div>
       <div class="row">
         @foreach($complaint->attachments as $attachment)
         <div class="col-md-3 mb-3">
-          <div class="card">
-            <div class="card-body text-center">
-              <i data-feather="file" class="mb-2"></i>
-              <p class="card-text small">{{ $attachment->original_name }}</p>
-              <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                View
-              </a>
-            </div>
+          <div class="card-glass text-center" style="padding: 1rem;">
+            <i data-feather="file" class="mb-2 text-primary" style="width: 24px; height: 24px;"></i>
+            <p class="text-white small mb-2">{{ $attachment->original_name }}</p>
+            <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+              View
+            </a>
           </div>
         </div>
         @endforeach
       </div>
     </div>
   </div>
-  @endif
-  
-    <hr class="my-4">
-    
-  
-  </div>
 </div>
+@endif
 
 <!-- FEEDBACK SECTION -->
 @if($complaint->status == 'resolved' || $complaint->status == 'closed')
@@ -332,7 +389,38 @@
 </div>
 @endif
 
-<!-- BACK BUTTON -->
+@push('styles')
+<style>
+  .info-item {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .employee-avatar {
+    transition: transform 0.3s ease;
+  }
+  
+  .employee-avatar:hover {
+    transform: scale(1.05);
+  }
+  
+  .card-glass {
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .card-glass:hover {
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
+  }
+</style>
+@endpush
 
-
+@push('scripts')
+<script>
+  feather.replace();
+</script>
+@endpush
 @endsection

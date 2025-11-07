@@ -126,7 +126,7 @@
                       <option value="{{ old('title', $complaint->title) }}" selected>{{ old('title', $complaint->title) }}</option>
                     @endif
                   </select>
-                  <input type="text" class="form-select @error('title') is-invalid @enderror"
+                  <input type="text" class="form-control @error('title') is-invalid @enderror"
                           id="title_other" name="title_other" placeholder="Enter custom title..."
                           style="display: none;" value="{{ old('title_other', $complaint->title) }}">
                   @error('title')
@@ -349,8 +349,24 @@ document.addEventListener('DOMContentLoaded', function() {
       titleOtherInput.style.display = 'block';
       titleOtherInput.required = true;
       titleSelect.removeAttribute('required');
+      
+      // Ensure input field is fully editable
+      titleOtherInput.disabled = false;
+      titleOtherInput.removeAttribute('disabled');
+      titleOtherInput.readOnly = false;
+      titleOtherInput.removeAttribute('readonly');
+      titleOtherInput.style.pointerEvents = 'auto';
+      titleOtherInput.style.opacity = '1';
+      titleOtherInput.style.cursor = 'text';
+      titleOtherInput.style.backgroundColor = '';
+      titleOtherInput.classList.remove('disabled', 'form-control:disabled');
+      titleOtherInput.setAttribute('aria-disabled', 'false');
+      
       // Focus on input field
-      setTimeout(() => titleOtherInput.focus(), 100);
+      setTimeout(() => {
+        titleOtherInput.focus();
+        titleOtherInput.select(); // Select existing text for easy editing
+      }, 100);
     } else {
       // Show dropdown and hide input field
       titleSelect.style.display = 'block';
@@ -373,11 +389,12 @@ document.addEventListener('DOMContentLoaded', function() {
       titleSelect.innerHTML = '<option value="">Loading titles...</option>';
       titleSelect.disabled = true;
       titleSelect.style.pointerEvents = 'none';
+      titleSelect.style.opacity = '0.6';
       
       // Ensure dropdown is visible
-      if (titleSelect) {
-        titleSelect.style.display = 'block';
-      }
+      titleSelect.style.display = 'block';
+      titleSelect.style.visibility = 'visible';
+      
       if (titleOtherInput) {
         titleOtherInput.style.display = 'none';
         titleOtherInput.value = '';
@@ -401,7 +418,12 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         credentials: 'same-origin'
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         // Clear options
         titleSelect.innerHTML = '<option value="">Select Complaint Title</option>';
@@ -429,16 +451,26 @@ document.addEventListener('DOMContentLoaded', function() {
         otherOption.textContent = 'Other';
         titleSelect.appendChild(otherOption);
 
-        // Enable dropdown and make it clickable
+        // Enable dropdown FIRST - ensure it's fully enabled
+        console.log('Enabling title dropdown...');
         titleSelect.disabled = false;
         titleSelect.removeAttribute('disabled');
+        titleSelect.removeAttribute('readonly');
+        titleSelect.readOnly = false;
+        titleSelect.style.pointerEvents = 'auto';
         titleSelect.style.display = 'block';
         titleSelect.style.visibility = 'visible';
-        titleSelect.style.pointerEvents = 'auto';
         titleSelect.style.opacity = '1';
         titleSelect.style.cursor = 'pointer';
-        titleSelect.readOnly = false;
-        titleSelect.removeAttribute('readonly');
+        titleSelect.style.backgroundColor = '';
+        titleSelect.style.color = '';
+        titleSelect.classList.remove('disabled', 'form-control:disabled');
+        titleSelect.setAttribute('aria-disabled', 'false');
+        
+        // Verify it's enabled
+        console.log('Title dropdown disabled?', titleSelect.disabled);
+        console.log('Title dropdown display:', titleSelect.style.display);
+        console.log('Title dropdown pointerEvents:', titleSelect.style.pointerEvents);
         
         if (titleOtherInput) {
           titleOtherInput.style.display = 'none';
@@ -446,15 +478,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Restore previously selected title if any
         const previous = titleSelect.getAttribute('data-prev');
-        if (previous) {
-          const opt = Array.from(titleSelect.options).find(o => o.value === previous);
+        const titleToRestore = previous || currentTitle;
+        
+        if (titleToRestore) {
+          // Check if title is in the list
+          const opt = Array.from(titleSelect.options).find(o => o.value === titleToRestore);
           if (opt) {
-            titleSelect.value = previous;
-            if (previous === 'other') {
-              handleTitleChange();
-            }
-          } else if (previous === 'other') {
-            // If previous was "other", restore it
+            // Title found in list, select it
+            titleSelect.value = titleToRestore;
+          } else if (titleToRestore === 'other') {
+            // Previous was "other", restore it
             titleSelect.value = 'other';
             handleTitleChange();
             if (titleOtherInput) {
@@ -463,18 +496,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 titleOtherInput.value = oldOther;
               }
             }
-          }
-        } else if (currentTitle) {
-          // Check if current title is in the list
-          const opt = Array.from(titleSelect.options).find(o => o.value === currentTitle);
-          if (opt) {
-            titleSelect.value = currentTitle;
-          } else if (currentTitle) {
-            // Current title not in list, select "Other" and show input
+          } else if (titleToRestore) {
+            // Current title not in list, it's a custom title
+            // Select "Other" and show input field with current title
             titleSelect.value = 'other';
             handleTitleChange();
             if (titleOtherInput) {
-              titleOtherInput.value = currentTitle;
+              titleOtherInput.value = titleToRestore;
             }
           }
         }
@@ -482,12 +510,34 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(error => {
         console.error('Error loading complaint titles:', error);
         titleSelect.innerHTML = '<option value="">Failed to load titles. Please try again.</option>';
+        // Ensure dropdown is enabled even on error
         titleSelect.disabled = false;
         titleSelect.removeAttribute('disabled');
-        titleSelect.style.display = 'block';
+        titleSelect.removeAttribute('readonly');
+        titleSelect.readOnly = false;
         titleSelect.style.pointerEvents = 'auto';
+        titleSelect.style.display = 'block';
+        titleSelect.style.visibility = 'visible';
+        titleSelect.style.opacity = '1';
         titleSelect.style.cursor = 'pointer';
+        titleSelect.style.backgroundColor = '';
+        titleSelect.style.color = '';
+        titleSelect.classList.remove('disabled', 'form-control:disabled');
+        titleSelect.setAttribute('aria-disabled', 'false');
       });
+      
+      // Safety timeout - ensure dropdown is enabled after 3 seconds even if fetch fails
+      setTimeout(() => {
+        if (titleSelect && titleSelect.disabled) {
+          console.warn('Title dropdown still disabled after 3 seconds, forcing enable...');
+          titleSelect.disabled = false;
+          titleSelect.removeAttribute('disabled');
+          titleSelect.style.pointerEvents = 'auto';
+          titleSelect.style.display = 'block';
+          titleSelect.style.opacity = '1';
+          titleSelect.style.cursor = 'pointer';
+        }
+      }, 3000);
     });
     
     // Trigger on page load if category is pre-selected
@@ -497,7 +547,10 @@ document.addEventListener('DOMContentLoaded', function() {
         titleSelect.setAttribute('data-prev', currentTitle);
       }
       // Trigger change event to load titles
-      categorySelect.dispatchEvent(new Event('change'));
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        categorySelect.dispatchEvent(new Event('change'));
+      }, 100);
     } else if (currentTitle) {
       // If no category but has current title, check if it's a custom title
       // This handles the case where title might be custom
@@ -516,7 +569,22 @@ document.addEventListener('DOMContentLoaded', function() {
           titleOtherInput.style.display = 'block';
           titleOtherInput.required = true;
           titleSelect.removeAttribute('required');
+          
+          // Ensure input field is fully editable
+          titleOtherInput.disabled = false;
+          titleOtherInput.removeAttribute('disabled');
+          titleOtherInput.readOnly = false;
+          titleOtherInput.removeAttribute('readonly');
+          titleOtherInput.style.pointerEvents = 'auto';
+          titleOtherInput.style.opacity = '1';
+          titleOtherInput.style.cursor = 'text';
+          titleOtherInput.style.backgroundColor = '';
+          titleOtherInput.classList.remove('disabled', 'form-control:disabled');
+          titleOtherInput.setAttribute('aria-disabled', 'false');
         }
+      } else if (currentTitle && titleOptions.includes(currentTitle)) {
+        // Title is in the dropdown, select it
+        titleSelect.value = currentTitle;
       }
     }
   }
@@ -661,6 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
 
 
 

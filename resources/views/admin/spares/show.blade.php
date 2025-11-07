@@ -13,80 +13,179 @@
   </div>
 </div>
 
-<!-- PRODUCT INFORMATION -->
-<div class="d-flex justify-content-center">
-  <div class="card-glass" style="max-width: 900px; width: 100%;">
-    <div class="row">
-      <div class="col-12">
-      <div class="row">
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Basic Information</h6>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Item Name:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->item_name ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Product Code:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->product_code ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Brand Name:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->brand_name ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Category:</span>
-            <span class="badge bg-info ms-2" style="color: #ffffff !important; font-size: 0.875rem;">{{ ucfirst($spare->category ?? 'N/A') }}</span>
-          </div>
-          @if($spare->description)
-          <div class="mb-3 mt-4">
-            <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Description</h6>
-            <p class="text-light" style="font-size: 0.875rem;">{{ $spare->description }}</p>
-          </div>
-          @endif
-        </div>
-        
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Stock Information</h6>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Stock Quantity:</span>
-            <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }} ms-2" style="color: #ffffff !important; font-size: 0.875rem;">
-              {{ number_format($spare->stock_quantity ?? 0, 0) }}
-            </span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Total Received:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ number_format($spare->total_received_quantity ?? 0, 0) }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Issued Quantity:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ number_format($spare->issued_quantity ?? 0, 0) }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Threshold Level:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ number_format($spare->threshold_level ?? 0, 0) }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Supplier:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->supplier ?? 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Created:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->created_at ? $spare->created_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Last Updated:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $spare->updated_at ? $spare->updated_at->timezone('Asia/Karachi')->format('M d, Y h:i:s A') : 'N/A' }}</span>
+<!-- PRODUCT PROFILE CARD -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="row align-items-center justify-content-center">
+        <div class="col-12 text-center">
+          <div class="employee-avatar mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 3rem; font-weight: bold; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
+            {{ strtoupper(substr($spare->item_name ?? 'P', 0, 1)) }}
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- PRODUCT DETAILS -->
+<div class="row">
+  <!-- Basic Information -->
+  <div class="col-md-6 mb-4">
+    <div class="card-glass h-100">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="package" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Personal Information</h5>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="package" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Item Name</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $spare->item_name ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="hash" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Product Code</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $spare->product_code ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      @if($spare->brand_name)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="tag" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Brand Name</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $spare->brand_name }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="grid" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Category</div>
+            <div>
+              <span class="badge bg-info" style="font-size: 0.85rem; padding: 6px 12px;">
+                {{ ucfirst($spare->category ?? 'N/A') }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      @if($spare->supplier)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="truck" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Supplier</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $spare->supplier }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+    </div>
+  </div>
   
-    <hr class="my-4">
-    
-  
+  <!-- Stock Information -->
+  <div class="col-md-6 mb-4">
+    <div class="card-glass h-100">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="database" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Stock Information</h5>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="box" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Stock Quantity</div>
+            <div>
+              <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px;">
+                {{ number_format($spare->stock_quantity ?? 0, 0) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="arrow-down-circle" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Received</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ number_format($spare->total_received_quantity ?? 0, 0) }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="arrow-up-circle" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Issued Quantity</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ number_format($spare->issued_quantity ?? 0, 0) }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="alert-circle" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Threshold Level</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ number_format($spare->threshold_level ?? 0, 0) }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="calendar" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Created</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $spare->created_at ? $spare->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="clock" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Last Updated</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $spare->updated_at ? $spare->updated_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+@if($spare->description)
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="file-text" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Description</h5>
+      </div>
+      <p class="text-white mb-0" style="font-size: 0.95rem; font-weight: 400; line-height: 1.6;">{{ $spare->description }}</p>
+    </div>
+  </div>
+</div>
+@endif
 
 <!-- Add Stock Modal -->
 <div class="modal fade" id="addStockModal" tabindex="-1">
@@ -117,6 +216,35 @@
   </div>
 </div>
 
+
+@push('styles')
+<style>
+  .info-item {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .employee-avatar {
+    transition: transform 0.3s ease;
+  }
+  
+  .employee-avatar:hover {
+    transform: scale(1.05);
+  }
+  
+  .card-glass {
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .card-glass:hover {
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
+  }
+</style>
+@endpush
 
 @push('scripts')
 <script>
