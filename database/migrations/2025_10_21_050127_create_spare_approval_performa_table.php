@@ -17,6 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('requested_by');
             $table->unsignedBigInteger('approved_by')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->string('performa_type', 50)->nullable();
+            $table->boolean('waiting_for_authority')->default(false);
             $table->timestamp('approved_at')->nullable();
             $table->text('remarks')->nullable();
             $table->timestamps();
