@@ -13,87 +13,201 @@
   </div>
 </div>
 
-<!-- USER DETAILS -->
-<div class="d-flex justify-content-center">
-  <div class="card-glass" style="max-width: 900px; width: 100%;">
-    <div class="row">
-      <div class="col-12">
-      <div class="row">
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Basic Information</h6>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Username:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->username ?? 'N/A' }}</span>
+<!-- USER PROFILE CARD -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="row align-items-center justify-content-center">
+        <div class="col-12 text-center">
+          <div class="employee-avatar mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 3rem; font-weight: bold; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
+            {{ strtoupper(substr($user->name ?? $user->username ?? 'U', 0, 1)) }}
           </div>
-          
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Name:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->name ?? 'N/A' }}</span>
-          </div>
-          
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Phone:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->phone ?? 'N/A' }}</span>
-          </div>
-          
-         
-
-          @if($user->city)
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">City:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->city->name ?? 'N/A' }}</span>
-          </div>
-          @endif
-          @if($user->sector)
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Sector:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->sector->name ?? 'N/A' }}</span>
-          </div>
-          @endif
-        </div>
-        
-        <div class="col-md-6">
-          <h6 class="text-white fw-bold mb-3" style="font-size: 1rem; font-weight: 700;">Account Information</h6>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Role:</span>
-            <span class="badge ms-2" style="background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.4); font-size: 0.875rem;">{{ $user->role->role_name ?? 'No Role' }}</span>
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Status:</span>
-            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }} ms-2" style="color: #ffffff !important; font-size: 0.875rem;">
-              {{ ucfirst($user->status ?? 'inactive') }}
-            </span>
-            @if($user->status === 'inactive' && $user->updated_at)
-              <span class="text-muted ms-2" style="font-size: 0.8rem;">
-                (Inactive since: {{ $user->updated_at->setTimezone('Asia/Karachi')->format('M d, Y H:i:s') }})
-              </span>
-            @endif
-          </div>
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Created:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->created_at ? $user->created_at->format('M d, Y') : 'N/A' }}</span>
-          </div>
-        
-          @if($user->country)
-          <div class="mb-3">
-            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Country:</span>
-            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->country }}</span>
-          </div>
-          @endif
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- USER DETAILS -->
+<div class="row">
+  <!-- Basic Information -->
+  <div class="col-md-6 mb-4">
+    <div class="card-glass h-100">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="user" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Personal  Information</h5>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="user" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Name</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->name ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="at-sign" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Username</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->username ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      @if($user->phone)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="phone" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Phone</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->phone }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($user->city)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">City</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->city->name ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($user->sector)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Sector</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->sector->name ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($user->country)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="globe" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Country</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->country }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+    </div>
+  </div>
   
-    <hr class="my-4">
-    
-  
+  <!-- Account Information -->
+  <div class="col-md-6 mb-4">
+    <div class="card-glass h-100">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="shield" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Account Information</h5>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="shield" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Role</div>
+            <div>
+              <span class="badge" style="background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.4); font-size: 0.85rem; padding: 6px 12px;">
+                {{ $user->role->role_name ?? 'No Role' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="activity" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
+            <div>
+              <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.85rem; padding: 6px 12px;">
+                {{ ucfirst($user->status ?? 'inactive') }}
+              </span>
+              @if($user->status === 'inactive' && $user->updated_at)
+                <span class="text-muted ms-2 small" style="font-size: 0.8rem;">
+                  (Since: {{ $user->updated_at->setTimezone('Asia/Karachi')->format('M d, Y H:i:s') }})
+                </span>
+              @endif
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="calendar" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Created</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->created_at ? $user->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      @if($user->updated_at && $user->updated_at != $user->created_at)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="clock" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Last Updated</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->updated_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+    </div>
   </div>
 </div>
 @endsection
 
+@push('styles')
+<style>
+  .info-item {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .employee-avatar {
+    transition: transform 0.3s ease;
+  }
+  
+  .employee-avatar:hover {
+    transform: scale(1.05);
+  }
+  
+  .card-glass {
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .card-glass:hover {
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
+  }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-  feather.replace();
+  document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+  });
 </script>
 @endpush

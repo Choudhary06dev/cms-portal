@@ -123,6 +123,11 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        if (request()->get('format') === 'html') {
+            $user->load(['role.rolePermissions', 'city', 'sector', 'slaRules']);
+            return view('admin.users.show', compact('user'));
+        }
+
         $user->load(['role.rolePermissions', 'city', 'sector', 'slaRules']);
         return view('admin.users.show', compact('user'));
     }

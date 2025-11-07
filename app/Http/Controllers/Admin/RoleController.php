@@ -85,8 +85,12 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
-        $role->load(['rolePermissions', 'users']);
+        if (request()->get('format') === 'html') {
+            $role->load(['rolePermissions', 'users']);
+            return view('admin.roles.show', compact('role'));
+        }
 
+        $role->load(['rolePermissions', 'users']);
         return view('admin.roles.show', compact('role'));
     }
 
