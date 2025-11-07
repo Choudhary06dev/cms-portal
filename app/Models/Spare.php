@@ -376,11 +376,12 @@ class Spare extends Model
     }
 
     /**
-     * Scope for low stock items
+     * Scope for low stock items (excludes out of stock items)
      */
     public function scopeLowStock($query)
     {
-        return $query->whereRaw('stock_quantity <= threshold_level');
+        return $query->whereRaw('stock_quantity <= threshold_level')
+                     ->where('stock_quantity', '>', 0);
     }
 
     /**

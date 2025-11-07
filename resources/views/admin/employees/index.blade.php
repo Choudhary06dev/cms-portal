@@ -56,7 +56,6 @@
         <tr>
           <th>ID</th>
           <th>Employee</th>
-          <th>Email</th>
           <th>Category</th>
           <th>Designation</th>
           <th>City</th>
@@ -82,7 +81,6 @@
               </div>
             </div>
           </td>
-          <td>{{ $employee->email ?? 'N/A' }}</td>
           <td>{{ ucfirst($employee->department ?? 'N/A') }}</td>
           <td>{{ $employee->designation ?? '' }}</td>
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
@@ -96,9 +94,9 @@
           <td>{{ $employee->date_of_hire ? $employee->date_of_hire->format('M d, Y') : 'N/A' }}</td>
           <td>
             <div class="btn-group" role="group">
-              <a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
+              <button onclick="viewEmployee({{ $employee->id }})" class="btn btn-outline-success btn-sm" title="View Details" style="padding: 3px 8px;">
                 <i data-feather="eye" style="width: 16px; height: 16px;"></i>
-              </a>
+              </button>
               <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
                 <i data-feather="edit" style="width: 16px; height: 16px;"></i>
               </a>
@@ -110,7 +108,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="12" class="text-center text-muted py-4">
+          <td colspan="11" class="text-center text-muted py-4">
             <i data-feather="users" class="feather-lg mb-2"></i>
             <div>No employees found</div>
           </td>
@@ -124,6 +122,27 @@
   <div class="d-flex justify-content-center mt-4" id="employeesPagination">
     <div>
       {{ $employees->links() }}
+    </div>
+  </div>
+</div>
+
+<!-- View Employee Modal -->
+<div class="modal fade" id="viewEmployeeModal" tabindex="-1" aria-labelledby="viewEmployeeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+      <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+        <h5 class="modal-title text-white" id="viewEmployeeModalLabel">
+          <i data-feather="user" class="me-2"></i>Employee Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1); opacity: 1; background-size: 1.5em; padding: 0.5em;"></button>
+      </div>
+      <div class="modal-body" id="viewEmployeeModalBody">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -172,6 +191,50 @@
   }
   .spinning {
     animation: spin 1s linear infinite;
+  }
+  
+  /* Blur effect for background when modal is open */
+  body.modal-open-blur {
+    overflow: hidden;
+  }
+  
+  body.modal-open-blur::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 1040;
+    pointer-events: none;
+  }
+  
+  #viewEmployeeModal .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  #viewEmployeeModal .modal-body {
+    padding: 1.5rem;
+  }
+  
+  #viewEmployeeModal .btn-close {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 0.5rem !important;
+    opacity: 1 !important;
+  }
+  
+  #viewEmployeeModal .btn-close:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  #viewEmployeeModal .modal-footer .btn {
+    min-width: 100px;
+    font-weight: 500;
   }
 </style>
 @endpush
@@ -237,7 +300,7 @@
     const paginationContainer = document.getElementById('employeesPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     fetch(`{{ route('admin.employees.index') }}?${params.toString()}`, {
@@ -271,7 +334,7 @@
     .catch(error => {
       console.error('Error loading employees:', error);
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
       }
     });
   }
@@ -295,6 +358,141 @@
   });
   
   
+  
+  // View employee function
+  function viewEmployee(employeeId) {
+    if (!employeeId) {
+      alert('Invalid employee ID');
+      return;
+    }
+    
+    const modalElement = document.getElementById('viewEmployeeModal');
+    const modalBody = document.getElementById('viewEmployeeModalBody');
+    
+    // Show loading state
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(modalElement, {
+      backdrop: true,
+      keyboard: true,
+      focus: true
+    });
+    modal.show();
+    
+    // Add blur effect to background
+    document.body.classList.add('modal-open-blur');
+    
+    // Load employee details via AJAX
+    fetch(`/admin/employees/${employeeId}`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Extract the content from the show page
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Get the content section - try multiple selectors
+      let contentSection = doc.querySelector('section.content');
+      if (!contentSection) {
+        contentSection = doc.querySelector('.content');
+      }
+      if (!contentSection) {
+        // Try to find the main content area
+        const mainContent = doc.querySelector('main') || doc.querySelector('[role="main"]');
+        if (mainContent) {
+          contentSection = mainContent;
+        } else {
+          contentSection = doc.body;
+        }
+      }
+      
+      // Extract the employee details sections
+      let employeeContent = '';
+      let profileCardAdded = false;
+      
+      // Get all rows that contain employee information
+      const allRows = contentSection.querySelectorAll('.row');
+      
+      allRows.forEach(row => {
+        // Check if this row contains employee profile card (with avatar)
+        const hasProfileCard = row.querySelector('.employee-avatar');
+        
+        // Check if this row contains details section (with col-md-6 and card-glass, but no avatar)
+        const hasDetails = row.querySelector('.col-md-6 .card-glass') && !row.querySelector('.employee-avatar');
+        
+        // Only add profile card once
+        if (hasProfileCard && !profileCardAdded) {
+          employeeContent += row.outerHTML;
+          profileCardAdded = true;
+        }
+        // Add details section
+        else if (hasDetails) {
+          employeeContent += row.outerHTML;
+        }
+      });
+      
+      // If we found content, use it
+      if (employeeContent) {
+        modalBody.innerHTML = employeeContent;
+        // Replace feather icons after content is loaded
+        setTimeout(() => {
+          feather.replace();
+        }, 100);
+      } else {
+        // Fallback: try to get all card-glass elements, but avoid duplicates
+        const cards = contentSection.querySelectorAll('.card-glass');
+        const seenCards = new Set();
+        if (cards.length > 0) {
+          cards.forEach(card => {
+            const cardHTML = card.outerHTML;
+            // Use a simple hash to avoid duplicates
+            const cardId = cardHTML.substring(0, 100);
+            if (!seenCards.has(cardId)) {
+              seenCards.add(cardId);
+              employeeContent += '<div class="mb-3">' + cardHTML + '</div>';
+            }
+          });
+          if (employeeContent) {
+            modalBody.innerHTML = employeeContent;
+            feather.replace();
+          } else {
+            console.error('Could not find employee content in response');
+            modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not load employee details. Please refresh and try again.</div>';
+          }
+        } else {
+          console.error('Could not find employee content in response');
+          modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not load employee details. Please refresh and try again.</div>';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error loading employee:', error);
+      modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading employee details: ' + error.message + '. Please try again.</div>';
+    });
+    
+    // Replace feather icons when modal is shown
+    modalElement.addEventListener('shown.bs.modal', function() {
+      feather.replace();
+    });
+    
+    // Remove blur when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', function() {
+      document.body.classList.remove('modal-open-blur');
+      feather.replace();
+    }, { once: true });
+  }
   
   // Delete employee function
   let currentDeleteEmployeeId = null;

@@ -32,19 +32,6 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="email" class="form-label text-white">Email</label>
-          <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                 id="email" name="email" value="{{ old('email', $employee->email) }}">
-          @error('email')
-            <div class="invalid-feedback">{{ $message }}</div>
-          @enderror
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-6">
-        <div class="mb-3">
           <label for="phone" class="form-label text-white">Phone</label>
           <input type="text" class="form-control @error('phone') is-invalid @enderror" 
                  id="phone" name="phone" value="{{ old('phone', $employee->phone) }}">
@@ -141,17 +128,6 @@
             <input type="date" class="form-control @error('date_of_hire') is-invalid @enderror" 
                    id="date_of_hire" name="date_of_hire" value="{{ old('date_of_hire', $employee->date_of_hire ? $employee->date_of_hire->format('Y-m-d') : '') }}">
             @error('date_of_hire')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="leave_quota" class="form-label text-white">Leave Quota (Days)</label>
-            <input type="number" class="form-control @error('leave_quota') is-invalid @enderror" 
-                   id="leave_quota" name="leave_quota" value="{{ old('leave_quota', $employee->leave_quota) }}" 
-                   min="0" max="365">
-            @error('leave_quota')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
           </div>

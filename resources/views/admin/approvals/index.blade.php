@@ -59,6 +59,21 @@
       </select>
     </div>
     <div class="col-auto">
+      <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
+      <select class="form-select" name="status" autocomplete="off" onchange="submitApprovalsFilters()" style="font-size: 0.9rem; width: 140px;">
+        <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
+        @if(isset($statuses) && $statuses->count() > 0)
+          @foreach($statuses as $statusValue => $statusLabel)
+            <option value="{{ $statusValue }}" {{ request('status') == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+          @endforeach
+        @else
+          <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+          <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+          <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+        @endif
+      </select>
+    </div>
+    <div class="col-auto">
       <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
       <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetApprovalsFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
         <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset

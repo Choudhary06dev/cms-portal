@@ -118,9 +118,9 @@ class ApprovalController extends Controller
                 $query->where('complaints.category', $request->category);
             }
 
-            // Filter by status (keep for backward compatibility)
+            // Filter by complaint status (same as status column dropdown)
             if ($request->has('status') && $request->status) {
-                $query->where('spare_approval_performa.status', $request->status);
+                $query->where('complaints.status', $request->status);
             }
 
             // Filter by requester or by complaint's assigned employee (using the same requested_by param)
@@ -216,10 +216,30 @@ class ApprovalController extends Controller
                 }
             }
 
+            // Get unique complaint statuses from database (only existing ones) - same as status column dropdown
+            $statuses = Complaint::select('status')
+                ->distinct()
+                ->whereNotNull('status')
+                ->pluck('status')
+                ->unique()
+                ->values()
+                ->mapWithKeys(function($status) {
+                    $statusLabels = [
+                        'assigned' => 'Assigned',
+                        'in_progress' => 'In-Process',
+                        'resolved' => 'Addressed',
+                        'work_performa' => 'Work Performa',
+                        'maint_performa' => 'Maint Performa',
+                        'priced_performa' => 'Maint/Work Priced',
+                        'product_na' => 'Product N/A',
+                    ];
+                    return [$status => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status))];
+                });
+
             // Handle AJAX requests - return only table and pagination
             if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 try {
-                    $html = view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories'))->render();
+                    $html = view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories', 'statuses'))->render();
                     return response()->json([
                         'success' => true,
                         'html' => $html
@@ -236,7 +256,7 @@ class ApprovalController extends Controller
                 }
             }
 
-            return view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories'));
+            return view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories', 'statuses'));
             
         } catch (\Exception $e) {
             \Log::error('Error in ApprovalController@index', [

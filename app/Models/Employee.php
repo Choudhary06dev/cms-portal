@@ -13,12 +13,10 @@ class Employee extends Model
 
     protected $fillable = [
         'name',
-        'email',
         'department',
         'designation',
         'phone',
         'date_of_hire',
-        'leave_quota',
         'address',
         'city_id',
         'sector_id',
@@ -26,7 +24,6 @@ class Employee extends Model
     ];
 
     protected $casts = [
-        'leave_quota' => 'integer',
         'date_of_hire' => 'date',
     ];
 

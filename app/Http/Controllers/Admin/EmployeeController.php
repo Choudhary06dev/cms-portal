@@ -115,13 +115,11 @@ class EmployeeController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
-            'email' => 'nullable|email|max:150|unique:employees,email',
             'category' => $categoryRule,
             'designation' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
             // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
-            'leave_quota' => 'nullable|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
@@ -149,13 +147,11 @@ class EmployeeController extends Controller
             // Create employee record (no user creation)
             $employee = Employee::create([
                 'name' => $request->name,
-                'email' => $request->email,
                 'department' => $request->category, // Store category in department field for backward compatibility
                 'designation' => $request->designation,
                 'phone' => $request->phone,
                 // 'emp_id' removed
                 'date_of_hire' => $request->date_of_hire,
-                'leave_quota' => $request->leave_quota ?? 30,
                 'address' => $request->address,
                 'city_id' => $request->city_id,
                 'sector_id' => $request->sector_id,
@@ -201,6 +197,11 @@ class EmployeeController extends Controller
     public function show(Employee $employee)
     {
         $employee->load(['city', 'sector']);
+        
+        if (request()->ajax() && request()->header('Accept') === 'text/html') {
+            // Return HTML for modal
+            return view('admin.employees.show', compact('employee'));
+        }
         
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
@@ -328,13 +329,11 @@ class EmployeeController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
-            'email' => 'nullable|email|max:150|unique:employees,email,' . $employee->id,
             'phone' => 'nullable|string|max:20',
             'category' => $categoryRule,
             'designation' => 'nullable|string|max:100',
             // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
-            'leave_quota' => 'required|integer|min:0|max:365',
             'address' => 'nullable|string|max:500',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
@@ -359,13 +358,11 @@ class EmployeeController extends Controller
             // Update employee
             $employee->update([
                 'name' => $request->name,
-                'email' => $request->email,
                 'department' => $request->category, // Store category in department field for backward compatibility
                 'designation' => $request->designation ?? $employee->designation,
                 'phone' => $request->phone,
                 // 'emp_id' removed
                 'date_of_hire' => $request->date_of_hire,
-                'leave_quota' => $request->leave_quota,
                 'address' => $request->address,
                 'city_id' => $request->city_id,
                 'sector_id' => $request->sector_id,

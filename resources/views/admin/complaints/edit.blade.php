@@ -120,8 +120,11 @@
                 <div class="mb-3">
                   <label for="title" class="form-label text-white">Complaint Title <span class="text-danger">*</span></label>
                   <select class="form-select @error('title') is-invalid @enderror" 
-                          id="title" name="title" required>
-                    <option value="{{ old('title', $complaint->title) }}">{{ old('title', $complaint->title) }}</option>
+                          id="title" name="title" autocomplete="off" required>
+                    <option value="">Select Complaint Title</option>
+                    @if(old('title', $complaint->title))
+                      <option value="{{ old('title', $complaint->title) }}" selected>{{ old('title', $complaint->title) }}</option>
+                    @endif
                   </select>
                   <input type="text" class="form-select @error('title') is-invalid @enderror"
                           id="title_other" name="title_other" placeholder="Enter custom title..."
@@ -398,19 +401,12 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         credentials: 'same-origin'
       })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
-        console.log('Titles data received:', data); // Debug log
-        // Clear options and add default
+        // Clear options
         titleSelect.innerHTML = '<option value="">Select Complaint Title</option>';
-        
-        // Add titles from API
-        if (data && Array.isArray(data) && data.length > 0) {
+
+        if (data && data.length > 0) {
           data.forEach(title => {
             const option = document.createElement('option');
             option.value = title.title;
@@ -420,26 +416,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             titleSelect.appendChild(option);
           });
+        } else {
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No titles found for this category';
+          titleSelect.appendChild(option);
         }
-        
-        // Always add "Other" option at the end
+
+        // Add "Other" option
         const otherOption = document.createElement('option');
         otherOption.value = 'other';
         otherOption.textContent = 'Other';
         titleSelect.appendChild(otherOption);
-        
-        // Ensure dropdown is visible and enabled
+
+        // Enable dropdown and make it clickable
+        titleSelect.disabled = false;
+        titleSelect.removeAttribute('disabled');
         titleSelect.style.display = 'block';
         titleSelect.style.visibility = 'visible';
         titleSelect.style.pointerEvents = 'auto';
         titleSelect.style.opacity = '1';
         titleSelect.style.cursor = 'pointer';
-        
-        // Remove disabled attribute completely
-        titleSelect.removeAttribute('disabled');
-        titleSelect.disabled = false;
-        
-        // Force enable by setting readonly to false
         titleSelect.readOnly = false;
         titleSelect.removeAttribute('readonly');
         
@@ -447,95 +444,59 @@ document.addEventListener('DOMContentLoaded', function() {
           titleOtherInput.style.display = 'none';
         }
         
-        // Check if current title is a custom title (not in the list)
-        const isCustomTitle = currentTitle && !data.some(t => t.title === currentTitle);
-        if (isCustomTitle) {
-          // Current title is custom, select "Other" and show input field
-          titleSelect.value = 'other';
-          if (titleOtherInput) {
-            titleOtherInput.value = currentTitle;
-            // Hide dropdown and show input field
-            titleSelect.style.display = 'none';
-            titleOtherInput.style.display = 'block';
-            titleOtherInput.required = true;
-            titleSelect.removeAttribute('required');
+        // Restore previously selected title if any
+        const previous = titleSelect.getAttribute('data-prev');
+        if (previous) {
+          const opt = Array.from(titleSelect.options).find(o => o.value === previous);
+          if (opt) {
+            titleSelect.value = previous;
+            if (previous === 'other') {
+              handleTitleChange();
+            }
+          } else if (previous === 'other') {
+            // If previous was "other", restore it
+            titleSelect.value = 'other';
+            handleTitleChange();
+            if (titleOtherInput) {
+              const oldOther = '{{ old('title_other', $complaint->title) }}';
+              if (oldOther) {
+                titleOtherInput.value = oldOther;
+              }
+            }
           }
-        } else if (currentTitle && data.some(t => t.title === currentTitle)) {
-          // Current title is in the list, select it
-          titleSelect.value = currentTitle;
-          // Ensure dropdown is visible
-          titleSelect.style.display = 'block';
-          if (titleOtherInput) {
-            titleOtherInput.style.display = 'none';
-          }
-        } else {
-          // No current title or not in list - ensure dropdown is visible
-          titleSelect.style.display = 'block';
-          if (titleOtherInput) {
-            titleOtherInput.style.display = 'none';
-          }
-          if (!data || data.length === 0) {
-            // No titles found - but we already have "Other" option, so just show message
-            const noTitleOption = document.createElement('option');
-            noTitleOption.value = '';
-            noTitleOption.textContent = 'No titles found for this category';
-            noTitleOption.disabled = true;
-            titleSelect.insertBefore(noTitleOption, titleSelect.firstChild);
+        } else if (currentTitle) {
+          // Check if current title is in the list
+          const opt = Array.from(titleSelect.options).find(o => o.value === currentTitle);
+          if (opt) {
+            titleSelect.value = currentTitle;
+          } else if (currentTitle) {
+            // Current title not in list, select "Other" and show input
+            titleSelect.value = 'other';
+            handleTitleChange();
+            if (titleOtherInput) {
+              titleOtherInput.value = currentTitle;
+            }
           }
         }
-        
-        // Force re-enable dropdown multiple times to ensure it works
-        setTimeout(() => {
-          // Only enable if not "other" is selected
-          if (titleSelect.value !== 'other') {
-            titleSelect.disabled = false;
-            titleSelect.removeAttribute('disabled');
-            titleSelect.style.pointerEvents = 'auto';
-            titleSelect.style.cursor = 'pointer';
-            titleSelect.style.opacity = '1';
-            titleSelect.style.visibility = 'visible';
-            titleSelect.style.display = 'block';
-          }
-          console.log('Dropdown state:', {
-            disabled: titleSelect.disabled,
-            hasDisabledAttr: titleSelect.hasAttribute('disabled'),
-            pointerEvents: titleSelect.style.pointerEvents,
-            display: titleSelect.style.display,
-            value: titleSelect.value,
-            optionsCount: titleSelect.options.length
-          });
-        }, 50);
-        
-        setTimeout(() => {
-          if (titleSelect.value !== 'other') {
-            titleSelect.disabled = false;
-            titleSelect.removeAttribute('disabled');
-            titleSelect.style.pointerEvents = 'auto';
-            titleSelect.style.cursor = 'pointer';
-            titleSelect.style.display = 'block';
-          }
-        }, 200);
       })
       .catch(error => {
         console.error('Error loading complaint titles:', error);
         titleSelect.innerHTML = '<option value="">Failed to load titles. Please try again.</option>';
-        // Keep current title if available
-        if (currentTitle) {
-          const option = document.createElement('option');
-          option.value = currentTitle;
-          option.textContent = currentTitle;
-          titleSelect.appendChild(option);
-        }
         titleSelect.disabled = false;
+        titleSelect.removeAttribute('disabled');
         titleSelect.style.display = 'block';
-        if (titleOtherInput) {
-          titleOtherInput.style.display = 'none';
-        }
+        titleSelect.style.pointerEvents = 'auto';
+        titleSelect.style.cursor = 'pointer';
       });
     });
     
     // Trigger on page load if category is pre-selected
-    if (categorySelect.value) {
+    if (categorySelect && categorySelect.value) {
+      // Preserve current title if present
+      if (titleSelect && currentTitle) {
+        titleSelect.setAttribute('data-prev', currentTitle);
+      }
+      // Trigger change event to load titles
       categorySelect.dispatchEvent(new Event('change'));
     } else if (currentTitle) {
       // If no category but has current title, check if it's a custom title

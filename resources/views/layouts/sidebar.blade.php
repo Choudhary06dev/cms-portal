@@ -314,7 +314,7 @@
       <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important;">
         <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center" style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; flex: 1 1 auto; min-width: 0;">
           <i data-feather="file-text" class="me-2" style="width: 20px !important; height: 20px !important; stroke-width: 2.5 !important; min-width: 20px !important; flex-shrink: 0 !important;"></i> 
-          <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Reg.</span>
+          <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Regn</span>
         </a>
         <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsSubmenu" aria-expanded="{{ request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
@@ -339,7 +339,7 @@
     @endif
     @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
     <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}">
-      <i data-feather="eye" class="me-2"></i> View Complaints
+      <i data-feather="eye" class="me-2"></i> Total Complaints
     </a>
     @endif
     @if($user && ($user->hasPermission('reports') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
