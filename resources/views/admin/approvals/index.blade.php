@@ -122,16 +122,30 @@
           $statusColors = [
             'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
             'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Darker Green
-            'work_performa' => ['bg' => '#0ea5e9', 'text' => '#ffffff', 'border' => '#0284c7'], // Sky Blue
-            'maint_performa' => ['bg' => '#fef08a', 'text' => '#ffffff', 'border' => '#eab308'], // Light Yellow
+            'work_performa' => ['bg' => '#60a5fa', 'text' => '#ffffff', 'border' => '#3b82f6'], // Light Blue
+            'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'], // Dark Yellow
+            'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
+            'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
+            'product_na' => ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'], // Gray
             'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
           ];
           
           // Get current status color or default
           $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
         @endphp
-        <tr>
+        <tr style="position: relative;">
+          @php
+            $waitingRaw = $approval->waiting_for_authority ?? false;
+            $showDot = ($waitingRaw === true || $waitingRaw === 1 || $waitingRaw === '1' || $waitingRaw === 'true');
+          @endphp
+          @if($showDot)
+          <td style="position: relative;">
+            <span class="blinking-dot" style="position: absolute; left: 5px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background-color: #ffffff; border-radius: 50%; animation: blink 1s infinite;"></span>
+            <span style="margin-left: 15px;">{{ $approval->id }}</span>
+          </td>
+          @else
           <td>{{ $approval->id }}</td>
+          @endif
           <td>{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</td>
           <td>{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
           <td>
@@ -145,11 +159,23 @@
             <div class="text-white">{{ $displayText }}</div>
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
-          <td style="color: white !important;">
+          <td style="color: white !important; position: relative;">
             @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
               <span style="color: white !important;">-</span>
             @else
-              <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important;"></span>
+              @if(isset($approval->performa_type) && $approval->performa_type)
+                @php
+                  $performaTypeLabel = ucwords(str_replace('_', ' ', $approval->performa_type));
+                  // Always use performa type color when performa type is selected
+                  // Color should change as soon as performa type is selected, regardless of waiting_for_authority
+                  $badgeColor = $statusColors[$approval->performa_type]['bg'] ?? $statusColors['work_performa']['bg'];
+                @endphp
+                <span class="badge rounded-pill performa-badge" style="padding: 6px 10px; font-weight:600; color: white !important; background-color: {{ $badgeColor }} !important;">
+                  {{ $performaTypeLabel }}
+                </span>
+              @else
+                <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important;"></span>
+              @endif
             @endif
           </td>
           <td>
@@ -168,6 +194,13 @@
               </div>
             @elseif($complaintStatus == 'in_progress')
               <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }}; position: relative;">
+                @php
+                  $waitingRawStatus = $approval->waiting_for_authority ?? false;
+                  $showDotStatus = ($waitingRawStatus === true || $waitingRawStatus === 1 || $waitingRawStatus === '1' || $waitingRawStatus === 'true');
+                @endphp
+                @if($showDotStatus)
+                <span class="blinking-dot" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background-color: #ffffff; border-radius: 50%; z-index: 10; animation: blink 1s infinite;"></span>
+                @endif
                 <span class="status-indicator" style="background-color: {{ $statusColors['in_progress']['bg'] }}; border-color: {{ $statusColors['in_progress']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
@@ -177,9 +210,8 @@
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
-                <option value="work_performa">Work Performa</option>
-                <option value="maint_performa">Maint Performa</option>
-                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
                 <option value="product_na">Product N/A</option>
               </select>
               <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
@@ -195,9 +227,8 @@
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
-                <option value="work_performa" {{ $complaintStatus == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
-                <option value="maint_performa">Maint Performa</option>
-                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
                 <option value="product_na">Product N/A</option>
               </select>
               </div>
@@ -212,9 +243,8 @@
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
-                <option value="work_performa">Work Performa</option>
-                <option value="maint_performa" {{ $complaintStatus == 'maint_performa' ? 'selected' : '' }}>Maint Performa</option>
-                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
                 <option value="product_na">Product N/A</option>
               </select>
               </div>
@@ -229,9 +259,8 @@
                 <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                 <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
                 <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
-                <option value="work_performa">Work Performa</option>
-                <option value="maint_performa">Maint Performa</option>
-                <option value="priced_performa">Maint/Work Priced</option>
+                <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
                 <option value="product_na">Product N/A</option>
               </select>
               </div>
@@ -244,6 +273,10 @@
               </a>
               @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
                 <button type="button" class="btn btn-outline-secondary btn-sm add-stock-btn" title="Stock cannot be issued for addressed complaints" data-approval-id="{{ $approval->id }}" data-category="{{ $category }}" disabled style="padding: 3px 8px; cursor: not-allowed; opacity: 0.6;">
+                  <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
+                </button>
+              @elseif(isset($approval->has_issued_stock) && $approval->has_issued_stock)
+                <button type="button" class="btn btn-outline-secondary btn-sm add-stock-btn" title="Stock already issued" data-approval-id="{{ $approval->id }}" data-category="{{ $category }}" disabled style="padding: 3px 8px; cursor: not-allowed; opacity: 0.6;">
                   <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
                 </button>
               @else
@@ -364,6 +397,22 @@
     0%, 100% { transform: translateX(0); }
     10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
     20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  
+  @keyframes blink {
+    0%, 100% { 
+      opacity: 1; 
+    }
+    50% { 
+      opacity: 0.3; 
+    }
+  }
+  
+  .blinking-dot {
+    animation: blink 1s infinite !important;
+    -webkit-animation: blink 1s infinite !important;
+    -moz-animation: blink 1s infinite !important;
+    -o-animation: blink 1s infinite !important;
   }
   
   .type-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
@@ -1046,7 +1095,7 @@
       submitBtn.disabled = !isValid;
     }
 
-    // Authority Required toggle handlers (show tabs and authority no.)
+    // Performa Required toggle handlers (show tabs and authority no.)
     if (authorityYes && authorityNo && performaTypeCol && authorityNoCol) {
       const updateAuthorityVisibility = () => {
         const required = authorityYes.checked;
@@ -1057,7 +1106,7 @@
         if (performaType) performaType.required = required;
         if (authorityNumber) authorityNumber.required = required;
         
-        // Lock/unlock request quantity based on authority requirement
+        // Lock/unlock request quantity based on performa requirement
         if (requestQtyInput) {
           if (required) {
             const hasAuthNo = authorityNumber && authorityNumber.value && authorityNumber.value.trim().length > 0;
@@ -1195,6 +1244,91 @@
       const handleHidden = function() {
         modalElement.setAttribute('aria-hidden', 'true');
         modalElement.removeAttribute('aria-modal');
+        
+        // Check if Performa Req = Yes and Performa Type is selected, then save approval
+        const authorityYes = document.getElementById('authorityYes');
+        const performaType = document.getElementById('performaType');
+        const authorityNumber = document.getElementById('authorityNumber');
+        
+        if (authorityYes && authorityYes.checked && performaType && performaType.value) {
+          const perfVal = performaType.value;
+          const authNo = authorityNumber && authorityNumber.value ? authorityNumber.value.trim() : '';
+          
+          // Only save if performa type is selected but authority no. is not entered
+          if (perfVal && !authNo && window.currentApprovalId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            // Save approval with performa info
+            fetch(`/admin/approvals/${window.currentApprovalId}/save-performa`, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+              },
+              body: JSON.stringify({
+                performa_type: perfVal,
+                remarks: `Performa type selected: ${perfVal}, waiting for authority number`
+              }),
+              credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                console.log('Approval saved with performa type on modal close');
+                // Update badge without page reload
+                const approvalId = window.currentApprovalId;
+                if (approvalId) {
+                  // Find the row for this approval by looking for the view button link
+                  const viewLinks = document.querySelectorAll(`a[href*="/approvals/${approvalId}"]`);
+                  let approvalRow = null;
+                  
+                  for (let link of viewLinks) {
+                    approvalRow = link.closest('tr');
+                    if (approvalRow) break;
+                  }
+                  
+                  if (approvalRow) {
+                    const badge = approvalRow.querySelector('.performa-badge');
+                    if (badge) {
+                      const performaType = data.approval?.performa_type || perfVal;
+                      const isWaiting = data.approval?.waiting_for_authority ?? true;
+                      
+                      // Update badge text and color
+                      let typeLabel = '';
+                      if (performaType === 'work_performa') {
+                        typeLabel = 'Work Performa';
+                      } else if (performaType === 'maint_performa') {
+                        typeLabel = 'Maintenance Performa';
+                      } else {
+                        // Convert snake_case to Title Case
+                        typeLabel = performaType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      }
+                      
+                      badge.textContent = typeLabel;
+                      
+                      // Always use performa type color when performa type is selected
+                      // Color should change as soon as performa type is selected, regardless of waiting_for_authority
+                      const color = performaType === 'work_performa' ? '#60a5fa' : 
+                                   performaType === 'maint_performa' ? '#eab308' : '#60a5fa';
+                      badge.style.backgroundColor = color;
+                      badge.style.display = 'inline-block';
+                      badge.style.color = '#ffffff';
+                      badge.style.setProperty('color', '#ffffff', 'important');
+                      badge.style.setProperty('background-color', color, 'important');
+                    }
+                  }
+                }
+              } else {
+                console.error('Failed to save approval:', data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Error saving approval on modal close:', error);
+            });
+          }
+        }
       };
       
       // Remove any existing listeners first
@@ -1284,17 +1418,8 @@
         // Build form with manual add section
         let itemsHtml = '<form id="addStockForm">';
         
-        // Show previously issued stock info if exists
-        if (issuedStock.length > 0) {
-          const lastIssued = issuedStock[0];
-          itemsHtml += `
-            <div class="alert alert-info mb-3" style="font-size: 0.9rem;">
-              <strong>Previously Issued Stock:</strong><br>
-              <span>Product: <strong>${lastIssued.spare_name}</strong> | Quantity: <strong>${lastIssued.quantity_issued}</strong> units</span>
-              ${lastIssued.issued_at ? `<br><small>Issued on: ${lastIssued.issued_at}</small>` : ''}
-            </div>
-          `;
-        }
+        // Check if stock has already been issued - if yes, disable the form
+        const hasIssuedStock = issuedStock.length > 0;
         
         // Manual Add Form Section
         itemsHtml += `
@@ -1302,27 +1427,10 @@
             <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
             </div>
             <div class="card-body" style="padding: 16px;">
-              <div class="row g-3">
-                <div class="col-md-5">
-                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
-                  <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
-                    <option value="">Loading Products...</option>
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
-                  <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
-                </div>
-                <div class="col-md-5">
-                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
-                  <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
-                </div>
-              </div>
-
-              <!-- Authority Required Row -->
-              <div class="row g-3 mt-2 align-items-end" id="authorityRow">
+              <!-- Performa Required Row - Moved to top -->
+              <div class="row g-3 mb-3 align-items-end" id="authorityRow">
                 <div class="col-md-3">
-                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority Req</label>
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Performa Req</label>
                   <div class="d-flex align-items-center" style="gap: 10px;">
                     <div class="form-check form-check-inline" style="margin: 0;">
                       <input class="form-check-input" type="radio" name="authorityRequired" id="authorityNo" value="no" checked>
@@ -1345,6 +1453,23 @@
                 <div class="col-md-3 d-none" id="authorityNoCol">
                   <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
                   <input type="text" class="form-control form-control-sm" id="authorityNumber" placeholder="Enter Authority No." style="font-size: 0.9rem;">
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
+                  <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
+                    <option value="">Loading Products...</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
+                  <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
+                  <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
                 </div>
               </div>
             </div>
@@ -1381,42 +1506,62 @@
           // Setup event listeners for manual form
           setupManualFormListeners();
           
-          // Populate form with last issued stock if exists
-          if (window.lastIssuedStock) {
-            const lastIssued = window.lastIssuedStock;
-            const productSelect = document.getElementById('manualProduct');
-            const availableStockInput = document.getElementById('manualAvailableStock');
-            const requestQtyInput = document.getElementById('manualRequestQty');
+          // Restore performa selections if approval has performa_type
+          if (data.approval && data.approval.performa_type) {
+            const authorityYes = document.getElementById('authorityYes');
+            const authorityNo = document.getElementById('authorityNo');
+            const performaType = document.getElementById('performaType');
+            const performaTypeCol = document.getElementById('performaTypeCol');
+            const authorityNoCol = document.getElementById('authorityNoCol');
             
-            if (productSelect && availableStockInput && requestQtyInput) {
-              // Wait for products to load, then select the previously issued product
-              setTimeout(() => {
-                // Find and select the product
-                for (let i = 0; i < productSelect.options.length; i++) {
-                  const option = productSelect.options[i];
-                  if (option.value == lastIssued.spare_id) {
-                    productSelect.value = lastIssued.spare_id;
-                    productSelect.dispatchEvent(new Event('change'));
-                    
-                    // Set quantity after product is selected
-                    setTimeout(() => {
-                      if (requestQtyInput) {
-                        requestQtyInput.value = lastIssued.quantity_issued;
-                        requestQtyInput.dispatchEvent(new Event('input'));
-                      }
-                    }, 100);
-                    break;
-                  }
-                }
-              }, 500);
+            if (authorityYes && performaType) {
+              // Select "Yes" radio button
+              authorityYes.checked = true;
+              authorityNo.checked = false;
+              
+              // Show performa type and authority no. columns
+              if (performaTypeCol) performaTypeCol.classList.remove('d-none');
+              if (authorityNoCol) authorityNoCol.classList.remove('d-none');
+              
+              // Set performa type value
+              performaType.value = data.approval.performa_type;
+              
+              // Trigger change event to update form state
+              if (authorityYes) {
+                authorityYes.dispatchEvent(new Event('change'));
+              }
+              
+              console.log('Restored performa type:', data.approval.performa_type);
             }
+          }
+          
+          // Don't populate form if stock has already been issued
+          if (hasIssuedStock) {
+            // Form is already disabled above, no need to populate
+            return;
           }
         }, 100);
         
         // Show Submit button always (will be enabled when product and quantity are selected)
         if (submitBtn) {
           submitBtn.style.display = 'inline-block';
-          submitBtn.disabled = true; // Disabled by default, will be enabled when form is valid
+          // Disable button if stock has already been issued
+          if (hasIssuedStock) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Stock Already Issued';
+            submitBtn.classList.add('btn-secondary');
+            submitBtn.classList.remove('btn-success');
+            // Disable all form fields
+            const productSelect = document.getElementById('manualProduct');
+            const requestQtyInput = document.getElementById('manualRequestQty');
+            if (productSelect) productSelect.disabled = true;
+            if (requestQtyInput) {
+              requestQtyInput.disabled = true;
+              requestQtyInput.readOnly = true;
+            }
+          } else {
+            submitBtn.disabled = true; // Disabled by default, will be enabled when form is valid
+          }
         }
         
         // Replace feather icons (for empty state icon)
@@ -1443,6 +1588,9 @@
     const productSelect = document.getElementById('manualProduct');
     const availableStockInput = document.getElementById('manualAvailableStock');
     const requestQtyInput = document.getElementById('manualRequestQty');
+    const authorityYes = document.getElementById('authorityYes');
+    const performaType = document.getElementById('performaType');
+    const authorityNumber = document.getElementById('authorityNumber');
     
     if (!productSelect || !availableStockInput || !requestQtyInput) {
       alert('Form fields not found. Please refresh the page.');
@@ -1471,6 +1619,61 @@
       alert(`Request quantity (${issueQty}) cannot exceed available stock (${availableStock})`);
       requestQtyInput.focus();
       return;
+    }
+    
+    // Check if Performa Req is Yes and Performa Type is selected but Authority No. is missing
+    const isPerformaRequired = authorityYes && authorityYes.checked;
+    const perfVal = (performaType && performaType.value) ? performaType.value : '';
+    const authNo = authorityNumber && authorityNumber.value ? authorityNumber.value.trim() : '';
+    
+    // If performa is required and type is selected but authority no. is missing, save approval instead of issuing stock
+    if (isPerformaRequired && perfVal && !authNo) {
+      // Save approval with performa info and wait for authority
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      const submitBtn = document.getElementById('submitAddStockBtn');
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+      }
+      
+      fetch(`/admin/approvals/${window.currentApprovalId}/save-performa`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+          performa_type: perfVal,
+          remarks: `Waiting for authority number - Product: ${productName}, Quantity: ${issueQty}`
+        }),
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Approval saved. Waiting for authority number. You can close the form and add authority number later.');
+          bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
+          window.location.reload();
+        } else {
+          alert('Failed to save approval: ' + (data.message || 'Unknown error'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving approval: ' + error.message);
+      })
+      .finally(() => {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i data-feather="check-circle"></i> Issue Stock';
+          feather.replace();
+        }
+      });
+      
+      return; // Exit early, don't proceed to stock issue
     }
     
     // Prepare stock data
@@ -1503,30 +1706,12 @@
     // Send requests for each item to ISSUE stock (decrease inventory)
     const promises = stockData.map(item => {
       // Build optional authority info string (appended in reason)
-      const authorityYes = document.getElementById('authorityYes');
-      const performaType = document.getElementById('performaType');
-      const authorityNumber = document.getElementById('authorityNumber');
       let authorityInfo = '';
-      if (authorityYes && authorityYes.checked) {
-        // Validate performa type and authority number (both required now)
-        const perfVal = (performaType && performaType.value) ? performaType.value : '';
-        const authNo = authorityNumber && authorityNumber.value ? authorityNumber.value.trim() : '';
-        if (!perfVal) {
-          alert('Please select Performa Type');
-          throw new Error('Performa Type is required when Authority Req is Yes');
-        }
-        if (!authNo) {
-          alert('Please enter Authority No.');
-          throw new Error('Authority No. is required when Authority Req is Yes');
-        }
+      if (isPerformaRequired && perfVal && authNo) {
         const typeLabel = (performaType && performaType.value)
           ? (performaType.value === 'work_performa' ? 'Work Performa' : (performaType.value === 'maint_performa' ? 'Maint Performa' : ''))
           : '';
-        if (typeLabel || authNo) {
-          authorityInfo = ` | Authority Req: ${typeLabel || 'Yes'}${authNo ? `, Authority No: ${authNo}` : ''}`;
-        } else {
-          authorityInfo = ' | Authority Req: Yes';
-        }
+        authorityInfo = ` | Performa Req: ${typeLabel || 'Yes'}, Authority No: ${authNo}`;
       }
       return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
         method: 'POST',
@@ -1540,7 +1725,7 @@
           quantity: item.issue_quantity,
           item_id: item.item_id,
           approval_id: window.currentApprovalId || null,
-          reason: `Stock issued from approval - Product: ${item.product_name}`
+          reason: `Stock issued from approval - Product: ${item.product_name}${authorityInfo}`
         }),
         credentials: 'same-origin'
       });
@@ -1554,6 +1739,77 @@
         const failedCount = results.length - successCount;
 
         if (failedCount === 0) {
+          // If stock is issued with authority, remove waiting flag and update badge
+          if (isPerformaRequired && perfVal && authNo && window.currentApprovalId) {
+            // Update approval to remove waiting flag
+            fetch(`/admin/approvals/${window.currentApprovalId}/save-performa`, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+              },
+              body: JSON.stringify({
+                performa_type: perfVal,
+                waiting_for_authority: false,
+                remarks: `Stock issued with authority number: ${authNo}`
+              }),
+              credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Update badge color without page reload
+                const approvalId = window.currentApprovalId;
+                if (approvalId) {
+                  // Find the row for this approval
+                  const viewLinks = document.querySelectorAll(`a[href*="/approvals/${approvalId}"]`);
+                  let approvalRow = null;
+                  
+                  for (let link of viewLinks) {
+                    approvalRow = link.closest('tr');
+                    if (approvalRow) break;
+                  }
+                  
+                  if (approvalRow) {
+                    const badge = approvalRow.querySelector('.performa-badge');
+                    if (badge) {
+                      const performaType = data.approval?.performa_type || perfVal;
+                      const isWaiting = data.approval?.waiting_for_authority ?? false;
+                      
+                      // Update badge text and color
+                      let typeLabel = '';
+                      if (performaType === 'work_performa') {
+                        typeLabel = 'Work Performa';
+                      } else if (performaType === 'maint_performa') {
+                        typeLabel = 'Maintenance Performa';
+                      } else {
+                        typeLabel = performaType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      }
+                      
+                      badge.textContent = typeLabel;
+                      
+                      // Set color based on waiting status
+                      if (isWaiting) {
+                        badge.style.backgroundColor = '#dc2626'; // Red
+                      } else {
+                        // Use performa type color
+                        const color = performaType === 'work_performa' ? '#60a5fa' : 
+                                     performaType === 'maint_performa' ? '#eab308' : '#60a5fa';
+                        badge.style.backgroundColor = color;
+                      }
+                      badge.style.display = 'inline-block';
+                      badge.style.color = '#ffffff';
+                      badge.style.setProperty('color', '#ffffff', 'important');
+                    }
+                  }
+                }
+              }
+            })
+            .catch(err => console.error('Error updating approval:', err));
+          }
+          
           alert(`Successfully issued stock for ${productName} (${issueQty} units)!`);
           bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
           // Reload the page to refresh stock quantities
@@ -1825,7 +2081,7 @@
       }, 3000);
     });
 
-    // Authority Required toggle handlers
+    // Performa Required toggle handlers
     if (authorityYes && authorityNo && performaTypeCol && authorityNoCol) {
       const updateAuthorityVisibility = () => {
         const required = authorityYes.checked;
@@ -2080,10 +2336,11 @@
   const statusColors = {
     'in_progress': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Darker Red
     'resolved': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Darker Green
-    'work_performa': { bg: '#0ea5e9', text: '#ffffff', border: '#0284c7' }, // Sky Blue
-    'maint_performa': { bg: '#fef08a', text: '#ffffff', border: '#eab308' }, // Light Yellow
-    'priced_performa': { bg: '#f59e0b', text: '#ffffff', border: '#d97706' }, // Orange
-    'product_na': { bg: '#8b5cf6', text: '#ffffff', border: '#7c3aed' }, // Purple
+    'work_performa': { bg: '#60a5fa', text: '#ffffff', border: '#3b82f6' }, // Light Blue
+    'maint_performa': { bg: '#eab308', text: '#ffffff', border: '#ca8a04' }, // Dark Yellow
+    'work_priced_performa': { bg: '#9333ea', text: '#ffffff', border: '#7e22ce' }, // Purple
+    'maint_priced_performa': { bg: '#ea580c', text: '#ffffff', border: '#c2410c' }, // Dark Orange
+    'product_na': { bg: '#6b7280', text: '#ffffff', border: '#4b5563' }, // Gray
     'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
   };
 
@@ -2139,17 +2396,17 @@
         if (performaBadge) {
           if (newStatus === 'work_performa') {
             performaBadge.textContent = 'Work Performa Required';
-            performaBadge.style.backgroundColor = '#0ea5e9';
+            performaBadge.style.backgroundColor = '#60a5fa';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
-            // Update select box color to sky blue
+            // Update select box color to light blue
             updateStatusSelectColor(select, 'work_performa');
           } else {
             performaBadge.textContent = 'Maint Performa Required';
-            performaBadge.style.backgroundColor = '#6366f1';
+            performaBadge.style.backgroundColor = '#eab308';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
-            // Update select box color to light yellow
+            // Update select box color to dark yellow
             updateStatusSelectColor(select, 'maint_performa');
           }
           performaBadge.style.display = 'inline-block';
@@ -2168,15 +2425,25 @@
         updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
         skipConfirm = true;
         showSuccess(performaBadge?.textContent || 'Performa marked');
-      } else if (newStatus === 'priced_performa' || newStatus === 'product_na') {
+      } else if (newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na') {
         // Store original status before changing it for localStorage
         const originalStatus = newStatus;
         
-        // Handle Maint/Work Priced and Product N/A options
+        // Handle Work Performa Priced, Maintenance Performa Priced and Product N/A options
         if (performaBadge) {
-          if (newStatus === 'priced_performa') {
-            performaBadge.textContent = 'Maint/Work Priced';
-            performaBadge.style.backgroundColor = '#f59e0b';
+          if (newStatus === 'work_priced_performa') {
+            performaBadge.textContent = 'Work Performa Priced';
+            performaBadge.style.backgroundColor = '#9333ea';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            performaBadge.style.display = 'inline-block';
+            // Keep status as in_progress and apply red color
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
+            newStatus = 'in_progress';
+          } else if (newStatus === 'maint_priced_performa') {
+            performaBadge.textContent = 'Maintenance Performa Priced';
+            performaBadge.style.backgroundColor = '#ea580c';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
             performaBadge.style.display = 'inline-block';
@@ -2186,7 +2453,7 @@
             newStatus = 'in_progress';
           } else if (newStatus === 'product_na') {
             performaBadge.textContent = 'Product N/A';
-            performaBadge.style.backgroundColor = '#8b5cf6';
+            performaBadge.style.backgroundColor = '#6b7280';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
             performaBadge.style.display = 'inline-block';
@@ -2199,7 +2466,7 @@
         // Persist selection locally - use originalStatus before it was changed
         if (complaintId) {
           const key = `performaRequired:${complaintId}`;
-          const val = originalStatus === 'priced_performa' ? 'priced' : 'product_na';
+          const val = originalStatus === 'work_priced_performa' ? 'work_priced' : (originalStatus === 'maint_priced_performa' ? 'maint_priced' : 'product_na');
           try { localStorage.setItem(key, val); } catch (err) {}
         }
         skipConfirm = true;
@@ -2226,8 +2493,8 @@
       if (complaintId) {
         try { savedOptionForClear = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOptionForClear = null; }
       }
-      const isSpecialOption = savedOptionForClear === 'work' || savedOptionForClear === 'maint' || savedOptionForClear === 'priced' || savedOptionForClear === 'product_na' ||
-                             newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'priced_performa' || newStatus === 'product_na';
+      const isSpecialOption = savedOptionForClear === 'work' || savedOptionForClear === 'maint' || savedOptionForClear === 'work_priced' || savedOptionForClear === 'maint_priced' || savedOptionForClear === 'product_na' ||
+                             newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na';
       
       // Clear Performa Required badge only if no persisted flag exists and not a special option
       if (performaBadge && complaintId && !isSpecialOption) {
@@ -2240,22 +2507,29 @@
           // Ensure correct styling if persisted
           if (savedFlag === 'work') {
             performaBadge.textContent = 'Work Performa Required';
-            performaBadge.style.backgroundColor = '#0ea5e9';
+            performaBadge.style.backgroundColor = '#60a5fa';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
           } else if (savedFlag === 'maint') {
             performaBadge.textContent = 'Maint Performa Required';
-            performaBadge.style.backgroundColor = '#6366f1';
+            performaBadge.style.backgroundColor = '#eab308';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
-          } else if (savedFlag === 'priced') {
-            performaBadge.textContent = 'Maint/Work Priced';
-            performaBadge.style.backgroundColor = '#f59e0b';
+          } else if (savedFlag === 'work_priced') {
+            performaBadge.textContent = 'Work Performa Priced';
+            performaBadge.style.backgroundColor = '#9333ea';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
+            performaBadge.style.display = 'inline-block';
+          } else if (savedFlag === 'maint_priced') {
+            performaBadge.textContent = 'Maintenance Performa Priced';
+            performaBadge.style.backgroundColor = '#ea580c';
+            performaBadge.style.color = '#ffffff';
+            performaBadge.style.setProperty('color', '#ffffff', 'important');
+            performaBadge.style.display = 'inline-block';
           } else if (savedFlag === 'product_na') {
             performaBadge.textContent = 'Product N/A';
-            performaBadge.style.backgroundColor = '#8b5cf6';
+            performaBadge.style.backgroundColor = '#6b7280';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
           }
@@ -2288,16 +2562,18 @@
         try { savedOption = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOption = null; }
       }
       // Determine special option type based on localStorage or previous selection
-      const preserveColor = savedOption === 'work' || savedOption === 'maint' || savedOption === 'priced' || savedOption === 'product_na' ||
-                           newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'priced_performa' || newStatus === 'product_na';
+      const preserveColor = savedOption === 'work' || savedOption === 'maint' || savedOption === 'work_priced' || savedOption === 'maint_priced' || savedOption === 'product_na' ||
+                           newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na';
       // Store the special option type to restore color after fetch
       let specialOptionType = null;
       if (newStatus === 'work_performa' || savedOption === 'work') {
         specialOptionType = 'work_performa';
       } else if (newStatus === 'maint_performa' || savedOption === 'maint') {
         specialOptionType = 'maint_performa';
-      } else if (newStatus === 'priced_performa' || savedOption === 'priced') {
-        specialOptionType = 'priced_performa';
+      } else if (newStatus === 'work_priced_performa' || savedOption === 'work_priced') {
+        specialOptionType = 'work_priced_performa';
+      } else if (newStatus === 'maint_priced_performa' || savedOption === 'maint_priced') {
+        specialOptionType = 'maint_priced_performa';
       } else if (newStatus === 'product_na' || savedOption === 'product_na') {
         specialOptionType = 'product_na';
       }
@@ -2407,8 +2683,10 @@
             const currentSelectValue = select.value;
             if (currentSelectValue === 'product_na') {
               updateStatusSelectColor(select, 'product_na');
-            } else if (currentSelectValue === 'priced_performa') {
-              updateStatusSelectColor(select, 'priced_performa');
+            } else if (currentSelectValue === 'work_priced_performa') {
+              updateStatusSelectColor(select, 'work_priced_performa');
+            } else if (currentSelectValue === 'maint_priced_performa') {
+              updateStatusSelectColor(select, 'maint_priced_performa');
             } else if (currentSelectValue === 'work_performa') {
               updateStatusSelectColor(select, 'work_performa');
             } else if (currentSelectValue === 'maint_performa') {
@@ -2438,8 +2716,10 @@
             const finalSelectValue = select.value;
             if (finalSelectValue === 'product_na') {
               updateStatusSelectColor(select, 'product_na');
-            } else if (finalSelectValue === 'priced_performa') {
-              updateStatusSelectColor(select, 'priced_performa');
+            } else if (finalSelectValue === 'work_priced_performa') {
+              updateStatusSelectColor(select, 'work_priced_performa');
+            } else if (finalSelectValue === 'maint_priced_performa') {
+              updateStatusSelectColor(select, 'maint_priced_performa');
             } else if (finalSelectValue === 'work_performa') {
               updateStatusSelectColor(select, 'work_performa');
             } else if (finalSelectValue === 'maint_performa') {
@@ -2454,19 +2734,30 @@
   // Helpers to initialize UI after load/refresh
   function initPerformaBadges() {
     document.querySelectorAll('.performa-badge').forEach(function(b){
-      if (!b.textContent) b.style.display = 'none';
+      // Only hide badges that are truly empty (no textContent and display:none)
+      // Don't hide badges that are already rendered from server with content
+      if (!b.textContent && b.style.display !== 'none') {
+        b.style.display = 'none';
+      }
     });
     // Restore persisted Performa Required selections per complaint
+    // But only if badge doesn't already have content from server
     document.querySelectorAll('select.status-select[data-complaint-id]').forEach(function(sel){
       const complaintId = sel.getAttribute('data-complaint-id');
       if (!complaintId) return;
-      let saved;
-      try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
-      if (!saved) return;
       
       const row = sel.closest('tr');
       const badge = row ? row.querySelector('.performa-badge') : null;
       if (!badge) return;
+      
+      // If badge already has content from server, don't override it
+      if (badge.textContent && badge.textContent.trim() !== '') {
+        return; // Server-rendered badge, keep it as is
+      }
+      
+      let saved;
+      try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
+      if (!saved) return;
       
       // Restore based on saved value - check in order to prevent conflicts
       if (saved === 'priced') {
@@ -2479,7 +2770,7 @@
         updateStatusSelectColor(sel, 'in_progress');
       } else if (saved === 'product_na') {
         badge.textContent = 'Product N/A';
-        badge.style.backgroundColor = '#8b5cf6';
+        badge.style.backgroundColor = '#6b7280';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
@@ -2487,7 +2778,7 @@
         updateStatusSelectColor(sel, 'in_progress');
       } else if (saved === 'work') {
         badge.textContent = 'Work Performa Required';
-        badge.style.backgroundColor = '#0ea5e9';
+        badge.style.backgroundColor = '#60a5fa';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
@@ -2495,7 +2786,23 @@
         updateStatusSelectColor(sel, 'in_progress');
       } else if (saved === 'maint') {
         badge.textContent = 'Maint Performa Required';
-        badge.style.backgroundColor = '#6366f1';
+        badge.style.backgroundColor = '#eab308';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
+      } else if (saved === 'work_priced') {
+        badge.textContent = 'Work Performa Priced';
+        badge.style.backgroundColor = '#9333ea';
+        badge.style.color = '#ffffff';
+        badge.style.setProperty('color', '#ffffff', 'important');
+        badge.style.display = 'inline-block';
+        sel.value = 'in_progress';
+        updateStatusSelectColor(sel, 'in_progress');
+      } else if (saved === 'maint_priced') {
+        badge.textContent = 'Maintenance Performa Priced';
+        badge.style.backgroundColor = '#ea580c';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';

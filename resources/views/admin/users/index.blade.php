@@ -60,6 +60,7 @@
         <tr>
           <th>ID</th>
           <th>Username</th>
+          <th>Name</th>
           <th>Role</th>
           <th>City</th>
           <th>Sector</th>
@@ -82,6 +83,7 @@
               </div>
             </div>
           </td>
+          <td>{{ $user->name ?? 'N/A' }}</td>
           <td>
             @php
               $rawRole = $user->role->role_name ?? 'No Role';
@@ -132,7 +134,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="8" class="text-center py-4">
+          <td colspan="9" class="text-center py-4">
             <i data-feather="users" class="feather-lg mb-2"></i>
             <div>No users found</div>
           </td>
@@ -212,7 +214,7 @@
     const paginationContainer = document.getElementById('usersPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     fetch(`{{ route('admin.users.index') }}?${params.toString()}`, {
@@ -246,7 +248,7 @@
     .catch(error => {
       console.error('Error loading users:', error);
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
       }
     });
   }

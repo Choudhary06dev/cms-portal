@@ -987,11 +987,22 @@
           <div class="row g-2 align-items-end">
           @if($showCityFilter && $cities->count() > 0)
           <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">GE (City)</label>
+            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">GE</label>
             <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value=""> Select GE</option>
               @foreach($cities as $city)
-                <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $city->name }}</option>
+                @php
+                  $geUser = $city->users->where('role_id', $geRole->id ?? null)->where('status', 'active')->first();
+                  $displayName = $city->name;
+                  if ($geUser) {
+                    if ($geUser->name) {
+                      $displayName = $geUser->name . ' - ' . $city->name;
+                    } elseif ($geUser->username) {
+                      $displayName = $geUser->username . ' - ' . $city->name;
+                    }
+                  }
+                @endphp
+                <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $displayName }}</option>
               @endforeach
             </select>
           </div>
@@ -1023,9 +1034,9 @@
           
           @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
           <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Complaint Status</label>
+            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Complaints Status</label>
             <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
-              <option value="">All Statuses</option>
+              <option value="">All Status</option>
               @foreach($complaintStatuses as $statusKey => $statusLabel)
                 <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
               @endforeach

@@ -19,12 +19,15 @@ class SpareApprovalPerforma extends Model
         'requested_by',
         'approved_by',
         'status',
+        'performa_type',
+        'waiting_for_authority',
         'approved_at',
         'remarks',
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
+        'waiting_for_authority' => 'boolean',
     ];
 
     /**

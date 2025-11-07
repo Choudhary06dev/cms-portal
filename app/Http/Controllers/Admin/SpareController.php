@@ -708,6 +708,40 @@ class SpareController extends Controller
                     ]);
                 }
             }
+            
+            // If approval exists and stock is issued, check if authority was provided
+            // If approval has performa_type and waiting_for_authority is true, and stock is being issued,
+            // it means authority was provided, so set waiting_for_authority to false
+            if ($finalApprovalId) {
+                try {
+                    $approval = SpareApprovalPerforma::find($finalApprovalId);
+                    if ($approval && $approval->performa_type && $approval->waiting_for_authority) {
+                        $remarks = $request->reason ?? $request->remarks ?? '';
+                        // Check if authority number is mentioned in remarks (check for "Authority No" or "authority no")
+                        $hasAuthorityInRemarks = (stripos($remarks, 'Authority No') !== false || 
+                                                 stripos($remarks, 'authority no') !== false || 
+                                                 stripos($remarks, 'authority number') !== false);
+                        
+                        // If authority is mentioned in remarks, remove waiting flag
+                        if ($hasAuthorityInRemarks) {
+                            $approval->update([
+                                'waiting_for_authority' => false
+                            ]);
+                            \Log::info('Approval waiting flag removed after stock issue with authority', [
+                                'approval_id' => $finalApprovalId,
+                                'performa_type' => $approval->performa_type,
+                                'has_authority_in_remarks' => $hasAuthorityInRemarks,
+                                'remarks' => $remarks
+                            ]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to update approval waiting flag', [
+                        'approval_id' => $finalApprovalId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,

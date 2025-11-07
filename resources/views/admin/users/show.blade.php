@@ -27,6 +27,11 @@
           </div>
           
           <div class="mb-3">
+            <span class="text-muted fw-bold" style="font-size: 0.875rem;">Name:</span>
+            <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->name ?? 'N/A' }}</span>
+          </div>
+          
+          <div class="mb-3">
             <span class="text-muted fw-bold" style="font-size: 0.875rem;">Phone:</span>
             <span class="text-white ms-2" style="font-size: 0.875rem;">{{ $user->phone ?? 'N/A' }}</span>
           </div>

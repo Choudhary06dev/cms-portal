@@ -157,6 +157,14 @@ class ApprovalController extends Controller
                 'items.spare'
             ]);
             
+            // Check if each approval has issued stock
+            foreach ($approvals as $approval) {
+                $hasIssuedStock = \App\Models\SpareStockLog::where('reference_id', $approval->id)
+                    ->where('change_type', 'out')
+                    ->exists();
+                $approval->has_issued_stock = $hasIssuedStock;
+            }
+            
             // Get complaints with location filtering
             $complaintsQuery = Complaint::pending()->with('client');
             $this->filterComplaintsByLocation($complaintsQuery, $user);
@@ -357,6 +365,8 @@ class ApprovalController extends Controller
                 'approval' => [
                     'id' => $approval->id,
                     'status' => $approval->status,
+                    'performa_type' => $approval->performa_type,
+                    'waiting_for_authority' => $approval->waiting_for_authority ?? false,
                     'created_at' => $approval->created_at ? $approval->created_at->format('M d, Y H:i') : null,
                     'approved_at' => $approval->approved_at ? $approval->approved_at->format('M d, Y H:i') : null,
                     'remarks' => $approval->remarks,
@@ -581,6 +591,67 @@ class ApprovalController extends Controller
                 ], 500);
             }
             return redirect()->back()->with('error', $message);
+        }
+    }
+
+    /**
+     * Save approval with performa info when waiting for authority
+     */
+    public function saveWithPerforma(Request $request, SpareApprovalPerforma $approval)
+    {
+        $validator = Validator::make($request->all(), [
+            'performa_type' => 'required|in:work_performa,maint_performa',
+            'waiting_for_authority' => 'nullable|boolean',
+            'remarks' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Update approval with performa type and mark as waiting for authority
+            $updateData = [
+                'performa_type' => $request->performa_type,
+                'waiting_for_authority' => $request->has('waiting_for_authority') ? (bool)$request->waiting_for_authority : true,
+            ];
+            
+            if ($request->has('remarks')) {
+                $updateData['remarks'] = $request->remarks;
+            } elseif (!isset($updateData['remarks'])) {
+                $updateData['remarks'] = 'Waiting for authority number';
+            }
+            
+            $approval->update($updateData);
+
+            // Update complaint status to in_progress if waiting for authority
+            if ($approval->complaint && $updateData['waiting_for_authority']) {
+                $complaint = $approval->complaint;
+                if ($complaint->status === 'assigned' || $complaint->status === 'new') {
+                    $complaint->status = 'in_progress';
+                    $complaint->save();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $updateData['waiting_for_authority'] ? 'Approval saved. Waiting for authority number.' : 'Approval updated.',
+                'approval' => $approval->fresh()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error saving approval with performa', [
+                'approval_id' => $approval->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save approval: ' . $e->getMessage()
+            ], 500);
         }
     }
 

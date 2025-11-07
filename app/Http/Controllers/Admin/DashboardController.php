@@ -40,15 +40,34 @@ class DashboardController extends Controller
         $complaintStatus = $request->input('complaint_status');
         $dateRange = $request->input('date_range');
         
+        // Get GE role for loading users
+        $geRole = \App\Models\Role::where('role_name', 'garrison_engineer')->first();
+        
         // Get cities for filter: Check user table - if city_id is null, user can see all cities
         $cities = collect();
         if (Schema::hasTable('cities')) {
             if (!$user->city_id) {
                 // User has no city_id assigned, can see all cities
                 $cities = City::where('status', 'active')->orderBy('name')->get();
+                // Load GE users for each city
+                if ($geRole) {
+                    $cities->load(['users' => function($query) use ($geRole) {
+                        $query->where('role_id', $geRole->id)
+                              ->where('status', 'active')
+                              ->with('role');
+                    }]);
+                }
             } elseif ($user->city_id && $user->city) {
                 // User has city_id assigned, sees only their city
                 $cities = City::where('id', $user->city_id)->where('status', 'active')->get();
+                // Load GE users for this city
+                if ($geRole) {
+                    $cities->load(['users' => function($query) use ($geRole) {
+                        $query->where('role_id', $geRole->id)
+                              ->where('status', 'active')
+                              ->with('role');
+                    }]);
+                }
             }
         }
         
@@ -227,7 +246,8 @@ class DashboardController extends Controller
             'category',
             'approvalStatus',
             'complaintStatus',
-            'dateRange'
+            'dateRange',
+            'geRole'
         ));
     }
 

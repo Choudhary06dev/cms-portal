@@ -31,6 +31,7 @@ class UserController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('username', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
@@ -69,7 +70,8 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users',
-            'email' => 'nullable|email|max:150|unique:users',
+            'name' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:150|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'city_id' => 'nullable|exists:cities,id',
@@ -102,6 +104,7 @@ class UserController extends Controller
 
         $user = User::create([
             'username' => $request->username,
+            'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
@@ -144,6 +147,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username,' . $user->id,
+            'name' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:150|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:6|confirmed',
@@ -180,6 +184,7 @@ class UserController extends Controller
         try {
             $updateData = [
                 'username' => $request->username,
+                'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role_id' => $request->role_id,
@@ -415,6 +420,7 @@ class UserController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('username', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
