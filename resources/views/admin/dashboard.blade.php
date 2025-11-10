@@ -1232,6 +1232,12 @@
                       <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @elseif($complaint->status === 'assigned')
                       <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'un_authorized')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border: 1px solid #db2777 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'pertains_to_ge_const_isld')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border: 1px solid #0891b2 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'product_na')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #6b7280 !important; color: #ffffff !important; border: 1px solid #4b5563 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @else
                       <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @endif

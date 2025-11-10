@@ -249,15 +249,15 @@ class ApprovalController extends Controller
                 return ['performa_' . $type => $label];
             });
 
-            // Build statuses collection with custom order: 
+            // Build statuses collection for FILTER (includes performa options)
             // 1. Assigned, 2. In-Process, 3. Addressed, 
             // 4-5. Work/Maintenance Performa Required (after Addressed),
             // 6+. Rest of the statuses
-            $orderedStatuses = [
+            $orderedStatusesForFilter = [
                 'assigned' => $statusLabels['assigned'],
                 'in_progress' => $statusLabels['in_progress'],
                 'resolved' => $statusLabels['resolved'],
-                // Add performa required after Addressed
+                // Add performa required after Addressed (for filter only)
                 'performa_work_performa' => $performaTypes['performa_work_performa'],
                 'performa_maint_performa' => $performaTypes['performa_maint_performa'],
             ];
@@ -265,19 +265,38 @@ class ApprovalController extends Controller
             // Add remaining statuses (excluding already added ones)
             foreach ($statusLabels as $key => $label) {
                 if (!in_array($key, ['assigned', 'in_progress', 'resolved'])) {
-                    $orderedStatuses[$key] = $label;
+                    $orderedStatusesForFilter[$key] = $label;
                 }
             }
 
-            // Convert to collection and filter out any empty/null values
-            $statuses = collect($orderedStatuses)->filter(function($label, $key) {
+            // Convert to collection and filter out any empty/null values (for filter)
+            $statusesForFilter = collect($orderedStatusesForFilter)->filter(function($label, $key) {
+                return !empty($label) && !empty($key) && $key !== '';
+            });
+
+            // Build statuses collection for TABLE ROWS (excludes performa options)
+            $orderedStatusesForTable = [
+                'assigned' => $statusLabels['assigned'],
+                'in_progress' => $statusLabels['in_progress'],
+                'resolved' => $statusLabels['resolved'],
+            ];
+            
+            // Add remaining statuses (excluding already added ones)
+            foreach ($statusLabels as $key => $label) {
+                if (!in_array($key, ['assigned', 'in_progress', 'resolved'])) {
+                    $orderedStatusesForTable[$key] = $label;
+                }
+            }
+
+            // Convert to collection and filter out any empty/null values (for table rows)
+            $statuses = collect($orderedStatusesForTable)->filter(function($label, $key) {
                 return !empty($label) && !empty($key) && $key !== '';
             });
 
             // Handle AJAX requests - return only table and pagination
             if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 try {
-                    $html = view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories', 'statuses'))->render();
+                    $html = view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories', 'statuses', 'statusesForFilter'))->render();
                     return response()->json([
                         'success' => true,
                         'html' => $html
@@ -294,7 +313,7 @@ class ApprovalController extends Controller
                 }
             }
 
-            return view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories', 'statuses'));
+            return view('admin.approvals.index', compact('approvals', 'complaints', 'employees', 'categories', 'statuses', 'statusesForFilter'));
             
         } catch (\Exception $e) {
             \Log::error('Error in ApprovalController@index', [

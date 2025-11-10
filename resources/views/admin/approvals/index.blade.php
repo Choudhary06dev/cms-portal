@@ -62,7 +62,13 @@
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
       <select class="form-select" name="status" autocomplete="off" onchange="submitApprovalsFilters()" style="font-size: 0.9rem; width: 180px;">
         <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
-        @if(isset($statuses) && $statuses->count() > 0)
+        @if(isset($statusesForFilter) && $statusesForFilter->count() > 0)
+          @foreach($statusesForFilter as $statusValue => $statusLabel)
+            @if(!empty($statusValue) && !empty($statusLabel))
+              <option value="{{ $statusValue }}" {{ request('status') == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+            @endif
+          @endforeach
+        @elseif(isset($statuses) && $statuses->count() > 0)
           @foreach($statuses as $statusValue => $statusLabel)
             @if(!empty($statusValue) && !empty($statusLabel))
               <option value="{{ $statusValue }}" {{ request('status') == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
@@ -3032,10 +3038,10 @@
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
             performaBadge.style.display = 'inline-block';
-            // Keep status as in_progress and apply red color
-            select.value = 'in_progress';
-            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
-            newStatus = 'in_progress';
+            // Update status to product_na
+            select.value = 'product_na';
+            updateStatusSelectColor(select, 'product_na'); // Apply gray color for product_na
+            newStatus = 'product_na';
           }
         }
         // Persist selection locally - use originalStatus before it was changed
@@ -3051,8 +3057,8 @@
         updateStatusSelectColor(select, newStatus);
       }
 
-      // Real statuses only
-      const allowed = ['new','assigned','in_progress','resolved','closed','un_authorized','pertains_to_ge_const_isld'];
+      // Real statuses only - include all possible statuses
+      const allowed = ['new','assigned','in_progress','resolved','closed','un_authorized','pertains_to_ge_const_isld','product_na','work_performa','maint_performa','work_priced_performa','maint_priced_performa'];
       if (!allowed.includes(newStatus)) {
         console.warn('Blocked unsupported status:', newStatus);
         // Revert to old on invalid
@@ -3249,10 +3255,15 @@
           }
         } else {
           // Update color for other status changes
-          // Restore dropdown value to in_progress and apply red color
+          // For special options, keep their actual status value
           if (specialOptionType) {
-            select.value = 'in_progress';
-            updateStatusSelectColor(select, 'in_progress');
+            if (specialOptionType === 'product_na') {
+              select.value = 'product_na';
+              updateStatusSelectColor(select, 'product_na');
+            } else {
+              select.value = 'in_progress';
+              updateStatusSelectColor(select, 'in_progress');
+            }
           } else {
             // Check if current select value is a special option to preserve their colors
             const currentSelectValue = select.value;
