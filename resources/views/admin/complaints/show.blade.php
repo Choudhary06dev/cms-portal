@@ -127,6 +127,18 @@
         </div>
       </div>
       @endif
+      
+      @if($complaint->description)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="file-text" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Description</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 400; line-height: 1.6;">{{ $complaint->description }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
     </div>
   </div>
   
@@ -245,20 +257,6 @@
   </div>
 </div>
 
-@if($complaint->description)
-<div class="row mb-4">
-  <div class="col-12">
-    <div class="card-glass">
-      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
-        <i data-feather="file-text" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
-        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Description</h5>
-      </div>
-      <p class="text-white mb-0" style="font-size: 0.95rem; font-weight: 400; line-height: 1.6;">{{ $complaint->description }}</p>
-    </div>
-  </div>
-</div>
-@endif
-
 @if($complaint->attachments->count() > 0)
 <div class="row mb-4">
   <div class="col-12">
@@ -286,10 +284,11 @@
 @endif
 
 <!-- FEEDBACK SECTION -->
-@if($complaint->status == 'resolved' || $complaint->status == 'closed')
-<div class="d-flex justify-content-center mt-4">
-  <div style="max-width: 900px; width: 100%;">
-    <div class="card-glass">
+@if($complaint->status == 'resolved' || $complaint->status == 'closed' || $complaint->feedback)
+<div class="row mt-4">
+  <div class="col-12 d-flex justify-content-center">
+    <div style="max-width: 900px; width: 100%;">
+      <div class="card-glass">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0 text-white">
           <i data-feather="message-circle" class="me-2"></i>Complainant Feedback
@@ -299,15 +298,15 @@
             <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
           </a>
         @else
-          <div class="btn-group" role="group">
-            <a href="{{ route('admin.feedback.edit', $complaint->feedback->id) }}" class="btn btn-outline-primary btn-sm" title="Edit Feedback" style="padding: 3px 8px;">
-              <i data-feather="edit" style="width: 16px; height: 16px;"></i>
+          <div class="d-flex gap-2">
+            <a href="{{ route('admin.feedback.edit', $complaint->feedback->id) }}" class="btn btn-outline-primary btn-sm" title="Edit Feedback" style="padding: 6px 10px; border: 1px solid #3b82f6 !important; color: #3b82f6 !important; background-color: transparent !important; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px;">
+              <i data-feather="edit" style="width: 16px; height: 16px; color: #3b82f6;"></i>
             </a>
             <form action="{{ route('admin.feedback.destroy', $complaint->feedback->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
               @csrf
               @method('DELETE')
-              <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Feedback" style="padding: 3px 8px;">
-                <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+              <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Feedback" style="padding: 6px 10px; border: 1px solid #ef4444 !important; color: #ef4444 !important; background-color: transparent !important; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px;">
+                <i data-feather="trash-2" style="width: 16px; height: 16px; color: #ef4444;"></i>
               </button>
             </form>
           </div>
@@ -331,11 +330,41 @@
                 </tr>
                 <tr>
                   <td class="text-white"><strong>Feedback Date:</strong></td>
-                  <td class="text-white">{{ $complaint->feedback->created_at ? $complaint->feedback->created_at->format('M d, Y H:i:s') : 'N/A' }}</td>
+                  <td class="text-white">
+                    @php
+                      $feedbackDate = 'N/A';
+                      if ($complaint->feedback) {
+                        try {
+                          if ($complaint->feedback->feedback_date) {
+                            $date = $complaint->feedback->feedback_date;
+                            if (is_string($date)) {
+                              $date = \Carbon\Carbon::parse($date);
+                            }
+                            if ($date instanceof \Carbon\Carbon) {
+                              $feedbackDate = $date->timezone('Asia/Karachi')->format('M d, Y H:i:s');
+                            }
+                          }
+                          if ($feedbackDate === 'N/A' && $complaint->feedback->created_at) {
+                            $feedbackDate = $complaint->feedback->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s');
+                          }
+                        } catch (\Exception $e) {
+                          // If all fails, use created_at as fallback
+                          try {
+                            if ($complaint->feedback->created_at) {
+                              $feedbackDate = $complaint->feedback->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s');
+                            }
+                          } catch (\Exception $e2) {
+                            $feedbackDate = 'N/A';
+                          }
+                        }
+                      }
+                      echo $feedbackDate;
+                    @endphp
+                  </td>
                 </tr>
                 <tr>
                   <td class="text-white"><strong>Entered By:</strong></td>
-                  <td class="text-white">{{ $complaint->feedback->enteredBy->username ?? 'N/A' }}</td>
+                  <td class="text-white">{{ ($complaint->feedback->enteredBy && $complaint->feedback->enteredBy->username) ? $complaint->feedback->enteredBy->username : 'N/A' }}</td>
                 </tr>
                 @php
                   $geUser = null;
@@ -353,16 +382,16 @@
                 @if($geUser)
                 <tr>
                   <td class="text-white"><strong>GE (City):</strong></td>
-                  <td class="text-white">{{ $geUser->username ?? 'N/A' }}</td>
+                  <td class="text-white">{{ $geUser->name ?? $geUser->username ?? 'N/A' }}</td>
                 </tr>
                 @endif
               </table>
             </div>
           </div>
           @if($complaint->feedback->comments)
-          <div class="row mt-2">
+          <div class="row mt-3">
             <div class="col-12">
-              <h6 class="text-white fw-bold mb-1" style="font-size: 0.9rem;">Complainant Comments:</h6>
+              <h6 class="text-white fw-bold mb-2" style="font-size: 0.9rem;">Complainant Comments:</h6>
               <div class="card-glass" style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
                 <div class="card-body">
                   <p class="text-white mb-0" style="color: #dbeafe; line-height: 1.6;">
@@ -391,6 +420,50 @@
 
 @push('styles')
 <style>
+  /* Blurred background effect like employee view page */
+  body {
+    position: relative;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  /* Ensure content is above blur */
+  .card-glass {
+    position: relative;
+    z-index: 1;
+    background: rgba(30, 41, 59, 0.85) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .card-glass:hover {
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
+  }
+  
+  .card-glass .card-header {
+    background: rgba(59, 130, 246, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .card-glass .card-body {
+    background: transparent !important;
+  }
+  
   .info-item {
     padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -406,14 +479,6 @@
   
   .employee-avatar:hover {
     transform: scale(1.05);
-  }
-  
-  .card-glass {
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .card-glass:hover {
-    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
   }
 </style>
 @endpush

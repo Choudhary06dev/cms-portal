@@ -346,9 +346,14 @@ class ComplaintController extends Controller
         } catch (\Exception $e) {
             // Log the error for debugging
             Log::error('Error in ComplaintController@show: ' . $e->getMessage(), [
-                'complaint_id' => $complaint->id,
+                'complaint_id' => $complaint->id ?? null,
                 'trace' => $e->getTraceAsString()
             ]);
+
+            // Check if format=html is requested, return HTML error
+            if (request()->get('format') === 'html') {
+                return response('<div class="text-center py-5 text-danger">Error loading complaint details: ' . htmlspecialchars($e->getMessage()) . '. Please try again.</div>', 500);
+            }
 
             // Return JSON error for AJAX requests
             if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
