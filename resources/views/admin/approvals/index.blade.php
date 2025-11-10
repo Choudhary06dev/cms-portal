@@ -114,6 +114,8 @@
         @php
           $category = $complaint->category ?? 'N/A';
           $designation = $complaint->assignedEmployee->designation ?? 'N/A';
+          // Use original complaint category as-is, don't change it
+          // Only format basic categories, keep all other categories as they are
           $categoryDisplay = [
             'electric' => 'Electric',
             'technical' => 'Technical',
@@ -125,7 +127,8 @@
             'kitchen' => 'Kitchen',
             'other' => 'Other',
           ];
-          $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+          // If category exists in mapping, use it; otherwise use original category as-is
+          $catDisplay = $categoryDisplay[strtolower($category)] ?? $category;
           $displayText = $catDisplay . ' - ' . $designation;
           
           // Convert 'new' status to 'assigned' for display

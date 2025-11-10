@@ -227,6 +227,59 @@ class DashboardController extends Controller
         // Get monthly trends with filters
         $monthlyTrends = $this->getMonthlyTrends($user, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
 
+        // Get GE progress for Director or current GE user
+        $geProgress = [];
+        $userRoleName = strtolower($user->role->role_name ?? '');
+        $isDirector = $this->canViewAllData($user);
+        $isGE = ($userRoleName === 'garrison_engineer');
+        
+        if (($isDirector || $isGE) && $geRole) {
+            // If Director, show all active GEs
+            // If GE, show only their own progress (if they are active)
+            if ($isDirector) {
+                $geUsers = User::where('role_id', $geRole->id)
+                    ->where('status', 'active')
+                    ->whereNotNull('city_id')
+                    ->with('city')
+                    ->orderBy('name')
+                    ->get();
+            } else {
+                // GE user - show only their own progress if they are active
+                if ($user->status === 'active') {
+                    $geUsers = collect([$user]);
+                } else {
+                    $geUsers = collect();
+                }
+            }
+            
+            foreach ($geUsers as $geUser) {
+                // Get total complaints for this GE's city
+                $totalComplaints = Complaint::whereHas('client', function($q) use ($geUser) {
+                    if ($geUser->city_id && $geUser->city) {
+                        $q->where('city', $geUser->city->name);
+                    }
+                })->count();
+                
+                // Get resolved complaints for this GE's city
+                $resolvedComplaints = Complaint::whereHas('client', function($q) use ($geUser) {
+                    if ($geUser->city_id && $geUser->city) {
+                        $q->where('city', $geUser->city->name);
+                    }
+                })->where('status', 'resolved')->count();
+                
+                // Calculate progress percentage
+                $progressPercentage = $totalComplaints > 0 ? round(($resolvedComplaints / $totalComplaints) * 100, 2) : 0;
+                
+                $geProgress[] = [
+                    'ge' => $geUser,
+                    'city' => $geUser->city ? $geUser->city->name : 'N/A',
+                    'total_complaints' => $totalComplaints,
+                    'resolved_complaints' => $resolvedComplaints,
+                    'progress_percentage' => $progressPercentage,
+                ];
+            }
+        }
+
         return view('admin.dashboard', compact(
             'stats',
             'recentComplaints',
@@ -249,7 +302,8 @@ class DashboardController extends Controller
             'approvalStatus',
             'complaintStatus',
             'dateRange',
-            'geRole'
+            'geRole',
+            'geProgress'
         ));
     }
 

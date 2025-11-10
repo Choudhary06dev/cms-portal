@@ -17,7 +17,8 @@
   if ($complaint) {
     $category = $complaint->category ?? 'N/A';
 
-    // Map category for display
+    // Map category for display - use original complaint category as-is
+    // Only format basic categories, keep all other categories as they are
     $categoryDisplay = [
       'electric' => 'Electric',
       'technical' => 'Technical',
@@ -29,7 +30,8 @@
       'kitchen' => 'Kitchen',
       'other' => 'Other',
     ];
-    $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+    // If category exists in mapping, use it; otherwise use original category as-is
+    $catDisplay = $categoryDisplay[strtolower($category)] ?? $category;
 
     // Use assigned employee designation like index
     $designation = $complaint->assignedEmployee->designation ?? 'N/A';

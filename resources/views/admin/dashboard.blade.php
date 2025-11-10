@@ -1212,7 +1212,7 @@
             <table class="table table-dark ">
                 <thead>
                 <tr>
-                  <th>Ticket</th>
+                  <th>Complaint ID</th>
                   <th>Complaintant</th>
                   <th>Type</th>
                   <th>Status</th>
@@ -1222,7 +1222,7 @@
               <tbody>
             @forelse($recentComplaints ?? [] as $complaint)
                 <tr>
-                  <td>{{ $complaint->getTicketNumberAttribute() }}</td>
+                  <td>{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</td>
                   <td>{{ $complaint->client->client_name }}</td>
                   <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
                   <td>
@@ -1249,6 +1249,81 @@
       </div>
     </div>
 
+    <!-- GE PROGRESS SECTION (For Director Only) -->
+    @if(isset($geProgress) && count($geProgress) > 0)
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card-glass">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 text-white" style="font-weight: bold;">
+              <i data-feather="users" class="me-2"></i>GE Progress Overview
+            </h5>
+          </div>
+          <div class="row">
+            @php
+              $colorSchemes = [
+                ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => '#60a5fa', 'progress' => 'linear-gradient(90deg, #3b82f6, #60a5fa)'],
+                ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
+                ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
+                ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
+                ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
+              ];
+            @endphp
+            @foreach($geProgress as $index => $geData)
+            @php
+              $colorScheme = $colorSchemes[$index % count($colorSchemes)];
+              // Progress bar color - white/light color for better visibility on all gradient backgrounds
+              $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                              ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                              ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
+            @endphp
+            <div class="col-md-6 col-lg-4 mb-3">
+              <div class="card-glass" style="padding: 1.25rem; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; transition: all 0.3s ease;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.1rem;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
+                    <p class="mb-0 text-white" style="font-size: 0.85rem; opacity: 0.9;">
+                      <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
+                      {{ $geData['city'] }}
+                    </p>
+                  </div>
+                  <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                    <i data-feather="user-check" style="width: 24px; height: 24px; color: #ffffff;"></i>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-white" style="font-size: 0.9rem; font-weight: 500; opacity: 0.95;">Progress</span>
+                    <span class="text-white" style="font-weight: 700; font-size: 1.5rem;">{{ $geData['progress_percentage'] }}%</span>
+                  </div>
+                  <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.2); border-radius: 7px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, #f0f9ff 100%); border-radius: 7px; box-shadow: 0 2px 8px rgba(255, 255, 255, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.6); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.3);" 
+                         aria-valuenow="{{ $geData['progress_percentage'] }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                    <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                    <span style="font-weight: 600;">{{ $geData['resolved_complaints'] }}</span> Resolved
+                  </span>
+                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                    <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                    <span style="font-weight: 600;">{{ $geData['total_complaints'] }}</span> Total
+                  </span>
+                </div>
+              </div>
+            </div>
+            @endforeach
+          </div>
+        </div>
+      </div>
+    </div>
+    @endif
+
     <!-- APPROVALS SECTION -->
     @if(isset($pendingApprovals) && $pendingApprovals->count() > 0)
     <div class="row mt-4">
@@ -1269,8 +1344,7 @@
             <table class="table table-dark">
               <thead>
                 <tr>
-                  <th>Approval ID</th>
-                  <th>Complaint</th>
+                  <th>Complaint ID</th>
                   <th>Complaintant</th>
                   <th>Requested By</th>
                   <th>Status</th>
@@ -1282,8 +1356,7 @@
               <tbody>
                 @foreach($pendingApprovals as $approval)
                 <tr>
-                  <td>#{{ $approval->id }}</td>
-                  <td>{{ $approval->complaint ? $approval->complaint->getTicketNumberAttribute() : 'N/A' }}</td>
+                  <td>{{ $approval->complaint ? str_pad($approval->complaint->id, 4, '0', STR_PAD_LEFT) : 'N/A' }}</td>
                   <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
                   <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
                   <td>
