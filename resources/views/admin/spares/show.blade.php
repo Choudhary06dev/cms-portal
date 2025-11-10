@@ -35,7 +35,7 @@
     <div class="card-glass h-100">
       <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
         <i data-feather="package" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
-        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Personal Information</h5>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Product Information</h5>
       </div>
       
       <div class="info-item mb-3">

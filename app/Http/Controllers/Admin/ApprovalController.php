@@ -89,17 +89,11 @@ class ApprovalController extends Controller
                 });
             }
 
-            // Search functionality - by Complaint ID, Address, or Cell No (phone)
+            // Search functionality - by Complaint ID only
             if ($request->has('search') && $request->search) {
                 $search = trim($request->search);
                 if (!empty($search)) {
-                    $query->where(function($q) use ($search) {
-                        $q->where('complaints.id', 'like', "%{$search}%")
-                          ->orWhere('clients.client_name', 'like', "%{$search}%")
-                          ->orWhere('clients.address', 'like', "%{$search}%")
-                          ->orWhere('clients.phone', 'like', "%{$search}%")
-                          ->orWhere('complaints.title', 'like', "%{$search}%");
-                    });
+                    $query->where('complaints.id', 'like', "%{$search}%");
                 }
             }
 
