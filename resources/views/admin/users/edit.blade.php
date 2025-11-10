@@ -143,7 +143,7 @@
           <div class="mb-3">
             <label for="sector_id" class="form-label text-white">Sector</label>
             <select class="form-select @error('sector_id') is-invalid @enderror" 
-                    id="sector_id" name="sector_id">
+                    id="sector_id">
               <option value="">Select City first</option>
               @foreach($sectors as $sector)
                 <option value="{{ $sector->id }}" {{ old('sector_id', $user->sector_id) == $sector->id ? 'selected' : '' }}>
@@ -151,6 +151,8 @@
                 </option>
               @endforeach
             </select>
+            <!-- Hidden field to ensure sector_id is always submitted even when select is disabled -->
+            <input type="hidden" id="sector_id_hidden" name="sector_id" value="{{ old('sector_id', $user->sector_id) }}">
             <small class="text-muted">Required for: Complaint Center, Department Staff</small>
             @error('sector_id')
               <div class="invalid-feedback">{{ $message }}</div>
@@ -261,11 +263,21 @@
   // Dynamic sector loading based on city
   const citySelect = document.getElementById('city_id');
   const sectorSelect = document.getElementById('sector_id');
+  const sectorHidden = document.getElementById('sector_id_hidden');
   const roleSelect = document.getElementById('role_id');
   const currentCityId = '{{ old('city_id', $user->city_id) }}';
   const currentSectorId = '{{ old('sector_id', $user->sector_id) }}';
 
+  // Function to sync sector hidden field with select value
+  function syncSectorHidden() {
+    if (sectorHidden && sectorSelect) {
+      sectorHidden.value = sectorSelect.value || '';
+    }
+  }
+
   if (citySelect && sectorSelect) {
+    // Sync hidden field when sector select changes
+    sectorSelect.addEventListener('change', syncSectorHidden);
     citySelect.addEventListener('change', function() {
       const cityId = this.value;
       const roleText = roleSelect ? roleSelect.options[roleSelect.selectedIndex].text.toLowerCase() : '';
@@ -274,12 +286,14 @@
       if (roleText.includes('garrison engineer') || roleText.includes('garrison_engineer')) {
         sectorSelect.innerHTML = '<option value="">N/A (GE sees all sectors)</option>';
         sectorSelect.disabled = true;
+        SQLSTATE[HY000] [1049] Unknown database 'complaint_management' (Connection: mysql, SQL: select * from `sessions` where `id` = Q85bpOShOySQ8B2rMigCjfwkeEvqsefd5zAzQYgs limit 1)        syncSectorHidden(); // Clear hidden field
         return;
       }
       
       if (!cityId) {
         sectorSelect.innerHTML = '<option value="">Select City first</option>';
         sectorSelect.disabled = true;
+        syncSectorHidden(); // Clear hidden field
         return;
       }
 
@@ -308,11 +322,13 @@
           });
         }
         sectorSelect.disabled = false;
+        syncSectorHidden(); // Sync hidden field after loading
       })
       .catch(error => {
         console.error('Error loading sectors:', error);
         sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
         sectorSelect.disabled = false;
+        syncSectorHidden(); // Sync hidden field on error
       });
     });
 
@@ -327,25 +343,31 @@
           sectorSelect.disabled = true;
           citySelect.value = '';
           sectorSelect.innerHTML = '<option value="">Select City first</option>';
+          sectorSelect.value = '';
           citySelect.required = false;
           sectorSelect.required = false;
+          syncSectorHidden(); // Clear hidden field
         } else if (roleText.includes('garrison engineer') || roleText.includes('garrison_engineer')) {
           citySelect.disabled = false;
           sectorSelect.disabled = true;
           sectorSelect.innerHTML = '<option value="">N/A</option>';
+          sectorSelect.value = '';
           citySelect.required = true;
           sectorSelect.required = false;
+          syncSectorHidden(); // Clear hidden field
         } else if (roleText.includes('complaint center') || roleText.includes('complaint_center') || 
                    roleText.includes('department staff') || roleText.includes('department_staff')) {
           citySelect.disabled = false;
           citySelect.required = true;
           sectorSelect.required = true;
           // Sector will be enabled when city is selected
+          syncSectorHidden(); // Sync hidden field
         } else {
           citySelect.disabled = false;
           sectorSelect.disabled = false;
           citySelect.required = false;
           sectorSelect.required = false;
+          syncSectorHidden(); // Sync hidden field
         }
       });
 
@@ -359,6 +381,9 @@
     if (citySelect.value) {
       citySelect.dispatchEvent(new Event('change'));
     }
+    
+    // Initial sync of hidden field
+    syncSectorHidden();
   }
 </script>
 @endpush

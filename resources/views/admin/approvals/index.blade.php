@@ -2759,7 +2759,7 @@
     `;
     document.body.appendChild(alertDiv);
     
-    // Auto remove after 5 seconds
+    // Auto remove after 3 seconds
     setTimeout(() => {
       if (alertDiv.parentNode) {
         alertDiv.style.animation = 'fadeOut 0.3s ease-in forwards';
@@ -2769,7 +2769,7 @@
           }
         }, 300);
       }
-    }, 5000);
+    }, 3000);
   }
 
   function showError(message) {
