@@ -228,6 +228,8 @@
       // Update pagination
       if (newPagination && paginationContainer) {
         paginationContainer.innerHTML = newPagination.innerHTML;
+        // Re-initialize feather icons after pagination update
+        feather.replace();
       }
 
       // Update URL without reload

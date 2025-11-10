@@ -566,6 +566,8 @@
                 
                 if (newPagination && paginationContainer) {
                     paginationContainer.innerHTML = newPagination.innerHTML;
+                    // Re-initialize feather icons after pagination update
+                    feather.replace();
                 }
 
                 const newUrl = `{{ route('admin.complaints.index') }}?${params.toString()}`;
