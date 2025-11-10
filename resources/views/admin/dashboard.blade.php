@@ -1190,71 +1190,6 @@
       </div>
         </div>
 
-    <!-- MONTHLY TRENDS CHART -->
-    <div class="row mb-4">
-      <div class="col-12">
-    <div class="card-glass">
-      <h5 class="mb-3 text-white" style="font-weight: bold;">Monthly Trends</h5>
-      <div id="monthlyTrendsChart" style="height: 350px;"></div>
-        </div>
-      </div>
-            </div>
-
-    <!-- TABLES ROW -->
-    <div class="row">
-      <div class="col-12">
-        <div class="card-glass">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 text-white" style="font-weight: bold;">Recent Complaints</h5>
-        <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">View All</a>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-dark ">
-                <thead>
-                <tr>
-                  <th>Complaint ID</th>
-                  <th>Complaintant</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                </tr>
-                </thead>
-              <tbody>
-            @forelse($recentComplaints ?? [] as $complaint)
-                <tr>
-                  <td>{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</td>
-                  <td>{{ $complaint->client->client_name }}</td>
-                  <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
-                  <td>
-                    @if($complaint->status === 'resolved')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border: 1px solid #166534 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'in_progress')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'assigned')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'un_authorized')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border: 1px solid #db2777 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'pertains_to_ge_const_isld')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border: 1px solid #0891b2 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'product_na')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #6b7280 !important; color: #ffffff !important; border: 1px solid #4b5563 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @else
-                      <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @endif
-                  </td>
-                  <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="5" class="text-center py-3">No recent complaints</td>
-                </tr>
-                @endforelse
-                </tbody>
-              </table>
-        </div>
-      </div>
-    </div>
-
     <!-- GE PROGRESS SECTION (For Director Only) -->
     @if(isset($geProgress) && count($geProgress) > 0)
     <div class="row mt-4">
@@ -1330,6 +1265,71 @@
     </div>
     @endif
 
+    <!-- MONTHLY TRENDS CHART -->
+    <div class="row mb-4">
+      <div class="col-12">
+    <div class="card-glass">
+      <h5 class="mb-3 text-white" style="font-weight: bold;">Monthly Trends</h5>
+      <div id="monthlyTrendsChart" style="height: 350px;"></div>
+        </div>
+      </div>
+            </div>
+
+    <!-- TABLES ROW -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card-glass">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 text-white" style="font-weight: bold;">Recent Complaints</h5>
+        <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">View All</a>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-dark ">
+                <thead>
+                <tr>
+                  <th>Complaint ID</th>
+                  <th>Complainant</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                </tr>
+                </thead>
+              <tbody>
+            @forelse($recentComplaints ?? [] as $complaint)
+                <tr>
+                  <td>{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</td>
+                  <td>{{ $complaint->client->client_name }}</td>
+                  <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
+                  <td>
+                    @if($complaint->status === 'resolved')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border: 1px solid #166534 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'in_progress')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'assigned')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'un_authorized')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border: 1px solid #db2777 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'pertains_to_ge_const_isld')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border: 1px solid #0891b2 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'product_na')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #6b7280 !important; color: #ffffff !important; border: 1px solid #4b5563 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @else
+                      <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @endif
+                  </td>
+                  <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
+                </tr>
+                @empty
+                <tr>
+                  <td colspan="5" class="text-center py-3">No recent complaints</td>
+                </tr>
+                @endforelse
+                </tbody>
+              </table>
+        </div>
+      </div>
+    </div>
+
     <!-- APPROVALS SECTION -->
     @if(isset($pendingApprovals) && $pendingApprovals->count() > 0)
     <div class="row mt-4">
@@ -1351,11 +1351,11 @@
               <thead>
                 <tr>
                   <th>Complaint ID</th>
-                  <th>Complaintant</th>
-                  <th>Requested By</th>
+                  <th>Complainant</th>
+                  <th>Employee Assigned</th>
                   <th>Status</th>
                   <th>Items</th>
-                  <th>Created</th>
+                  <th>Registration Date/Time</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1467,7 +1467,7 @@
       'maint_performa' => '#eab308', // Yellow
       'work_priced_performa' => '#9333ea', // Purple
       'maint_priced_performa' => '#ea580c', // Orange Red
-      'product_na' => '#6b7280', // Gray
+      'product_na' => '#000000', // Black
       'un_authorized' => '#ec4899', // Pink (same as approvals view)
       'pertains_to_ge_const_isld' => '#06b6d4', // Aqua/Cyan (same as approvals view)
     ];

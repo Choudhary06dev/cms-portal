@@ -152,7 +152,7 @@
             'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'], // Dark Yellow
             'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
             'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
-            'product_na' => ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'], // Gray
+            'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'], // Black
             'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'], // Pink
             'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'], // Aqua/Cyan
             'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
@@ -3200,7 +3200,7 @@
     'maint_performa': { bg: '#eab308', text: '#ffffff', border: '#ca8a04' }, // Dark Yellow
     'work_priced_performa': { bg: '#9333ea', text: '#ffffff', border: '#7e22ce' }, // Purple
     'maint_priced_performa': { bg: '#ea580c', text: '#ffffff', border: '#c2410c' }, // Dark Orange
-    'product_na': { bg: '#6b7280', text: '#ffffff', border: '#4b5563' }, // Gray
+    'product_na': { bg: '#000000', text: '#ffffff', border: '#1a1a1a' }, // Black
     'un_authorized': { bg: '#ec4899', text: '#ffffff', border: '#db2777' }, // Pink
     'pertains_to_ge_const_isld': { bg: '#06b6d4', text: '#ffffff', border: '#0891b2' }, // Aqua/Cyan
     'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
@@ -3315,13 +3315,13 @@
             newStatus = 'in_progress';
           } else if (newStatus === 'product_na') {
             performaBadge.textContent = 'Product N/A';
-            performaBadge.style.backgroundColor = '#6b7280';
+            performaBadge.style.backgroundColor = '#000000';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
             performaBadge.style.display = 'inline-block';
             // Update status to product_na
             select.value = 'product_na';
-            updateStatusSelectColor(select, 'product_na'); // Apply gray color for product_na
+            updateStatusSelectColor(select, 'product_na'); // Apply black color for product_na
             newStatus = 'product_na';
           }
         }
@@ -3391,7 +3391,7 @@
             performaBadge.style.display = 'inline-block';
           } else if (savedFlag === 'product_na') {
             performaBadge.textContent = 'Product N/A';
-            performaBadge.style.backgroundColor = '#6b7280';
+            performaBadge.style.backgroundColor = '#000000';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
           }
@@ -3653,7 +3653,7 @@
         updateStatusSelectColor(sel, 'in_progress');
       } else if (saved === 'product_na') {
         badge.textContent = 'Product N/A';
-        badge.style.backgroundColor = '#6b7280';
+        badge.style.backgroundColor = '#000000';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
