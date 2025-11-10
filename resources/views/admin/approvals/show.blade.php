@@ -1,6 +1,6 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Approval Details — CMS Admin')
+@section('title', 'Complaint Details — CMS Admin')
 
 @section('content')
 <!-- PAGE HEADER -->
@@ -116,7 +116,7 @@
   </div>
 </div>
 
-<!-- APPROVAL DETAILS -->
+<!-- COMPLAINT DETAILS -->
 <div class="row">
   <!-- Personal Information -->
   <div class="col-md-6 mb-4">

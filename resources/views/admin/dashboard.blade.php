@@ -1190,79 +1190,14 @@
       </div>
         </div>
 
-    <!-- MONTHLY TRENDS CHART -->
-    <div class="row mb-4">
-      <div class="col-12">
-    <div class="card-glass">
-      <h5 class="mb-3 text-white" style="font-weight: bold;">Monthly Trends</h5>
-      <div id="monthlyTrendsChart" style="height: 350px;"></div>
-        </div>
-      </div>
-            </div>
-
-    <!-- TABLES ROW -->
-    <div class="row">
-      <div class="col-12">
-        <div class="card-glass">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 text-white" style="font-weight: bold;">Recent Complaints</h5>
-        <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">View All</a>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-dark ">
-                <thead>
-                <tr>
-                  <th>Complaint ID</th>
-                  <th>Complaintant</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                </tr>
-                </thead>
-              <tbody>
-            @forelse($recentComplaints ?? [] as $complaint)
-                <tr>
-                  <td>{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</td>
-                  <td>{{ $complaint->client->client_name }}</td>
-                  <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
-                  <td>
-                    @if($complaint->status === 'resolved')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border: 1px solid #166534 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'in_progress')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'assigned')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'un_authorized')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border: 1px solid #db2777 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'pertains_to_ge_const_isld')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border: 1px solid #0891b2 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'product_na')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #6b7280 !important; color: #ffffff !important; border: 1px solid #4b5563 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @else
-                      <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @endif
-                  </td>
-                  <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="5" class="text-center py-3">No recent complaints</td>
-                </tr>
-                @endforelse
-                </tbody>
-              </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- GE PROGRESS SECTION (For Director Only) -->
+    <!-- GE FEEDBACK SECTION (For Director Only) -->
     @if(isset($geProgress) && count($geProgress) > 0)
     <div class="row mt-4">
       <div class="col-12">
         <div class="card-glass">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0 text-white" style="font-weight: bold;">
-              <i data-feather="users" class="me-2"></i>GE Progress Overview
+              <i data-feather="users" class="me-2"></i>GE Feedback Overview
             </h5>
           </div>
           <div class="row">
@@ -1330,6 +1265,16 @@
     </div>
     @endif
 
+    <!-- MONTHLY TRENDS CHART -->
+    <div class="row mb-4">
+      <div class="col-12">
+    <div class="card-glass">
+      <h5 class="mb-3 text-white" style="font-weight: bold;">Monthly Trends</h5>
+      <div id="monthlyTrendsChart" style="height: 350px;"></div>
+        </div>
+      </div>
+            </div>
+
     <!-- APPROVALS SECTION -->
     @if(isset($pendingApprovals) && $pendingApprovals->count() > 0)
     <div class="row mt-4">
@@ -1351,11 +1296,11 @@
               <thead>
                 <tr>
                   <th>Complaint ID</th>
-                  <th>Complaintant</th>
-                  <th>Requested By</th>
+                  <th>Complainant Name</th>
+                  <th>Assigned Employee</th>
                   <th>Status</th>
                   <th>Items</th>
-                  <th>Created</th>
+                  <th>Registration Date/Time</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1364,7 +1309,7 @@
                 <tr>
                   <td>{{ $approval->complaint ? str_pad($approval->complaint->id, 4, '0', STR_PAD_LEFT) : 'N/A' }}</td>
                   <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
-                  <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
+                  <td>{{ $approval->complaint && $approval->complaint->assignedEmployee ? $approval->complaint->assignedEmployee->name : 'N/A' }}</td>
                   <td>
                     @php
                       $statusColors = [
@@ -1381,9 +1326,9 @@
                   <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
                   <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
                   <td>
-                    <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-sm btn-outline-primary">
+                    <button type="button" onclick="viewApproval({{ $approval->id }})" class="btn btn-sm btn-outline-primary">
                       <i data-feather="eye" class="me-1"></i>View
-                    </a>
+                    </button>
                   </td>
                 </tr>
                 @endforeach
@@ -1440,7 +1385,80 @@
       </div>
         </div>
     @endif
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1" aria-labelledby="approvalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+                <h5 class="modal-title text-white" id="approvalModalLabel">
+                    <i data-feather="file-check" class="me-2"></i>Complaint Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeApprovalModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+            </div>
+            <div class="modal-body" id="approvalModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('styles')
+<style>
+  body.modal-open-blur {
+      overflow: hidden;
+  }
+  body.modal-open-blur::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 1040;
+      pointer-events: none;
+  }
+  body.modal-open-blur .modal-backdrop,
+  #approvalModal.modal.show ~ .modal-backdrop,
+  #approvalModal.modal.show + .modal-backdrop,
+  .modal-backdrop.show,
+  .modal-backdrop {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      pointer-events: none !important;
+  }
+  
+  /* Ensure modal content is above blur layer */
+  #approvalModal {
+      z-index: 1055 !important;
+  }
+  
+  #approvalModal .modal-dialog {
+      z-index: 1055 !important;
+      position: relative;
+  }
+  
+  #approvalModal .modal-content {
+      max-height: 90vh;
+      overflow-y: auto;
+      z-index: 1055 !important;
+      position: relative;
+  }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -1583,7 +1601,61 @@
     // Complaints by Type Chart
   @php
     $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [0, 0, 0, 0];
-    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return ucfirst($type); }, array_keys($complaintsByType)) : ['Electric', 'Sanitary', 'Kitchen', 'General'];
+    $typeKeys = isset($complaintsByType) ? array_keys($complaintsByType) : ['electric', 'sanitary', 'kitchen', 'general'];
+    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return ucfirst($type); }, $typeKeys) : ['Electric', 'Sanitary', 'Kitchen', 'General'];
+    
+    // Color mapping for complaint types/categories
+    $typeColorMap = [
+      'electric' => '#3b82f6', // Blue
+      'sanitary' => '#f59e0b', // Orange
+      'kitchen' => '#a855f7', // Purple
+      'general' => '#22c55e', // Green
+      'b&r-i' => '#3b82f6', // Blue
+      'b&r-ii' => '#8b5cf6', // Purple (different from B&R-I)
+      'b&r-2' => '#8b5cf6', // Purple (alternative for B&R-II)
+      'e&m nrc (electric)' => '#f59e0b', // Orange
+      'e&m nrc (water supply)' => '#ec4899', // Pink (different from B&R-I)
+      'e&m nrc (electric supply)' => '#f59e0b', // Orange
+    ];
+    
+    // Map colors based on type keys (case-insensitive)
+    $typeColors = array_map(function($type) use ($typeColorMap) {
+      $typeLower = strtolower(trim($type));
+      // Try exact match first
+      if (isset($typeColorMap[$typeLower])) {
+        return $typeColorMap[$typeLower];
+      }
+      // Try partial matches
+      if (stripos($typeLower, 'b&r-ii') !== false || stripos($typeLower, 'br-ii') !== false || stripos($typeLower, 'b&r-2') !== false || stripos($typeLower, 'br-2') !== false) {
+        return '#8b5cf6'; // Purple (different from B&R-I)
+      }
+      if (stripos($typeLower, 'b&r-i') !== false || stripos($typeLower, 'br-i') !== false) {
+        return '#3b82f6'; // Blue
+      }
+      if (stripos($typeLower, 'e&m nrc (water supply)') !== false || stripos($typeLower, 'water supply') !== false) {
+        return '#ec4899'; // Pink (different from B&R-I)
+      }
+      if (stripos($typeLower, 'e&m nrc (electric') !== false || stripos($typeLower, 'electric') !== false) {
+        return '#f59e0b'; // Orange
+      }
+      if (stripos($typeLower, 'sanitary') !== false) {
+        return '#f59e0b'; // Orange
+      }
+      if (stripos($typeLower, 'kitchen') !== false) {
+        return '#a855f7'; // Purple
+      }
+      if (stripos($typeLower, 'general') !== false) {
+        return '#22c55e'; // Green
+      }
+      // Default colors for unknown types
+      return '#64748b'; // Gray
+    }, $typeKeys);
+    
+    // Ensure we have enough colors (fallback to default array if needed)
+    if (empty($typeColors) || count($typeColors) < count($typeKeys)) {
+      $defaultColors = ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e', '#10b981', '#ec4899', '#06b6d4', '#8b5cf6'];
+      $typeColors = array_slice($defaultColors, 0, count($typeKeys));
+    }
   @endphp
     var complaintsTypeOptions = {
     series: @json($typeData),
@@ -1593,7 +1665,7 @@
         background: 'transparent'
       },
     labels: @json($typeLabels),
-      colors: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'],
+      colors: @json($typeColors),
       legend: {
         position: 'bottom',
         labels: {
@@ -1884,6 +1956,209 @@
         attributes: true,
         attributeFilter: ['class']
       });
+    }
+
+    // Approval Functions
+    function viewApproval(approvalId) {
+      if (!approvalId) {
+        alert('Invalid approval ID');
+        return;
+      }
+      
+      const modalElement = document.getElementById('approvalModal');
+      const modalBody = document.getElementById('approvalModalBody');
+      
+      if (!modalElement || !modalBody) {
+        alert('Modal not found');
+        return;
+      }
+      
+      // Show loading state
+      modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+      
+      // Add blur effect to background first
+      document.body.classList.add('modal-open-blur');
+      
+      // Show modal WITHOUT backdrop so we can see the blurred background
+      const modal = new bootstrap.Modal(modalElement, {
+        backdrop: false, // Disable Bootstrap backdrop completely
+        keyboard: true,
+        focus: true
+      });
+      modal.show();
+      
+      // Ensure any backdrop that might be created is removed
+      const removeBackdrop = () => {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
+          backdrop.remove(); // Remove from DOM
+        });
+      };
+      
+      // Use MutationObserver to catch and remove any backdrop creation
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+              node.remove(); // Remove immediately if created
+            }
+          });
+        });
+        removeBackdrop();
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Remove any existing backdrops
+      removeBackdrop();
+      setTimeout(removeBackdrop, 10);
+      setTimeout(removeBackdrop, 50);
+      setTimeout(removeBackdrop, 100);
+      
+      // Clean up observer when modal is hidden
+      modalElement.addEventListener('hidden.bs.modal', function() {
+        observer.disconnect();
+        removeBackdrop();
+      }, { once: true });
+      
+      // Load approval details via AJAX - force HTML response
+      fetch(`/admin/approvals/${approvalId}?format=html`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/html',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json().then(data => {
+            throw new Error('Received JSON instead of HTML. Please check the route.');
+          });
+        }
+        return response.text();
+      })
+      .then(html => {
+        // Check if response is actually JSON (starts with {)
+        if (html.trim().startsWith('{')) {
+          console.error('Received JSON instead of HTML');
+          modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Server returned JSON instead of HTML. Please check the route configuration.</div>';
+          return;
+        }
+        
+        // Extract the content from the show page
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Get the content section - try multiple selectors
+        let contentSection = doc.querySelector('section.content');
+        if (!contentSection) {
+          contentSection = doc.querySelector('.content');
+        }
+        if (!contentSection) {
+          // Try to find the main content area
+          const mainContent = doc.querySelector('main') || doc.querySelector('[role="main"]');
+          if (mainContent) {
+            contentSection = mainContent;
+          } else {
+            contentSection = doc.body;
+          }
+        }
+        
+        // Extract the approval details sections
+        let approvalContent = '';
+        
+        // Get all rows that contain approval information (skip page header)
+        const allRows = contentSection.querySelectorAll('.row');
+        const seenRows = new Set();
+        
+        allRows.forEach(row => {
+          // Skip rows that are in page headers
+          const isInHeader = row.closest('.mb-4') && row.closest('.mb-4').querySelector('h2');
+          
+          // Check if this row contains card-glass elements
+          const hasCardGlass = row.querySelector('.card-glass');
+          
+          if (!isInHeader && hasCardGlass) {
+            const rowHTML = row.outerHTML;
+            // Use a simple hash to avoid duplicates
+            const rowId = rowHTML.substring(0, 200);
+            if (!seenRows.has(rowId)) {
+              seenRows.add(rowId);
+              approvalContent += rowHTML;
+            }
+          }
+        });
+        
+        // Also extract standalone card-glass elements (like Requested Items section)
+        const allCards = contentSection.querySelectorAll('.card-glass');
+        const seenCards = new Set();
+        
+        allCards.forEach(card => {
+          // Skip cards that are in page headers
+          const parentRow = card.closest('.row');
+          const isInHeader = parentRow && parentRow.closest('.mb-4') && parentRow.closest('.mb-4').querySelector('h2');
+          
+          // Skip if already added from rows
+          const cardHTML = card.outerHTML;
+          const cardId = cardHTML.substring(0, 300);
+          
+          if (!isInHeader && !seenCards.has(cardId) && !approvalContent.includes(cardHTML.substring(0, 100))) {
+            seenCards.add(cardId);
+            // Check if it's already in a row that was added
+            const isInAddedRow = parentRow && approvalContent.includes(parentRow.outerHTML.substring(0, 100));
+            if (!isInAddedRow) {
+              approvalContent += '<div class="mb-3">' + cardHTML + '</div>';
+            }
+          }
+        });
+        
+        if (approvalContent) {
+          modalBody.innerHTML = approvalContent;
+          // Replace feather icons after content is loaded
+          setTimeout(() => {
+            feather.replace();
+          }, 100);
+        } else {
+          console.error('Could not find approval content in response');
+          console.log('Content section:', contentSection);
+          console.log('Found cards:', contentSection.querySelectorAll('.card-glass').length);
+          modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not load approval details. Please refresh and try again.</div>';
+        }
+      })
+      .catch(error => {
+        console.error('Error loading approval:', error);
+        modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading approval details: ' + error.message + '. Please try again.</div>';
+      });
+      
+      // Replace feather icons when modal is shown
+      modalElement.addEventListener('shown.bs.modal', function() {
+        feather.replace();
+      });
+      
+      // Remove blur when modal is hidden
+      modalElement.addEventListener('hidden.bs.modal', function() {
+        document.body.classList.remove('modal-open-blur');
+        feather.replace();
+      }, { once: true });
+    }
+    
+    function closeApprovalModal() {
+      const modalElement = document.getElementById('approvalModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+      }
+      document.body.classList.remove('modal-open-blur');
     }
 </script>
 @endpush
