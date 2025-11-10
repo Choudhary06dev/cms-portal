@@ -118,9 +118,19 @@ class ApprovalController extends Controller
                 $query->where('complaints.category', $request->category);
             }
 
-            // Filter by complaint status (same as status column dropdown)
+            // Filter by complaint status or performa_type (combined in status filter)
             if ($request->has('status') && $request->status) {
-                $query->where('complaints.status', $request->status);
+                $statusValue = $request->status;
+                // Check if it's a performa_type filter (prefixed with 'performa_')
+                if (strpos($statusValue, 'performa_') === 0) {
+                    $performaType = str_replace('performa_', '', $statusValue);
+                    $query->where('spare_approval_performa.performa_type', $performaType);
+                    // Exclude "Addressed" (resolved) complaints when filtering by performa_type
+                    $query->where('complaints.status', '!=', 'resolved');
+                } else {
+                    // Regular status filter
+                    $query->where('complaints.status', $statusValue);
+                }
             }
 
             // Filter by requester or by complaint's assigned employee (using the same requested_by param)
@@ -216,25 +226,37 @@ class ApprovalController extends Controller
                 }
             }
 
-            // Get unique complaint statuses from database (only existing ones) - same as status column dropdown
-            $statuses = Complaint::select('status')
-                ->distinct()
-                ->whereNotNull('status')
-                ->pluck('status')
-                ->unique()
-                ->values()
-                ->mapWithKeys(function($status) {
-                    $statusLabels = [
-                        'assigned' => 'Assigned',
-                        'in_progress' => 'In-Process',
-                        'resolved' => 'Addressed',
-                        'work_performa' => 'Work Performa',
-                        'maint_performa' => 'Maint Performa',
-                        'priced_performa' => 'Maint/Work Priced',
-                        'product_na' => 'Product N/A',
-                    ];
-                    return [$status => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status))];
-                });
+            // Define all possible status labels - show all these in dropdown
+            $statusLabels = [
+                'assigned' => 'Assigned',
+                'in_progress' => 'In-Process',
+                'resolved' => 'Addressed',
+                'priced_performa' => 'Maint/Work Priced',
+                'work_priced_performa' => 'Work Performa Priced',
+                'maint_priced_performa' => 'Maintenance Performa Priced',
+                'product_na' => 'Product N/A',
+                'un_authorized' => 'Un-Authorized',
+                'pertains_to_ge_const_isld' => 'Pertains to GE(N) Const Isld',
+            ];
+
+            // Build statuses collection from defined labels - show all regardless of database
+            $statuses = collect($statusLabels);
+
+            // Define performa type labels
+            $performaTypeLabels = [
+                'work_performa' => 'Work Performa Required',
+                'maint_performa' => 'Maintenance Performa Required',
+            ];
+
+            // Build performa types collection - prefix with 'performa_' to distinguish from status values
+            $performaTypes = collect($performaTypeLabels)->mapWithKeys(function($label, $type) {
+                return ['performa_' . $type => $label];
+            });
+
+            // Merge statuses and performa types into one collection, filter out any empty/null values
+            $statuses = $statuses->merge($performaTypes)->filter(function($label, $key) {
+                return !empty($label) && !empty($key) && $key !== '';
+            });
 
             // Handle AJAX requests - return only table and pagination
             if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {

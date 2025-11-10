@@ -76,16 +76,17 @@ class DashboardController extends Controller
         if (Schema::hasTable('sectors')) {
             if (!$user->sector_id) {
                 // User has no sector_id assigned, can see sectors
-                if ($user->city_id) {
-                    // If user has city_id, show sectors in their city
-                    $sectors = Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('name')->get();
-                } else {
+                if (!$user->city_id) {
                     // If user has no city_id, show all sectors or sectors of selected city
                     if ($cityId) {
                         $sectors = Sector::where('city_id', $cityId)->where('status', 'active')->orderBy('name')->get();
                     } else {
+                        // User has no city_id and no sector_id - show all sectors
                         $sectors = Sector::where('status', 'active')->orderBy('name')->get();
                     }
+                } else {
+                    // If user has city_id, show sectors in their city
+                    $sectors = Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('name')->get();
                 }
             } elseif ($user->sector_id && $user->sector) {
                 // User has sector_id assigned, sees only their sector
@@ -129,8 +130,9 @@ class DashboardController extends Controller
             'in_progress' => 'In-Process',
             'resolved' => 'Addressed',
             'work_performa' => 'Work Performa',
-            'maint_performa' => 'Maint Performa',
-            'priced_performa' => 'Maint/Work Priced',
+            'maint_performa' => 'Maintenance Performa',
+            'work_priced_performa' => 'Work Performa Priced',
+            'maint_priced_performa' => 'Maintenance Performa Priced',
             'product_na' => 'Product N/A',
         ];
         
@@ -290,11 +292,12 @@ class DashboardController extends Controller
         
         // Filter by complaint status
         if ($complaintStatus) {
-            // Handle special performa statuses
-            if ($complaintStatus === 'work_performa' || $complaintStatus === 'maint_performa' || $complaintStatus === 'priced_performa' || $complaintStatus === 'product_na') {
+            // Handle special performa statuses - work_performa and maint_performa are shown as in_progress
+            if ($complaintStatus === 'work_performa' || $complaintStatus === 'maint_performa') {
                 // These are shown as in_progress with special badges
                 $query->where('status', 'in_progress');
             } else {
+                // For priced performa and other statuses, filter by actual status
                 $query->where('status', $complaintStatus);
             }
         }
@@ -373,9 +376,8 @@ class DashboardController extends Controller
         return [
             // Complaint statistics with location filtering
             'total_complaints' => (clone $complaintsQuery)->count(),
-            'new_complaints' => (clone $complaintsQuery)->where('status', 'new')->count(),
-            'pending_complaints' => (clone $complaintsQuery)->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
-            'resolved_complaints' => (clone $complaintsQuery)->whereIn('status', ['resolved', 'closed'])->count(),
+            'pending_complaints' => (clone $complaintsQuery)->whereIn('status', ['assigned', 'in_progress'])->count(),
+            'addressed_complaints' => (clone $complaintsQuery)->where('status', 'resolved')->count(),
             'overdue_complaints' => (clone $complaintsQuery)->where(function($q) {
                 return $q->overdue();
             })->count(),
@@ -454,7 +456,7 @@ class DashboardController extends Controller
             // Get resolutions for this month with location and filters
             $resolutionsQuery = Complaint::whereYear('updated_at', $date->year)
                 ->whereMonth('updated_at', $date->month)
-                ->whereIn('status', ['resolved', 'closed']);
+                ->where('status', 'resolved');
             $this->filterComplaintsByLocation($resolutionsQuery, $user);
             $this->applyFilters($resolutionsQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
             $resolutions[] = $resolutionsQuery->count();
@@ -474,7 +476,7 @@ class DashboardController extends Controller
     {
         $timeDiff = $this->getTimeDiffFromNow('created_at');
         
-        return Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])
+        return Complaint::whereIn('status', ['assigned', 'in_progress'])
             ->whereRaw("{$timeDiff} > (SELECT max_response_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active')")
             ->count();
     }

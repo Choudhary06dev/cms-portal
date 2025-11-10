@@ -647,15 +647,13 @@
     text-transform: capitalize !important;
   }
   
-  .theme-light .status-badge.status-new,
   .theme-light .status-badge.status-pending {
     background: rgba(234, 88, 12, 0.1) !important;
     color: #ea580c !important;
     border: 1px solid rgba(234, 88, 12, 0.2) !important;
   }
   
-  .theme-light .status-badge.status-resolved,
-  .theme-light .status-badge.status-closed {
+  .theme-light .status-badge.status-resolved {
     background: rgba(22, 163, 74, 0.1) !important;
     color: #16a34a !important;
     border: 1px solid rgba(22, 163, 74, 0.2) !important;
@@ -972,12 +970,23 @@
     <!-- FILTERS SECTION -->
     @php
       $user = Auth::user();
+      // Get filter values from request
+      $filterCityId = request('city_id');
+      if (!$filterCityId && isset($cityId)) {
+        $filterCityId = $cityId;
+      }
+      
       // Check user table: if city_id is null, user can see all cities, so show city filter
+      // Keep GE filter visible at all times when user has no city assigned (don't hide when city is selected)
       // If city_id is not null, user is assigned to specific city, so don't show city filter
-      $showCityFilter = $user && !$user->city_id;
+      // Show GE filter if: user exists AND user has no city_id (regardless of filter selection)
+      $userHasNoCity = $user && (is_null($user->city_id) || $user->city_id == 0 || $user->city_id === '');
+      // Always show GE filter if user has no city assigned, even when a city is selected in filter
+      $showCityFilter = $userHasNoCity;
+      
       // Check user table: if sector_id is null, user can see sectors (all or in their city), so show sector filter
       // If sector_id is not null, user is assigned to specific sector, so don't show sector filter
-      $showSectorFilter = $user && !$user->sector_id;
+      $showSectorFilter = $user && (!$user->sector_id || $user->sector_id == null || $user->sector_id == 0 || $user->sector_id == '');
     @endphp
     
     @if($showCityFilter || $showSectorFilter || $categories->count() > 0 || (isset($complaintStatuses) && count($complaintStatuses) > 0) || true)
@@ -985,52 +994,56 @@
       <div class="card-glass" style="display: inline-block; width: fit-content; padding: 1.5rem; background: linear-gradient(135deg,rgb(154, 205, 239) 0%,rgb(153, 207, 237) 100%) !important; border: 1px solid #7dd3fc;">
         <form id="dashboardFiltersForm" method="GET" action="{{ route('admin.dashboard') }}">
           <div class="row g-2 align-items-end">
-          @if($showCityFilter && $cities->count() > 0)
-          <div class="col-auto">
+          @if($showCityFilter)
+          <div class="col-auto" id="cityFilterContainer">
             <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">GE</label>
             <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value=""> Select GE</option>
-              @foreach($cities as $city)
-                @php
-                  $geUser = $city->users->where('role_id', $geRole->id ?? null)->where('status', 'active')->first();
-                  $displayName = $city->name;
-                  if ($geUser) {
-                    if ($geUser->name) {
-                      $displayName = $geUser->name . ' - ' . $city->name;
-                    } elseif ($geUser->username) {
-                      $displayName = $geUser->username . ' - ' . $city->name;
+              @if($cities && $cities->count() > 0)
+                @foreach($cities as $city)
+                  @php
+                    $geUser = $city->users->where('role_id', $geRole->id ?? null)->where('status', 'active')->first();
+                    $displayName = $city->name;
+                    if ($geUser) {
+                      if ($geUser->name) {
+                        $displayName = $geUser->name . ' - ' . $city->name;
+                      } elseif ($geUser->username) {
+                        $displayName = $geUser->username . ' - ' . $city->name;
+                      }
                     }
-                  }
-                @endphp
-                <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $displayName }}</option>
-              @endforeach
+                  @endphp
+                  <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $displayName }}</option>
+                @endforeach
+              @endif
             </select>
           </div>
           @endif
           
-          @if($showSectorFilter && $sectors->count() > 0)
+          @if($showSectorFilter)
           <div class="col-auto">
             <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Sector</label>
             <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value="">All Sectors</option>
-              @foreach($sectors as $sector)
-                <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
-              @endforeach
+              @if($sectors && $sectors->count() > 0)
+                @foreach($sectors as $sector)
+                  <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
+                @endforeach
+              @endif
             </select>
           </div>
           @endif
           
-          @if($categories->count() > 0)
           <div class="col-auto">
             <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Complaint Category</label>
             <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value="">All Categories</option>
-              @foreach($categories as $cat)
-                <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-              @endforeach
+              @if($categories && $categories->count() > 0)
+                @foreach($categories as $cat)
+                  <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                @endforeach
+              @endif
             </select>
           </div>
-          @endif
           
           @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
           <div class="col-auto">
@@ -1101,8 +1114,8 @@
     <div class="card-glass">
       <div class="d-flex align-items-center">
         <div class="flex-grow-1">
-          <div class="h4 mb-1 text-success" style="font-size: 2rem; font-weight: bold;">{{ $stats['resolved_complaints'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Resolved</div>
+          <div class="h4 mb-1 text-success" style="font-size: 2rem; font-weight: bold;">{{ $stats['addressed_complaints'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Addressed</div>
         </div>
         <div class="text-success">
           <i data-feather="check-circle" class="feather-lg"></i>
@@ -1213,11 +1226,11 @@
                   <td>{{ $complaint->client->client_name }}</td>
                   <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
                   <td>
-                    @if($complaint->status === 'resolved' || $complaint->status === 'closed')
+                    @if($complaint->status === 'resolved')
                       <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border: 1px solid #166534 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @elseif($complaint->status === 'in_progress')
                       <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'new' || $complaint->status === 'assigned')
+                    @elseif($complaint->status === 'assigned')
                       <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @else
                       <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
@@ -1366,18 +1379,104 @@
 
     // Complaints by Status Chart
   @php
+    // Status colors mapping (same as in approvals view)
+    $statusColorMap = [
+      'assigned' => '#3b82f6', // Blue
+      'in_progress' => '#dc2626', // Red
+      'resolved' => '#16a34a', // Green
+      'work_performa' => '#60a5fa', // Light Blue
+      'maint_performa' => '#eab308', // Yellow
+      'work_priced_performa' => '#9333ea', // Purple
+      'maint_priced_performa' => '#ea580c', // Orange Red
+      'product_na' => '#6b7280', // Gray
+      'un_authorized' => '#ef4444', // Red Pink
+      'pertains_to_ge_const_isld' => '#10b981', // Emerald Green
+    ];
+    
+    // All possible statuses from approvals page (in order)
+    $allPossibleStatuses = [
+      'assigned',
+      'in_progress',
+      'resolved',
+      'work_performa',
+      'maint_performa',
+      'work_priced_performa',
+      'maint_priced_performa',
+      'product_na',
+      'un_authorized',
+      'pertains_to_ge_const_isld'
+    ];
+    
+    // Ensure we preserve the order of statuses and include all possible statuses
+    $statusKeys = isset($complaintsByStatus) ? array_keys($complaintsByStatus) : [];
     $statusData = isset($complaintsByStatus) ? array_values($complaintsByStatus) : [0, 0, 0, 0, 0];
-    $statusLabels = isset($complaintsByStatus) ? array_map(function($status) { return ucfirst(str_replace('_', ' ', $status)); }, array_keys($complaintsByStatus)) : ['New', 'Assigned', 'In Progress', 'Resolved', 'Closed'];
+    
+    // Merge with all possible statuses to ensure all are included (even with 0 count)
+    $mergedStatusData = [];
+    $mergedStatusKeys = [];
+    foreach ($allPossibleStatuses as $status) {
+      $mergedStatusKeys[] = $status;
+      $mergedStatusData[] = isset($complaintsByStatus[$status]) ? $complaintsByStatus[$status] : 0;
+    }
+    
+    // Use merged data if we have complaintsByStatus, otherwise use original
+    if (isset($complaintsByStatus) && !empty($complaintsByStatus)) {
+      $statusKeys = $mergedStatusKeys;
+      $statusData = $mergedStatusData;
+    }
+    
+    $statusLabels = isset($complaintsByStatus) ? array_map(function($status) { 
+      $label = ucfirst(str_replace('_', ' ', $status));
+      // Handle special cases
+      if ($label === 'Resolved') {
+        return 'Addressed';
+      } elseif ($status === 'work_performa') {
+        return 'Work Performa';
+      } elseif ($status === 'maint_performa') {
+        return 'Maintenance Performa';
+      } elseif ($status === 'work_priced_performa') {
+        return 'Work Performa Priced';
+      } elseif ($status === 'maint_priced_performa') {
+        return 'Maintenance Performa Priced';
+      } elseif ($status === 'product_na') {
+        return 'Product N/A';
+      } elseif ($status === 'un_authorized') {
+        return 'Un-Authorized';
+      } elseif ($status === 'pertains_to_ge_const_isld') {
+        return 'Pertains to GE(N) Const Isld';
+      } elseif ($status === 'in_progress') {
+        return 'In-Process';
+      }
+      return $label;
+    }, $statusKeys) : ['New', 'Assigned', 'In Progress', 'Addressed'];
+    
+    // Map colors based on status keys - ensure same order as data
+    $statusColors = isset($complaintsByStatus) ? array_map(function($status) use ($statusColorMap) {
+      return $statusColorMap[$status] ?? '#64748b'; // Default gray if status not found
+    }, $statusKeys) : ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e', '#6b7280'];
   @endphp
+    var statusDataArray = @json($statusData);
+    var statusLabelsArray = @json($statusLabels);
+    var statusColorsArray = @json($statusColors);
+    
     var complaintsStatusOptions = {
-    series: @json($statusData),
+    series: statusDataArray,
       chart: {
         type: 'donut',
         height: 300,
         background: 'transparent'
       },
-    labels: @json($statusLabels),
-      colors: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e', '#6b7280'],
+    labels: statusLabelsArray,
+      colors: statusColorsArray,
+      plotOptions: {
+        pie: {
+          donut: {
+            labels: {
+              show: true
+            }
+          }
+        }
+      },
       legend: {
         position: 'bottom',
         labels: {
@@ -1561,12 +1660,33 @@
     const sectorFilter = document.getElementById('sectorFilter');
     const categoryFilter = document.getElementById('categoryFilter');
     
+    // Keep GE filter visible at all times - don't hide it
+    // @if($user && !$user->city_id)
+    // const cityFilterContainer = document.getElementById('cityFilterContainer');
+    // if (cityFilterContainer && cityFilter) {
+    //   const selectedCityId = cityFilter.value;
+    //   if (selectedCityId && selectedCityId !== '') {
+    //     cityFilterContainer.style.display = 'none';
+    //   }
+    // }
+    // @endif
+    
     // Auto-apply filters on change (like other modules)
     if (cityFilter) {
       cityFilter.addEventListener('change', function() {
         @if($user && !$user->city_id)
         // User can see all cities: Load sectors dynamically when city changes
         const cityId = this.value;
+        
+        // Keep GE filter visible at all times - don't hide it
+        // const cityFilterContainer = document.getElementById('cityFilterContainer');
+        // if (cityFilterContainer) {
+        //   if (cityId && cityId !== '') {
+        //     cityFilterContainer.style.display = 'none';
+        //   } else {
+        //     cityFilterContainer.style.display = 'block';
+        //   }
+        // }
         
         if (sectorFilter) {
           sectorFilter.innerHTML = '<option value="">Loading sectors...</option>';

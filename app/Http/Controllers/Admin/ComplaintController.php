@@ -666,7 +666,7 @@ class ComplaintController extends Controller
     public function updateStatus(Request $request, Complaint $complaint)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:new,assigned,in_progress,resolved,closed',
+            'status' => 'required|in:new,assigned,in_progress,resolved,work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld',
             'notes' => 'nullable|string',
             'remarks' => 'nullable|string',
         ]);
@@ -689,15 +689,15 @@ class ComplaintController extends Controller
         // Get remarks - prefer remarks field, fallback to notes
         $remarks = $request->input('remarks') ?: $request->input('notes') ?: '';
 
-        // Set closed_at when status becomes 'resolved' or 'closed', but only if it's not already set
+        // Set closed_at when status becomes 'addressed', but only if it's not already set
         $updateData = [
             'status' => $request->status,
         ];
         
-        if (in_array($request->status, ['resolved', 'closed']) && !$complaint->closed_at) {
+        if ($request->status === 'resolved' && !$complaint->closed_at) {
             $updateData['closed_at'] = now();
-        } elseif (!in_array($request->status, ['resolved', 'closed'])) {
-            // If status is changed from resolved/closed to something else, clear closed_at
+        } elseif ($request->status !== 'resolved') {
+            // If status is changed from addressed to something else, clear closed_at
             $updateData['closed_at'] = null;
         }
 
@@ -707,7 +707,9 @@ class ComplaintController extends Controller
         $currentEmployee = Employee::first();
         if ($currentEmployee) {
             // Initialize log remarks with status change message
-            $logRemarks = "Status changed from {$oldStatus} to {$request->status}";
+            $statusDisplay = $request->status === 'resolved' ? 'addressed' : $request->status;
+            $oldStatusDisplay = $oldStatus === 'resolved' ? 'addressed' : $oldStatus;
+            $logRemarks = "Status changed from {$oldStatusDisplay} to {$statusDisplay}";
             
             if ($remarks) {
                 $logRemarks .= ". Remarks: " . $remarks;
@@ -781,8 +783,14 @@ class ComplaintController extends Controller
             'new' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'new')->count(),
             'assigned' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'assigned')->count(),
             'in_progress' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'in_progress')->count(),
-            'resolved' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'resolved')->count(),
-            'closed' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'closed')->count(),
+            'addressed' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'resolved')->count(),
+            'work_performa' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'work_performa')->count(),
+            'maint_performa' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'maint_performa')->count(),
+            'work_priced_performa' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'work_priced_performa')->count(),
+            'maint_priced_performa' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'maint_priced_performa')->count(),
+            'product_na' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'product_na')->count(),
+            'un_authorized' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'un_authorized')->count(),
+            'pertains_to_ge_const_isld' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'pertains_to_ge_const_isld')->count(),
             'overdue' => Complaint::overdue()->count(),
         ];
 
@@ -844,8 +852,15 @@ class ComplaintController extends Controller
         $performance = Complaint::where('created_at', '>=', now()->subDays($period))
             ->whereNotNull('assigned_employee_id')
             ->selectRaw('assigned_employee_id, COUNT(*) as total_complaints, 
-                SUM(CASE WHEN status = "resolved" OR status = "closed" THEN 1 ELSE 0 END) as resolved_complaints,
-                AVG(CASE WHEN status = "resolved" OR status = "closed" THEN TIMESTAMPDIFF(HOUR, created_at, updated_at) ELSE NULL END) as avg_resolution_time')
+                SUM(CASE WHEN status = "resolved" THEN 1 ELSE 0 END) as addressed_complaints,
+                SUM(CASE WHEN status = "work_performa" THEN 1 ELSE 0 END) as work_performa_count,
+                SUM(CASE WHEN status = "maint_performa" THEN 1 ELSE 0 END) as maint_performa_count,
+                SUM(CASE WHEN status = "work_priced_performa" THEN 1 ELSE 0 END) as work_priced_performa_count,
+                SUM(CASE WHEN status = "maint_priced_performa" THEN 1 ELSE 0 END) as maint_priced_performa_count,
+                SUM(CASE WHEN status = "product_na" THEN 1 ELSE 0 END) as product_na_count,
+                SUM(CASE WHEN status = "un_authorized" THEN 1 ELSE 0 END) as un_authorized_count,
+                SUM(CASE WHEN status = "pertains_to_ge_const_isld" THEN 1 ELSE 0 END) as pertains_to_ge_const_isld_count,
+                AVG(CASE WHEN status = "resolved" THEN TIMESTAMPDIFF(HOUR, created_at, updated_at) ELSE NULL END) as avg_resolution_time')
             ->groupBy('assigned_employee_id')
             ->with('assignedEmployee')
             ->get();
@@ -901,15 +916,15 @@ class ComplaintController extends Controller
 
             case 'change_status':
                 $validator = Validator::make($request->all(), [
-                    'status' => 'required|in:new,assigned,in_progress,resolved,closed',
+                    'status' => 'required|in:new,assigned,in_progress,resolved,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld',
                 ]);
                 
                 if ($validator->fails()) {
                     return redirect()->back()->withErrors($validator);
                 }
                 
-                // Set closed_at when status becomes 'resolved' or 'closed', but only if not already set
-                if (in_array($request->status, ['resolved', 'closed'])) {
+                // Set closed_at when status becomes 'addressed', but only if not already set
+                if ($request->status === 'resolved') {
                     Complaint::whereIn('id', $complaintIds)
                         ->whereNull('closed_at')
                         ->update([
@@ -924,7 +939,7 @@ class ComplaintController extends Controller
                             'status' => $request->status,
                         ]);
                 } else {
-                    // If status is changed from resolved/closed to something else, clear closed_at
+                    // If status is changed from addressed to something else, clear closed_at
                     Complaint::whereIn('id', $complaintIds)->update([
                         'status' => $request->status,
                         'closed_at' => null,
