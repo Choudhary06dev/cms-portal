@@ -1270,7 +1270,7 @@
       <div class="col-12">
     <div class="card-glass">
       <h5 class="mb-3 text-white" style="font-weight: bold;">Monthly Trends</h5>
-      <div id="monthlyTrendsChart" style="height: 350px;"></div>
+      <div id="monthlyTrendsChart" style="height: 420px;"></div>
         </div>
       </div>
             </div>
@@ -1690,19 +1690,21 @@
     var complaintsTypeChart = new ApexCharts(document.querySelector("#complaintsTypeChart"), complaintsTypeOptions);
     complaintsTypeChart.render();
 
-    // Monthly Trends Chart
+    // Monthly Trends Chart - Modern Combination Chart (Column + Line)
     const isLightTheme = document.documentElement.classList.contains('theme-light');
     var monthlyTrendsOptions = {
       series: [{
         name: 'Complaints',
-      data: complaintsData
+        type: 'column',
+        data: complaintsData
       }, {
         name: 'Resolutions',
-      data: resolutionsData
+        type: 'line',
+        data: resolutionsData
       }],
       chart: {
+        height: 420,
         type: 'line',
-        height: 350,
         background: 'transparent',
         toolbar: {
           show: true,
@@ -1715,45 +1717,240 @@
             pan: true,
             reset: true
           }
+        },
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 1000,
+          animateGradually: {
+            enabled: true,
+            delay: 200
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 400
+          }
+        },
+        dropShadow: {
+          enabled: true,
+          color: '#000',
+          top: 18,
+          left: 7,
+          blur: 10,
+          opacity: 0.2
         }
       },
       colors: ['#3b82f6', '#22c55e'],
+      plotOptions: {
+        bar: {
+          borderRadius: 8,
+          columnWidth: '60%',
+          dataLabels: {
+            position: 'top'
+          }
+        }
+      },
+      dataLabels: {
+        enabled: true,
+        enabledOnSeries: [0],
+        formatter: function (val) {
+          return Math.floor(val);
+        },
+        offsetY: -20,
+        style: {
+          fontSize: '11px',
+          fontWeight: 700,
+          colors: isLightTheme ? ['#1e293b'] : ['#ffffff']
+        },
+        background: {
+          enabled: true,
+          foreColor: isLightTheme ? '#ffffff' : '#1e293b',
+          padding: 6,
+          borderRadius: 6,
+          borderWidth: 2,
+          borderColor: isLightTheme ? '#3b82f6' : '#60a5fa',
+          opacity: 0.95,
+          dropShadow: {
+            enabled: true,
+            top: 1,
+            left: 1,
+            blur: 3,
+            opacity: 0.5
+          }
+        }
+      },
+      stroke: {
+        width: [0, 4],
+        curve: 'smooth',
+        dashArray: [0, 0]
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'light',
+          type: 'vertical',
+          shadeIntensity: 0.5,
+          gradientToColors: ['#60a5fa', '#34d399'],
+          inverseColors: false,
+          opacityFrom: 0.9,
+          opacityTo: 0.6,
+          stops: [0, 50, 100]
+        }
+      },
+      markers: {
+        size: [0, 7],
+        strokeWidth: 3,
+        strokeColors: ['#ffffff', '#ffffff'],
+        fillColors: ['#22c55e', '#22c55e'],
+        hover: {
+          size: [0, 9]
+        },
+        shape: 'circle'
+      },
       xaxis: {
-      categories: monthsData,
+        categories: monthsData,
         labels: {
           style: {
-            colors: isLightTheme ? '#000000' : '#e2e8f0'
+            colors: isLightTheme ? '#1e293b' : '#e2e8f0',
+            fontSize: '13px',
+            fontWeight: 600,
+            fontFamily: 'inherit'
           }
+        },
+        axisBorder: {
+          show: true,
+          color: isLightTheme ? '#d1d5db' : '#374151',
+          height: 2,
+          width: '100%'
+        },
+        axisTicks: {
+          show: true,
+          color: isLightTheme ? '#d1d5db' : '#374151',
+          height: 6
         }
       },
-      yaxis: {
+      yaxis: [{
+        title: {
+          text: 'Complaints',
+          style: {
+            color: '#3b82f6',
+            fontSize: '13px',
+            fontWeight: 700
+          }
+        },
         labels: {
           style: {
-            colors: isLightTheme ? '#000000' : '#e2e8f0'
+            colors: isLightTheme ? '#1e293b' : '#e2e8f0',
+            fontSize: '12px',
+            fontWeight: 600
+          },
+          formatter: function (val) {
+            return Math.floor(val);
           }
         }
-      },
+      }, {
+        opposite: true,
+        title: {
+          text: 'Resolutions',
+          style: {
+            color: '#22c55e',
+            fontSize: '13px',
+            fontWeight: 700
+          }
+        },
+        labels: {
+          style: {
+            colors: isLightTheme ? '#1e293b' : '#e2e8f0',
+            fontSize: '12px',
+            fontWeight: 600
+          },
+          formatter: function (val) {
+            return Math.floor(val);
+          }
+        }
+      }],
       legend: {
+        position: 'top',
+        horizontalAlign: 'center',
+        floating: false,
+        fontSize: '14px',
+        fontWeight: 700,
         labels: {
-          colors: isLightTheme ? '#000000' : '#e2e8f0'
+          colors: isLightTheme ? '#1e293b' : '#e2e8f0',
+          useSeriesColors: false
+        },
+        markers: {
+          width: 14,
+          height: 14,
+          radius: 7,
+          offsetX: -5,
+          offsetY: 2
+        },
+        itemMargin: {
+          horizontal: 20,
+          vertical: 8
         }
       },
       grid: {
-        borderColor: isLightTheme ? '#d1d5db' : '#374151'
-      },
-      stroke: {
-        width: 3
-      },
-      markers: {
-        size: 5
+        borderColor: isLightTheme ? '#e2e8f0' : '#374151',
+        strokeDashArray: 5,
+        xaxis: {
+          lines: {
+            show: false
+          }
+        },
+        yaxis: {
+          lines: {
+            show: true
+          }
+        },
+        padding: {
+          top: 20,
+          right: 10,
+          bottom: 0,
+          left: 10
+        }
       },
       tooltip: {
         theme: isLightTheme ? 'light' : 'dark',
         style: {
-          fontSize: '12px',
+          fontSize: '13px',
           fontFamily: 'inherit'
+        },
+        y: [{
+          formatter: function (val) {
+            return val + ' complaints';
+          }
+        }, {
+          formatter: function (val) {
+            return val + ' resolutions';
+          }
+        }],
+        marker: {
+          show: true
+        },
+        shared: true,
+        intersect: false
+      },
+      responsive: [{
+        breakpoint: 768,
+        options: {
+          chart: {
+            height: 350
+          },
+          legend: {
+            position: 'bottom'
+          },
+          dataLabels: {
+            enabled: false
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: '70%'
+            }
+          }
         }
-      }
+      }]
     };
 
     var monthlyTrendsChart = new ApexCharts(document.querySelector("#monthlyTrendsChart"), monthlyTrendsOptions);
