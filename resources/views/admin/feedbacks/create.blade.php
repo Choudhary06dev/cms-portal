@@ -74,7 +74,7 @@
           @if($geUser)
           <tr>
             <td class="text-white"><strong>GE (City):</strong></td>
-            <td class="text-white">{{ $geUser->username ?? 'N/A' }}</td>
+            <td class="text-white">{{ $geUser->name ?? $geUser->username ?? 'N/A' }}</td>
           </tr>
           @endif
         </table>

@@ -120,13 +120,17 @@ class FeedbackController extends Controller
                 'staff_behavior' => $request->staff_behavior,
                 'comments' => $request->comments,
                 'remarks' => $request->remarks,
-                'feedback_date' => $request->feedback_date ?? now(),
+                'feedback_date' => now(), // Always use current date and time when adding feedback
                 'entered_at' => now(),
             ]);
 
             DB::commit();
 
-            return redirect()->route('admin.complaints.show', $complaint->id)
+            // Refresh the complaint to ensure feedback relationship is loaded
+            $complaint->load('feedback.enteredBy');
+
+            // Redirect back to approvals page (Complaints Regn) with complaint ID to open in modal
+            return redirect()->route('admin.approvals.index', ['view_complaint' => $complaint->id])
                 ->with('success', 'Feedback added successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -179,12 +183,17 @@ class FeedbackController extends Controller
                 'staff_behavior' => $request->staff_behavior,
                 'comments' => $request->comments,
                 'remarks' => $request->remarks,
-                'feedback_date' => $request->feedback_date ?? $feedback->feedback_date,
+                'feedback_date' => now(), // Auto-update to current date and time when editing
             ]);
 
             DB::commit();
 
-            return redirect()->route('admin.complaints.show', $feedback->complaint_id)
+            // Refresh the feedback relationship to ensure it's loaded
+            $feedback->refresh();
+            $feedback->load('enteredBy');
+
+            // Redirect back to approvals page (Complaints Regn) with complaint ID to open in modal
+            return redirect()->route('admin.approvals.index', ['view_complaint' => $feedback->complaint_id])
                 ->with('success', 'Feedback updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -203,7 +212,8 @@ class FeedbackController extends Controller
         
         try {
             $feedback->delete();
-            return redirect()->route('admin.complaints.show', $complaintId)
+            // Redirect back to approvals page (Complaints Regn) with complaint ID to open in modal
+            return redirect()->route('admin.approvals.index', ['view_complaint' => $complaintId])
                 ->with('success', 'Feedback deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->back()

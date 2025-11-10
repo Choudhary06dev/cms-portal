@@ -713,6 +713,17 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
+                // Remove all share-modal.js scripts BEFORE processing content
+                const allScripts = doc.querySelectorAll('script');
+                allScripts.forEach(script => {
+                    if (script.src && script.src.includes('share-modal')) {
+                        script.remove();
+                    }
+                    if (script.textContent && script.textContent.includes('share-modal')) {
+                        script.remove();
+                    }
+                });
+                
                 // Get the content section - try multiple selectors
                 let contentSection = doc.querySelector('section.content');
                 if (!contentSection) {
@@ -757,13 +768,18 @@
                 if (!complaintContent) {
                     const allCards = contentSection.querySelectorAll('.card-glass');
                     const seenCards = new Set();
+                    const seenComments = new Set();
                     
                     allCards.forEach(card => {
                         // Skip cards that are in page headers
                         const parentRow = card.closest('.row');
                         const isInHeader = parentRow && parentRow.closest('.mb-4') && parentRow.closest('.mb-4').querySelector('h2');
                         
-                        if (!isInHeader) {
+                        // Skip duplicate "Complainant Comments" sections
+                        const cardText = card.textContent || '';
+                        const isCommentsSection = cardText.includes('Complainant Comments') && !card.closest('.card-body');
+                        
+                        if (!isInHeader && !isCommentsSection) {
                             const cardHTML = card.outerHTML;
                             const cardId = cardHTML.substring(0, 300);
                             if (!seenCards.has(cardId)) {
@@ -774,11 +790,56 @@
                     });
                 }
                 
+                // Remove duplicate "Complainant Comments" sections
                 if (complaintContent) {
+                    const tempDivForComments = document.createElement('div');
+                    tempDivForComments.innerHTML = complaintContent;
+                    const commentSections = tempDivForComments.querySelectorAll('h6, h5, h4');
+                    let foundCommentsSection = false;
+                    commentSections.forEach(heading => {
+                        if (heading.textContent && heading.textContent.includes('Complainant Comments')) {
+                            if (foundCommentsSection) {
+                                // Remove duplicate - find the parent row and remove it
+                                const parentRow = heading.closest('.row');
+                                if (parentRow) {
+                                    parentRow.remove();
+                                }
+                            } else {
+                                foundCommentsSection = true;
+                            }
+                        }
+                    });
+                    complaintContent = tempDivForComments.innerHTML;
+                }
+                
+                if (complaintContent) {
+                    // Remove any share-modal.js scripts from the content before inserting
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = complaintContent;
+                    const scriptsInContent = tempDiv.querySelectorAll('script');
+                    scriptsInContent.forEach(script => {
+                        if (script.src && script.src.includes('share-modal')) {
+                            script.remove();
+                        }
+                        if (script.textContent && script.textContent.includes('share-modal')) {
+                            script.remove();
+                        }
+                    });
+                    complaintContent = tempDiv.innerHTML;
+                    
                     modalBody.innerHTML = complaintContent;
                     // Replace feather icons after content is loaded
                     setTimeout(() => {
                         feather.replace();
+                        // Double-check and remove any share-modal.js scripts that might have been added
+                        const shareModalScripts = document.querySelectorAll('script[src*="share-modal"]');
+                        shareModalScripts.forEach(script => {
+                            try {
+                                script.remove();
+                            } catch(e) {
+                                // Ignore errors
+                            }
+                        });
                     }, 100);
                 } else {
                     console.error('Could not find complaint content in response');

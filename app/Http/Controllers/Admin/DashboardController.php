@@ -148,7 +148,7 @@ class DashboardController extends Controller
             ->get();
 
         // Get approvals with location filtering and filters (all statuses, not just pending)
-        $pendingApprovalsQuery = SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare']);
+        $pendingApprovalsQuery = SpareApprovalPerforma::with(['complaint.client', 'complaint.assignedEmployee', 'requestedBy', 'items.spare']);
         
         // Apply approval status filter directly on approvals (if specified, otherwise show all)
         if ($approvalStatus) {
@@ -234,15 +234,20 @@ class DashboardController extends Controller
         $isGE = ($userRoleName === 'garrison_engineer');
         
         if (($isDirector || $isGE) && $geRole) {
-            // If Director, show all active GEs
+            // If Director, show all active GEs or filtered GE
             // If GE, show only their own progress (if they are active)
             if ($isDirector) {
-                $geUsers = User::where('role_id', $geRole->id)
+                $geUsersQuery = User::where('role_id', $geRole->id)
                     ->where('status', 'active')
                     ->whereNotNull('city_id')
-                    ->with('city')
-                    ->orderBy('name')
-                    ->get();
+                    ->with('city');
+                
+                // Apply GE filter if city_id is selected in dashboard filter
+                if ($cityId) {
+                    $geUsersQuery->where('city_id', $cityId);
+                }
+                
+                $geUsers = $geUsersQuery->orderBy('name')->get();
             } else {
                 // GE user - show only their own progress if they are active
                 if ($user->status === 'active') {
@@ -253,28 +258,72 @@ class DashboardController extends Controller
             }
             
             foreach ($geUsers as $geUser) {
-                // Get total complaints for this GE's city
-                $totalComplaints = Complaint::whereHas('client', function($q) use ($geUser) {
+                // Get total complaints for this GE's city with filters applied
+                $totalComplaintsQuery = Complaint::whereHas('client', function($q) use ($geUser) {
                     if ($geUser->city_id && $geUser->city) {
                         $q->where('city', $geUser->city->name);
                     }
-                })->count();
+                });
                 
-                // Get resolved complaints for this GE's city
-                $resolvedComplaints = Complaint::whereHas('client', function($q) use ($geUser) {
+                // Apply filters (sector, category, complaint status, date range)
+                // Note: Don't apply city_id filter again as we're already filtering by GE's city
+                $this->applyFilters($totalComplaintsQuery, null, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
+                $totalComplaints = $totalComplaintsQuery->count();
+                
+                // Get resolved complaints for this GE's city with feedback and filters
+                // Feedback relationship automatically excludes soft deleted records
+                // When feedback is updated, the existing record is updated (not deleted)
+                $resolvedComplaintsQuery = Complaint::whereHas('client', function($q) use ($geUser) {
                     if ($geUser->city_id && $geUser->city) {
                         $q->where('city', $geUser->city->name);
                     }
-                })->where('status', 'resolved')->count();
+                })->where('status', 'resolved')
+                  ->with('feedback'); // Load feedback relationship (excludes soft deleted by default)
+                
+                // Apply filters (sector, category, date range) - but NOT complaint status
+                // because we always need resolved status for feedback calculation
+                // Note: Don't apply city_id filter again as we're already filtering by GE's city
+                $this->applyFilters($resolvedComplaintsQuery, null, $sectorId, $category, $approvalStatus, null, $dateRange);
+                
+                $resolvedComplaints = $resolvedComplaintsQuery->get();
+                
+                // Calculate progress based on feedback
+                // Good feedback (excellent, good) = +1 point
+                // Bad feedback (average, poor) = -0.5 points (reduces percentage)
+                // No feedback = 0 points (doesn't affect)
+                $positivePoints = 0;
+                $negativePoints = 0;
+                $resolvedWithGoodFeedback = 0;
+                $resolvedWithBadFeedback = 0;
+                
+                foreach ($resolvedComplaints as $complaint) {
+                    if ($complaint->feedback) {
+                        $rating = $complaint->feedback->overall_rating;
+                        if (in_array($rating, ['excellent', 'good'])) {
+                            $positivePoints += 1;
+                            $resolvedWithGoodFeedback++;
+                        } elseif (in_array($rating, ['average', 'poor'])) {
+                            $negativePoints += 0.5; // Reduces percentage
+                            $resolvedWithBadFeedback++;
+                        }
+                    }
+                }
                 
                 // Calculate progress percentage
-                $progressPercentage = $totalComplaints > 0 ? round(($resolvedComplaints / $totalComplaints) * 100, 2) : 0;
+                // Formula: (positive points - negative points) / total complaints * 100
+                // This allows percentage to go down if there are bad feedbacks
+                $netPoints = $positivePoints - $negativePoints;
+                $progressPercentage = $totalComplaints > 0 
+                    ? max(0, round(($netPoints / $totalComplaints) * 100, 2)) 
+                    : 0;
                 
                 $geProgress[] = [
                     'ge' => $geUser,
                     'city' => $geUser->city ? $geUser->city->name : 'N/A',
                     'total_complaints' => $totalComplaints,
-                    'resolved_complaints' => $resolvedComplaints,
+                    'resolved_complaints' => $resolvedComplaints->count(),
+                    'resolved_with_good_feedback' => $resolvedWithGoodFeedback,
+                    'resolved_with_bad_feedback' => $resolvedWithBadFeedback,
                     'progress_percentage' => $progressPercentage,
                 ];
             }
