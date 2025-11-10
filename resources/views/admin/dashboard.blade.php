@@ -1190,6 +1190,81 @@
       </div>
         </div>
 
+    <!-- GE FEEDBACK SECTION (For Director Only) -->
+    @if(isset($geProgress) && count($geProgress) > 0)
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card-glass">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 text-white" style="font-weight: bold;">
+              <i data-feather="users" class="me-2"></i>GE Feedback Overview
+            </h5>
+          </div>
+          <div class="row">
+            @php
+              $colorSchemes = [
+                ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => '#60a5fa', 'progress' => 'linear-gradient(90deg, #3b82f6, #60a5fa)'],
+                ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
+                ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
+                ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
+                ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
+              ];
+            @endphp
+            @foreach($geProgress as $index => $geData)
+            @php
+              $colorScheme = $colorSchemes[$index % count($colorSchemes)];
+              // Progress bar color - white/light color for better visibility on all gradient backgrounds
+              $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                              ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                              ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
+            @endphp
+            <div class="col-md-6 col-lg-4 mb-3">
+              <div class="card-glass" style="padding: 1.25rem; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; transition: all 0.3s ease;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.1rem;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
+                    <p class="mb-0 text-white" style="font-size: 0.85rem; opacity: 0.9;">
+                      <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
+                      {{ $geData['city'] }}
+                    </p>
+                  </div>
+                  <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                    <i data-feather="user-check" style="width: 24px; height: 24px; color: #ffffff;"></i>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-white" style="font-size: 0.9rem; font-weight: 500; opacity: 0.95;">Feedback</span>
+                    <span class="text-white" style="font-weight: 700; font-size: 1.5rem;">{{ round($geData['progress_percentage']) }}/100</span>
+                  </div>
+                  <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.2); border-radius: 7px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, #f0f9ff 100%); border-radius: 7px; box-shadow: 0 2px 8px rgba(255, 255, 255, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.6); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.3);" 
+                         aria-valuenow="{{ $geData['progress_percentage'] }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                    <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                    <span style="font-weight: 600;">{{ $geData['resolved_complaints'] }}</span> Resolved
+                  </span>
+                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                    <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                    <span style="font-weight: 600;">{{ $geData['total_complaints'] }}</span> Total
+                  </span>
+                </div>
+              </div>
+            </div>
+            @endforeach
+          </div>
+        </div>
+      </div>
+    </div>
+    @endif
+
     <!-- MONTHLY TRENDS CHART -->
     <div class="row mb-4">
       <div class="col-12">
@@ -1232,6 +1307,8 @@
                       <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @elseif($complaint->status === 'assigned')
                       <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                    @elseif($complaint->status === 'un_authorized')
+                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border: 1px solid #db2777 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @else
                       <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                     @endif
@@ -1248,81 +1325,6 @@
         </div>
       </div>
     </div>
-
-    <!-- GE PROGRESS SECTION (For Director Only) -->
-    @if(isset($geProgress) && count($geProgress) > 0)
-    <div class="row mt-4">
-      <div class="col-12">
-        <div class="card-glass">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0 text-white" style="font-weight: bold;">
-              <i data-feather="users" class="me-2"></i>GE Progress Overview
-            </h5>
-          </div>
-          <div class="row">
-            @php
-              $colorSchemes = [
-                ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => '#60a5fa', 'progress' => 'linear-gradient(90deg, #3b82f6, #60a5fa)'],
-                ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
-                ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
-                ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
-                ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
-              ];
-            @endphp
-            @foreach($geProgress as $index => $geData)
-            @php
-              $colorScheme = $colorSchemes[$index % count($colorSchemes)];
-              // Progress bar color - white/light color for better visibility on all gradient backgrounds
-              $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
-                              ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
-                              ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
-            @endphp
-            <div class="col-md-6 col-lg-4 mb-3">
-              <div class="card-glass" style="padding: 1.25rem; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; transition: all 0.3s ease;">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div>
-                    <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.1rem;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
-                    <p class="mb-0 text-white" style="font-size: 0.85rem; opacity: 0.9;">
-                      <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
-                      {{ $geData['city'] }}
-                    </p>
-                  </div>
-                  <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-                    <i data-feather="user-check" style="width: 24px; height: 24px; color: #ffffff;"></i>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-white" style="font-size: 0.9rem; font-weight: 500; opacity: 0.95;">Progress</span>
-                    <span class="text-white" style="font-weight: 700; font-size: 1.5rem;">{{ $geData['progress_percentage'] }}%</span>
-                  </div>
-                  <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.2); border-radius: 7px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div class="progress-bar" role="progressbar" 
-                         style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, #f0f9ff 100%); border-radius: 7px; box-shadow: 0 2px 8px rgba(255, 255, 255, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.6); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.3);" 
-                         aria-valuenow="{{ $geData['progress_percentage'] }}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
-                    </div>
-                  </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                    <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
-                    <span style="font-weight: 600;">{{ $geData['resolved_complaints'] }}</span> Resolved
-                  </span>
-                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                    <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
-                    <span style="font-weight: 600;">{{ $geData['total_complaints'] }}</span> Total
-                  </span>
-                </div>
-              </div>
-            </div>
-            @endforeach
-          </div>
-        </div>
-      </div>
-    </div>
-    @endif
 
     <!-- APPROVALS SECTION -->
     @if(isset($pendingApprovals) && $pendingApprovals->count() > 0)
@@ -1346,7 +1348,7 @@
                 <tr>
                   <th>Complaint ID</th>
                   <th>Complaintant</th>
-                  <th>Requested By</th>
+                  <th>Assigned Employee</th>
                   <th>Status</th>
                   <th>Items</th>
                   <th>Created</th>
@@ -1358,7 +1360,7 @@
                 <tr>
                   <td>{{ $approval->complaint ? str_pad($approval->complaint->id, 4, '0', STR_PAD_LEFT) : 'N/A' }}</td>
                   <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
-                  <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
+                  <td>{{ $approval->complaint && $approval->complaint->assignedEmployee ? $approval->complaint->assignedEmployee->name : 'N/A' }}</td>
                   <td>
                     @php
                       $statusColors = [
@@ -1577,7 +1579,61 @@
     // Complaints by Type Chart
   @php
     $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [0, 0, 0, 0];
-    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return ucfirst($type); }, array_keys($complaintsByType)) : ['Electric', 'Sanitary', 'Kitchen', 'General'];
+    $typeKeys = isset($complaintsByType) ? array_keys($complaintsByType) : ['electric', 'sanitary', 'kitchen', 'general'];
+    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return ucfirst($type); }, $typeKeys) : ['Electric', 'Sanitary', 'Kitchen', 'General'];
+    
+    // Color mapping for complaint types/categories
+    $typeColorMap = [
+      'electric' => '#3b82f6', // Blue
+      'sanitary' => '#f59e0b', // Orange
+      'kitchen' => '#a855f7', // Purple
+      'general' => '#22c55e', // Green
+      'b&r-i' => '#3b82f6', // Blue
+      'b&r-ii' => '#8b5cf6', // Purple (different from B&R-I)
+      'b&r-2' => '#8b5cf6', // Purple (alternative for B&R-II)
+      'e&m nrc (electric)' => '#f59e0b', // Orange
+      'e&m nrc (water supply)' => '#10b981', // Emerald Green (different from B&R-I)
+      'e&m nrc (electric supply)' => '#f59e0b', // Orange
+    ];
+    
+    // Map colors based on type keys (case-insensitive)
+    $typeColors = array_map(function($type) use ($typeColorMap) {
+      $typeLower = strtolower(trim($type));
+      // Try exact match first
+      if (isset($typeColorMap[$typeLower])) {
+        return $typeColorMap[$typeLower];
+      }
+      // Try partial matches
+      if (stripos($typeLower, 'b&r-ii') !== false || stripos($typeLower, 'br-ii') !== false || stripos($typeLower, 'b&r-2') !== false || stripos($typeLower, 'br-2') !== false) {
+        return '#8b5cf6'; // Purple (different from B&R-I)
+      }
+      if (stripos($typeLower, 'b&r-i') !== false || stripos($typeLower, 'br-i') !== false) {
+        return '#3b82f6'; // Blue
+      }
+      if (stripos($typeLower, 'e&m nrc (water supply)') !== false || stripos($typeLower, 'water supply') !== false) {
+        return '#10b981'; // Emerald Green
+      }
+      if (stripos($typeLower, 'e&m nrc (electric') !== false || stripos($typeLower, 'electric') !== false) {
+        return '#f59e0b'; // Orange
+      }
+      if (stripos($typeLower, 'sanitary') !== false) {
+        return '#f59e0b'; // Orange
+      }
+      if (stripos($typeLower, 'kitchen') !== false) {
+        return '#a855f7'; // Purple
+      }
+      if (stripos($typeLower, 'general') !== false) {
+        return '#22c55e'; // Green
+      }
+      // Default colors for unknown types
+      return '#64748b'; // Gray
+    }, $typeKeys);
+    
+    // Ensure we have enough colors (fallback to default array if needed)
+    if (empty($typeColors) || count($typeColors) < count($typeKeys)) {
+      $defaultColors = ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e', '#10b981', '#ec4899', '#06b6d4', '#8b5cf6'];
+      $typeColors = array_slice($defaultColors, 0, count($typeKeys));
+    }
   @endphp
     var complaintsTypeOptions = {
     series: @json($typeData),
@@ -1587,7 +1643,7 @@
         background: 'transparent'
       },
     labels: @json($typeLabels),
-      colors: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'],
+      colors: @json($typeColors),
       legend: {
         position: 'bottom',
         labels: {
