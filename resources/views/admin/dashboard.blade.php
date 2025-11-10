@@ -1313,7 +1313,7 @@
                   <td>
                     @php
                       $statusColors = [
-                        'pending' => ['bg' => '#e73b24ff', 'text' => '#ffffff', 'border' => '#d97706'],
+                        'pending' => ['bg' => '#e73b24ff', 'text' => '#ffffff', 'border' => '#f20b0bff'],
                         'approved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'],
                         'rejected' => ['bg' => '#ed940eff', 'text' => '#ffffff', 'border' => '#dc2626'],
                       ];

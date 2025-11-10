@@ -44,15 +44,27 @@ class ComplaintController extends Controller
         // Apply location-based filtering
         $this->filterComplaintsByLocation($query, $user);
 
-        // Search functionality
+        // Search functionality - by Name and ID
         if ($request->has('search') && $request->search) {
-            $search = $request->search;
+            $search = trim($request->search);
             $query->where(function($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($clientQuery) use ($search) {
-                      $clientQuery->where('client_name', 'like', "%{$search}%");
-                  });
+                // Search by client name
+                $q->whereHas('client', function($clientQuery) use ($search) {
+                    $clientQuery->where('client_name', 'like', "%{$search}%");
+                })
+                // Search by title
+                ->orWhere('title', 'like', "%{$search}%")
+                // Search by description
+                ->orWhere('description', 'like', "%{$search}%");
+                
+                // If search is numeric, also search by ID (handles both actual ID and formatted complaint_id)
+                if (is_numeric($search)) {
+                    $numericSearch = (int)$search;
+                    // Search by actual ID
+                    $q->orWhere('id', $numericSearch);
+                    // Search by ID modulo 10000 (for formatted complaint_id like 0123)
+                    $q->orWhereRaw('(id % 10000) = ?', [$numericSearch]);
+                }
             });
         }
 

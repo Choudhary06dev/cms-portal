@@ -28,7 +28,7 @@
                 <div class="row g-2 align-items-end">
                     <div class="col-auto">
                         <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
-                        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
+                        <input type="text" class="form-control" id="searchInput" name="search" placeholder="Name or ID..." 
                                value="{{ request('search') }}" oninput="handleComplaintsSearchInput()" style="font-size: 0.9rem; width: 180px;">
                     </div>
                     <div class="col-auto">
