@@ -150,6 +150,12 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        // Convert empty strings to null for city_id and sector_id before validation
+        $request->merge([
+            'city_id' => $request->city_id ?: null,
+            'sector_id' => $request->sector_id ?: null,
+        ]);
+
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:100|unique:users,username,' . $user->id,
             'name' => 'nullable|string|max:100',
@@ -171,6 +177,12 @@ class UserController extends Controller
 
         // Get role to check if city/sector is required
         $role = Role::find($request->role_id);
+        if (!$role) {
+            return redirect()->back()
+                ->withErrors(['role_id' => 'Selected role does not exist'])
+                ->withInput();
+        }
+        
         $roleName = strtolower($role->role_name ?? '');
 
         // Validate city/sector based on role

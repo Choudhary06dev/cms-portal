@@ -647,6 +647,19 @@
 
     // Auto-refresh notifications every 30 seconds
     setInterval(loadNotifications, 30000);
+
+    // Auto-hide success messages after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      const successAlerts = document.querySelectorAll('.alert-success.alert-dismissible');
+      successAlerts.forEach(function(alert) {
+        setTimeout(function() {
+          const bsAlert = new bootstrap.Alert(alert);
+          if (bsAlert && alert.parentNode) {
+            bsAlert.close();
+          }
+        }, 3000); // 3 seconds
+      });
+    });
   </script>
   
   

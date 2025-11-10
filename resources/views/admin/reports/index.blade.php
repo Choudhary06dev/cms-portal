@@ -347,12 +347,12 @@
     
     document.body.appendChild(notification);
     
-    // Auto remove after 5 seconds
+    // Auto remove after 3 seconds
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
       }
-    }, 5000);
+    }, 3000);
   }
 </script>
 @endpush
