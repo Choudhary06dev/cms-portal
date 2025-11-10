@@ -1389,8 +1389,8 @@
       'work_priced_performa' => '#9333ea', // Purple
       'maint_priced_performa' => '#ea580c', // Orange Red
       'product_na' => '#6b7280', // Gray
-      'un_authorized' => '#ef4444', // Red Pink
-      'pertains_to_ge_const_isld' => '#10b981', // Emerald Green
+      'un_authorized' => '#ec4899', // Pink (same as approvals view)
+      'pertains_to_ge_const_isld' => '#06b6d4', // Aqua/Cyan (same as approvals view)
     ];
     
     // All possible statuses from approvals page (in order)

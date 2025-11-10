@@ -144,8 +144,8 @@
             'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
             'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
             'product_na' => ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'], // Gray
-            'un_authorized' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'], // Red
-            'pertains_to_ge_const_isld' => ['bg' => '#3b82f6', 'text' => '#ffffff', 'border' => '#2563eb'], // Blue
+            'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'], // Pink
+            'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'], // Aqua/Cyan
             'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
           ];
           
@@ -279,6 +279,54 @@
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
                       data-status-color="maint_performa"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
+                @if(isset($statuses) && $statuses->count() > 0)
+                  @foreach($statuses as $statusValue => $statusLabel)
+                    <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+                  @endforeach
+                @else
+                  <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                  <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                  <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
+                  <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                  <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                  <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                @endif
+              </select>
+              </div>
+            @elseif($complaintStatus == 'un_authorized')
+              <div class="status-chip" style="background-color: {{ $statusColors['un_authorized']['bg'] }}; color: {{ $statusColors['un_authorized']['text'] }}; border-color: {{ $statusColors['un_authorized']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['un_authorized']['bg'] }}; border-color: {{ $statusColors['un_authorized']['border'] }};"></span>
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="un_authorized"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
+                @if(isset($statuses) && $statuses->count() > 0)
+                  @foreach($statuses as $statusValue => $statusLabel)
+                    <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+                  @endforeach
+                @else
+                  <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                  <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                  <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
+                  <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                  <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                  <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                @endif
+              </select>
+              </div>
+            @elseif($complaintStatus == 'pertains_to_ge_const_isld')
+              <div class="status-chip" style="background-color: {{ $statusColors['pertains_to_ge_const_isld']['bg'] }}; color: {{ $statusColors['pertains_to_ge_const_isld']['text'] }}; border-color: {{ $statusColors['pertains_to_ge_const_isld']['border'] }};">
+                <span class="status-indicator" style="background-color: {{ $statusColors['pertains_to_ge_const_isld']['bg'] }}; border-color: {{ $statusColors['pertains_to_ge_const_isld']['border'] }};"></span>
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="pertains_to_ge_const_isld"
                       style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
                 @if(isset($statuses) && $statuses->count() > 0)
                   @foreach($statuses as $statusValue => $statusLabel)
@@ -1592,7 +1640,7 @@
                     // Update status via API
                     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                     if (complaintId && csrfToken) {
-                      fetch(`/admin/complaints/${complaintId}/update-status`, {
+                      fetch(`/admin/approvals/complaints/${complaintId}/update-status`, {
                         method: 'POST',
                         headers: {
                           'Content-Type': 'application/json',
@@ -2859,8 +2907,8 @@
     'work_priced_performa': { bg: '#9333ea', text: '#ffffff', border: '#7e22ce' }, // Purple
     'maint_priced_performa': { bg: '#ea580c', text: '#ffffff', border: '#c2410c' }, // Dark Orange
     'product_na': { bg: '#6b7280', text: '#ffffff', border: '#4b5563' }, // Gray
-    'un_authorized': { bg: '#ef4444', text: '#ffffff', border: '#dc2626' }, // Red
-    'pertains_to_ge_const_isld': { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' }, // Blue
+    'un_authorized': { bg: '#ec4899', text: '#ffffff', border: '#db2777' }, // Pink
+    'pertains_to_ge_const_isld': { bg: '#06b6d4', text: '#ffffff', border: '#0891b2' }, // Aqua/Cyan
     'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
   };
 
@@ -3101,7 +3149,7 @@
       select.style.opacity = '0.6';
       select.disabled = true;
 
-      fetch(`/admin/complaints/${complaintId}/update-status`, {
+      fetch(`/admin/approvals/complaints/${complaintId}/update-status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -3211,9 +3259,13 @@
               updateStatusSelectColor(select, 'work_performa');
             } else if (currentSelectValue === 'maint_performa') {
               updateStatusSelectColor(select, 'maint_performa');
-            } else if (currentSelectValue === 'un_authorized') {
+            } else if (currentSelectValue === 'un_authorized' || newStatus === 'un_authorized') {
+              // Keep un_authorized value and color
+              select.value = 'un_authorized';
               updateStatusSelectColor(select, 'un_authorized');
-            } else if (currentSelectValue === 'pertains_to_ge_const_isld') {
+            } else if (currentSelectValue === 'pertains_to_ge_const_isld' || newStatus === 'pertains_to_ge_const_isld') {
+              // Keep pertains_to_ge_const_isld value and color
+              select.value = 'pertains_to_ge_const_isld';
               updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
             } else {
               updateStatusSelectColor(select, newStatus);
@@ -3232,7 +3284,7 @@
         if (select.isConnected && select.value !== 'resolved') {
           select.style.opacity = '1';
           select.disabled = false;
-          // Restore dropdown value to in_progress and apply red color
+          // Restore dropdown value to in_progress and apply red color (only for special performa options)
           if (specialOptionType) {
             select.value = 'in_progress';
             updateStatusSelectColor(select, 'in_progress');
@@ -3249,6 +3301,14 @@
             } else if (finalSelectValue === 'maint_performa') {
               updateStatusSelectColor(select, 'maint_performa');
             }
+          } else if (newStatus === 'un_authorized') {
+            // Keep un_authorized value and color
+            select.value = 'un_authorized';
+            updateStatusSelectColor(select, 'un_authorized');
+          } else if (newStatus === 'pertains_to_ge_const_isld') {
+            // Keep pertains_to_ge_const_isld value and color
+            select.value = 'pertains_to_ge_const_isld';
+            updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
           }
         }
       });

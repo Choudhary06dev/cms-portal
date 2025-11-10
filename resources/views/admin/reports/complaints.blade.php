@@ -48,7 +48,7 @@
       <table class="table table-bordered table-dark" style="font-size: 0.875rem; width: 100%;">
         <thead>
           <tr class="table-header-row">
-            <th rowspan="2" class="align-middle text-center" style="min-width: 200px; color: #000000 !important; font-weight: 700 !important;">Description</th>
+            <th rowspan="2" class="align-middle text-left" style="min-width: 200px; color: #000000 !important; font-weight: 700 !important; text-align: left !important;">Description</th>
             @foreach($categories as $catKey => $catName)
               <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important;">{{ $catName }}</th>
             @endforeach
@@ -70,15 +70,18 @@
               'assigned' => 'Assigned',
               'in_progress' => 'In-Process',
               'resolved' => 'Addressed',
-              'work_performa' => 'Work Performa',
-              'maint_performa' => 'Maint Performa',
-              'priced_performa' => 'Maint/Work Priced',
+              'work' => 'Work',
+              'maintenance' => 'Maintenance',
+              'work_priced_performa' => 'Work Performa Priced',
+              'maint_priced_performa' => 'Maintenance Performa Priced',
               'product_na' => 'Product N/A',
+              'un_authorized' => 'Un-Authorized',
+              'pertains_to_ge_const_isld' => 'Pertains to GE(N) Const Isld',
             ];
           @endphp
           @foreach($reportData as $rowKey => $row)
           <tr class="{{ $rowKey === 'total' ? 'table-total-row' : '' }}">
-            <td class="fw-bold" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
+            <td class="fw-bold text-left" style="text-align: left !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
               {{ $statusDisplayNames[$rowKey] ?? $row['name'] }}
             </td>
             @foreach($categories as $catKey => $catName)

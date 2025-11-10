@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('category', 100);
             $table->string('department', 100)->nullable();
             $table->text('description')->nullable();
-            $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed'])->default('new');
+            $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na', 'un_authorized', 'pertains_to_ge_const_isld'])->default('new');
             $table->unsignedBigInteger('assigned_employee_id')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent', 'emergency'])->default('medium');
             $table->timestamp('closed_at')->nullable();

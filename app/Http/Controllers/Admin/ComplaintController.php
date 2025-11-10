@@ -196,6 +196,15 @@ class ComplaintController extends Controller
                 $sectorName = $sector ? $sector->name : null;
             }
             
+            // Fallback to text inputs if present
+            $cityName = $cityName ?? ($request->city ?: null);
+            $sectorName = $sectorName ?? ($request->sector ?: '');
+            
+            // Ensure sector is not null (column is not nullable)
+            if (empty($sectorName)) {
+                $sectorName = '';
+            }
+            
             // Find or create client by name
             $client = Client::firstOrCreate(
                 ['client_name' => trim($request->client_name)],
@@ -203,7 +212,7 @@ class ComplaintController extends Controller
                     'contact_person' => $request->input('contact_person') ?: trim($request->client_name),
                     'email' => $request->input('email', ''),
                     'phone' => $request->input('phone', ''),
-                    'city' => $cityName,
+                    'city' => $cityName ?? '',
                     'sector' => $sectorName,
                     'address' => $request->input('address'),
                     'status' => 'active',
@@ -701,7 +710,13 @@ class ComplaintController extends Controller
             $updateData['closed_at'] = null;
         }
 
-        $complaint->update($updateData);
+        // Use direct DB update to ensure status is saved correctly
+        DB::table('complaints')
+            ->where('id', $complaint->id)
+            ->update($updateData);
+        
+        // Refresh the complaint model to get updated data
+        $complaint->refresh();
 
 
         $currentEmployee = Employee::first();
@@ -724,17 +739,18 @@ class ComplaintController extends Controller
 
         // Return JSON for AJAX requests
         if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            // Reload the complaint to get the updated closed_at
-            $complaint->refresh();
+            // Get the updated status directly from database to ensure accuracy
+            $updatedStatus = DB::table('complaints')->where('id', $complaint->id)->value('status');
+            $updatedClosedAt = DB::table('complaints')->where('id', $complaint->id)->value('closed_at');
             
             return response()->json([
                 'success' => true,
                 'message' => 'Complaint status updated successfully.',
                 'complaint' => [
                     'id' => $complaint->id,
-                    'status' => $complaint->status,
+                    'status' => $updatedStatus,
                     'old_status' => $oldStatus,
-                    'closed_at' => $complaint->closed_at ? $complaint->closed_at->format('d-m-Y H:i:s') : null,
+                    'closed_at' => $updatedClosedAt ? \Carbon\Carbon::parse($updatedClosedAt)->format('d-m-Y H:i:s') : null,
                 ]
             ]);
         }

@@ -231,16 +231,12 @@ class ApprovalController extends Controller
                 'assigned' => 'Assigned',
                 'in_progress' => 'In-Process',
                 'resolved' => 'Addressed',
-                'priced_performa' => 'Maint/Work Priced',
                 'work_priced_performa' => 'Work Performa Priced',
                 'maint_priced_performa' => 'Maintenance Performa Priced',
                 'product_na' => 'Product N/A',
                 'un_authorized' => 'Un-Authorized',
                 'pertains_to_ge_const_isld' => 'Pertains to GE(N) Const Isld',
             ];
-
-            // Build statuses collection from defined labels - show all regardless of database
-            $statuses = collect($statusLabels);
 
             // Define performa type labels
             $performaTypeLabels = [
@@ -253,8 +249,28 @@ class ApprovalController extends Controller
                 return ['performa_' . $type => $label];
             });
 
-            // Merge statuses and performa types into one collection, filter out any empty/null values
-            $statuses = $statuses->merge($performaTypes)->filter(function($label, $key) {
+            // Build statuses collection with custom order: 
+            // 1. Assigned, 2. In-Process, 3. Addressed, 
+            // 4-5. Work/Maintenance Performa Required (after Addressed),
+            // 6+. Rest of the statuses
+            $orderedStatuses = [
+                'assigned' => $statusLabels['assigned'],
+                'in_progress' => $statusLabels['in_progress'],
+                'resolved' => $statusLabels['resolved'],
+                // Add performa required after Addressed
+                'performa_work_performa' => $performaTypes['performa_work_performa'],
+                'performa_maint_performa' => $performaTypes['performa_maint_performa'],
+            ];
+            
+            // Add remaining statuses (excluding already added ones)
+            foreach ($statusLabels as $key => $label) {
+                if (!in_array($key, ['assigned', 'in_progress', 'resolved'])) {
+                    $orderedStatuses[$key] = $label;
+                }
+            }
+
+            // Convert to collection and filter out any empty/null values
+            $statuses = collect($orderedStatuses)->filter(function($label, $key) {
                 return !empty($label) && !empty($key) && $key !== '';
             });
 
@@ -1036,6 +1052,168 @@ class ApprovalController extends Controller
     {
         // This would require Laravel Excel package
         return response()->json(['message' => 'Excel export requires Laravel Excel package']);
+    }
+
+    /**
+     * Update complaint status from approvals view
+     */
+    public function updateComplaintStatus(Request $request, $complaintId)
+    {
+        // Get complaint by ID directly to avoid route model binding issues
+        $complaint = Complaint::find($complaintId);
+        
+        if (!$complaint) {
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Complaint not found with ID: ' . $complaintId
+                ], 404);
+            }
+            return redirect()->back()
+                ->with('error', 'Complaint not found.');
+        }
+        
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:new,assigned,in_progress,resolved,work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld',
+            'notes' => 'nullable|string',
+            'remarks' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first() ?: 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            return redirect()->back()
+                ->withErrors($validator);
+        }
+
+        $oldStatus = $complaint->status ?? 'new';
+        
+        // Get remarks - prefer remarks field, fallback to notes
+        $remarks = $request->input('remarks') ?: $request->input('notes') ?: '';
+
+        // Get current employee for logging
+        $currentEmployee = Employee::first();
+
+        // Set closed_at when status becomes 'addressed', but only if it's not already set
+        $updateData = [
+            'status' => $request->status,
+        ];
+        
+        if ($request->status === 'resolved' && !$complaint->closed_at) {
+            $updateData['closed_at'] = now();
+        } elseif ($request->status !== 'resolved') {
+            // If status is changed from addressed to something else, clear closed_at
+            $updateData['closed_at'] = null;
+        }
+
+        // Normalize old status for comparison (handle null/empty)
+        $normalizedOldStatus = $oldStatus ?: 'new';
+        
+        // Check if status is actually changing
+        if ($normalizedOldStatus === $request->status && $complaint->closed_at === ($updateData['closed_at'] ?? null)) {
+            // Status is already set to the requested value, consider it success
+            $updated = true;
+        } else {
+            // Use transaction to ensure status is saved correctly
+            try {
+                DB::beginTransaction();
+                
+                // Check if complaint exists first
+                $complaintExists = DB::table('complaints')
+                    ->where('id', $complaint->id)
+                    ->exists();
+                
+                if (!$complaintExists) {
+                    throw new \Exception('Complaint not found with ID: ' . $complaint->id);
+                }
+                
+                // Get current status from DB before update
+                $currentDbStatus = DB::table('complaints')
+                    ->where('id', $complaint->id)
+                    ->value('status');
+                
+                // Use raw SQL update to ensure status is saved correctly
+                // Use affectingStatement to get the number of affected rows
+                $updated = DB::affectingStatement(
+                    "UPDATE complaints SET status = ?, closed_at = ? WHERE id = ?",
+                    [
+                        $updateData['status'],
+                        $updateData['closed_at'] ?? null,
+                        $complaint->id
+                    ]
+                );
+                
+                // Verify the update was successful by checking the actual status in DB
+                $actualStatus = DB::table('complaints')
+                    ->where('id', $complaint->id)
+                    ->value('status');
+                
+                // Check if the update was successful
+                if ($actualStatus !== $request->status) {
+                    // Update didn't work, throw error
+                    throw new \Exception('Status update failed. Current status: ' . ($currentDbStatus ?: 'null') . ', Requested: ' . $request->status . ', Actual in DB: ' . ($actualStatus ?: 'null') . ', Rows updated: ' . $updated);
+                }
+                
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                
+                if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to update status: ' . $e->getMessage()
+                    ], 500);
+                }
+                return redirect()->back()
+                    ->with('error', 'Failed to update status: ' . $e->getMessage());
+            }
+        }
+        
+        // Refresh the complaint model to get updated data
+        $complaint->refresh();
+
+        if ($currentEmployee) {
+            // Initialize log remarks with status change message
+            $statusDisplay = $request->status === 'resolved' ? 'addressed' : $request->status;
+            $oldStatusDisplay = $oldStatus === 'resolved' ? 'addressed' : $oldStatus;
+            $logRemarks = "Status changed from {$oldStatusDisplay} to {$statusDisplay}";
+            
+            if ($remarks) {
+                $logRemarks .= ". Remarks: " . $remarks;
+            }
+            \App\Models\ComplaintLog::create([
+                'complaint_id' => $complaint->id,
+                'action_by' => $currentEmployee->id,
+                'action' => 'status_changed',
+                'remarks' => $logRemarks,
+            ]);
+        }
+
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            // Get the updated status directly from database to ensure accuracy
+            $updatedStatus = DB::table('complaints')->where('id', $complaint->id)->value('status');
+            $updatedClosedAt = DB::table('complaints')->where('id', $complaint->id)->value('closed_at');
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Complaint status updated successfully.',
+                'complaint' => [
+                    'id' => $complaint->id,
+                    'status' => $updatedStatus,
+                    'old_status' => $oldStatus,
+                    'closed_at' => $updatedClosedAt ? \Carbon\Carbon::parse($updatedClosedAt)->format('d-m-Y H:i:s') : null,
+                ]
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', 'Complaint status updated successfully.');
     }
 
 }
