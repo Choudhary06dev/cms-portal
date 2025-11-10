@@ -2556,6 +2556,8 @@
       
       if (newPagination && paginationContainer) {
         paginationContainer.innerHTML = newPagination.innerHTML;
+        // Re-initialize feather icons after pagination update
+        feather.replace();
       } else if (paginationContainer) {
         const extractedPagination = doc.querySelector('#approvalsPagination') || 
           (html.includes('approvalsPagination') ? (() => {
@@ -2566,6 +2568,8 @@
         
         if (extractedPagination) {
           paginationContainer.innerHTML = extractedPagination.innerHTML;
+          // Re-initialize feather icons after pagination update
+          feather.replace();
         }
       }
 
