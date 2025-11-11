@@ -81,6 +81,13 @@
                             <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
                             <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                             <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                            <option value="work_performa" {{ request('status') == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
+                            <option value="maint_performa" {{ request('status') == 'maint_performa' ? 'selected' : '' }}>Maintenance Performa</option>
+                            <option value="work_priced_performa" {{ request('status') == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                            <option value="maint_priced_performa" {{ request('status') == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
+                            <option value="product_na" {{ request('status') == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                            <option value="un_authorized" {{ request('status') == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                            <option value="pertains_to_ge_const_isld" {{ request('status') == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
                             <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
                         </select>
                     </div>
@@ -174,6 +181,13 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
+
+            <!-- TOTAL RECORDS -->
+            <div id="complaintsTableFooter" class="text-center py-2 mt-2" style="background-color: rgba(59, 130, 246, 0.2); border-top: 2px solid #3b82f6; border-radius: 0 0 8px 8px;">
+                <strong style="color: #ffffff; font-size: 14px;">
+                    Total Records: {{ $complaints->total() }}
+                </strong>
             </div>
 
             <!-- PAGINATION -->

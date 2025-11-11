@@ -279,11 +279,12 @@ class ReportController extends Controller
         }
         
         return [
-            'active_complaints' => (clone $complaintsQuery)->where('status', '!=', 'resolved')->count(),
+            'total_complaints_this_month' => (clone $complaintsQuery)
+                ->whereBetween('created_at', [$startOfMonth, $now])
+                ->count(),
             'resolved_this_month' => (clone $complaintsQuery)->where('status', 'resolved')
                 ->whereBetween('updated_at', [$startOfMonth, $now])
                 ->count(),
-            'sla_compliance' => $this->calculateSlaCompliance($user),
             'active_employees' => (clone $employeesQuery)->count(),
             'total_spares' => (clone $sparesQuery)->count(),
             'low_stock_items' => (clone $sparesQuery)->where('stock_quantity', '<=', DB::raw('threshold_level'))->count(),
@@ -293,7 +294,6 @@ class ReportController extends Controller
             'total_clients' => (clone $clientsQuery)->count(),
             'active_clients' => (clone $clientsQuery)->where('status', 'active')->count(),
             'total_spare_value' => (clone $sparesQuery)->sum(DB::raw('stock_quantity * unit_price')),
-            'avg_resolution_time' => $this->getAverageResolutionTime($user),
             'employee_performance' => $this->getAverageEmployeePerformance($user)
         ];
     }
@@ -632,14 +632,42 @@ class ReportController extends Controller
                         return false;
                     })->count();
                 } elseif ($rowKey === 'work_priced_performa') {
-                    // Count complaints with work priced performa status
+                    // Count complaints with work priced performa status OR in_progress with work_priced_performa performa required
+                    // Same logic structure as regular work performa
                     $count = $catComplaints->filter(function($complaint) {
-                        return $complaint->status === 'work_priced_performa';
+                        // Direct status check
+                        if ($complaint->status === 'work_priced_performa') {
+                            return true;
+                        }
+                        // Check if in_progress with work_priced_performa performa required
+                        // Check for pending approval with waiting_for_authority flag AND performa_type = work_performa
+                        if ($complaint->status === 'in_progress') {
+                            return $complaint->spareApprovals->contains(function($approval) {
+                                return $approval->status === 'pending' 
+                                    && ($approval->waiting_for_authority ?? false)
+                                    && $approval->performa_type === 'work_performa';
+                            });
+                        }
+                        return false;
                     })->count();
                 } elseif ($rowKey === 'maint_priced_performa') {
-                    // Count complaints with maint priced performa status
+                    // Count complaints with maint priced performa status OR in_progress with maint_priced_performa performa required
+                    // Same logic structure as regular maint performa
                     $count = $catComplaints->filter(function($complaint) {
-                        return $complaint->status === 'maint_priced_performa';
+                        // Direct status check
+                        if ($complaint->status === 'maint_priced_performa') {
+                            return true;
+                        }
+                        // Check if in_progress with maint_priced_performa performa required
+                        // Check for pending approval with waiting_for_authority flag AND performa_type = maint_performa
+                        if ($complaint->status === 'in_progress') {
+                            return $complaint->spareApprovals->contains(function($approval) {
+                                return $approval->status === 'pending' 
+                                    && ($approval->waiting_for_authority ?? false)
+                                    && $approval->performa_type === 'maint_performa';
+                            });
+                        }
+                        return false;
                     })->count();
                 } elseif ($rowKey === 'product_na') {
                     // Count complaints with product N/A status

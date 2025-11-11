@@ -112,6 +112,14 @@
         </tbody>
       </table>
     </div>
+    
+    <!-- TOTAL RECORDS -->
+    <div id="categoriesTableFooter" class="text-center py-2 mt-2" style="background-color: rgba(59, 130, 246, 0.2); border-top: 2px solid #3b82f6; border-radius: 0 0 8px 8px;">
+      <strong style="color: #ffffff; font-size: 14px;">
+        Total Records: {{ $categories->total() }}
+      </strong>
+    </div>
+    
     <div class="mt-3">
       {{ $categories->links() }}
     </div>

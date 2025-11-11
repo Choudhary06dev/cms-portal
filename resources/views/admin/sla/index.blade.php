@@ -110,6 +110,13 @@
         </table>
       </div>
 
+  <!-- TOTAL RECORDS -->
+      <div id="slaRulesTableFooter" class="text-center py-2 mt-2" style="background-color: rgba(59, 130, 246, 0.2); border-top: 2px solid #3b82f6; border-radius: 0 0 8px 8px;">
+        <strong style="color: #ffffff; font-size: 14px;">
+          Total Records: {{ $slaRules->total() }}
+        </strong>
+      </div>
+
   <!-- PAGINATION -->
       <div class="d-flex justify-content-center mt-3" id="slaRulesPagination">
         <div>
@@ -219,10 +226,28 @@
       // Extract table body
       const newTbody = doc.querySelector('#slaRulesTableBody');
       const newPagination = doc.querySelector('#slaRulesPagination');
+      const newTfoot = doc.querySelector('#slaRulesTableFooter');
       
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
         feather.replace();
+      }
+      
+      // Update table footer (total records)
+      const tfoot = document.querySelector('#slaRulesTableFooter');
+      if (newTfoot && tfoot) {
+        tfoot.innerHTML = newTfoot.innerHTML;
+      } else if (tfoot) {
+        const extractedTfoot = doc.querySelector('#slaRulesTableFooter') || 
+          (html.includes('slaRulesTableFooter') ? (() => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            return tempDiv.querySelector('#slaRulesTableFooter');
+          })() : null);
+        
+        if (extractedTfoot) {
+          tfoot.innerHTML = extractedTfoot.innerHTML;
+        }
       }
       
       // Update pagination

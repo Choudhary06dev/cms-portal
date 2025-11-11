@@ -58,14 +58,26 @@ class FeedbackController extends Controller
     {
         // Check if feedback already exists
         if ($complaint->feedback) {
+            if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
+                return redirect()->route('admin.feedback.edit', ['feedback' => $complaint->feedback, 'modal' => 1])
+                    ->with('info', 'Feedback already exists. You can edit it.');
+            }
             return redirect()->route('admin.feedback.edit', $complaint->feedback)
                 ->with('info', 'Feedback already exists. You can edit it.');
         }
 
         // Check if complaint is resolved
         if (!in_array($complaint->status, ['resolved', 'closed'])) {
+            if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
+                return response()->json(['error' => 'Feedback can only be added for resolved complaints.'], 400);
+            }
             return redirect()->back()
                 ->with('error', 'Feedback can only be added for resolved complaints.');
+        }
+
+        // Return full view content for modal (JS extracts content)
+        if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
+            return view('admin.feedbacks.create', compact('complaint'))->render();
         }
 
         return view('admin.feedbacks.create', compact('complaint'));
@@ -101,6 +113,12 @@ class FeedbackController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -129,11 +147,26 @@ class FeedbackController extends Controller
             // Refresh the complaint to ensure feedback relationship is loaded
             $complaint->load('feedback.enteredBy');
 
+            // If request is from modal, return JSON response
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Feedback added successfully.',
+                    'complaint_id' => $complaint->id
+                ]);
+            }
+            
             // Redirect back to approvals page (Complaints Regn) with complaint ID to open in modal
             return redirect()->route('admin.approvals.index', ['view_complaint' => $complaint->id])
                 ->with('success', 'Feedback added successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to add feedback: ' . $e->getMessage()
+                ], 500);
+            }
             return redirect()->back()
                 ->with('error', 'Failed to add feedback: ' . $e->getMessage())
                 ->withInput();
@@ -146,6 +179,12 @@ class FeedbackController extends Controller
     public function edit(ComplaintFeedback $feedback)
     {
         $feedback->load(['complaint', 'client']);
+        
+        // Return full view content for modal (JS extracts content)
+        if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
+            return view('admin.feedbacks.edit', compact('feedback'))->render();
+        }
+        
         return view('admin.feedbacks.edit', compact('feedback'));
     }
 
@@ -167,6 +206,12 @@ class FeedbackController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -192,11 +237,26 @@ class FeedbackController extends Controller
             $feedback->refresh();
             $feedback->load('enteredBy');
 
+            // If request is from modal, return JSON response
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Feedback updated successfully.',
+                    'complaint_id' => $feedback->complaint_id
+                ]);
+            }
+            
             // Redirect back to approvals page (Complaints Regn) with complaint ID to open in modal
             return redirect()->route('admin.approvals.index', ['view_complaint' => $feedback->complaint_id])
                 ->with('success', 'Feedback updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to update feedback: ' . $e->getMessage()
+                ], 500);
+            }
             return redirect()->back()
                 ->with('error', 'Failed to update feedback: ' . $e->getMessage())
                 ->withInput();

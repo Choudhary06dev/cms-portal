@@ -84,7 +84,7 @@
 <!-- QUICK STATS -->
 <div class="row g-4 mb-4">
   <div class="col-md-8">
-    <div class="card-glass">
+    <div class="card-glass mb-4">
       <div class="card-header mb-3">
         <h5 class="text-white mb-0">
           <i data-feather="bar-chart-2" class="me-2"></i>Quick Statistics
@@ -92,62 +92,91 @@
       </div>
       <div class="card-body">
         <div class="row g-3">
-          <!-- Row 1: Complaints -->
-          <div class="col-md-3 col-6">
+          <!-- Row 1: 3 items -->
+          <div class="col-md-4 col-6">
             <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #3b82f6;">
-              <div class="h3 text-primary mb-1 fw-bold">{{ $stats['active_complaints'] ?? 0 }}</div>
-              <div class="text-muted small">Active Complaints</div>
+              <div class="h3 text-primary mb-1 fw-bold">{{ $stats['total_complaints_this_month'] ?? 0 }}</div>
+              <div class="text-muted small">Total Complaints This Month</div>
             </div>
           </div>
-          <div class="col-md-3 col-6">
+          <div class="col-md-4 col-6">
             <div class="text-center p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid #10b981;">
               <div class="h3 text-success mb-1 fw-bold">{{ $stats['resolved_this_month'] ?? 0 }}</div>
               <div class="text-muted small">Resolved This Month</div>
             </div>
           </div>
-          
-          <!-- Row 2: Employees & SLA -->
-          <div class="col-md-3 col-6">
+          <div class="col-md-4 col-6">
             <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #06b6d4;">
               <div class="h3 text-info mb-1 fw-bold">{{ $stats['active_employees'] ?? 0 }}</div>
               <div class="text-muted small">Active Employees</div>
             </div>
           </div>
-          <div class="col-md-3 col-6">
-            <div class="text-center p-3" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px; border-left: 3px solid #f59e0b;">
-              <div class="h3 text-warning mb-1 fw-bold">{{ $stats['sla_compliance'] ?? 0 }}%</div>
-              <div class="text-muted small">SLA Compliance</div>
-            </div>
-          </div>
           
-          <!-- Row 3: Spare Parts -->
-          <div class="col-md-3 col-6">
+          <!-- Row 2: 3 items -->
+          <div class="col-md-4 col-6">
             <div class="text-center p-3" style="background: rgba(139, 92, 246, 0.1); border-radius: 8px; border-left: 3px solid #8b5cf6;">
               <div class="h3 text-secondary mb-1 fw-bold">{{ $stats['total_spares'] ?? 0 }}</div>
-              <div class="text-muted small">Total Spare Parts</div>
+              <div class="text-muted small">Total Products</div>
             </div>
           </div>
-          <div class="col-md-3 col-6">
+          <div class="col-md-4 col-6">
             <div class="text-center p-3" style="background: rgba(239, 68, 68, 0.1); border-radius: 8px; border-left: 3px solid #ef4444;">
               <div class="h3 text-danger mb-1 fw-bold">{{ $stats['low_stock_items'] ?? 0 }}</div>
               <div class="text-muted small">Low Stock Items</div>
             </div>
           </div>
-          
-          <!-- Row 4: Performance -->
-          <div class="col-md-3 col-6">
+          <div class="col-md-4 col-6">
             <div class="text-center p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid #10b981;">
               <div class="h3 text-success mb-1 fw-bold">{{ $stats['employee_performance'] ?? 0 }}%</div>
               <div class="text-muted small">Avg Performance</div>
             </div>
           </div>
-          <div class="col-md-3 col-6">
-            <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #3b82f6;">
-              <div class="h3 text-primary mb-1 fw-bold">{{ $stats['avg_resolution_time'] ?? 0 }}h</div>
-              <div class="text-muted small">Avg Resolution Time</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- REPORT FILTERS -->
+    <div class="card-glass" style="max-width: 1100px;">
+      <div class="card-header mb-3">
+        <h5 class="text-white mb-0">
+          <i data-feather="filter" class="me-2"></i>Generate Custom Report
+        </h5>
+      </div>
+      <div class="card-body">
+        <form id="customReportForm">
+          <div class="row g-2 align-items-end">
+            <div class="col-auto">
+              <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Report Type</label>
+              <select name="report_type" class="form-select" style="font-size: 0.9rem; width: 180px;" required>
+                <option value="">Select Type</option>
+                <option value="complaints">Complaints</option>
+                <option value="employees">Employees</option>
+                <option value="spares">Store Products</option>
+                <option value="sla">SLA</option>
+              </select>
+            </div>
+            <div class="col-auto">
+              <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">From Date</label>
+              <input type="date" name="date_from" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
+            </div>
+            <div class="col-auto">
+              <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">To Date</label>
+              <input type="date" name="date_to" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
+            </div>
+            <div class="col-auto">
+              <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+              <button type="submit" class="btn btn-accent btn-sm" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+                <i data-feather="file-text" class="me-1" style="width: 14px; height: 14px;"></i>Generate
+              </button>
+            </div>
+            <div class="col-auto">
+              <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetCustomReportForm()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+                <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+              </button>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   </div>
@@ -181,51 +210,6 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- REPORT FILTERS -->
-<div class="card-glass mb-4">
-  <div class="card-header mb-3">
-    <h5 class="text-white mb-0">
-      <i data-feather="filter" class="me-2"></i>Generate Custom Report
-    </h5>
-  </div>
-  <div class="card-body">
-    <form id="customReportForm">
-      <div class="row g-2 align-items-end">
-        <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Report Type</label>
-          <select name="report_type" class="form-select" style="font-size: 0.9rem; width: 180px;" required>
-            <option value="">Select Type</option>
-            <option value="complaints">Complaints</option>
-            <option value="employees">Employees</option>
-            <option value="spares">Store Products</option>
-            <option value="sla">SLA</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">From Date</label>
-          <input type="date" name="date_from" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
-        </div>
-        <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">To Date</label>
-          <input type="date" name="date_to" class="form-control" style="font-size: 0.9rem; width: 150px;" required>
-        </div>
-        <div class="col-auto">
-          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
-          <button type="submit" class="btn btn-accent btn-sm" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
-            <i data-feather="file-text" class="me-1" style="width: 14px; height: 14px;"></i>Generate
-          </button>
-        </div>
-        <div class="col-auto">
-          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
-          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetCustomReportForm()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
-            <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
-          </button>
-        </div>
-      </div>
-    </form>
   </div>
 </div>
 

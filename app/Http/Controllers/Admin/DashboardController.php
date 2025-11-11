@@ -520,6 +520,15 @@ class DashboardController extends Controller
             'complaints_this_month' => (clone $complaintsQuery)->where('created_at', '>=', $thisMonth)->count(),
             'complaints_last_month' => (clone $complaintsQuery)->whereBetween('created_at', [$lastMonth, $thisMonth])->count(),
 
+            // Complaint status statistics
+            'work_performa' => (clone $complaintsQuery)->where('status', 'work_performa')->count(),
+            'maint_performa' => (clone $complaintsQuery)->where('status', 'maint_performa')->count(),
+            'work_priced_performa' => (clone $complaintsQuery)->where('status', 'work_priced_performa')->count(),
+            'maint_priced_performa' => (clone $complaintsQuery)->where('status', 'maint_priced_performa')->count(),
+            'un_authorized' => (clone $complaintsQuery)->where('status', 'un_authorized')->count(),
+            'product_na' => (clone $complaintsQuery)->where('status', 'product_na')->count(),
+            'pertains_to_ge_const_isld' => (clone $complaintsQuery)->where('status', 'pertains_to_ge_const_isld')->count(),
+
             // User statistics (users are not location-based)
             'total_users' => User::count(),
             'active_users' => User::where('status', 'active')->count(),

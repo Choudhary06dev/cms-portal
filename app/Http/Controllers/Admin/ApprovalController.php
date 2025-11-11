@@ -121,6 +121,38 @@ class ApprovalController extends Controller
                     $query->where('spare_approval_performa.performa_type', $performaType);
                     // Exclude "Addressed" (resolved) complaints when filtering by performa_type
                     $query->where('complaints.status', '!=', 'resolved');
+                } elseif ($statusValue === 'work_priced_performa') {
+                    // Handle work_priced_performa filter
+                    // First exclude regular work_performa and maint_performa statuses
+                    $query->where('complaints.status', '!=', 'work_performa')
+                          ->where('complaints.status', '!=', 'maint_performa')
+                          ->where(function($q) {
+                              // Check for direct status match
+                              $q->where('complaints.status', 'work_priced_performa')
+                                // OR check for in_progress with pending approvals that have waiting_for_authority flag AND performa_type = work_performa
+                                ->orWhere(function($subQ) {
+                                    $subQ->where('complaints.status', 'in_progress')
+                                         ->where('spare_approval_performa.status', 'pending')
+                                         ->where('spare_approval_performa.waiting_for_authority', true)
+                                         ->where('spare_approval_performa.performa_type', 'work_performa');
+                                });
+                          });
+                } elseif ($statusValue === 'maint_priced_performa') {
+                    // Handle maint_priced_performa filter
+                    // First exclude regular work_performa and maint_performa statuses
+                    $query->where('complaints.status', '!=', 'work_performa')
+                          ->where('complaints.status', '!=', 'maint_performa')
+                          ->where(function($q) {
+                              // Check for direct status match
+                              $q->where('complaints.status', 'maint_priced_performa')
+                                // OR check for in_progress with pending approvals that have waiting_for_authority flag AND performa_type = maint_performa
+                                ->orWhere(function($subQ) {
+                                    $subQ->where('complaints.status', 'in_progress')
+                                         ->where('spare_approval_performa.status', 'pending')
+                                         ->where('spare_approval_performa.waiting_for_authority', true)
+                                         ->where('spare_approval_performa.performa_type', 'maint_performa');
+                                });
+                          });
                 } else {
                     // Regular status filter
                     $query->where('complaints.status', $statusValue);

@@ -991,12 +991,12 @@
     
     @if($showCityFilter || $showSectorFilter || $categories->count() > 0 || (isset($complaintStatuses) && count($complaintStatuses) > 0) || true)
     <div class="mb-4 d-flex justify-content-center">
-      <div class="card-glass" style="display: inline-block; width: fit-content; padding: 1.5rem; background: linear-gradient(135deg,rgb(154, 205, 239) 0%,rgb(153, 207, 237) 100%) !important; border: 1px solid #7dd3fc;">
+      <div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
         <form id="dashboardFiltersForm" method="GET" action="{{ route('admin.dashboard') }}">
           <div class="row g-2 align-items-end">
           @if($showCityFilter)
           <div class="col-auto" id="cityFilterContainer">
-            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">GE</label>
+            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">GE</label>
             <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value=""> Select GE</option>
               @if($cities && $cities->count() > 0)
@@ -1021,7 +1021,7 @@
           
           @if($showSectorFilter)
           <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Sector</label>
+            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Sector</label>
             <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value="">All Sectors</option>
               @if($sectors && $sectors->count() > 0)
@@ -1034,7 +1034,7 @@
           @endif
           
           <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Complaint Category</label>
+            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Complaint Category</label>
             <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value="">All Categories</option>
               @if($categories && $categories->count() > 0)
@@ -1047,7 +1047,7 @@
           
           @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
           <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Complaints Status</label>
+            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Complaints Status</label>
             <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value="">All Status</option>
               @foreach($complaintStatuses as $statusKey => $statusLabel)
@@ -1058,7 +1058,7 @@
           @endif
           
           <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.85rem; color: #1e293b !important; font-weight: 600;">Date Range</label>
+            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Date Range</label>
             <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
               <option value="">All Time</option>
               <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
@@ -1071,9 +1071,10 @@
             </select>
           </div>
           
-          <div class="col-auto d-flex align-items-end">
-            <button type="button" class="btn" onclick="resetDashboardFilters()" style="font-size: 0.85rem; padding: 0.4rem 0.9rem; font-weight: 600; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border: none; color: #ffffff !important; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2); transition: all 0.2s ease;">
-              <i data-feather="refresh-cw" style="width: 13px; height: 13px; margin-right: 3px;"></i>Reset
+          <div class="col-auto">
+            <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetDashboardFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+              <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
             </button>
           </div>
           </div>
@@ -1085,7 +1086,7 @@
     <!-- STATISTICS CARDS -->
     <div class="row mb-4">
       <div class="col-md-3 mb-3">
-    <div class="card-glass">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.3) 100%) !important; border: 1px solid rgba(59, 130, 246, 0.4) !important;">
       <div class="d-flex align-items-center">
         <div class="flex-grow-1">
           <div class="h4 mb-1 text-white" style="font-size: 2rem; font-weight: bold;">{{ $stats['total_complaints'] ?? 0 }}</div>
@@ -1098,20 +1099,21 @@
         </div>
       </div>
       <div class="col-md-3 mb-3">
-    <div class="card-glass">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%) !important; border: 1px solid rgba(239, 68, 68, 0.4) !important;">
       <div class="d-flex align-items-center">
         <div class="flex-grow-1">
-          <div class="h4 mb-1 text-warning" style="font-size: 2rem; font-weight: bold;">{{ $stats['pending_complaints'] ?? 0 }}</div>
+          <div class="h4 mb-1 text-danger" style="font-size: 2rem; font-weight: bold;">{{ $stats['pending_complaints'] ?? 0 }}</div>
           <div class="text-muted" style="font-size: 0.9rem;">Pending</div>
         </div>
-        <div class="text-warning">
+        <div class="text-danger">
           <i data-feather="clock" class="feather-lg"></i>
         </div>
+
       </div>
         </div>
       </div>
       <div class="col-md-3 mb-3">
-    <div class="card-glass">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.3) 100%) !important; border: 1px solid rgba(34, 197, 94, 0.4) !important;">
       <div class="d-flex align-items-center">
         <div class="flex-grow-1">
           <div class="h4 mb-1 text-success" style="font-size: 2rem; font-weight: bold;">{{ $stats['addressed_complaints'] ?? 0 }}</div>
@@ -1124,7 +1126,7 @@
         </div>
             </div>
       <div class="col-md-3 mb-3">
-    <div class="card-glass">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%) !important; border: 1px solid rgba(239, 68, 68, 0.4) !important;">
       <div class="d-flex align-items-center">
         <div class="flex-grow-1">
           <div class="h4 mb-1 text-danger" style="font-size: 2rem; font-weight: bold;">{{ $stats['overdue_complaints'] ?? 0 }}</div>
@@ -1138,7 +1140,103 @@
       </div>
     </div>
 
-    
+    <!-- COMPLAINT STATUS CARDS -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.3) 100%) !important; border: 1px solid rgba(96, 165, 250, 0.4) !important;">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #60a5fa;">{{ $stats['work_performa'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Work Performa</div>
+        </div>
+        <div style="color: #60a5fa;">
+          <i data-feather="file-text" class="feather-lg"></i>
+        </div>
+      </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(217, 119, 6, 0.3) 100%) !important; border: 1px solid rgba(234, 179, 8, 0.4) !important;">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #eab308;">{{ $stats['maint_performa'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Maintenance Performa</div>
+        </div>
+        <div style="color: #eab308;">
+          <i data-feather="tool" class="feather-lg"></i>
+        </div>
+      </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(126, 34, 206, 0.3) 100%) !important; border: 1px solid rgba(147, 51, 234, 0.4) !important;">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #9333ea;">{{ $stats['work_priced_performa'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Work Performa Priced</div>
+        </div>
+        <div style="color: #9333ea;">
+          <i data-feather="dollar-sign" class="feather-lg"></i>
+        </div>
+      </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.2) 0%, rgba(194, 65, 12, 0.3) 100%) !important; border: 1px solid rgba(234, 88, 12, 0.4) !important;">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #ea580c;">{{ $stats['maint_priced_performa'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Maintenance Performa Priced</div>
+        </div>
+        <div style="color: #ea580c;">
+          <i data-feather="dollar-sign" class="feather-lg"></i>
+        </div>
+      </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(219, 39, 119, 0.3) 100%) !important; border: 1px solid rgba(236, 72, 153, 0.4) !important;">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #ec4899;">{{ $stats['un_authorized'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Un Authorized</div>
+        </div>
+        <div style="color: #ec4899;">
+          <i data-feather="x-octagon" class="feather-lg"></i>
+        </div>
+      </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(26, 26, 26, 0.4) 100%) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important;">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #ffffff;">{{ $stats['product_na'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Product N/A</div>
+        </div>
+        <div style="color: #ffffff;">
+          <i data-feather="package-x" class="feather-lg"></i>
+        </div>
+      </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+    <div class="card-glass" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.3) 100%) !important; border: 1px solid rgba(6, 182, 212, 0.4) !important;">
+      <div class="d-flex align-items-center">
+        <div class="flex-grow-1">
+          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #06b6d4;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
+          <div class="text-muted" style="font-size: 0.9rem;">Pertains to GE/Const/Isld</div>
+        </div>
+        <div style="color: #06b6d4;">
+          <i data-feather="map-pin" class="feather-lg"></i>
+        </div>
+      </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ADDITIONAL STATS -->
     <div class="row mb-4 justify-content-center">
@@ -1152,12 +1250,6 @@
     <div class="card-glass text-center">
       <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_employees'] ?? 0 }}</div>
       <div class="text-muted" style="font-size: 0.8rem;">Employees</div>
-        </div>
-      </div>
-      <div class="col-md-2 mb-3">
-    <div class="card-glass text-center">
-      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_complaints'] ?? 0 }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Complaints</div>
         </div>
       </div>
       <div class="col-md-2 mb-3">
@@ -1197,7 +1289,7 @@
         <div class="card-glass">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0 text-white" style="font-weight: bold;">
-              <i data-feather="users" class="me-2"></i>GE Progress Overview
+              <i data-feather="users" class="me-2"></i>GE Feedback Overview
             </h5>
           </div>
           <div class="row">
@@ -1209,6 +1301,7 @@
                 ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
                 ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
               ];
+              $totalCards = count($geProgress);
             @endphp
             @foreach($geProgress as $index => $geData)
             @php
@@ -1217,15 +1310,36 @@
               $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
                               ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
                               ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
+              
+              // Calculate centering classes
+              $colClasses = 'col-md-6 col-lg-4 mb-3';
+              $offsetClasses = '';
+              
+              // If only 1 card, center it on all screen sizes
+              if ($totalCards == 1) {
+                $colClasses = 'col-md-6 col-lg-4 mb-3';
+                $offsetClasses = 'offset-md-3 offset-lg-4';
+              }
+              // If last row has 2 cards (total % 3 == 2), center them on large screens
+              elseif ($totalCards % 3 == 2 && $index >= $totalCards - 2) {
+                if ($index == $totalCards - 2) {
+                  // Second to last card - add offset on large screens to center the pair
+                  $offsetClasses = 'offset-lg-2';
+                }
+              }
+              // If last row has 1 card (total % 3 == 1), center it on large screens
+              elseif ($totalCards % 3 == 1 && $index == $totalCards - 1) {
+                $offsetClasses = 'offset-lg-4';
+              }
             @endphp
-            <div class="col-md-6 col-lg-4 mb-3">
+            <div class="{{ $colClasses }} {{ $offsetClasses }}">
               <div class="card-glass" style="padding: 1.25rem; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; transition: all 0.3s ease;">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                   <div>
-                    <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.1rem;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
-                    <p class="mb-0 text-white" style="font-size: 0.85rem; opacity: 0.9;">
-                      <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
-                      {{ $geData['city'] }}
+                    <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.1rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
+                    <p class="mb-0 text-white" style="font-size: 0.85rem; opacity: 0.9; color: #ffffff !important;">
+                      <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
+                      <span style="color: #ffffff !important;">{{ $geData['city'] }}</span>
                     </p>
                   </div>
                   <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
@@ -1234,8 +1348,8 @@
                 </div>
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-white" style="font-size: 0.9rem; font-weight: 500; opacity: 0.95;">Progress</span>
-                    <span class="text-white" style="font-weight: 700; font-size: 1.5rem;">{{ $geData['progress_percentage'] }}%</span>
+                    <span class="text-white" style="font-size: 0.9rem; font-weight: 500; opacity: 0.95; color: #ffffff !important;">Progress</span>
+                    <span class="text-white" style="font-weight: 700; font-size: 1.5rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
                   </div>
                   <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.2); border-radius: 7px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1);">
                     <div class="progress-bar" role="progressbar" 
@@ -1247,13 +1361,13 @@
                   </div>
                 </div>
                 <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
                     <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
-                    <span style="font-weight: 600;">{{ $geData['resolved_complaints'] }}</span> Resolved
+                    <span style="font-weight: 600; color: #ffffff !important;">{{ $geData['resolved_complaints'] }}</span> <span style="color: #ffffff !important;">Resolved</span>
                   </span>
-                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
                     <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
-                    <span style="font-weight: 600;">{{ $geData['total_complaints'] }}</span> Total
+                    <span style="font-weight: 600; color: #ffffff !important;">{{ $geData['total_complaints'] }}</span> <span style="color: #ffffff !important;">Total</span>
                   </span>
                 </div>
               </div>

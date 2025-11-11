@@ -425,11 +425,11 @@
                   }
                 @endphp
                 @if($hasFeedback && $feedbackId)
-                  <a href="{{ route('admin.feedback.edit', $feedbackId) }}" class="btn btn-success btn-sm" title="Edit Feedback" style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important;">
+                  <a href="javascript:void(0)" onclick="viewFeedbackEdit({{ $feedbackId }})" class="btn btn-success btn-sm" title="Edit Feedback" style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important;">
                     <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
                   </a>
                 @else
-                  <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-outline-warning btn-sm" title="Add Feedback" style="padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;">
+                  <a href="javascript:void(0)" onclick="viewFeedbackCreate({{ $complaint->id }})" class="btn btn-outline-warning btn-sm" title="Add Feedback" style="padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;">
                     <i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>
                   </a>
                 @endif
@@ -448,6 +448,13 @@
         @endforelse
       </tbody>
     </table>
+  </div>
+  
+  <!-- TOTAL RECORDS -->
+  <div id="approvalsTableFooter" class="text-center py-2 mt-2" style="background-color: rgba(59, 130, 246, 0.2); border-top: 2px solid #3b82f6; border-radius: 0 0 8px 8px;">
+    <strong style="color: #ffffff; font-size: 14px;">
+      Total Records: {{ $approvals->total() }}
+    </strong>
   </div>
   
   <!-- PAGINATION -->
@@ -511,6 +518,27 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeApprovalModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
             </div>
             <div class="modal-body" id="approvalModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+                <h5 class="modal-title text-white" id="feedbackModalLabel">
+                    <i data-feather="message-circle" class="me-2"></i>Feedback
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeFeedbackModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+            </div>
+            <div class="modal-body" id="feedbackModalBody">
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -585,6 +613,50 @@
   
   #approvalModal .btn-close:hover {
       background-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Feedback Modal Styling */
+  #feedbackModal {
+      z-index: 1055 !important;
+  }
+  
+  #feedbackModal .modal-dialog {
+      z-index: 1055 !important;
+      position: relative;
+      max-width: 1200px !important;
+      width: 95vw !important;
+  }
+  
+  #feedbackModal .modal-content {
+      max-height: 90vh;
+      overflow-y: auto;
+      z-index: 1055 !important;
+      position: relative;
+  }
+  
+  #feedbackModal .modal-body {
+      padding: 1.5rem;
+  }
+  
+  #feedbackModal .btn-close {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 0.5rem !important;
+      opacity: 1 !important;
+  }
+  
+  #feedbackModal .btn-close:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Make content boxes smaller in feedback modal */
+  #feedbackModal .col-lg-10,
+  #feedbackModal .col-xl-9 {
+      max-width: 100%;
+  }
+  
+  #feedbackModal .card-glass {
+      margin-bottom: 1rem;
   }
   
   /* Toast Notification Animations */
@@ -1350,6 +1422,387 @@
     }
     document.body.classList.remove('modal-open-blur');
   }
+  
+  // Feedback Functions
+  function viewFeedbackCreate(complaintId) {
+    if (!complaintId) {
+      alert('Invalid complaint ID');
+      return;
+    }
+    
+    const modalElement = document.getElementById('feedbackModal');
+    const modalBody = document.getElementById('feedbackModalBody');
+    
+    // Show loading state
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Add blur effect to background first
+    document.body.classList.add('modal-open-blur');
+    
+    // Show modal WITHOUT backdrop so we can see the blurred background
+    const modal = new bootstrap.Modal(modalElement, {
+      backdrop: false, // Disable Bootstrap backdrop completely
+      keyboard: true,
+      focus: true
+    });
+    modal.show();
+    
+    // Ensure any backdrop that might be created is removed
+    const removeBackdrop = () => {
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => {
+        backdrop.remove(); // Remove from DOM
+      });
+    };
+    
+    // Use MutationObserver to catch and remove any backdrop creation
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+            node.remove(); // Remove immediately if created
+          }
+        });
+      });
+      removeBackdrop();
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Remove any existing backdrops
+    removeBackdrop();
+    setTimeout(removeBackdrop, 10);
+    setTimeout(removeBackdrop, 50);
+    setTimeout(removeBackdrop, 100);
+    
+    // Clean up observer when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', function() {
+      observer.disconnect();
+      removeBackdrop();
+    }, { once: true });
+    
+    // Load feedback create form via AJAX
+    fetch(`/admin/complaints/${complaintId}/feedback/create?modal=1`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/html',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Extract only the content section from the full page HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      // Find the content section
+      const contentSection = tempDiv.querySelector('section.content') || tempDiv.querySelector('.content');
+      
+      if (contentSection) {
+        // Extract only the rows with card-glass (skip page header)
+        let feedbackContent = '';
+        const rows = contentSection.querySelectorAll('.row');
+        
+        rows.forEach(row => {
+          // Skip page header rows (those with h5.text-white.mb-1 and p.text-light)
+          const isHeader = row.querySelector('h5.text-white.mb-1') && row.querySelector('p.text-light');
+          if (!isHeader && row.querySelector('.card-glass')) {
+            feedbackContent += row.outerHTML;
+          }
+        });
+        
+        if (feedbackContent) {
+          modalBody.innerHTML = feedbackContent;
+        } else {
+          // Fallback: extract all card-glass elements
+          const cards = contentSection.querySelectorAll('.card-glass');
+          cards.forEach(card => {
+            const parentRow = card.closest('.row');
+            if (parentRow) {
+              feedbackContent += parentRow.outerHTML;
+            }
+          });
+          modalBody.innerHTML = feedbackContent || '<div class="text-center py-5 text-danger">Error: Could not load feedback form.</div>';
+        }
+      } else {
+        modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not find content section.</div>';
+      }
+      
+      // Update form action to submit via AJAX
+      const form = modalBody.querySelector('form');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          submitFeedbackForm(form, 'create', complaintId);
+        });
+      }
+      
+      // Replace feather icons after content is loaded
+      feather.replace();
+    })
+    .catch(error => {
+      console.error('Error loading feedback form:', error);
+      modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading feedback form: ' + error.message + '. Please try again.</div>';
+    });
+    
+    // Replace feather icons when modal is shown
+    modalElement.addEventListener('shown.bs.modal', function() {
+      feather.replace();
+    });
+    
+    // Remove blur when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', function() {
+      document.body.classList.remove('modal-open-blur');
+      feather.replace();
+    }, { once: true });
+  }
+  
+  function viewFeedbackEdit(feedbackId) {
+    if (!feedbackId) {
+      alert('Invalid feedback ID');
+      return;
+    }
+    
+    const modalElement = document.getElementById('feedbackModal');
+    const modalBody = document.getElementById('feedbackModalBody');
+    
+    // Show loading state
+    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+    
+    // Add blur effect to background first
+    document.body.classList.add('modal-open-blur');
+    
+    // Show modal WITHOUT backdrop so we can see the blurred background
+    const modal = new bootstrap.Modal(modalElement, {
+      backdrop: false, // Disable Bootstrap backdrop completely
+      keyboard: true,
+      focus: true
+    });
+    modal.show();
+    
+    // Ensure any backdrop that might be created is removed
+    const removeBackdrop = () => {
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => {
+        backdrop.remove(); // Remove from DOM
+      });
+    };
+    
+    // Use MutationObserver to catch and remove any backdrop creation
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+            node.remove(); // Remove immediately if created
+          }
+        });
+      });
+      removeBackdrop();
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Remove any existing backdrops
+    removeBackdrop();
+    setTimeout(removeBackdrop, 10);
+    setTimeout(removeBackdrop, 50);
+    setTimeout(removeBackdrop, 100);
+    
+    // Clean up observer when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', function() {
+      observer.disconnect();
+      removeBackdrop();
+    }, { once: true });
+    
+    // Load feedback edit form via AJAX
+    fetch(`/admin/feedbacks/${feedbackId}/edit?modal=1`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/html',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Extract only the content section from the full page HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      // Find the content section
+      const contentSection = tempDiv.querySelector('section.content') || tempDiv.querySelector('.content');
+      
+      if (contentSection) {
+        // Extract only the rows with card-glass (skip page header)
+        let feedbackContent = '';
+        const rows = contentSection.querySelectorAll('.row');
+        
+        rows.forEach(row => {
+          // Skip page header rows (those with h5.text-white.mb-1 and p.text-light)
+          const isHeader = row.querySelector('h5.text-white.mb-1') && row.querySelector('p.text-light');
+          if (!isHeader && row.querySelector('.card-glass')) {
+            feedbackContent += row.outerHTML;
+          }
+        });
+        
+        if (feedbackContent) {
+          modalBody.innerHTML = feedbackContent;
+        } else {
+          // Fallback: extract all card-glass elements
+          const cards = contentSection.querySelectorAll('.card-glass');
+          cards.forEach(card => {
+            const parentRow = card.closest('.row');
+            if (parentRow) {
+              feedbackContent += parentRow.outerHTML;
+            }
+          });
+          modalBody.innerHTML = feedbackContent || '<div class="text-center py-5 text-danger">Error: Could not load feedback form.</div>';
+        }
+      } else {
+        modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not find content section.</div>';
+      }
+      
+      // Update form action to submit via AJAX
+      const form = modalBody.querySelector('form');
+      if (form) {
+        const formAction = form.getAttribute('action');
+        const feedbackIdMatch = formAction.match(/\/feedbacks\/(\d+)/);
+        if (feedbackIdMatch) {
+          form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitFeedbackForm(form, 'update', null, feedbackIdMatch[1]);
+          });
+        }
+      }
+      
+      // Replace feather icons after content is loaded
+      feather.replace();
+    })
+    .catch(error => {
+      console.error('Error loading feedback form:', error);
+      modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading feedback form: ' + error.message + '. Please try again.</div>';
+    });
+    
+    // Replace feather icons when modal is shown
+    modalElement.addEventListener('shown.bs.modal', function() {
+      feather.replace();
+    });
+    
+    // Remove blur when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', function() {
+      document.body.classList.remove('modal-open-blur');
+      feather.replace();
+    }, { once: true });
+  }
+  
+  function submitFeedbackForm(form, action, complaintId, feedbackId) {
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton ? submitButton.innerHTML : '';
+    
+    // Disable submit button
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    }
+    
+    let url;
+    let method;
+    if (action === 'create') {
+      url = `/admin/complaints/${complaintId}/feedback`;
+      method = 'POST';
+    } else {
+      url = `/admin/feedbacks/${feedbackId}`;
+      method = 'POST'; // Use POST with _method for PUT
+      formData.append('_method', 'PUT');
+    }
+    
+    fetch(url, {
+      method: method,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token')
+      },
+      body: formData,
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Show success message
+        if (typeof showSuccess === 'function') {
+          showSuccess(data.message || 'Feedback saved successfully!');
+        } else {
+          alert(data.message || 'Feedback saved successfully!');
+        }
+        
+        // Close modal
+        closeFeedbackModal();
+        
+        // Reload page to refresh the table
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        // Show error message
+        if (typeof showError === 'function') {
+          showError(data.message || 'Failed to save feedback.');
+        } else {
+          alert(data.message || 'Failed to save feedback.');
+        }
+        
+        // Re-enable submit button
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButtonText;
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error submitting feedback:', error);
+      if (typeof showError === 'function') {
+        showError('An error occurred while saving feedback. Please try again.');
+      } else {
+        alert('An error occurred while saving feedback. Please try again.');
+      }
+      
+      // Re-enable submit button
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+      }
+    });
+  }
+  
+  function closeFeedbackModal() {
+    const modalElement = document.getElementById('feedbackModal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+    document.body.classList.remove('modal-open-blur');
+  }
+  
   // approveRequest and rejectRequest functions removed as per user request
 
   // Utility Functions
@@ -2842,9 +3295,11 @@
       
       const newTbody = doc.querySelector('#approvalsTableBody');
       const newPagination = doc.querySelector('#approvalsPagination');
+      const newTfoot = doc.querySelector('#approvalsTableFooter');
       
       console.log('Found newTbody:', !!newTbody);
       console.log('Found newPagination:', !!newPagination);
+      console.log('Found newTfoot:', !!newTfoot);
       
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
@@ -2886,6 +3341,23 @@
           }
         } else {
           throw new Error('Response does not contain expected table structure');
+        }
+      }
+      
+      // Update table footer (total records)
+      const tfoot = document.querySelector('#approvalsTableFooter');
+      if (newTfoot && tfoot) {
+        tfoot.innerHTML = newTfoot.innerHTML;
+      } else if (tfoot) {
+        const extractedTfoot = doc.querySelector('#approvalsTableFooter') || 
+          (html.includes('approvalsTableFooter') ? (() => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            return tempDiv.querySelector('#approvalsTableFooter');
+          })() : null);
+        
+        if (extractedTfoot) {
+          tfoot.innerHTML = extractedTfoot.innerHTML;
         }
       }
       
@@ -2940,81 +3412,6 @@
         }
       }, 3000);
     });
-
-    // Performa Required toggle handlers
-    if (authorityYes && authorityNo && performaTypeCol && authorityNoCol) {
-      const updateAuthorityVisibility = () => {
-        const required = authorityYes.checked;
-        performaTypeCol.classList.toggle('d-none', !required);
-        authorityNoCol.classList.toggle('d-none', !required);
-        // Make fields required only when authority is required
-        if (performaType) performaType.required = required;
-        if (authorityNumber) authorityNumber.required = required;
-        // Disable request quantity until Authority No. provided when required
-        if (requestQtyInput) {
-          if (required) {
-            const hasAuthNo = authorityNumber && authorityNumber.value && authorityNumber.value.trim().length > 0;
-            requestQtyInput.disabled = !hasAuthNo;
-            requestQtyInput.readOnly = !hasAuthNo;
-            requestQtyInput.placeholder = hasAuthNo ? 'Enter quantity' : 'Enter Authority No.';
-            if (!hasAuthNo) {
-              requestQtyInput.value = '';
-            }
-          } else {
-            requestQtyInput.disabled = false;
-            requestQtyInput.readOnly = false;
-            requestQtyInput.placeholder = 'Enter quantity';
-          }
-        }
-        if (!required) {
-          performaType.value = '';
-          authorityNumber.value = '';
-        }
-      };
-      authorityYes.addEventListener('change', updateAuthorityVisibility);
-      authorityNo.addEventListener('change', updateAuthorityVisibility);
-      // Initialize visibility on load
-      updateAuthorityVisibility();
-      
-      // As user types Authority No., enable quantity when non-empty
-      if (authorityNumber) {
-        authorityNumber.addEventListener('input', () => {
-          const hasAuthNo = authorityNumber.value && authorityNumber.value.trim().length > 0;
-          if (requestQtyInput) {
-            requestQtyInput.disabled = authorityYes.checked ? !hasAuthNo : false;
-            requestQtyInput.readOnly = authorityYes.checked ? !hasAuthNo : false;
-            requestQtyInput.placeholder = authorityYes.checked && !hasAuthNo ? 'Enter Authority No.' : 'Enter quantity';
-            if (!requestQtyInput.disabled) {
-              // Set default 1 when enabling and valid stock exists
-              const stock = parseInt(availableStockInput.value) || 0;
-              if (stock > 0 && (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1)) {
-                requestQtyInput.value = 1;
-                requestQtyInput.min = 1;
-                requestQtyInput.max = stock;
-              }
-            }
-          }
-        });
-      }
-    }
-
-    // Block wheel and arrow key increments when locked
-    const blockWhenLocked = (e) => {
-      if (!requestQtyInput) return;
-      if (requestQtyInput.disabled || requestQtyInput.readOnly) {
-        e.preventDefault();
-      }
-    };
-    requestQtyInput.addEventListener('wheel', blockWhenLocked, { passive: false });
-    requestQtyInput.addEventListener('keydown', (e) => {
-      const blockedKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
-      if (requestQtyInput.disabled || requestQtyInput.readOnly) {
-        if (blockedKeys.includes(e.key)) {
-          e.preventDefault();
-        }
-      }
-    });
-
   }
 
   // Handle pagination clicks
@@ -3299,20 +3696,22 @@
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
             performaBadge.style.display = 'inline-block';
-            // Keep status as in_progress and apply red color
-            select.value = 'in_progress';
-            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
-            newStatus = 'in_progress';
+            // Keep actual status as work_priced_performa (don't change to in_progress)
+            select.value = 'work_priced_performa';
+            updateStatusSelectColor(select, 'work_priced_performa'); // Apply purple color for work_priced_performa
+            // Keep newStatus as work_priced_performa to send correct status to server
+            newStatus = 'work_priced_performa';
           } else if (newStatus === 'maint_priced_performa') {
             performaBadge.textContent = 'Maintenance Performa Priced';
             performaBadge.style.backgroundColor = '#ea580c';
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
             performaBadge.style.display = 'inline-block';
-            // Keep status as in_progress and apply red color
-            select.value = 'in_progress';
-            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
-            newStatus = 'in_progress';
+            // Keep actual status as maint_priced_performa (don't change to in_progress)
+            select.value = 'maint_priced_performa';
+            updateStatusSelectColor(select, 'maint_priced_performa'); // Apply orange color for maint_priced_performa
+            // Keep newStatus as maint_priced_performa to send correct status to server
+            newStatus = 'maint_priced_performa';
           } else if (newStatus === 'product_na') {
             performaBadge.textContent = 'Product N/A';
             performaBadge.style.backgroundColor = '#000000';
@@ -3583,10 +3982,17 @@
         if (select.isConnected && select.value !== 'resolved') {
           select.style.opacity = '1';
           select.disabled = false;
-          // Restore dropdown value to in_progress and apply red color (only for special performa options)
+          // Restore dropdown value - keep actual status for priced performas and product_na
           if (specialOptionType) {
-            select.value = 'in_progress';
-            updateStatusSelectColor(select, 'in_progress');
+            // For priced performas and product_na, keep the actual status value
+            if (specialOptionType === 'work_priced_performa' || specialOptionType === 'maint_priced_performa' || specialOptionType === 'product_na') {
+              select.value = specialOptionType;
+              updateStatusSelectColor(select, specialOptionType);
+            } else {
+              // For regular performas (work_performa, maint_performa), use in_progress
+              select.value = 'in_progress';
+              updateStatusSelectColor(select, 'in_progress');
+            }
           } else if (preserveColor) {
             const finalSelectValue = select.value;
             if (finalSelectValue === 'product_na') {
@@ -3681,16 +4087,18 @@
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
-        sel.value = 'in_progress';
-        updateStatusSelectColor(sel, 'in_progress');
+        // Set actual status value, not in_progress
+        sel.value = 'work_priced_performa';
+        updateStatusSelectColor(sel, 'work_priced_performa');
       } else if (saved === 'maint_priced') {
         badge.textContent = 'Maintenance Performa Priced';
         badge.style.backgroundColor = '#ea580c';
         badge.style.color = '#ffffff';
         badge.style.setProperty('color', '#ffffff', 'important');
         badge.style.display = 'inline-block';
-        sel.value = 'in_progress';
-        updateStatusSelectColor(sel, 'in_progress');
+        // Set actual status value, not in_progress
+        sel.value = 'maint_priced_performa';
+        updateStatusSelectColor(sel, 'maint_priced_performa');
       }
     });
   }
@@ -3703,9 +4111,18 @@
       if (complaintId) {
         let saved;
         try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
-        // Set dropdown value to in_progress if special option exists
-        if (saved === 'work' || saved === 'maint' || saved === 'priced' || saved === 'product_na') {
-          sel.value = 'in_progress';
+        // Set dropdown value based on saved option
+        if (saved === 'work' || saved === 'maint' || saved === 'priced') {
+          // For regular performas, use in_progress; for priced, check actual status from server
+          if (saved === 'work_priced') {
+            sel.value = 'work_priced_performa';
+          } else if (saved === 'maint_priced') {
+            sel.value = 'maint_priced_performa';
+          } else {
+            sel.value = 'in_progress';
+          }
+        } else if (saved === 'product_na') {
+          sel.value = 'product_na';
         }
       }
       // Initialize colors based on current status (always red for in_progress)
