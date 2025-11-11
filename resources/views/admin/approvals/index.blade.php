@@ -98,10 +98,9 @@
         <table class="table table-dark table-sm">
       <thead>
         <tr>
-          <th>#</th>
+           <th style="text-align: left;">Complaint ID</th>
           <th>Registration Date/Time</th>
-          <th>Addressed Date/Time</th>
-          <th>Complaint ID</th>
+          <th style="text-align: center;">Addressed Date/Time</th>
           <th>Complainant Name</th>
           <th>Address</th>
           <th>Complaint Nature & Type</th>
@@ -166,20 +165,51 @@
             $waitingRaw = $approval->waiting_for_authority ?? false;
             $showDot = ($waitingRaw === true || $waitingRaw === 1 || $waitingRaw === '1' || $waitingRaw === 'true');
           @endphp
-          @if($showDot)
-          <td style="position: relative; padding-left: 20px; text-align: center;">
+          <td style="text-align: left !important; direction: ltr !important; justify-content: flex-start !important; align-items: flex-start !important;">
+            @if($showDot)
             <span class="blinking-dot" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background-color: #ffffff; border-radius: 50%; animation: blink 1s infinite; z-index: 1;"></span>
-            <span style="display: inline-block;">{{ $approval->id }}</span>
-          </td>
-          @else
-          <td style="text-align: center;">{{ $approval->id }}</td>
-          @endif
-          <td>{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</td>
-          <td>{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
-          <td>
-            <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-              {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
+            @endif
+            <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6; {{ $showDot ? 'padding-left: 20px;' : '' }} text-align: left !important; display: inline-block !important; direction: ltr !important; float: none !important; margin: 0 !important; width: auto !important;">
+              {{ (int)($complaint->complaint_id ?? $complaint->id) }}
             </a>
+          </td>
+          <td>{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</td>
+          <td style="text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">
+            @if($complaint->closed_at)
+              @php
+                // Get closed_at - Laravel casts it to Carbon automatically
+                $closedAt = $complaint->closed_at;
+                
+                // Ensure it's a Carbon instance
+                if (!$closedAt instanceof \Carbon\Carbon) {
+                  if (is_string($closedAt)) {
+                    $closedAt = \Carbon\Carbon::parse($closedAt);
+                  } else {
+                    echo '-';
+                    $closedAt = null;
+                  }
+                }
+                
+                if ($closedAt instanceof \Carbon\Carbon) {
+                  // Laravel stores timestamps in UTC in database
+                  // When retrieved, Carbon instance might be in app timezone or UTC
+                  // Force it to UTC first, then convert to Asia/Karachi
+                  try {
+                    // Create a new Carbon instance from the timestamp, assuming UTC
+                    $timestamp = $closedAt->timestamp;
+                    $closedAtUTC = \Carbon\Carbon::createFromTimestamp($timestamp, 'UTC');
+                    // Now convert to Asia/Karachi
+                    $closedAtKarachi = $closedAtUTC->setTimezone('Asia/Karachi');
+                    echo $closedAtKarachi->format('M d, Y H:i:s');
+                  } catch (\Exception $e) {
+                    // Fallback: try direct conversion
+                    echo $closedAt->setTimezone('Asia/Karachi')->format('M d, Y H:i:s');
+                  }
+                }
+              @endphp
+            @else
+              -
+            @endif
           </td>
           <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
           <td>{{ $complaint->client->address ?? 'N/A' }}</td>
@@ -440,7 +470,7 @@
         @endif
           @empty
         <tr>
-          <td colspan="11" class="text-center py-4">
+          <td colspan="10" class="text-center py-4">
             <i data-feather="check-circle" class="feather-lg mb-2"></i>
             <div>No complaints found</div>
           </td>
@@ -513,7 +543,7 @@
         <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
             <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
                 <h5 class="modal-title text-white" id="approvalModalLabel">
-                    <i data-feather="file-check" class="me-2"></i>Complaint Details
+                    <i data-feather="file-text" class="me-2"></i>Complaint Details
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeApprovalModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
             </div>
@@ -735,6 +765,48 @@
     color: #94a3b8 !important;
   }
   
+  /* Complaint ID column - force left alignment - VERY SPECIFIC */
+  table.table td:first-child,
+  table.table th:first-child,
+  .table-dark td:first-child,
+  .table-dark th:first-child,
+  .table.table-dark td:first-child,
+  .table.table-dark th:first-child,
+  #approvalsTableBody td:first-child {
+    text-align: left !important;
+    direction: ltr !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+  }
+  
+  table.table td:first-child a,
+  .table-dark td:first-child a,
+  table.table td:first-child *,
+  .table-dark td:first-child *,
+  .table.table-dark td:first-child a,
+  .table.table-dark td:first-child *,
+  #approvalsTableBody td:first-child a,
+  #approvalsTableBody td:first-child * {
+    text-align: left !important;
+    direction: ltr !important;
+    float: none !important;
+    display: inline-block !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    width: auto !important;
+    text-align: left !important;
+  }
+  
+  /* Override ANY possible center or right alignment for first column */
+  #approvalsTableBody tr td:first-child,
+  #approvalsTableBody tr td:first-child a,
+  #approvalsTableBody tr td:first-child span,
+  #approvalsTableBody tr td:first-child * {
+    text-align: left !important;
+    direction: ltr !important;
+    float: none !important;
+  }
+  
   /* Performa Required column - white text (only values, not heading) */
   .table td:nth-child(9) {
     color: white !important;
@@ -926,12 +998,15 @@
     vertical-align: middle;
   }
   
-  #addStockModal .table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
+  /* Zebra striping for addStockModal */
+  #addStockModal .table tbody tr:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.1) !important;
   }
-  
+  #addStockModal .table tbody tr:nth-child(even) {
+    background-color: rgba(59, 130, 246, 0.12) !important;
+  }
   #addStockModal .table tbody tr:hover {
-    background-color: #e9ecef;
+    background-color: rgba(59, 130, 246, 0.25) !important;
   }
   
   #addStockModal .table-responsive {
@@ -2670,7 +2745,13 @@
     // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    // Fetch approval details
+    // Fetch approval details with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      modalBody.innerHTML = '<div class="alert alert-warning">Request timeout. Please try again.</div>';
+    }, 30000); // 30 second timeout
+
     fetch(`/admin/approvals/${approvalId}`, {
       method: 'GET',
       headers: {
@@ -2678,9 +2759,11 @@
         'Accept': 'application/json',
         'X-CSRF-TOKEN': csrfToken
       },
-      credentials: 'same-origin'
+      credentials: 'same-origin',
+      signal: controller.signal
     })
     .then(response => {
+      clearTimeout(timeoutId);
       console.log('Fetch response status:', response.status);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -2704,9 +2787,8 @@
         console.log('Issued stock:', issuedStock);
         
         if (items.length === 0) {
-          console.warn('⚠️ No items found in approval ID:', approvalId);
-          console.info('ℹ️ Table structure with 5 columns (Product Name, Category, Request Quantity, Available Stock, Issue Quantity) will still be displayed');
-          console.info('ℹ️ Empty state message will be shown in the table');
+          console.info('ℹ️ No items found in approval ID:', approvalId, '- This approval may not have any items yet or items may have been removed.');
+          console.info('ℹ️ You can manually add items using the form below.');
         } else {
           console.log('✅ Items found:', items.length);
           console.log('✅ Displaying items in table with 5 columns');
@@ -2883,8 +2965,13 @@
       }
     })
     .catch(error => {
+      clearTimeout(timeoutId);
       console.error('Error fetching approval details:', error);
-      modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval details: ' + (error.message || 'Unknown error') + '</div>';
+      if (error.name === 'AbortError') {
+        modalBody.innerHTML = '<div class="alert alert-warning">Request timeout. The server is taking too long to respond. Please try again.</div>';
+      } else {
+        modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval details: ' + (error.message || 'Unknown error') + '</div>';
+      }
     });
   };
 
@@ -3234,7 +3321,7 @@
     const paginationContainer = document.getElementById('approvalsPagination');
     
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
 
     const fetchUrl = `{{ route('admin.approvals.index') }}?${params.toString()}`;
@@ -3243,7 +3330,7 @@
     
     // Show loading state
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
     
     fetch(fetchUrl, {
@@ -3389,7 +3476,7 @@
       
       // Show error message to user
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">' +
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">' +
           '<div class="alert alert-danger mb-0">' +
           '<strong>Error:</strong> ' + (error.message || 'Failed to load approvals. Please try again.') +
           '<br><small>If this persists, please refresh the page.</small>' +

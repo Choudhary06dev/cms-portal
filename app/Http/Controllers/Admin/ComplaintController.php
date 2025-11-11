@@ -810,7 +810,11 @@ class ComplaintController extends Controller
         ];
         
         if ($request->status === 'resolved' && !$complaint->closed_at) {
-            $updateData['closed_at'] = now();
+            // Get current time in Asia/Karachi timezone
+            $nowKarachi = \Carbon\Carbon::now('Asia/Karachi');
+            // Convert to UTC for database storage (Asia/Karachi is UTC+5)
+            // The time value should represent the same moment, just in UTC
+            $updateData['closed_at'] = $nowKarachi->copy()->utc();
         } elseif ($request->status !== 'resolved') {
             // If status is changed from addressed to something else, clear closed_at
             $updateData['closed_at'] = null;
@@ -1047,11 +1051,12 @@ class ComplaintController extends Controller
                 
                 // Set closed_at when status becomes 'addressed', but only if not already set
                 if ($request->status === 'resolved') {
+                    $nowKarachi = \Carbon\Carbon::now('Asia/Karachi');
                     Complaint::whereIn('id', $complaintIds)
                         ->whereNull('closed_at')
                         ->update([
                             'status' => $request->status,
-                            'closed_at' => now(),
+                            'closed_at' => $nowKarachi->utc(),
                         ]);
                     
                     // Update status for complaints that already have closed_at

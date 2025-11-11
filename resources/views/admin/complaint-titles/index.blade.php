@@ -1,13 +1,13 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Complaint Titles — CMS Admin')
+@section('title', 'Complaint Types — CMS Admin')
 
 @section('content')
 <div class="container-narrow">
 <div class="mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <h2 class="text-white mb-1">Complaint Titles</h2>
-    <p class="text-light mb-0">Manage complaint titles by category</p>
+    <h2 class="text-white mb-1">Complaint Types</h2>
+    <p class="text-light mb-0">Manage complaint Types by category</p>
   </div>
 </div>
 
@@ -48,7 +48,7 @@
     </div>
     <div style="min-width: 240px; flex: 1 1 320px;">
       <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Search</label>
-      <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search titles or description...">
+      <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search Types or description...">
     </div>
     <div class="d-grid" style="flex: 0 0 120px;">
       <button class="btn btn-accent" type="submit" style="width: 100%;">Search</button>
@@ -58,7 +58,7 @@
 
 <div class="card-glass mb-3">
   <div class="card-header">
-    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add Complaint Title</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add Complaint Type</h5>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ route('admin.complaint-titles.store') }}" class="d-flex flex-wrap align-items-end gap-2">
@@ -74,7 +74,7 @@
         @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 280px; flex: 1 1 400px;">
-        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Title <span class="text-danger">*</span></label>
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Types <span class="text-danger">*</span></label>
         <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror" placeholder="Complaint title" required>
         @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
@@ -92,7 +92,7 @@
 
 <div class="card-glass">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>Complaint Titles</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>Complaint Types</h5>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -101,7 +101,7 @@
           <tr>
             <th style="width:70px">#</th>
             <th>Category</th>
-            <th>Title</th>
+            <th>Types</th>
             <th>Description</th>
             <th style="width:180px">Actions</th>
           </tr>
@@ -134,7 +134,7 @@
           <tr>
             <td colspan="5" class="text-center py-4">
               <i data-feather="alert-circle" class="feather-lg mb-2"></i>
-              <div>No complaint titles found</div>
+              <div>No complaint Type found</div>
             </td>
           </tr>
         @endforelse

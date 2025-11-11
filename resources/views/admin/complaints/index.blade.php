@@ -117,7 +117,7 @@
                         <th style="width: 40px; padding-left: 8px !important;">#</th>
 
                         <th style="width: 130px;">	Registration Date/Time</th>
-                        <th style="width: 130px;">Completion Time</th>
+                        <th style="width: 130px; text-align: center;">Completion Time</th>
                         <th style="width: 100px;">Complaint ID</th>
                         <th style="width: 120px;">Complainant Name</th>
                         <th style="width: 150px;">Address</th>
@@ -131,10 +131,10 @@
                         <tr>
                             <td>{{ ($complaints->currentPage() - 1) * $complaints->perPage() + $loop->iteration }}</td>
                             <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap; text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '-' }}</td>
                             <td style="white-space: nowrap;">
                                 <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
-                                    {{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}
+                                    {{ (int)($complaint->complaint_id ?? $complaint->id) }}
                                 </a>
                             </td>
                             <td style="white-space: nowrap;">{{ $complaint->client->client_name ?? 'N/A' }}</td>
@@ -291,6 +291,14 @@
             max-width: 250px;
             word-wrap: break-word;
             line-height: 1.3;
+        }
+        /* Completion Time column - center align header */
+        .table-compact th:nth-child(3) {
+            text-align: center;
+        }
+        /* Completion Time cells - default to center, but inline style will override for dates */
+        .table-compact td:nth-child(3) {
+            text-align: center;
         }
         .category-badge {
             padding: 4px 8px;

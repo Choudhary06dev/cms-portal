@@ -104,6 +104,8 @@
       font-size: 0.9rem;
       display: flex !important;
       align-items: center;
+      text-align: left !important;
+      justify-content: flex-start !important;
     }
     .nav-link:hover, .nav-link.active { 
       background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); 
@@ -183,6 +185,47 @@
       padding: 0.4rem 0.5rem !important;
       font-size: 0.8rem !important;
     }
+    
+    /* Zebra striping for all tables - alternating row colors */
+    /* Override Bootstrap table-dark default background first */
+    .table-dark,
+    table.table-dark {
+      background-color: transparent !important;
+    }
+    /* Odd rows (1st, 3rd, 5th...) - very light white background */
+    table.table tbody tr:nth-child(odd),
+    table.table-dark tbody tr:nth-child(odd),
+    .table tbody tr:nth-child(odd),
+    .table-dark tbody tr:nth-child(odd),
+    table tbody tr:nth-child(odd),
+    .table-compact tbody tr:nth-child(odd) {
+      background-color: rgba(255, 255, 255, 0.03) !important;
+    }
+    table.table tbody tr:nth-child(odd) td,
+    table.table-dark tbody tr:nth-child(odd) td,
+    .table tbody tr:nth-child(odd) td,
+    .table-dark tbody tr:nth-child(odd) td,
+    table tbody tr:nth-child(odd) td,
+    .table-compact tbody tr:nth-child(odd) td {
+      background-color: rgba(255, 255, 255, 0.03) !important;
+    }
+    /* Even rows (2nd, 4th, 6th...) - very light gradient like thead */
+    table.table tbody tr:nth-child(even),
+    table.table-dark tbody tr:nth-child(even),
+    .table tbody tr:nth-child(even),
+    .table-dark tbody tr:nth-child(even),
+    table tbody tr:nth-child(even),
+    .table-compact tbody tr:nth-child(even) {
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.05), rgba(37, 99, 235, 0.03)) !important;
+    }
+    table.table tbody tr:nth-child(even) td,
+    table.table-dark tbody tr:nth-child(even) td,
+    .table tbody tr:nth-child(even) td,
+    .table-dark tbody tr:nth-child(even) td,
+    table tbody tr:nth-child(even) td,
+    .table-compact tbody tr:nth-child(even) td {
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.05), rgba(37, 99, 235, 0.03)) !important;
+    }
     .btn-accent { 
       background: linear-gradient(135deg, #60a5fa, #3b82f6); 
       border:none; 
@@ -226,6 +269,79 @@
     .modal-content { border-radius: 12px; }
     .modal-header { border-radius: 12px 12px 0 0; }
     .modal-footer { border-radius: 0 0 12px 12px; }
+    
+    /* Designations, Cities, Sectors, Complaint Types, Complaint Categories Modal Styles */
+    #designationsModal,
+    #citiesModal,
+    #sectorsModal,
+    #complaintTypesModal,
+    #complaintCategoriesModal {
+      z-index: 1055 !important;
+    }
+    #designationsModal .modal-dialog,
+    #citiesModal .modal-dialog,
+    #sectorsModal .modal-dialog,
+    #complaintTypesModal .modal-dialog,
+    #complaintCategoriesModal .modal-dialog {
+      z-index: 1055 !important;
+      position: relative;
+    }
+    #designationsModal .modal-content,
+    #citiesModal .modal-content,
+    #sectorsModal .modal-content,
+    #complaintTypesModal .modal-content,
+    #complaintCategoriesModal .modal-content {
+      max-height: 90vh;
+      overflow-y: auto;
+      z-index: 1055 !important;
+      position: relative;
+    }
+    #designationsModal .modal-body,
+    #citiesModal .modal-body,
+    #sectorsModal .modal-body,
+    #complaintTypesModal .modal-body,
+    #complaintCategoriesModal .modal-body {
+      padding: 1.5rem;
+    }
+    #designationsModal .btn-close,
+    #citiesModal .btn-close,
+    #sectorsModal .btn-close,
+    #complaintTypesModal .btn-close,
+    #complaintCategoriesModal .btn-close {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 0.5rem !important;
+      opacity: 1 !important;
+    }
+    #designationsModal .btn-close:hover,
+    #citiesModal .btn-close:hover,
+    #sectorsModal .btn-close:hover,
+    #complaintTypesModal .btn-close:hover,
+    #complaintCategoriesModal .btn-close:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Completely remove/hide Bootstrap backdrop for these modals */
+    body.modal-open-blur .modal-backdrop,
+    #designationsModal.modal.show ~ .modal-backdrop,
+    #designationsModal.modal.show + .modal-backdrop,
+    #citiesModal.modal.show ~ .modal-backdrop,
+    #citiesModal.modal.show + .modal-backdrop,
+    #sectorsModal.modal.show ~ .modal-backdrop,
+    #sectorsModal.modal.show + .modal-backdrop,
+    #complaintTypesModal.modal.show ~ .modal-backdrop,
+    #complaintTypesModal.modal.show + .modal-backdrop,
+    #complaintCategoriesModal.modal.show ~ .modal-backdrop,
+    #complaintCategoriesModal.modal.show + .modal-backdrop,
+    .modal-backdrop.show {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      pointer-events: none !important;
+    }
     .form-control:focus, .form-select:focus { 
       border-color: #3b82f6; 
       box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25); 
@@ -293,15 +409,15 @@
       </div>
       <div class="collapse {{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'show' : '' }}" id="employeesSubmenu">
         @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+        <a href="javascript:void(0)" onclick="openDesignationsModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="award" class="me-2"></i> Designations
         </a>
         @endif
         @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-         <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+         <a href="javascript:void(0)" onclick="openCitiesModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="map" class="me-2"></i> Cities
         </a>
-        <a href="{{ route('admin.sector.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+        <a href="javascript:void(0)" onclick="openSectorsModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="map-pin" class="me-2"></i> Sectors
         </a>
         @endif
@@ -309,24 +425,29 @@
       </div>
     </div>
     @endif
-    @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
+    @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff') || ($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer')))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important;">
-        <a href="{{ route('admin.complaints.index') }}" class="text-decoration-none text-inherit d-flex align-items-center" style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; flex: 1 1 auto; min-width: 0;">
+      <div class="nav-link d-flex align-items-center py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important; cursor: pointer;" id="complaintsManagementToggle">
           <i data-feather="file-text" class="me-2" style="width: 20px !important; height: 20px !important; stroke-width: 2.5 !important; min-width: 20px !important; flex-shrink: 0 !important;"></i> 
-          <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Regn</span>
-        </a>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsSubmenu" aria-expanded="{{ request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
-          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
-        </button>
+        <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Management</span>
       </div>
-      <div class="collapse {{ request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') ? 'show' : '' }}" id="complaintsSubmenu">
-        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="tag" class="me-2"></i> Categories
+      <div class="complaints-submenu" id="complaintsManagementSubmenu" style="display: {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'block' : 'none' }};">
+        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
+        <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="list" class="me-2"></i> Complaints Registered
         </a>
-        <a href="{{ route('admin.complaint-titles.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="file-text" class="me-2"></i> Complaint Titles
+        @endif
+        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin'))
+        <a href="javascript:void(0)" id="complaintTypesLink" onclick="openComplaintTypesModal()" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;" role="button">
+          <i data-feather="file-text" class="me-2"></i> Complaint Types
+        </a>
+        <a href="javascript:void(0)" id="complaintCategoriesLink" onclick="openComplaintCategoriesModal()" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;" role="button">
+          <i data-feather="tag" class="me-2"></i> Complaint Categories
+        </a>
+        @endif
+        @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
+        <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="eye" class="me-2"></i> Total Complaints
         </a>
         @endif
       </div>
@@ -334,12 +455,7 @@
     @endif
     @if($user && ($user->hasPermission('spares') || $userRole === 'director' || $userRole === 'admin'))
     <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}">
-      <i data-feather="package" class="me-2"></i> Products
-    </a>
-    @endif
-    @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
-    <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}">
-      <i data-feather="eye" class="me-2"></i> Total Complaints
+      <i data-feather="package" class="me-2"></i> Stock Products
     </a>
     @endif
     @if($user && ($user->hasPermission('reports') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
@@ -544,8 +660,95 @@
         });
       }
 
-      // Handle submenu collapse/expand with arrow rotation
-      const submenus = ['complaintsSubmenu', 'employeesSubmenu'];
+      // Handle Complaints Management submenu toggle - ONLY on direct click on toggle element
+      const complaintsManagementToggle = document.getElementById('complaintsManagementToggle');
+      const complaintsManagementSubmenu = document.getElementById('complaintsManagementSubmenu');
+      
+      if (complaintsManagementToggle && complaintsManagementSubmenu) {
+        // Remove any Bootstrap data attributes immediately
+        complaintsManagementSubmenu.removeAttribute('data-bs-toggle');
+        complaintsManagementSubmenu.removeAttribute('data-bs-target');
+        complaintsManagementToggle.removeAttribute('data-bs-toggle');
+        complaintsManagementToggle.removeAttribute('data-bs-target');
+        
+        // Remove collapse class to prevent Bootstrap from handling it
+        complaintsManagementSubmenu.classList.remove('collapse');
+        complaintsManagementSubmenu.classList.remove('show');
+        
+        // Prevent Bootstrap from initializing collapse on this element
+        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+          const existingInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu);
+          if (existingInstance) {
+            existingInstance.dispose();
+          }
+        }
+        
+        // Store the toggle element reference
+        const toggleElement = complaintsManagementToggle;
+        
+        // ONLY allow toggle when clicking EXACTLY on the toggle element or its direct children
+        toggleElement.addEventListener('click', function(e) {
+          // First check: event must be on the toggle element itself
+          if (e.currentTarget !== toggleElement) {
+            return; // Not our element, ignore
+          }
+          
+          // Get the exact element that was clicked
+          const clickedElement = e.target;
+          
+          // Check if click is EXACTLY on toggle div, icon, or span - nothing else
+          const isOnToggleDiv = clickedElement === toggleElement;
+          const toggleIcon = toggleElement.querySelector('i[data-feather]');
+          const toggleSpan = toggleElement.querySelector('span');
+          const isOnToggleIcon = clickedElement === toggleIcon || (toggleIcon && toggleIcon.contains(clickedElement));
+          const isOnToggleSpan = clickedElement === toggleSpan || (toggleSpan && toggleSpan.contains(clickedElement));
+          
+          // Check if clicking on a link or other nav item
+          const isInLink = clickedElement.closest('a') !== null;
+          const isInOtherNav = clickedElement.closest('.nav-link') !== null && 
+                              clickedElement.closest('#complaintsManagementToggle') === null;
+          
+          // ONLY allow if clicking on toggle element itself or its direct children (icon/span), nothing else
+          const isValidClick = (isOnToggleDiv || isOnToggleIcon || isOnToggleSpan) && !isInLink && !isInOtherNav;
+          
+          // ONLY toggle if it's a valid click on toggle element
+          if (isValidClick) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            // Toggle display
+            const currentDisplay = complaintsManagementSubmenu.style.display;
+            const isVisible = currentDisplay !== 'none' && currentDisplay !== '';
+            
+            if (isVisible) {
+              complaintsManagementSubmenu.style.display = 'none';
+            } else {
+              complaintsManagementSubmenu.style.display = 'block';
+            }
+            
+            // Re-initialize Feather icons
+            setTimeout(() => {
+              feather.replace();
+            }, 100);
+          }
+          // If not a valid click, do nothing - let the event bubble normally
+        }, false); // Use bubble phase, not capture
+        
+        // Prevent submenu links from triggering parent toggle
+        const submenuLinks = complaintsManagementSubmenu.querySelectorAll('a');
+        submenuLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.stopPropagation();
+          }, true);
+        });
+        
+        // Initialize icons
+        feather.replace();
+      }
+
+      // Handle submenu collapse/expand with arrow rotation and icon initialization
+      const submenus = ['employeesSubmenu'];
       
       submenus.forEach(submenuId => {
         const submenu = document.getElementById(submenuId);
@@ -556,6 +759,8 @@
           if (arrow) {
             submenu.addEventListener('show.bs.collapse', function() {
               arrow.style.transform = 'rotate(180deg)';
+              // Re-initialize Feather icons when submenu is shown
+              feather.replace();
             });
             
             submenu.addEventListener('hide.bs.collapse', function() {
@@ -568,6 +773,11 @@
             } else {
               arrow.style.transform = 'rotate(0deg)';
             }
+          }
+          
+          // Initialize icons if submenu is already shown
+          if (submenu.classList.contains('show')) {
+            feather.replace();
           }
         }
       });
@@ -662,7 +872,1295 @@
     });
   </script>
   
-  
+  <!-- Designations Modal -->
+  <script>
+    // Ensure sidebar submenu links open their modals reliably
+    document.addEventListener('click', function(e) {
+      const typesLink = document.getElementById('complaintTypesLink');
+      const catsLink = document.getElementById('complaintCategoriesLink');
+      if (typesLink && (e.target === typesLink || (typesLink.contains(e.target)))) {
+        e.preventDefault();
+        e.stopPropagation();
+        try { openComplaintTypesModal(); } catch (_) {}
+      }
+      if (catsLink && (e.target === catsLink || (catsLink.contains(e.target)))) {
+        e.preventDefault();
+        e.stopPropagation();
+        try { openComplaintCategoriesModal(); } catch (_) {}
+      }
+    }, true); // capture to intercept before parent handlers
+  </script>
+  <div class="modal fade" id="designationsModal" tabindex="-1" aria-labelledby="designationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h5 class="modal-title text-white" id="designationsModalLabel">
+            <i data-feather="award" class="me-2"></i>Designations
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeDesignationsModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+        </div>
+        <div class="modal-body" id="designationsModalBody">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cities Modal -->
+  <div class="modal fade" id="citiesModal" tabindex="-1" aria-labelledby="citiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h5 class="modal-title text-white" id="citiesModalLabel">
+            <i data-feather="map" class="me-2"></i>Cities
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeCitiesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+        </div>
+        <div class="modal-body" id="citiesModalBody">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sectors Modal -->
+  <div class="modal fade" id="sectorsModal" tabindex="-1" aria-labelledby="sectorsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h5 class="modal-title text-white" id="sectorsModalLabel">
+            <i data-feather="map-pin" class="me-2"></i>Sectors
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeSectorsModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+        </div>
+        <div class="modal-body" id="sectorsModalBody">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaint Types Modal -->
+  <div class="modal fade" id="complaintTypesModal" tabindex="-1" aria-labelledby="complaintTypesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h5 class="modal-title text-white" id="complaintTypesModalLabel">
+            <i data-feather="file-text" class="me-2"></i>Complaint Types
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintTypesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+        </div>
+        <div class="modal-body" id="complaintTypesModalBody">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaint Categories Modal -->
+  <div class="modal fade" id="complaintCategoriesModal" tabindex="-1" aria-labelledby="complaintCategoriesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h5 class="modal-title text-white" id="complaintCategoriesModalLabel">
+            <i data-feather="tag" class="me-2"></i>Complaint Categories
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintCategoriesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+        </div>
+        <div class="modal-body" id="complaintCategoriesModalBody">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Generic function to open modal and load content
+    function openModal(modalId, modalBodyId, route, title) {
+      const modalElement = document.getElementById(modalId);
+      const modalBody = document.getElementById(modalBodyId);
+      
+      if (!modalElement || !modalBody) {
+        window.location.href = route;
+        return;
+      }
+      
+      modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+      
+      document.body.classList.add('modal-open-blur');
+      
+      const modal = new bootstrap.Modal(modalElement, {
+        backdrop: false,
+        keyboard: true,
+        focus: true
+      });
+      modal.show();
+      
+      const removeBackdrop = () => {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+      };
+      
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+              node.remove();
+            }
+          });
+        });
+        removeBackdrop();
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      removeBackdrop();
+      setTimeout(removeBackdrop, 10);
+      setTimeout(removeBackdrop, 50);
+      setTimeout(removeBackdrop, 100);
+      
+      modalElement.addEventListener('hidden.bs.modal', function() {
+        observer.disconnect();
+        removeBackdrop();
+      }, { once: true });
+      
+      fetch(route + '?format=html', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'text/html',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json().then(data => {
+            throw new Error('Received JSON instead of HTML.');
+          });
+        }
+        return response.text();
+      })
+      .then(html => {
+        if (html.trim().startsWith('{')) {
+          console.error('Received JSON instead of HTML');
+          modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Server returned JSON instead of HTML.</div>';
+          return;
+        }
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        let contentSection = doc.querySelector('section.content');
+        if (!contentSection) {
+          contentSection = doc.querySelector('.content');
+        }
+        if (!contentSection) {
+          const mainContent = doc.querySelector('main') || doc.querySelector('[role="main"]');
+          if (mainContent) {
+            contentSection = mainContent;
+          } else {
+            contentSection = doc.body;
+          }
+        }
+        
+        let modalContent = '';
+        const allCards = contentSection.querySelectorAll('.card-glass');
+        const seenCards = new Set();
+        
+        allCards.forEach(card => {
+          const cardHTML = card.outerHTML;
+          const cardId = cardHTML.substring(0, 300);
+          if (!seenCards.has(cardId)) {
+            seenCards.add(cardId);
+            modalContent += '<div class="mb-3">' + cardHTML + '</div>';
+          }
+        });
+        
+        if (modalContent) {
+          modalBody.innerHTML = modalContent;
+          
+          // Move edit modals outside of modal body to document body so Bootstrap can handle them properly
+          // 1) Capture any edit modals present anywhere in the fetched document
+          const fetchedEditModals = doc.querySelectorAll('.modal[id^="edit"]');
+          fetchedEditModals.forEach(editModal => {
+            // If an element with same id already exists in body, replace it
+            const existing = document.getElementById(editModal.id);
+            if (existing && existing.parentElement) {
+              existing.parentElement.removeChild(existing);
+            }
+            document.body.appendChild(editModal);
+            // Set higher z-index for nested modals (parent modal is usually 1055, so edit modals should be higher)
+            editModal.style.zIndex = '1070';
+            editModal.style.display = '';
+          });
+          
+          // 2) Also move any edit modals that were inside the extracted section (safety)
+          const editModals = modalBody.querySelectorAll('.modal[id^="edit"]');
+          editModals.forEach(editModal => {
+            // Remove from modalBody first
+            editModal.remove();
+            // Append to document.body
+            document.body.appendChild(editModal);
+            // Set higher z-index for nested modals (parent modal is usually 1055, so edit modals should be higher)
+            editModal.style.zIndex = '1070';
+            // Ensure modal is visible and properly initialized
+            editModal.style.display = '';
+          });
+          
+          // Extract and execute scripts from the loaded content
+          const scripts = contentSection.querySelectorAll('script');
+          scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            if (script.src) {
+              newScript.src = script.src;
+            } else {
+              newScript.textContent = script.textContent;
+            }
+            document.body.appendChild(newScript);
+          });
+          
+          // Re-initialize edit modal handlers after content is loaded
+          setTimeout(() => {
+            feather.replace();
+            
+            // Direct click handlers for Designation buttons - MUST work
+            const designationButtons = modalBody.querySelectorAll('button[data-bs-target="#editDesignationModal"], button[data-modal-target="#editDesignationModal"]');
+            designationButtons.forEach(btn => {
+              // Remove data-bs-toggle to prevent Bootstrap auto-handling
+              btn.removeAttribute('data-bs-toggle');
+              
+              // Add direct click handler with highest priority
+              btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                const id = this.getAttribute('data-id');
+                const category = this.getAttribute('data-category');
+                const name = this.getAttribute('data-name');
+                const status = this.getAttribute('data-status');
+                
+                // Wait a bit to ensure modal is in DOM
+                setTimeout(() => {
+                  const editDesignationModalEl = document.getElementById('editDesignationModal');
+                  
+                  if (!editDesignationModalEl) {
+                    console.error('editDesignationModal not found in DOM');
+                    return;
+                  }
+                  
+                  const form = document.getElementById('editDesignationForm');
+                  const categorySelect = document.getElementById('editDesignationCategory');
+                  const nameInput = document.getElementById('editDesignationName');
+                  const statusSelect = document.getElementById('editDesignationStatus');
+
+                  if (form && id) {
+                    form.action = `${window.location.origin}/admin/designation/${id}`;
+                  }
+                  if (categorySelect && category) categorySelect.value = category || '';
+                  if (nameInput) nameInput.value = name || '';
+                  if (statusSelect) statusSelect.value = status || 'active';
+                  
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  
+                  editDesignationModalEl.style.zIndex = '1070';
+                  let modal = bootstrap.Modal.getInstance(editDesignationModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editDesignationModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }, 50);
+              }, true); // Use capture phase for highest priority
+            });
+            
+            // Global safety: capture clicks on any button with data-bs-target or data-modal-target starting with #edit
+            // Works even if inner listeners fail; only runs while a modal is open
+            const globalEditHandler = function(e) {
+              const btn = e.target.closest('button[data-bs-target^="#edit"], button[data-modal-target^="#edit"]');
+              if (!btn) return;
+              const openParentModal = document.querySelector('.modal.show');
+              if (!openParentModal || !openParentModal.contains(btn)) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const targetSelector = btn.getAttribute('data-bs-target') || btn.getAttribute('data-modal-target');
+              const modalEl = document.querySelector(targetSelector);
+              if (!modalEl) return;
+              
+              // Prevent parent modal from closing
+              if (openParentModal) {
+                openParentModal.classList.add('modal-static');
+                const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                if (parentBackdrop) {
+                  parentBackdrop.style.pointerEvents = 'none';
+                }
+              }
+              
+              // Populate form fields based on button data attributes
+              if (targetSelector === '#editDesignationModal') {
+                const id = btn.getAttribute('data-id');
+                const category = btn.getAttribute('data-category');
+                const name = btn.getAttribute('data-name');
+                const status = btn.getAttribute('data-status');
+                const form = document.getElementById('editDesignationForm');
+                const categorySelect = document.getElementById('editDesignationCategory');
+                const nameInput = document.getElementById('editDesignationName');
+                const statusSelect = document.getElementById('editDesignationStatus');
+                if (form && id) form.action = `${window.location.origin}/admin/designation/${id}`;
+                if (categorySelect && category) categorySelect.value = category || '';
+                if (nameInput) nameInput.value = name || '';
+                if (statusSelect) statusSelect.value = status || 'active';
+              }
+              
+              // Ensure higher z-index for nested modals
+              modalEl.style.zIndex = '1070';
+              let modal = bootstrap.Modal.getInstance(modalEl);
+              if (!modal) {
+                modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
+              }
+              modal.show();
+              setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach((backdrop, index) => {
+                  if (index === backdrops.length - 1) {
+                    backdrop.style.zIndex = '1069';
+                  } else {
+                    backdrop.style.zIndex = '1054';
+                  }
+                });
+                if (openParentModal) {
+                  openParentModal.style.zIndex = '1055';
+                  openParentModal.classList.add('show');
+                }
+              }, 10);
+            };
+            // Bind once per open cycle
+            if (!window.__globalEditHandlerBound) {
+              window.__globalEditHandlerBound = true;
+              document.addEventListener('click', globalEditHandler, true);
+            }
+            
+            // Use event delegation on modalBody for all edit buttons
+            modalBody.addEventListener('click', function(e) {
+              // Check for buttons with data-modal-target (our custom attribute) OR data-bs-target
+              const buttonWithTarget = e.target.closest('button[data-modal-target], button[data-bs-target]');
+              if (buttonWithTarget) {
+                const targetSelector = buttonWithTarget.getAttribute('data-modal-target') || buttonWithTarget.getAttribute('data-bs-target');
+                // Handle City
+                if (targetSelector === '#editCityModal') {
+                  const button = buttonWithTarget;
+                e.preventDefault();
+                e.stopPropagation();
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+                const status = button.getAttribute('data-status');
+                const editCityModalEl = document.getElementById('editCityModal');
+                const form = document.getElementById('editCityForm');
+                const nameInput = document.getElementById('editCityName');
+                const statusSelect = document.getElementById('editCityStatus');
+
+                if (form && id) {
+                  form.action = `${window.location.origin}/admin/city/${id}`;
+                }
+                if (nameInput) nameInput.value = name || '';
+                if (statusSelect) statusSelect.value = status || 'active';
+                
+                if (editCityModalEl) {
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    // Prevent backdrop click from closing parent
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  // Ensure z-index is set
+                  editCityModalEl.style.zIndex = '1070';
+                  // Check if modal instance already exists
+                  let modal = bootstrap.Modal.getInstance(editCityModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editCityModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  // Ensure backdrop has correct z-index
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        // Last backdrop (for edit modal) should be on top
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        // Previous backdrops should be below
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    // Keep parent modal visible
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+                  return;
+                }
+                // Handle Sector
+                if (targetSelector === '#editSectorModal') {
+                  const sectorButton = buttonWithTarget;
+                e.preventDefault();
+                e.stopPropagation();
+                const id = sectorButton.getAttribute('data-id');
+                const cityId = sectorButton.getAttribute('data-city-id');
+                const name = sectorButton.getAttribute('data-name');
+                const status = sectorButton.getAttribute('data-status');
+                const editSectorModalEl = document.getElementById('editSectorModal');
+                const form = document.getElementById('editSectorForm');
+                const nameInput = document.getElementById('editSectorName');
+                const citySelect = document.getElementById('editSectorCityId');
+                const statusSelect = document.getElementById('editSectorStatus');
+
+                if (form && id) {
+                  form.action = `${window.location.origin}/admin/sector/${id}`;
+                }
+                if (nameInput) nameInput.value = name || '';
+                if (citySelect && cityId) citySelect.value = cityId || '';
+                if (statusSelect) statusSelect.value = status || 'active';
+                
+                if (editSectorModalEl) {
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  // Ensure z-index is set
+                  editSectorModalEl.style.zIndex = '1070';
+                  // Check if modal instance already exists
+                  let modal = bootstrap.Modal.getInstance(editSectorModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editSectorModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  // Ensure backdrop has correct z-index
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+                  return;
+                }
+                // Handle Designation
+                if (targetSelector === '#editDesignationModal') {
+                  const designationButton = buttonWithTarget;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.stopImmediatePropagation();
+                  
+                  const id = designationButton.getAttribute('data-id');
+                  const category = designationButton.getAttribute('data-category');
+                  const name = designationButton.getAttribute('data-name');
+                  const status = designationButton.getAttribute('data-status');
+                  const editDesignationModalEl = document.getElementById('editDesignationModal');
+                  
+                  if (!editDesignationModalEl) {
+                    console.error('editDesignationModal not found');
+                    return;
+                  }
+                  
+                  const form = document.getElementById('editDesignationForm');
+                  const categorySelect = document.getElementById('editDesignationCategory');
+                  const nameInput = document.getElementById('editDesignationName');
+                  const statusSelect = document.getElementById('editDesignationStatus');
+
+                  if (form && id) {
+                    form.action = `${window.location.origin}/admin/designation/${id}`;
+                  }
+                  if (categorySelect && category) categorySelect.value = category || '';
+                  if (nameInput) nameInput.value = name || '';
+                  if (statusSelect) statusSelect.value = status || 'active';
+                  
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  
+                  // Ensure z-index is set
+                  editDesignationModalEl.style.zIndex = '1070';
+                  
+                  // Check if modal instance already exists
+                  let modal = bootstrap.Modal.getInstance(editDesignationModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editDesignationModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  
+                  modal.show();
+                  
+                  // Ensure backdrop has correct z-index
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                  return;
+                }
+                // Handle Category
+                if (targetSelector === '#editCategoryModal') {
+                  const categoryButton = buttonWithTarget;
+                e.preventDefault();
+                e.stopPropagation();
+                const id = categoryButton.getAttribute('data-id');
+                const name = categoryButton.getAttribute('data-name');
+                const description = categoryButton.getAttribute('data-description');
+                const editCategoryModalEl = document.getElementById('editCategoryModal');
+                const form = document.getElementById('editCategoryForm');
+                const nameInput = document.getElementById('editCategoryName');
+                const descriptionInput = document.getElementById('editCategoryDescription');
+
+                if (form && id) {
+                  form.action = `${window.location.origin}/admin/category/${id}`;
+                }
+                if (nameInput) nameInput.value = name || '';
+                if (descriptionInput) descriptionInput.value = description || '';
+                
+                if (editCategoryModalEl) {
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  // Ensure z-index is set
+                  editCategoryModalEl.style.zIndex = '1070';
+                  // Check if modal instance already exists
+                  let modal = bootstrap.Modal.getInstance(editCategoryModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editCategoryModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  // Ensure backdrop has correct z-index
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+                  return;
+                }
+              }
+              
+              // Fallback: Also check for data-bs-target (in case some buttons weren't processed)
+              const button = e.target.closest('button[data-bs-target="#editCityModal"]');
+              if (button) {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+                const status = button.getAttribute('data-status');
+                const editCityModalEl = document.getElementById('editCityModal');
+                const form = document.getElementById('editCityForm');
+                const nameInput = document.getElementById('editCityName');
+                const statusSelect = document.getElementById('editCityStatus');
+
+                if (form && id) {
+                  form.action = `${window.location.origin}/admin/city/${id}`;
+                }
+                if (nameInput) nameInput.value = name || '';
+                if (statusSelect) statusSelect.value = status || 'active';
+                
+                if (editCityModalEl) {
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  editCityModalEl.style.zIndex = '1070';
+                  let modal = bootstrap.Modal.getInstance(editCityModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editCityModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+                return;
+              }
+              
+              const sectorButton = e.target.closest('button[data-bs-target="#editSectorModal"]');
+              if (sectorButton) {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = sectorButton.getAttribute('data-id');
+                const cityId = sectorButton.getAttribute('data-city-id');
+                const name = sectorButton.getAttribute('data-name');
+                const status = sectorButton.getAttribute('data-status');
+                const editSectorModalEl = document.getElementById('editSectorModal');
+                const form = document.getElementById('editSectorForm');
+                const nameInput = document.getElementById('editSectorName');
+                const citySelect = document.getElementById('editSectorCityId');
+                const statusSelect = document.getElementById('editSectorStatus');
+
+                if (form && id) {
+                  form.action = `${window.location.origin}/admin/sector/${id}`;
+                }
+                if (nameInput) nameInput.value = name || '';
+                if (citySelect && cityId) citySelect.value = cityId || '';
+                if (statusSelect) statusSelect.value = status || 'active';
+                
+                if (editSectorModalEl) {
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  editSectorModalEl.style.zIndex = '1070';
+                  let modal = bootstrap.Modal.getInstance(editSectorModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editSectorModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+                return;
+              }
+              
+              const designationButton = e.target.closest('button[data-bs-target="#editDesignationModal"]');
+              if (designationButton) {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = designationButton.getAttribute('data-id');
+                const category = designationButton.getAttribute('data-category');
+                const name = designationButton.getAttribute('data-name');
+                const status = designationButton.getAttribute('data-status');
+                const editDesignationModalEl = document.getElementById('editDesignationModal');
+                const form = document.getElementById('editDesignationForm');
+                const categorySelect = document.getElementById('editDesignationCategory');
+                const nameInput = document.getElementById('editDesignationName');
+                const statusSelect = document.getElementById('editDesignationStatus');
+
+                if (form && id) {
+                  form.action = `${window.location.origin}/admin/designation/${id}`;
+                }
+                if (categorySelect && category) categorySelect.value = category || '';
+                if (nameInput) nameInput.value = name || '';
+                if (statusSelect) statusSelect.value = status || 'active';
+                
+                if (editDesignationModalEl) {
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  editDesignationModalEl.style.zIndex = '1070';
+                  let modal = bootstrap.Modal.getInstance(editDesignationModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editDesignationModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+                return;
+              }
+              
+              const categoryButton = e.target.closest('button[data-bs-target="#editCategoryModal"]');
+              if (categoryButton) {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = categoryButton.getAttribute('data-id');
+                const name = categoryButton.getAttribute('data-name');
+                const description = categoryButton.getAttribute('data-description');
+                const editCategoryModalEl = document.getElementById('editCategoryModal');
+                const form = document.getElementById('editCategoryForm');
+                const nameInput = document.getElementById('editCategoryName');
+                const descriptionInput = document.getElementById('editCategoryDescription');
+
+                if (form && id) {
+                  form.action = `${window.location.origin}/admin/category/${id}`;
+                }
+                if (nameInput) nameInput.value = name || '';
+                if (descriptionInput) descriptionInput.value = description || '';
+                
+                if (editCategoryModalEl) {
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  editCategoryModalEl.style.zIndex = '1070';
+                  let modal = bootstrap.Modal.getInstance(editCategoryModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editCategoryModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+                return;
+              }
+
+              // Fallback: generic handler if data-bs-target is missing
+              const anyBtn = e.target.closest('button');
+              if (anyBtn && anyBtn.hasAttribute('data-id')) {
+                const id = anyBtn.getAttribute('data-id');
+                const name = anyBtn.getAttribute('data-name') || '';
+                const status = anyBtn.getAttribute('data-status') || '';
+                const cityId = anyBtn.getAttribute('data-city-id') || '';
+                const category = anyBtn.getAttribute('data-category') || '';
+                const description = anyBtn.getAttribute('data-description');
+                
+                // Decide which modal to open based on available data attributes and existing modals
+                const hasCityModal = !!document.getElementById('editCityModal');
+                const hasSectorModal = !!document.getElementById('editSectorModal');
+                const hasDesignationModal = !!document.getElementById('editDesignationModal');
+                const hasCategoryModal = !!document.getElementById('editCategoryModal');
+                
+                // Sector: has city-id
+                if (hasSectorModal && cityId) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const editSectorModalEl = document.getElementById('editSectorModal');
+                  const form = document.getElementById('editSectorForm');
+                  const nameInput = document.getElementById('editSectorName');
+                  const citySelect = document.getElementById('editSectorCityId');
+                  const statusSelect = document.getElementById('editSectorStatus');
+                  if (form && id) form.action = `${window.location.origin}/admin/sector/${id}`;
+                  if (nameInput) nameInput.value = name;
+                  if (citySelect) citySelect.value = cityId;
+                  if (statusSelect) statusSelect.value = status || 'active';
+                  if (editSectorModalEl) {
+                    const parentModal = modalElement;
+                    if (parentModal) {
+                      parentModal.classList.add('modal-static');
+                      const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                      if (parentBackdrop) {
+                        parentBackdrop.style.pointerEvents = 'none';
+                      }
+                    }
+                    editSectorModalEl.style.zIndex = '1070';
+                    let modal = bootstrap.Modal.getInstance(editSectorModalEl);
+                    if (!modal) modal = new bootstrap.Modal(editSectorModalEl, { backdrop: true, keyboard: true, focus: true });
+                    modal.show();
+                    setTimeout(() => {
+                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                      backdrops.forEach((backdrop, index) => {
+                        if (index === backdrops.length - 1) {
+                          backdrop.style.zIndex = '1069';
+                        } else {
+                          backdrop.style.zIndex = '1054';
+                        }
+                      });
+                      if (parentModal) {
+                        parentModal.style.zIndex = '1055';
+                        parentModal.classList.add('show');
+                      }
+                    }, 10);
+                  }
+                  return;
+                }
+                
+                // Designation: has category and status
+                if (hasDesignationModal && category) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const editDesignationModalEl = document.getElementById('editDesignationModal');
+                  const form = document.getElementById('editDesignationForm');
+                  const categorySelect = document.getElementById('editDesignationCategory');
+                  const nameInput = document.getElementById('editDesignationName');
+                  const statusSelect = document.getElementById('editDesignationStatus');
+                  if (form && id) form.action = `${window.location.origin}/admin/designation/${id}`;
+                  if (categorySelect) categorySelect.value = category;
+                  if (nameInput) nameInput.value = name;
+                  if (statusSelect) statusSelect.value = status || 'active';
+                  if (editDesignationModalEl) {
+                    const parentModal = modalElement;
+                    if (parentModal) {
+                      parentModal.classList.add('modal-static');
+                      const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                      if (parentBackdrop) {
+                        parentBackdrop.style.pointerEvents = 'none';
+                      }
+                    }
+                    editDesignationModalEl.style.zIndex = '1070';
+                    let modal = bootstrap.Modal.getInstance(editDesignationModalEl);
+                    if (!modal) modal = new bootstrap.Modal(editDesignationModalEl, { backdrop: true, keyboard: true, focus: true });
+                    modal.show();
+                    setTimeout(() => {
+                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                      backdrops.forEach((backdrop, index) => {
+                        if (index === backdrops.length - 1) {
+                          backdrop.style.zIndex = '1069';
+                        } else {
+                          backdrop.style.zIndex = '1054';
+                        }
+                      });
+                      if (parentModal) {
+                        parentModal.style.zIndex = '1055';
+                        parentModal.classList.add('show');
+                      }
+                    }, 10);
+                  }
+                  return;
+                }
+                
+                // Category: has description attribute (even if empty string)
+                if (hasCategoryModal && (description !== null)) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const editCategoryModalEl = document.getElementById('editCategoryModal');
+                  const form = document.getElementById('editCategoryForm');
+                  const nameInput = document.getElementById('editCategoryName');
+                  const descriptionInput = document.getElementById('editCategoryDescription');
+                  if (form && id) form.action = `${window.location.origin}/admin/category/${id}`;
+                  if (nameInput) nameInput.value = name;
+                  if (descriptionInput) descriptionInput.value = description || '';
+                  if (editCategoryModalEl) {
+                    const parentModal = modalElement;
+                    if (parentModal) {
+                      parentModal.classList.add('modal-static');
+                      const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                      if (parentBackdrop) {
+                        parentBackdrop.style.pointerEvents = 'none';
+                      }
+                    }
+                    editCategoryModalEl.style.zIndex = '1070';
+                    let modal = bootstrap.Modal.getInstance(editCategoryModalEl);
+                    if (!modal) modal = new bootstrap.Modal(editCategoryModalEl, { backdrop: true, keyboard: true, focus: true });
+                    modal.show();
+                    setTimeout(() => {
+                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                      backdrops.forEach((backdrop, index) => {
+                        if (index === backdrops.length - 1) {
+                          backdrop.style.zIndex = '1069';
+                        } else {
+                          backdrop.style.zIndex = '1054';
+                        }
+                      });
+                      if (parentModal) {
+                        parentModal.style.zIndex = '1055';
+                        parentModal.classList.add('show');
+                      }
+                    }, 10);
+                  }
+                  return;
+                }
+                
+                // City: has status but no cityId/category/description
+                if (hasCityModal && status && !cityId && !category && (description === null)) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const editCityModalEl = document.getElementById('editCityModal');
+                  const form = document.getElementById('editCityForm');
+                  const nameInput = document.getElementById('editCityName');
+                  const statusSelect = document.getElementById('editCityStatus');
+                  if (form && id) form.action = `${window.location.origin}/admin/city/${id}`;
+                  if (nameInput) nameInput.value = name;
+                  if (statusSelect) statusSelect.value = status || 'active';
+                  if (editCityModalEl) {
+                    editCityModalEl.style.zIndex = '1070';
+                    let modal = bootstrap.Modal.getInstance(editCityModalEl);
+                    if (!modal) modal = new bootstrap.Modal(editCityModalEl, { backdrop: true, keyboard: true, focus: true });
+                    modal.show();
+                    setTimeout(() => {
+                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                      backdrops.forEach(backdrop => {
+                        if (parseInt(backdrop.style.zIndex) < 1069) {
+                          backdrop.style.zIndex = '1069';
+                        }
+                      });
+                    }, 10);
+                  }
+                  return;
+                }
+              }
+            });
+            
+            // Ensure editTitle function exists for Complaint Types
+            if (typeof window.editTitle !== 'function') {
+              window.editTitle = function(id, category, title, description) {
+                const editForm = document.getElementById('editForm');
+                const editCategory = document.getElementById('edit_category');
+                const editTitleInput = document.getElementById('edit_title');
+                const editDescription = document.getElementById('edit_description');
+                
+                if (editForm) {
+                  editForm.action = `${window.location.origin}/admin/complaint-titles/${id}`;
+                }
+                if (editCategory) editCategory.value = category || '';
+                if (editTitleInput) editTitleInput.value = title || '';
+                if (editDescription) editDescription.value = description || '';
+                
+                const editModal = document.getElementById('editModal');
+                if (editModal) {
+                  // Prevent parent modal from closing (for Complaint Types)
+                  const parentModal = document.querySelector('.modal.show:not(#editModal)');
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  // Ensure z-index is set
+                  editModal.style.zIndex = '1070';
+                  // Check if modal instance already exists
+                  let modal = bootstrap.Modal.getInstance(editModal);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editModal, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  // Ensure backdrop has correct z-index
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }
+              };
+            }
+            
+            // Re-initialize delete form handlers
+            modalBody.querySelectorAll('form.city-delete-form, form.sector-delete-form, form.designation-delete-form, form.category-delete-form').forEach(function(form) {
+              form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const row = form.closest('tr');
+                const url = form.action;
+                const token = form.querySelector('input[name="_token"]').value;
+                const method = form.querySelector('input[name="_method"]')?.value || 'DELETE';
+
+                const formData = new FormData();
+                formData.append('_method', method);
+                formData.append('_token', token);
+
+                fetch(url, {
+                  method: 'POST',
+                  headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                  },
+                  body: formData
+                })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(() => {
+                  if (row) {
+                    row.style.opacity = '0.4';
+                    row.style.transition = 'opacity .2s ease';
+                    setTimeout(() => { row.remove(); }, 180);
+                  }
+                })
+                .catch(() => {
+                  form.submit();
+                });
+              });
+            });
+          }, 200);
+        } else {
+          console.error('Could not find content in response');
+          modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not load content. Please refresh and try again.</div>';
+        }
+      })
+      .catch(error => {
+        console.error('Error loading content:', error);
+        modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading content: ' + error.message + '. Please try again.</div>';
+      });
+      
+      modalElement.addEventListener('shown.bs.modal', function() {
+        feather.replace();
+      });
+      
+      modalElement.addEventListener('hidden.bs.modal', function() {
+        document.body.classList.remove('modal-open-blur');
+        feather.replace();
+      }, { once: true });
+    }
+    
+    // Function to open designations modal
+    function openDesignationsModal() {
+      openModal('designationsModal', 'designationsModalBody', '{{ route("admin.designation.index") }}', 'Designations');
+    }
+    
+    // Function to close designations modal
+    function closeDesignationsModal() {
+      const modalElement = document.getElementById('designationsModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+      }
+      document.body.classList.remove('modal-open-blur');
+    }
+    
+    // Function to open cities modal
+    function openCitiesModal() {
+      openModal('citiesModal', 'citiesModalBody', '{{ route("admin.city.index") }}', 'Cities');
+    }
+    
+    // Function to close cities modal
+    function closeCitiesModal() {
+      const modalElement = document.getElementById('citiesModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+      }
+      document.body.classList.remove('modal-open-blur');
+    }
+    
+    // Function to open sectors modal
+    function openSectorsModal() {
+      openModal('sectorsModal', 'sectorsModalBody', '{{ route("admin.sector.index") }}', 'Sectors');
+    }
+    
+    // Function to close sectors modal
+    function closeSectorsModal() {
+      const modalElement = document.getElementById('sectorsModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+      }
+      document.body.classList.remove('modal-open-blur');
+    }
+    
+    // Function to open complaint types modal
+    function openComplaintTypesModal() {
+      openModal('complaintTypesModal', 'complaintTypesModalBody', '{{ route("admin.complaint-titles.index") }}', 'Complaint Types');
+    }
+    
+    // Function to close complaint types modal
+    function closeComplaintTypesModal() {
+      const modalElement = document.getElementById('complaintTypesModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+      }
+      document.body.classList.remove('modal-open-blur');
+    }
+    
+    // Function to open complaint categories modal
+    function openComplaintCategoriesModal() {
+      openModal('complaintCategoriesModal', 'complaintCategoriesModalBody', '{{ route("admin.category.index") }}', 'Complaint Categories');
+    }
+    
+    // Function to close complaint categories modal
+    function closeComplaintCategoriesModal() {
+      const modalElement = document.getElementById('complaintCategoriesModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+      }
+      document.body.classList.remove('modal-open-blur');
+    }
+  </script>
   
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

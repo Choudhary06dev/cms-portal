@@ -26,7 +26,7 @@
               <div class="col-12">
                 <h6 class="text-white fw-bold mb-3"><i data-feather="user" class="me-2" style="width: 16px; height: 16px;"></i>Complainant Information</h6>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
                   <label for="client_name" class="form-label text-white">Complainant Name <span class="text-danger">*</span></label>
                   <input type="text" 
@@ -41,7 +41,7 @@
                   @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
                   <label for="city_id" class="form-label text-white">City</label>
                   <select class="form-select @error('city_id') is-invalid @enderror" 
@@ -60,7 +60,7 @@
                   @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
                   <label for="sector_id" class="form-label text-white">Sector</label>
                   <select class="form-select @error('sector_id') is-invalid @enderror" 
@@ -80,16 +80,22 @@
                   @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">Address</label>
-                  <input type="text" class="form-control" id="client_address" name="address" value="{{ old('address', $complaint->client->address ?? '') }}" placeholder="e.g., 00/0-ST-0-B-0">
+                  <label for="address" class="form-label text-white">Address</label>
+                  <input type="text" class="form-control @error('address') is-invalid @enderror" id="client_address" name="address" value="{{ old('address', $complaint->client->address ?? '') }}" placeholder="e.g., 00/0-ST-0-B-0">
+                  @error('address')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="mb-3">
-                  <label class="form-label text-white">Phone No.</label>
-                  <input type="text" class="form-control" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number">
+                  <label for="phone" class="form-label text-white">Phone No.</label>
+                  <input type="text" class="form-control @error('phone') is-invalid @enderror" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number">
+                  @error('phone')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                 </div>
               </div>
             </div>
@@ -126,7 +132,7 @@
                       <option value="{{ old('title', $complaint->title) }}" selected>{{ old('title', $complaint->title) }}</option>
                     @endif
                   </select>
-                  <input type="text" class="form-control @error('title') is-invalid @enderror"
+                  <input type="text" class="form-select @error('title') is-invalid @enderror"
                           id="title_other" name="title_other" placeholder="Enter custom title..."
                           style="display: none;" value="{{ old('title_other', $complaint->title) }}">
                   @error('title')
@@ -138,16 +144,16 @@
 
               
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="priority" class="form-label text-white">Priority <span class="text-danger">*</span></label>
                   <select class="form-select @error('priority') is-invalid @enderror" 
                           id="priority" name="priority" required>
                     <option value="">Select Priority</option>
-                    <option value="low" {{ old('priority', $complaint->priority) == 'low' ? 'selected' : '' }}>Low</option>
-                    <option value="medium" {{ old('priority', $complaint->priority) == 'medium' ? 'selected' : '' }}>Medium</option>
-                    <option value="high" {{ old('priority', $complaint->priority) == 'high' ? 'selected' : '' }}>High</option>
-                    <option value="urgent" {{ old('priority', $complaint->priority) == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                    <option value="low" {{ old('priority', $complaint->priority) == 'low' ? 'selected' : '' }}>Low - Can wait</option>
+                    <option value="medium" {{ old('priority', $complaint->priority) == 'medium' ? 'selected' : '' }}>Medium - Normal</option>
+                    <option value="high" {{ old('priority', $complaint->priority) == 'high' ? 'selected' : '' }}>High - Important</option>
+                    <option value="urgent" {{ old('priority', $complaint->priority) == 'urgent' ? 'selected' : '' }}>Urgent - Critical</option>
                   </select>
                   @error('priority')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -155,18 +161,25 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="assigned_employee_id" class="form-label text-white">Assign Employee</label>
                   <select class="form-select @error('assigned_employee_id') is-invalid @enderror" 
                           id="assigned_employee_id" name="assigned_employee_id">
-                    <option value="">Select Employee</option>
-                    @foreach($employees as $emp)
-                    <option value="{{ $emp->id }}" data-category="{{ $emp->department }}"
-                            {{ old('assigned_employee_id', $complaint->assigned_employee_id) == $emp->id ? 'selected' : '' }}>
-                      {{ $emp->name ?? 'Employee #' . $emp->id }}
-                    </option>
-                    @endforeach
+                    <option value="">Select Employee (Optional)</option>
+                    @if(isset($employees) && $employees->count() > 0)
+                      @foreach($employees as $employee)
+                        <option value="{{ $employee->id }}" 
+                                data-category="{{ $employee->department }}"
+                                data-city="{{ $employee->city_id }}"
+                                data-sector="{{ $employee->sector_id }}"
+                                {{ (string)old('assigned_employee_id', $complaint->assigned_employee_id) === (string)$employee->id ? 'selected' : '' }}>
+                          {{ $employee->name }}
+                        </option>
+                      @endforeach
+                    @else
+                      <option value="" disabled>No employees available</option>
+                    @endif
                   </select>
                   @error('assigned_employee_id')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -316,19 +329,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Employee filter: by Category, City, Sector
   function filterEmployees() {
-    if (!categorySelect || !employeeSelect) return;
-    const category = categorySelect.value;
+    if (!employeeSelect) return;
+    const category = categorySelect ? categorySelect.value : '';
+    const cityId = document.getElementById('city_id') ? document.getElementById('city_id').value : '';
+    const sectorId = document.getElementById('sector_id') ? document.getElementById('sector_id').value : '';
+    let firstVisible = null;
     Array.from(employeeSelect.options).forEach(opt => {
-      if (!opt.value) return;
+      if (!opt.value) return; // placeholder
       const optCategory = opt.getAttribute('data-category') || '';
-      opt.hidden = category && optCategory !== category;
+      const optCity = opt.getAttribute('data-city') || '';
+      const optSector = opt.getAttribute('data-sector') || '';
+      const matchCategory = !category || optCategory === category;
+      const matchCity = !cityId || String(optCity) === String(cityId);
+      const matchSector = !sectorId || String(optSector) === String(sectorId);
+      const show = matchCategory && matchCity && matchSector;
+      opt.hidden = !show;
+      if (show && !firstVisible) firstVisible = opt;
     });
-    const sel = employeeSelect.selectedOptions[0];
-    if (sel && sel.hidden) employeeSelect.value = '';
+    // If selected option is hidden, clear selection
+    if (employeeSelect.selectedOptions.length) {
+      const sel = employeeSelect.selectedOptions[0];
+      if (sel && sel.hidden) employeeSelect.value = '';
+    }
   }
-  if (categorySelect && employeeSelect) {
-    categorySelect.addEventListener('change', filterEmployees);
+  if (employeeSelect) {
+    categorySelect && categorySelect.addEventListener('change', filterEmployees);
+    const citySelectEl = document.getElementById('city_id');
+    const sectorSelectEl = document.getElementById('sector_id');
+    citySelectEl && citySelectEl.addEventListener('change', filterEmployees);
+    sectorSelectEl && sectorSelectEl.addEventListener('change', filterEmployees);
     filterEmployees();
   }
 

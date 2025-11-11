@@ -45,21 +45,6 @@
   $displayText = $catDisplay . ' - ' . $designation;
 @endphp
 
-<!-- COMPLAINT PROFILE CARD -->
-<div class="row mb-4">
-  <div class="col-12">
-    <div class="card-glass">
-      <div class="row align-items-center justify-content-center">
-        <div class="col-12 text-center">
-          <div class="employee-avatar mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 3rem; font-weight: bold; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
-            {{ strtoupper(substr($complaint->client->client_name ?? 'C', 0, 1)) }}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- COMPLAINT DETAILS -->
 <div class="row">
   <!-- Personal Information -->
@@ -155,7 +140,7 @@
           <i data-feather="hash" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Complaint ID</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ str_pad($complaint->complaint_id ?? $complaint->id, 4, '0', STR_PAD_LEFT) }}</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ (int)($complaint->complaint_id ?? $complaint->id) }}</div>
           </div>
         </div>
       </div>
@@ -471,14 +456,6 @@
   
   .info-item:last-child {
     border-bottom: none;
-  }
-  
-  .employee-avatar {
-    transition: transform 0.3s ease;
-  }
-  
-  .employee-avatar:hover {
-    transform: scale(1.05);
   }
 </style>
 @endpush
