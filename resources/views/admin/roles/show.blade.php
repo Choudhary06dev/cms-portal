@@ -14,21 +14,6 @@
   </div>
 </div>
 
-<!-- ROLE PROFILE CARD -->
-<div class="row mb-4">
-  <div class="col-12">
-    <div class="card-glass">
-      <div class="row align-items-center justify-content-center">
-        <div class="col-12 text-center">
-          <div class="employee-avatar mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 3rem; font-weight: bold; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
-            {{ strtoupper(substr($role->role_name ?? 'R', 0, 1)) }}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ROLE DETAILS -->
 <div class="row">
   <!-- Basic Information -->
@@ -224,14 +209,6 @@
   
   .info-item:last-child {
     border-bottom: none;
-  }
-  
-  .employee-avatar {
-    transition: transform 0.3s ease;
-  }
-  
-  .employee-avatar:hover {
-    transform: scale(1.05);
   }
   
   .card-glass {

@@ -374,7 +374,9 @@ class Complaint extends Model
                 
                 // Set closed_at when status becomes 'resolved' or 'closed', but only if not already set
                 if (in_array($newStatus, ['resolved', 'closed']) && !$complaint->closed_at) {
-                    $complaint->closed_at = now();
+                    // Get current time in Asia/Karachi and convert to UTC for storage
+                    $nowKarachi = \Carbon\Carbon::now('Asia/Karachi');
+                    $complaint->closed_at = $nowKarachi->copy()->utc();
                 } elseif (!in_array($newStatus, ['resolved', 'closed']) && in_array($oldStatus, ['resolved', 'closed'])) {
                     // If status is changed from resolved/closed to something else, clear closed_at
                     $complaint->closed_at = null;

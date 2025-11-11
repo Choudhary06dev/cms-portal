@@ -336,17 +336,31 @@ class ApprovalController extends Controller
      */
     public function show(SpareApprovalPerforma $approval)
     {
-        $approval->load([
-            'complaint.client',
-            'complaint.spareParts.spare',
-            'complaint.stockLogs.spare',
-            'requestedBy',
-            'approvedBy',
-            'items.spare'
-        ]);
+        // Optimize: Only load necessary relationships for AJAX requests
+        $isAjax = request()->ajax() || request()->wantsJson();
+        
+        if ($isAjax) {
+            // For AJAX: Load only what's needed, skip heavy sync operations
+            $approval->load([
+                'complaint.client',
+                'requestedBy',
+                'approvedBy',
+                'items.spare'
+            ]);
+        } else {
+            // For HTML: Load all relationships
+            $approval->load([
+                'complaint.client',
+                'complaint.spareParts.spare',
+                'complaint.stockLogs.spare',
+                'requestedBy',
+                'approvedBy',
+                'items.spare'
+            ]);
+        }
 
-        // Always sync approval items from complaint spare parts
-        if ($approval->complaint) {
+        // Only sync approval items for HTML requests or if status is pending (skip for AJAX to speed up)
+        if (!$isAjax && $approval->complaint && $approval->status === 'pending') {
             try {
                 // Load complaint spare parts with spare relationship
                 $approval->complaint->loadMissing(['spareParts.spare']);
@@ -362,8 +376,8 @@ class ApprovalController extends Controller
                         $existingItem = $existingItemsBySpareId->get($sp->spare_id);
                         
                         if ($existingItem) {
-                            // Update existing item if quantity changed (only if status is pending)
-                            if ($approval->status === 'pending' && $existingItem->quantity_requested != $sp->quantity) {
+                            // Update existing item if quantity changed
+                            if ($existingItem->quantity_requested != $sp->quantity) {
                                 $existingItem->update([
                                     'quantity_requested' => (int)($sp->quantity ?? 1),
                                     'reason' => 'Updated from complaint spare usage',
@@ -381,11 +395,9 @@ class ApprovalController extends Controller
                         }
                     }
                     
-                    // Remove approval items that are no longer in complaint spare parts (only if status is pending)
-                    if ($approval->status === 'pending') {
-                        $complaintSpareIds = $approval->complaint->spareParts->pluck('spare_id')->filter()->toArray();
-                        $approval->items()->whereNotIn('spare_id', $complaintSpareIds)->delete();
-                    }
+                    // Remove approval items that are no longer in complaint spare parts
+                    $complaintSpareIds = $approval->complaint->spareParts->pluck('spare_id')->filter()->toArray();
+                    $approval->items()->whereNotIn('spare_id', $complaintSpareIds)->delete();
                     
                     // Reload items after sync
                     $approval->load(['items.spare']);
@@ -394,22 +406,18 @@ class ApprovalController extends Controller
                 \Log::warning('Failed to sync approval items in show()', [
                     'approval_id' => $approval->id,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
                 ]);
             }
         }
 
-        // Refresh approval to get latest remarks from database
-        $approval->refresh();
-
-        // Get previously issued stock from stock logs for this approval
+        // Get previously issued stock from stock logs for this approval (optimized query)
         $issuedStock = [];
         try {
             $stockLogs = \App\Models\SpareStockLog::where('reference_id', $approval->id)
                 ->where('change_type', 'out')
-                ->with('spare')
+                ->with('spare:id,item_name')
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->get(['id', 'spare_id', 'quantity', 'created_at', 'remarks']);
             
             foreach ($stockLogs as $log) {
                 if ($log->spare) {
