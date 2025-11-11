@@ -118,18 +118,41 @@
       height: 18px !important;
       min-width: 18px !important;
     }
-    .nav-link i[data-feather="file-text"] {
+    .nav-link i[data-feather="file-text"],
+    .nav-link i[data-feather="alert-circle"] {
       width: 20px !important;
       height: 20px !important;
       min-width: 20px !important;
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
     .nav-link i svg {
       width: 18px !important;
       height: 18px !important;
+      display: inline-block !important;
+      visibility: visible !important;
     }
-    .nav-link i[data-feather="file-text"] svg {
+    
+    /* Ensure all feather icons in submenu are visible */
+    .collapse i[data-feather],
+    #complaintsManagementSubmenu i[data-feather] {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    .collapse i[data-feather] svg,
+    #complaintsManagementSubmenu i[data-feather] svg {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    .nav-link i[data-feather="file-text"] svg,
+    .nav-link i[data-feather="alert-circle"] svg {
       width: 20px !important;
       height: 20px !important;
+      display: block !important;
     }
     .nav-link span, .nav-link .text-decoration-none {
       white-space: nowrap !important;
@@ -386,27 +409,32 @@
     @endif
     @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff') || ($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer')))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important; cursor: pointer;" id="complaintsManagementToggle">
-          <i data-feather="file-text" class="me-2" style="width: 20px !important; height: 20px !important; stroke-width: 2.5 !important; min-width: 20px !important; flex-shrink: 0 !important;"></i> 
-        <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Management</span>
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important;" id="complaintsManagementToggle">
+        <div class="d-flex align-items-center flex-grow-1">
+          <i data-feather="file-text" class="me-2"></i> 
+          <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Mgmt</span>
+        </div>
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsManagementSubmenu" aria-expanded="false" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
+          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
+        </button>
       </div>
-      <div class="complaints-submenu" id="complaintsManagementSubmenu" style="display: {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'block' : 'none' }};">
+      <div class="collapse" id="complaintsManagementSubmenu">
         @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
         <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="list" class="me-2"></i> Complaints Registered
+          <i data-feather="list" class="me-2" style="width: 18px; height: 18px;"></i> Complaints Regn
         </a>
         @endif
         @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin'))
         <a href="{{ route('admin.complaint-titles.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="file-text" class="me-2"></i> Complaint Types
+          <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Types
         </a>
         <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="tag" class="me-2"></i> Complaint Categories
+          <i data-feather="tag" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Cate
         </a>
         @endif
         @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
         <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="eye" class="me-2"></i> Total Complaints
+          <i data-feather="eye" class="me-2" style="width: 18px; height: 18px;"></i> Total Complaints
         </a>
         @endif
       </div>
@@ -446,6 +474,21 @@
 
     // Topbar functionality
     document.addEventListener('DOMContentLoaded', function() {
+      // Initialize all icons including those in collapsed submenus
+      setTimeout(() => {
+        feather.replace();
+        // Force initialization of all icons in submenus
+        const allSubmenuIcons = document.querySelectorAll('.collapse i[data-feather], #complaintsManagementSubmenu i[data-feather]');
+        allSubmenuIcons.forEach(icon => {
+          if (!icon.querySelector('svg')) {
+            // Create a temporary visible container to ensure icon renders
+            const tempParent = icon.parentElement;
+            if (tempParent) {
+              feather.replace();
+            }
+          }
+        });
+      }, 300);
       // Global search functionality with autocomplete
       const globalSearch = document.getElementById('globalSearch');
       
@@ -619,80 +662,43 @@
         });
       }
 
-      // Handle Complaints Management submenu toggle - ONLY on direct click on toggle element
+      // Handle Complaints Management submenu - ONLY arrow button should toggle
       const complaintsManagementToggle = document.getElementById('complaintsManagementToggle');
       const complaintsManagementSubmenu = document.getElementById('complaintsManagementSubmenu');
+      const complaintsArrowBtn = complaintsManagementToggle ? complaintsManagementToggle.querySelector('.nav-arrow-btn') : null;
       
-      if (complaintsManagementToggle && complaintsManagementSubmenu) {
-        // Remove any Bootstrap data attributes immediately
-        complaintsManagementSubmenu.removeAttribute('data-bs-toggle');
-        complaintsManagementSubmenu.removeAttribute('data-bs-target');
-        complaintsManagementToggle.removeAttribute('data-bs-toggle');
-        complaintsManagementToggle.removeAttribute('data-bs-target');
-        
-        // Remove collapse class to prevent Bootstrap from handling it
-        complaintsManagementSubmenu.classList.remove('collapse');
-        complaintsManagementSubmenu.classList.remove('show');
-        
-        // Prevent Bootstrap from initializing collapse on this element
-        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-          const existingInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu);
-          if (existingInstance) {
-            existingInstance.dispose();
-          }
-        }
-        
-        // Store the toggle element reference
-        const toggleElement = complaintsManagementToggle;
-        
-        // ONLY allow toggle when clicking EXACTLY on the toggle element or its direct children
-        toggleElement.addEventListener('click', function(e) {
-          // First check: event must be on the toggle element itself
-          if (e.currentTarget !== toggleElement) {
-            return; // Not our element, ignore
-          }
-          
-          // Get the exact element that was clicked
-          const clickedElement = e.target;
-          
-          // Check if click is EXACTLY on toggle div, icon, or span - nothing else
-          const isOnToggleDiv = clickedElement === toggleElement;
-          const toggleIcon = toggleElement.querySelector('i[data-feather]');
-          const toggleSpan = toggleElement.querySelector('span');
-          const isOnToggleIcon = clickedElement === toggleIcon || (toggleIcon && toggleIcon.contains(clickedElement));
-          const isOnToggleSpan = clickedElement === toggleSpan || (toggleSpan && toggleSpan.contains(clickedElement));
-          
-          // Check if clicking on a link or other nav item
-          const isInLink = clickedElement.closest('a') !== null;
-          const isInOtherNav = clickedElement.closest('.nav-link') !== null && 
-                              clickedElement.closest('#complaintsManagementToggle') === null;
-          
-          // ONLY allow if clicking on toggle element itself or its direct children (icon/span), nothing else
-          const isValidClick = (isOnToggleDiv || isOnToggleIcon || isOnToggleSpan) && !isInLink && !isInOtherNav;
-          
-          // ONLY toggle if it's a valid click on toggle element
-          if (isValidClick) {
+      if (complaintsManagementToggle && complaintsManagementSubmenu && complaintsArrowBtn) {
+        // Prevent clicks on the toggle div itself from opening submenu
+        complaintsManagementToggle.addEventListener('click', function(e) {
+          // Only allow if clicking directly on the arrow button
+          const clickedArrowBtn = e.target.closest('.nav-arrow-btn');
+          if (!clickedArrowBtn || clickedArrowBtn !== complaintsArrowBtn) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            
-            // Toggle display
-            const currentDisplay = complaintsManagementSubmenu.style.display;
-            const isVisible = currentDisplay !== 'none' && currentDisplay !== '';
-            
-            if (isVisible) {
-              complaintsManagementSubmenu.style.display = 'none';
-            } else {
-              complaintsManagementSubmenu.style.display = 'block';
-            }
-            
-            // Re-initialize Feather icons
-            setTimeout(() => {
-              feather.replace();
-            }, 100);
+            return false;
           }
-          // If not a valid click, do nothing - let the event bubble normally
-        }, false); // Use bubble phase, not capture
+        }, true); // Use capture phase to intercept early
+        
+        // Prevent modal clicks from triggering submenu
+        document.addEventListener('click', function(e) {
+          // If clicking on any modal or modal content, prevent it from affecting submenu
+          const isModalClick = e.target.closest('.modal') !== null || 
+                               e.target.closest('[data-bs-toggle="modal"]') !== null ||
+                               e.target.closest('[data-bs-target*="Modal"]') !== null;
+          
+          if (isModalClick) {
+            // Ensure submenu stays closed when modals are clicked
+            if (complaintsManagementSubmenu.classList.contains('show')) {
+              const collapseInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu);
+              if (collapseInstance) {
+                collapseInstance.hide();
+              } else {
+                complaintsManagementSubmenu.classList.remove('show');
+              }
+            }
+          }
+        }, true);
         
         // Prevent submenu links from triggering parent toggle
         const submenuLinks = complaintsManagementSubmenu.querySelectorAll('a');
@@ -702,12 +708,29 @@
           }, true);
         });
         
-        // Initialize icons
-        feather.replace();
+        // Ensure submenu starts closed on page load
+        if (complaintsManagementSubmenu.classList.contains('show')) {
+          complaintsManagementSubmenu.classList.remove('show');
+        }
+        
+        // Initialize icons - ensure Complaints Management icon is rendered
+        const complaintsIcon = complaintsManagementToggle.querySelector('i[data-feather]');
+        if (complaintsIcon) {
+          // Force icon initialization
+          setTimeout(() => {
+            feather.replace();
+            // Double check and re-render if needed
+            if (!complaintsIcon.querySelector('svg')) {
+              feather.replace();
+            }
+          }, 50);
+        } else {
+          feather.replace();
+        }
       }
 
       // Handle submenu collapse/expand with arrow rotation and icon initialization
-      const submenus = ['employeesSubmenu'];
+      const submenus = ['employeesSubmenu', 'complaintsManagementSubmenu'];
       
       submenus.forEach(submenuId => {
         const submenu = document.getElementById(submenuId);
@@ -718,8 +741,23 @@
           if (arrow) {
             submenu.addEventListener('show.bs.collapse', function() {
               arrow.style.transform = 'rotate(180deg)';
-              // Re-initialize Feather icons when submenu is shown
-              feather.replace();
+              // Re-initialize Feather icons when submenu is shown - multiple attempts
+              setTimeout(() => {
+                feather.replace();
+              }, 10);
+              setTimeout(() => {
+                feather.replace();
+                // Specifically initialize icons in this submenu
+                const submenuIcons = submenu.querySelectorAll('i[data-feather]');
+                submenuIcons.forEach(icon => {
+                  if (!icon.querySelector('svg')) {
+                    feather.replace();
+                  }
+                });
+              }, 100);
+              setTimeout(() => {
+                feather.replace();
+              }, 300);
             });
             
             submenu.addEventListener('hide.bs.collapse', function() {
@@ -729,9 +767,26 @@
             // Initialize arrow position based on current state
             if (submenu.classList.contains('show')) {
               arrow.style.transform = 'rotate(180deg)';
+              // Initialize icons if submenu is already open
+              setTimeout(() => {
+                const submenuIcons = submenu.querySelectorAll('i[data-feather]');
+                submenuIcons.forEach(icon => {
+                  if (!icon.querySelector('svg')) {
+                    feather.replace();
+                  }
+                });
+              }, 100);
             } else {
               arrow.style.transform = 'rotate(0deg)';
             }
+          }
+          
+          // Also initialize icons immediately for this submenu
+          const submenuIcons = submenu.querySelectorAll('i[data-feather]');
+          if (submenuIcons.length > 0) {
+            setTimeout(() => {
+              feather.replace();
+            }, 200);
           }
           
           // Initialize icons if submenu is already shown

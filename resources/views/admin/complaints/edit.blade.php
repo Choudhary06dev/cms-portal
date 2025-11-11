@@ -124,10 +124,10 @@
               
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="title" class="form-label text-white">Complaint Title <span class="text-danger">*</span></label>
+                  <label for="title" class="form-label text-white">Complaint Type <span class="text-danger">*</span></label>
                   <select class="form-select @error('title') is-invalid @enderror" 
                           id="title" name="title" autocomplete="off" required>
-                    <option value="">Select Complaint Title</option>
+                    <option value="">Select Complaint Type</option>
                     @if(old('title', $complaint->title))
                       <option value="{{ old('title', $complaint->title) }}" selected>{{ old('title', $complaint->title) }}</option>
                     @endif
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(data => {
         // Clear options
-        titleSelect.innerHTML = '<option value="">Select Complaint Title</option>';
+        titleSelect.innerHTML = '<option value="">Select Complaint Type</option>';
 
         if (data && data.length > 0) {
           data.forEach(title => {
