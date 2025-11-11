@@ -227,25 +227,111 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   const modalEl = document.getElementById('editDesignationModal');
-  if (!modalEl) return;
-  modalEl.addEventListener('show.bs.modal', function (event) {
-    const button = event.relatedTarget;
-    const id = button.getAttribute('data-id');
-    const category = button.getAttribute('data-category');
-    const name = button.getAttribute('data-name');
-    const status = button.getAttribute('data-status');
-    const form = document.getElementById('editDesignationForm');
-    const categorySelect = document.getElementById('editDesignationCategory');
-    const nameInput = document.getElementById('editDesignationName');
-    const statusSelect = document.getElementById('editDesignationStatus');
+  if (modalEl) {
+    modalEl.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const id = button.getAttribute('data-id');
+      const category = button.getAttribute('data-category');
+      const name = button.getAttribute('data-name');
+      const status = button.getAttribute('data-status');
+      const form = document.getElementById('editDesignationForm');
+      const categorySelect = document.getElementById('editDesignationCategory');
+      const nameInput = document.getElementById('editDesignationName');
+      const statusSelect = document.getElementById('editDesignationStatus');
 
-    if (form && id) {
-      form.action = `${window.location.origin}/admin/designation/${id}`;
-    }
-    if (categorySelect && category) categorySelect.value = category;
-    if (nameInput) nameInput.value = name || '';
-    if (statusSelect) statusSelect.value = status || 'active';
-  });
+      if (form && id) {
+        form.action = `${window.location.origin}/admin/designation/${id}`;
+      }
+      if (categorySelect && category) categorySelect.value = category;
+      if (nameInput) nameInput.value = name || '';
+      if (statusSelect) statusSelect.value = status || 'active';
+    });
+  }
+
+  // Handle form submission via AJAX to stay in modal
+  // Always prevent normal form submission and handle via AJAX
+  const editDesignationForm = document.getElementById('editDesignationForm');
+  if (editDesignationForm && !editDesignationForm.hasAttribute('data-ajax-bound')) {
+    editDesignationForm.setAttribute('data-ajax-bound', 'true');
+    editDesignationForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const formData = new FormData(editDesignationForm);
+      const submitBtn = editDesignationForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.textContent : '';
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+      }
+      
+      fetch(editDesignationForm.action, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token')
+        },
+        credentials: 'same-origin',
+        body: formData
+      })
+      .then(response => {
+        if (response.ok) {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            return response.json();
+          }
+          return { success: true };
+        }
+        return response.text().then(text => {
+          try {
+            return JSON.parse(text);
+          } catch {
+            throw new Error(text || 'Update failed');
+          }
+        });
+      })
+      .then(data => {
+        // Close edit modal
+        const editModalEl = document.getElementById('editDesignationModal');
+        if (editModalEl) {
+          const editModal = bootstrap.Modal.getInstance(editModalEl);
+          if (editModal) {
+            editModal.hide();
+          }
+        }
+        
+        // Show success message and reload page
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        alertDiv.setAttribute('role', 'alert');
+        alertDiv.innerHTML = (data.message || 'Designation updated successfully') + 
+          '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        
+        const container = document.querySelector('.container-narrow');
+        if (container) {
+          container.insertBefore(alertDiv, container.firstChild);
+          setTimeout(() => {
+            alertDiv.remove();
+          }, 5000);
+        }
+        
+        // Reload page after a short delay to show updated data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating designation: ' + (error.message || 'Unknown error'));
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    });
+  }
 });
 </script>
 @endpush
