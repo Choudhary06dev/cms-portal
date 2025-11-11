@@ -56,16 +56,79 @@
     border-color: rgba(59, 130, 246, 0.3) !important;
   }
   
-  /* Gradient Stat Cards */
+  /* Gradient Stat Cards - Dark Theme with Original Colors */
   .stat-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%) !important;
-    border-radius: 24px !important;
-    padding: 2rem !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 16px !important;
+    padding: 0.75rem 1rem !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     position: relative !important;
     overflow: hidden !important;
+    min-height: 90px !important;
+    height: 100% !important;
+    color: #ffffff !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Reduce height for text-center cards (Users, Employees, etc.) */
+  .stat-card.text-center {
+    padding: 0.6rem 0.75rem !important;
+    min-height: 90px !important;
+  }
+  
+  .stat-card.text-center .stat-icon {
+    width: 35px !important;
+    height: 35px !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .stat-card.text-center .stat-number {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .stat-card.text-center .stat-label {
+    font-size: 0.7rem !important;
+    margin-top: 0 !important;
+  }
+  
+  /* Ensure all cards have equal height */
+  .row .col-md-2,
+  .row .col-lg-2 {
+    display: flex !important;
+  }
+  
+  .row .col-md-2 > .stat-card,
+  .row .col-lg-2 > .stat-card {
+    width: 100% !important;
+  }
+  
+  /* Force all text inside stat-card to be white */
+  .stat-card * {
+    color: #ffffff !important;
+  }
+  
+  /* Override any inline color styles */
+  .stat-card *[style*="color"] {
+    color: #ffffff !important;
+  }
+  
+  .stat-card .text-primary,
+  .stat-card .text-success,
+  .stat-card .text-danger,
+  .stat-card .text-warning,
+  .stat-card .text-info,
+  .stat-card .text-muted {
+    color: #ffffff !important;
+  }
+  
+  /* Force all numbers and text content to be white */
+  .stat-card .flex-grow-1,
+  .stat-card .flex-grow-1 * {
+    color: #ffffff !important;
   }
   
   .stat-card::after {
@@ -91,21 +154,59 @@
   }
   
   .stat-card:hover {
-    transform: translateY(-8px) scale(1.03) !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-4px) scale(1.02) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
   }
   
   /* Stat Card Icon Containers */
   .stat-icon {
-    width: 70px !important;
-    height: 70px !important;
-    border-radius: 18px !important;
+    width: 45px !important;
+    height: 45px !important;
+    border-radius: 12px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     backdrop-filter: blur(10px) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
     transition: all 0.4s ease !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  .stat-icon i,
+  .stat-icon svg,
+  .stat-card i,
+  .stat-card svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: #ffffff !important;
+  }
+  
+  .stat-icon .feather-lg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  /* Ensure feather icons are white */
+  .stat-card [data-feather],
+  .stat-card i[data-feather],
+  .stat-card svg[data-feather] {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+  
+  /* Force SVG stroke to white for all icons in stat-card */
+  .stat-card svg {
+    stroke: #ffffff !important;
+    color: #ffffff !important;
+  }
+  
+  /* Override any inline styles for icons */
+  .stat-card i[style*="color"],
+  .stat-card svg[style*="color"],
+  .stat-card svg[style*="stroke"] {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
   }
   
   .stat-card:hover .stat-icon {
@@ -115,21 +216,47 @@
   
   /* Animated Number Display */
   .stat-number {
-    font-size: 2.5rem !important;
+    font-size: 1.4rem !important;
     font-weight: 800 !important;
-    background: linear-gradient(135deg, currentColor 0%, currentColor 100%) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
+    color: #ffffff !important;
     letter-spacing: -0.02em !important;
     line-height: 1.2 !important;
   }
   
+  /* Force all numbers to be white */
+  .stat-card .stat-number,
+  .stat-card div.stat-number,
+  .stat-card span.stat-number {
+    color: #ffffff !important;
+  }
+  
   .stat-label {
-    font-size: 0.95rem !important;
+    font-size: 0.75rem !important;
     font-weight: 600 !important;
-    color: #64748b !important;
-    margin-top: 0.5rem !important;
+    color: #ffffff !important;
+    margin-top: 0.25rem !important;
     letter-spacing: 0.3px !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Force all labels to be white */
+  .stat-card .stat-label,
+  .stat-card div.stat-label,
+  .stat-card span.stat-label {
+    color: #ffffff !important;
+  }
+  
+  /* Force all divs, spans, and text nodes to be white */
+  .stat-card div,
+  .stat-card span,
+  .stat-card p,
+  .stat-card h1,
+  .stat-card h2,
+  .stat-card h3,
+  .stat-card h4,
+  .stat-card h5,
+  .stat-card h6 {
+    color: #ffffff !important;
   }
   
   /* Typography Enhancements */
@@ -593,58 +720,58 @@
 @endif
 
 <!-- STATISTICS CARDS -->
-<div class="row mb-5 g-4">
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.25) 100%) !important; border: 2px solid rgba(59, 130, 246, 0.3) !important;">
+<div class="row mb-5 g-3 justify-content-center">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-primary">{{ $stats['total_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['total_complaints'] ?? 0 }}</div>
           <div class="stat-label">Total Complaints</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.4)) !important;">
-          <i data-feather="alert-circle" class="feather-lg" style="color: #3b82f6;"></i>
+        <div class="stat-icon">
+          <i data-feather="alert-circle" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.25) 100%) !important; border: 2px solid rgba(239, 68, 68, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-danger">{{ $stats['pending_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['pending_complaints'] ?? 0 }}</div>
           <div class="stat-label">Pending</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.4)) !important;">
-          <i data-feather="clock" class="feather-lg" style="color: #ef4444;"></i>
+        <div class="stat-icon">
+          <i data-feather="clock" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.25) 100%) !important; border: 2px solid rgba(34, 197, 94, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-success">{{ $stats['addressed_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['addressed_complaints'] ?? 0 }}</div>
           <div class="stat-label">Addressed</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.4)) !important;">
-          <i data-feather="check-circle" class="feather-lg" style="color: #22c55e;"></i>
+        <div class="stat-icon">
+          <i data-feather="check-circle" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.25) 100%) !important; border: 2px solid rgba(239, 68, 68, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-danger">{{ $stats['overdue_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['overdue_complaints'] ?? 0 }}</div>
           <div class="stat-label">Overdue</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.4)) !important;">
-          <i data-feather="alert-triangle" class="feather-lg" style="color: #ef4444;"></i>
+        <div class="stat-icon">
+          <i data-feather="alert-triangle" class="feather-lg"></i>
         </div>
       </div>
     </div>
@@ -652,102 +779,102 @@
 </div>
 
 <!-- COMPLAINT STATUS CARDS -->
-<div class="row mb-5 g-4">
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(59, 130, 246, 0.25) 100%) !important; border: 2px solid rgba(96, 165, 250, 0.3) !important;">
+<div class="row mb-5 g-3 justify-content-center">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #60a5fa;">{{ $stats['work_performa'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['work_performa'] ?? 0 }}</div>
           <div class="stat-label">Work Performa</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(96, 165, 250, 0.4)) !important;">
-          <i data-feather="file-text" class="feather-lg" style="color: #60a5fa;"></i>
+        <div class="stat-icon">
+          <i data-feather="file-text" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%) !important; border: 2px solid rgba(234, 179, 8, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #eab308;">{{ $stats['maint_performa'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['maint_performa'] ?? 0 }}</div>
           <div class="stat-label">Maintenance Performa</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(234, 179, 8, 0.4)) !important;">
-          <i data-feather="tool" class="feather-lg" style="color: #eab308;"></i>
+        <div class="stat-icon">
+          <i data-feather="tool" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(126, 34, 206, 0.25) 100%) !important; border: 2px solid rgba(147, 51, 234, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #9333ea;">{{ $stats['work_priced_performa'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['work_priced_performa'] ?? 0 }}</div>
           <div class="stat-label">Work Performa Priced</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(147, 51, 234, 0.4)) !important;">
-          <i data-feather="dollar-sign" class="feather-lg" style="color: #9333ea;"></i>
+        <div class="stat-icon">
+          <i data-feather="dollar-sign" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, rgba(194, 65, 12, 0.25) 100%) !important; border: 2px solid rgba(234, 88, 12, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #ea580c;">{{ $stats['maint_priced_performa'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['maint_priced_performa'] ?? 0 }}</div>
           <div class="stat-label">Maintenance Performa Priced</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.2), rgba(234, 88, 12, 0.4)) !important;">
-          <i data-feather="dollar-sign" class="feather-lg" style="color: #ea580c;"></i>
+        <div class="stat-icon">
+          <i data-feather="dollar-sign" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="row mb-5 g-4">
-  <div class="col-md-4">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(219, 39, 119, 0.25) 100%) !important; border: 2px solid rgba(236, 72, 153, 0.3) !important;">
+<div class="row mb-5 g-3 justify-content-center">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #ec4899;">{{ $stats['un_authorized'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['un_authorized'] ?? 0 }}</div>
           <div class="stat-label">Un Authorized</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.4)) !important;">
-          <i data-feather="x-octagon" class="feather-lg" style="color: #ec4899;"></i>
+        <div class="stat-icon">
+          <i data-feather="x-octagon" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-4">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(100, 116, 139, 0.15) 0%, rgba(71, 85, 105, 0.25) 100%) !important; border: 2px solid rgba(100, 116, 139, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #64748b;">{{ $stats['product_na'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['product_na'] ?? 0 }}</div>
           <div class="stat-label">Product N/A</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(100, 116, 139, 0.2), rgba(100, 116, 139, 0.4)) !important;">
-          <i data-feather="package-x" class="feather-lg" style="color: #64748b;"></i>
+        <div class="stat-icon" style="display: flex !important; visibility: visible !important;">
+          <i data-feather="box" class="feather-lg" style="display: block !important; visibility: visible !important; width: 24px !important; height: 24px !important;"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-4">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.25) 100%) !important; border: 2px solid rgba(6, 182, 212, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #06b6d4;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
           <div class="stat-label">Pertains to GE/Const/Isld</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.4)) !important;">
-          <i data-feather="map-pin" class="feather-lg" style="color: #06b6d4;"></i>
+        <div class="stat-icon">
+          <i data-feather="map-pin" class="feather-lg"></i>
         </div>
       </div>
     </div>
@@ -755,43 +882,43 @@
 </div>
 
 <!-- ADDITIONAL STATS -->
-<div class="row mb-5 justify-content-center g-4">
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.25) 100%) !important; border: 2px solid rgba(99, 102, 241, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.4)) !important;">
-        <i data-feather="users" class="feather-lg" style="color: #6366f1;"></i>
+<div class="row mb-5 justify-content-center g-3">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;">
+      <div class="stat-icon mx-auto mb-3">
+        <i data-feather="users" class="feather-lg"></i>
       </div>
-      <div class="stat-number" style="color: #6366f1;">{{ $stats['total_users'] ?? 0 }}</div>
+      <div class="stat-number">{{ $stats['total_users'] ?? 0 }}</div>
       <div class="stat-label">Users</div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.25) 100%) !important; border: 2px solid rgba(168, 85, 247, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.4)) !important;">
-        <i data-feather="user-check" class="feather-lg" style="color: #a855f7;"></i>
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%) !important;">
+      <div class="stat-icon mx-auto mb-3">
+        <i data-feather="user-check" class="feather-lg"></i>
       </div>
-      <div class="stat-number" style="color: #a855f7;">{{ $stats['total_employees'] ?? 0 }}</div>
+      <div class="stat-number">{{ $stats['total_employees'] ?? 0 }}</div>
       <div class="stat-label">Employees</div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(249, 115, 22, 0.25) 100%) !important; border: 2px solid rgba(251, 146, 60, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.4)) !important;">
-        <i data-feather="alert-triangle" class="feather-lg" style="color: #fb923c;"></i>
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;">
+      <div class="stat-icon mx-auto mb-3">
+        <i data-feather="alert-triangle" class="feather-lg"></i>
       </div>
-      <div class="stat-number text-warning">{{ $stats['low_stock_items'] ?? 0 }}</div>
+      <div class="stat-number">{{ $stats['low_stock_items'] ?? 0 }}</div>
       <div class="stat-label">Low Stock</div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%) !important; border: 2px solid rgba(16, 185, 129, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.4)) !important;">
-        <i data-feather="trending-up" class="feather-lg" style="color: #10b981;"></i>
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;">
+      <div class="stat-icon mx-auto mb-3">
+        <i data-feather="trending-up" class="feather-lg"></i>
       </div>
-      <div class="stat-number text-success">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
+      <div class="stat-number">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
       <div class="stat-label">SLA Performance</div>
     </div>
   </div>
