@@ -429,7 +429,7 @@
           <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Types
         </a>
         <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="tag" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Cate
+          <i data-feather="tag" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Cat
         </a>
         @endif
         @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
