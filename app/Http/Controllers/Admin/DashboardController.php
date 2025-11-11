@@ -196,6 +196,10 @@ class DashboardController extends Controller
         $complaintsByStatusQuery = Complaint::query();
         $this->filterComplaintsByLocation($complaintsByStatusQuery, $user);
         $this->applyFilters($complaintsByStatusQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
+        
+        // Clone query before selectRaw to use for performa type counts
+        $performaCountQuery = clone $complaintsByStatusQuery;
+        
         $complaintsByStatus = $complaintsByStatusQuery->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
@@ -203,7 +207,7 @@ class DashboardController extends Controller
         
         // Add performa type complaints that are stored as in_progress with performa_type in approvals
         // Work Performa - count in_progress complaints with work_performa performa_type (excluding priced ones)
-        $workPerformaCount = (clone $complaintsByStatusQuery)
+        $workPerformaCount = (clone $performaCountQuery)
             ->where('status', 'in_progress')
             ->whereHas('spareApprovals', function($q) {
                 $q->where('performa_type', 'work_performa')
@@ -218,7 +222,7 @@ class DashboardController extends Controller
         }
         
         // Maintenance Performa - count in_progress complaints with maint_performa performa_type (excluding priced ones)
-        $maintPerformaCount = (clone $complaintsByStatusQuery)
+        $maintPerformaCount = (clone $performaCountQuery)
             ->where('status', 'in_progress')
             ->whereHas('spareApprovals', function($q) {
                 $q->where('performa_type', 'maint_performa')
@@ -233,7 +237,7 @@ class DashboardController extends Controller
         }
         
         // Work Performa Priced - count in_progress complaints with work_performa performa_type and waiting_for_authority
-        $workPricedPerformaCount = (clone $complaintsByStatusQuery)
+        $workPricedPerformaCount = (clone $performaCountQuery)
             ->where('status', 'in_progress')
             ->whereHas('spareApprovals', function($q) {
                 $q->where('status', 'pending')
@@ -246,7 +250,7 @@ class DashboardController extends Controller
         }
         
         // Maintenance Performa Priced - count in_progress complaints with maint_performa performa_type and waiting_for_authority
-        $maintPricedPerformaCount = (clone $complaintsByStatusQuery)
+        $maintPricedPerformaCount = (clone $performaCountQuery)
             ->where('status', 'in_progress')
             ->whereHas('spareApprovals', function($q) {
                 $q->where('status', 'pending')
@@ -256,6 +260,28 @@ class DashboardController extends Controller
             ->count();
         if ($maintPricedPerformaCount > 0) {
             $complaintsByStatus['maint_priced_performa'] = ($complaintsByStatus['maint_priced_performa'] ?? 0) + $maintPricedPerformaCount;
+        }
+
+        // Product N/A - count product_na status OR in_progress complaints with product_na performa_type
+        // First get direct product_na status count (already in $complaintsByStatus from line 199-202)
+        $directProductNaCount = $complaintsByStatus['product_na'] ?? 0;
+        
+        // Then count in_progress complaints with product_na performa_type in approvals
+        $productNaFromApprovals = (clone $performaCountQuery)
+            ->where('status', 'in_progress')
+            ->whereHas('spareApprovals', function($q) {
+                $q->where('performa_type', 'product_na')
+                  ->whereNull('deleted_at'); // Exclude soft deleted approvals
+            })
+            ->count();
+        
+        // Set total product_na count
+        $totalProductNa = $directProductNaCount + $productNaFromApprovals;
+        if ($totalProductNa > 0) {
+            $complaintsByStatus['product_na'] = $totalProductNa;
+        } elseif (!isset($complaintsByStatus['product_na'])) {
+            // Ensure product_na key exists even if count is 0
+            $complaintsByStatus['product_na'] = 0;
         }
 
         // Get complaints by category with location filtering and filters
@@ -537,6 +563,17 @@ class DashboardController extends Controller
                 })
                 ->where('status', '!=', 'work_performa')
                 ->where('status', '!=', 'maint_performa');
+            } elseif ($complaintStatus === 'product_na') {
+                // Match product_na status OR in_progress with product_na performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'product_na')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('performa_type', 'product_na');
+                               });
+                      });
+                });
             } else {
                 // For other statuses, filter by actual status
                 $query->where('status', $complaintStatus);
@@ -648,7 +685,16 @@ class DashboardController extends Controller
             'work_priced_performa' => (clone $complaintsQuery)->where('status', 'work_priced_performa')->count(),
             'maint_priced_performa' => (clone $complaintsQuery)->where('status', 'maint_priced_performa')->count(),
             'un_authorized' => (clone $complaintsQuery)->where('status', 'un_authorized')->count(),
-            'product_na' => (clone $complaintsQuery)->where('status', 'product_na')->count(),
+            'product_na' => (clone $complaintsQuery)->where(function($q) {
+                $q->where('status', 'product_na')
+                  ->orWhere(function($subQ) {
+                      $subQ->where('status', 'in_progress')
+                           ->whereHas('spareApprovals', function($approvalQ) {
+                               $approvalQ->where('performa_type', 'product_na')
+                                         ->whereNull('deleted_at'); // Exclude soft deleted approvals
+                           });
+                  });
+            })->count(),
             'pertains_to_ge_const_isld' => (clone $complaintsQuery)->where('status', 'pertains_to_ge_const_isld')->count(),
 
             // User statistics (users are not location-based)

@@ -223,9 +223,11 @@
             @else
               @if(isset($approval->performa_type) && $approval->performa_type)
                 @php
-                  // Handle special case for maint_performa to show "Maintenance Performa" instead of "Maint Performa"
+                  // Handle special cases for performa type labels
                   if ($approval->performa_type === 'maint_performa') {
                     $performaTypeLabel = 'Maintenance Performa';
+                  } elseif ($approval->performa_type === 'product_na') {
+                    $performaTypeLabel = 'Product N/A';
                   } else {
                     $performaTypeLabel = ucwords(str_replace('_', ' ', $approval->performa_type));
                   }
@@ -255,11 +257,13 @@
               <div class="status-chip" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }}; width: 140px; height: 28px; justify-content: center;">
                 <span style="font-size: 11px; font-weight: 700; color: white !important;">Addressed</span>
               </div>
-            @elseif($complaintStatus == 'in_progress')
+            @elseif($complaintStatus == 'in_progress' || (isset($approval->performa_type) && $approval->performa_type == 'product_na' && $complaintStatus != 'resolved'))
               <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }}; position: relative;">
                 @php
                   $waitingRawStatus = $approval->waiting_for_authority ?? false;
                   $showDotStatus = ($waitingRawStatus === true || $waitingRawStatus === 1 || $waitingRawStatus === '1' || $waitingRawStatus === 'true');
+                  // If performa_type is product_na, show in_progress as selected in dropdown
+                  $displayStatusForSelect = (isset($approval->performa_type) && $approval->performa_type == 'product_na') ? 'in_progress' : $complaintStatus;
                 @endphp
                 @if($showDotStatus)
                 <span class="blinking-dot" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background-color: #ffffff; border-radius: 50%; z-index: 10; animation: blink 1s infinite;"></span>
@@ -272,17 +276,17 @@
                       style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center;">
                 @if(isset($statuses) && $statuses->count() > 0)
                   @foreach($statuses as $statusValue => $statusLabel)
-                    <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+                    <option value="{{ $statusValue }}" {{ $displayStatusForSelect == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
                   @endforeach
                 @else
-                  <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
-                  <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
-                  <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
-                  <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
-                  <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
-                  <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
-                  <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                  <option value="assigned" {{ $displayStatusForSelect == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                  <option value="in_progress" {{ $displayStatusForSelect == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="resolved" {{ $displayStatusForSelect == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                  <option value="work_priced_performa" {{ $displayStatusForSelect == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                  <option value="maint_priced_performa" {{ $displayStatusForSelect == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
+                  <option value="product_na" {{ $displayStatusForSelect == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                  <option value="un_authorized" {{ $displayStatusForSelect == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                  <option value="pertains_to_ge_const_isld" {{ $displayStatusForSelect == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
                 @endif
               </select>
               <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
@@ -3737,6 +3741,9 @@
       };
       newStatus = normalize(newStatus);
 
+      // Store original status before any modifications for special options
+      let originalStatusForSpecialOption = null;
+
       // Handle pseudo-statuses locally without backend call
       if (newStatus === 'work_performa' || newStatus === 'maint_performa') {
         if (performaBadge) {
@@ -3772,7 +3779,8 @@
         skipConfirm = true;
         showSuccess(performaBadge?.textContent || 'Performa marked');
       } else if (newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na') {
-        // Store original status before changing it for localStorage
+        // Store original status before changing it for localStorage and specialOptionType
+        originalStatusForSpecialOption = newStatus;
         const originalStatus = newStatus;
         
         // Handle Work Performa Priced, Maintenance Performa Priced and Product N/A options
@@ -3805,10 +3813,10 @@
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
             performaBadge.style.display = 'inline-block';
-            // Update status to product_na
-            select.value = 'product_na';
-            updateStatusSelectColor(select, 'product_na'); // Apply black color for product_na
-            newStatus = 'product_na';
+            // Update status to in_progress (like work_performa and maint_performa)
+            select.value = 'in_progress';
+            updateStatusSelectColor(select, 'in_progress'); // Apply red color for in_progress
+            newStatus = 'in_progress';
           }
         }
         // Persist selection locally - use originalStatus before it was changed
@@ -3842,10 +3850,18 @@
         try { savedOptionForClear = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOptionForClear = null; }
       }
       const isSpecialOption = savedOptionForClear === 'work' || savedOptionForClear === 'maint' || savedOptionForClear === 'work_priced' || savedOptionForClear === 'maint_priced' || savedOptionForClear === 'product_na' ||
-                             newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na';
+                             newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na' ||
+                             originalStatusForSpecialOption === 'product_na';
       
-      // Clear Performa Required badge only if no persisted flag exists and not a special option
-      if (performaBadge && complaintId && !isSpecialOption) {
+      // Clear Performa Required badge if switching to un_authorized or pertains_to_ge_const_isld
+      if (performaBadge && (newStatus === 'un_authorized' || newStatus === 'pertains_to_ge_const_isld')) {
+        performaBadge.style.display = 'none';
+        performaBadge.textContent = '';
+        // Clear localStorage for these statuses
+        if (complaintId) {
+          try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+        }
+      } else if (performaBadge && complaintId && !isSpecialOption) {
         let savedFlag = null;
         try { savedFlag = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedFlag = null; }
         if (!savedFlag) {
@@ -3885,7 +3901,7 @@
         }
       }
       
-      if (complaintId && !isSpecialOption) {
+      if (complaintId && !isSpecialOption && newStatus !== 'un_authorized' && newStatus !== 'pertains_to_ge_const_isld') {
         try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
       }
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -3909,9 +3925,10 @@
       if (complaintId) {
         try { savedOption = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { savedOption = null; }
       }
-      // Determine special option type based on localStorage or previous selection
+      // Determine special option type based on localStorage, originalStatusForSpecialOption, or previous selection
       const preserveColor = savedOption === 'work' || savedOption === 'maint' || savedOption === 'work_priced' || savedOption === 'maint_priced' || savedOption === 'product_na' ||
-                           newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na';
+                           newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na' ||
+                           originalStatusForSpecialOption === 'product_na';
       // Store the special option type to restore color after fetch
       let specialOptionType = null;
       if (newStatus === 'work_performa' || savedOption === 'work') {
@@ -3922,7 +3939,7 @@
         specialOptionType = 'work_priced_performa';
       } else if (newStatus === 'maint_priced_performa' || savedOption === 'maint_priced') {
         specialOptionType = 'maint_priced_performa';
-      } else if (newStatus === 'product_na' || savedOption === 'product_na') {
+      } else if (newStatus === 'product_na' || savedOption === 'product_na' || originalStatusForSpecialOption === 'product_na') {
         specialOptionType = 'product_na';
       }
       
@@ -3951,6 +3968,90 @@
       })
       .then(data => {
         const updated = data && data.complaint ? data.complaint : null;
+        
+        // If product_na was selected, update approval record with performa_type
+        if (specialOptionType === 'product_na' && complaintId) {
+          // Get approval ID from the row's view button
+          const viewBtn = row?.querySelector('button[onclick*="viewApproval"]');
+          let approvalId = null;
+          if (viewBtn) {
+            const onclickAttr = viewBtn.getAttribute('onclick');
+            const match = onclickAttr?.match(/viewApproval\((\d+)\)/);
+            approvalId = match ? match[1] : null;
+          }
+          
+          // Alternative: get from data-approval-id attribute if available
+          if (!approvalId) {
+            const addStockBtn = row?.querySelector('button[data-approval-id]');
+            if (addStockBtn) {
+              approvalId = addStockBtn.getAttribute('data-approval-id');
+            }
+          }
+          
+          // Alternative: try to get from all buttons in the row
+          if (!approvalId) {
+            const allButtons = row?.querySelectorAll('button');
+            if (allButtons) {
+              for (const btn of allButtons) {
+                const onclickAttr = btn.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes('viewApproval')) {
+                  const match = onclickAttr.match(/viewApproval\((\d+)\)/);
+                  if (match) {
+                    approvalId = match[1];
+                    break;
+                  }
+                }
+                const dataApprovalId = btn.getAttribute('data-approval-id');
+                if (dataApprovalId) {
+                  approvalId = dataApprovalId;
+                  break;
+                }
+              }
+            }
+          }
+          
+          // If approval ID found, update approval record
+          if (approvalId) {
+            console.log('Updating approval record with product_na performa_type. Approval ID:', approvalId);
+            const updateCsrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            fetch(`/admin/approvals/${approvalId}/update-performa-type`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': updateCsrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ performa_type: 'product_na' })
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(updateData => {
+              if (updateData.success) {
+                console.log('Approval record updated successfully with product_na performa_type');
+                // Reload the page to reflect the changes
+                setTimeout(() => {
+                  window.location.reload();
+                }, 500);
+              } else {
+                console.error('Failed to update approval record:', updateData.message || 'Unknown error');
+                alert('Failed to update approval record: ' + (updateData.message || 'Unknown error'));
+              }
+            })
+            .catch(error => {
+              console.error('Error updating approval record:', error);
+              alert('Error updating approval record: ' + error.message);
+            });
+          } else {
+            console.warn('Approval ID not found for complaint:', complaintId, 'Row:', row);
+            alert('Approval ID not found. Please refresh the page and try again.');
+          }
+        }
+        
         if (updated && updated.closed_at && newStatus === 'resolved') {
           const addressedDateCell = row?.querySelector('td:nth-child(3)');
           if (addressedDateCell) addressedDateCell.textContent = updated.closed_at;
@@ -4025,35 +4126,61 @@
           // For special options, keep their actual status value
           if (specialOptionType) {
             if (specialOptionType === 'product_na') {
-              select.value = 'product_na';
-              updateStatusSelectColor(select, 'product_na');
+              select.value = 'in_progress';
+              updateStatusSelectColor(select, 'in_progress');
             } else {
               select.value = 'in_progress';
               updateStatusSelectColor(select, 'in_progress');
             }
           } else {
-            // Check if current select value is a special option to preserve their colors
-            const currentSelectValue = select.value;
-            if (currentSelectValue === 'product_na') {
-              updateStatusSelectColor(select, 'product_na');
-            } else if (currentSelectValue === 'work_priced_performa') {
-              updateStatusSelectColor(select, 'work_priced_performa');
-            } else if (currentSelectValue === 'maint_priced_performa') {
-              updateStatusSelectColor(select, 'maint_priced_performa');
-            } else if (currentSelectValue === 'work_performa') {
-              updateStatusSelectColor(select, 'work_performa');
-            } else if (currentSelectValue === 'maint_performa') {
-              updateStatusSelectColor(select, 'maint_performa');
-            } else if (currentSelectValue === 'un_authorized' || newStatus === 'un_authorized') {
-              // Keep un_authorized value and color
+            // Check if newStatus is un_authorized or pertains_to_ge_const_isld first - these should always be set
+            if (newStatus === 'un_authorized') {
+              // Set un_authorized value and color
               select.value = 'un_authorized';
               updateStatusSelectColor(select, 'un_authorized');
-            } else if (currentSelectValue === 'pertains_to_ge_const_isld' || newStatus === 'pertains_to_ge_const_isld') {
-              // Keep pertains_to_ge_const_isld value and color
+              // Clear performa badge for un_authorized status
+              const performaBadgeInRow = row?.querySelector('.performa-badge');
+              if (performaBadgeInRow) {
+                performaBadgeInRow.style.display = 'none';
+                performaBadgeInRow.textContent = '';
+              }
+              // Clear localStorage
+              if (complaintId) {
+                try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+              }
+            } else if (newStatus === 'pertains_to_ge_const_isld') {
+              // Set pertains_to_ge_const_isld value and color
               select.value = 'pertains_to_ge_const_isld';
               updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
+              // Clear performa badge for pertains_to_ge_const_isld status
+              const performaBadgeInRow = row?.querySelector('.performa-badge');
+              if (performaBadgeInRow) {
+                performaBadgeInRow.style.display = 'none';
+                performaBadgeInRow.textContent = '';
+              }
+              // Clear localStorage
+              if (complaintId) {
+                try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+              }
             } else {
-              updateStatusSelectColor(select, newStatus);
+              // Check if current select value is a special option to preserve their colors
+              const currentSelectValue = select.value;
+              if (currentSelectValue === 'product_na') {
+                // For product_na, use in_progress color (like work_performa and maint_performa)
+                select.value = 'in_progress';
+                updateStatusSelectColor(select, 'in_progress');
+              } else if (currentSelectValue === 'work_priced_performa') {
+                updateStatusSelectColor(select, 'work_priced_performa');
+              } else if (currentSelectValue === 'maint_priced_performa') {
+                updateStatusSelectColor(select, 'maint_priced_performa');
+              } else if (currentSelectValue === 'work_performa') {
+                updateStatusSelectColor(select, 'work_performa');
+              } else if (currentSelectValue === 'maint_performa') {
+                updateStatusSelectColor(select, 'maint_performa');
+              } else {
+                select.value = newStatus;
+                updateStatusSelectColor(select, newStatus);
+              }
             }
           }
         }
@@ -4069,12 +4196,25 @@
         if (select.isConnected && select.value !== 'resolved') {
           select.style.opacity = '1';
           select.disabled = false;
-          // Restore dropdown value - keep actual status for priced performas and product_na
-          if (specialOptionType) {
-            // For priced performas and product_na, keep the actual status value
-            if (specialOptionType === 'work_priced_performa' || specialOptionType === 'maint_priced_performa' || specialOptionType === 'product_na') {
+          // Check if newStatus is un_authorized or pertains_to_ge_const_isld first - these should always be set
+          if (newStatus === 'un_authorized') {
+            // Keep un_authorized value and color
+            select.value = 'un_authorized';
+            updateStatusSelectColor(select, 'un_authorized');
+          } else if (newStatus === 'pertains_to_ge_const_isld') {
+            // Keep pertains_to_ge_const_isld value and color
+            select.value = 'pertains_to_ge_const_isld';
+            updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
+          } else if (specialOptionType) {
+            // Restore dropdown value - keep actual status for priced performas, but use in_progress for product_na
+            // For priced performas, keep the actual status value
+            // For product_na, use in_progress (like work_performa and maint_performa)
+            if (specialOptionType === 'work_priced_performa' || specialOptionType === 'maint_priced_performa') {
               select.value = specialOptionType;
               updateStatusSelectColor(select, specialOptionType);
+            } else if (specialOptionType === 'product_na') {
+              select.value = 'in_progress';
+              updateStatusSelectColor(select, 'in_progress');
             } else {
               // For regular performas (work_performa, maint_performa), use in_progress
               select.value = 'in_progress';
@@ -4083,7 +4223,9 @@
           } else if (preserveColor) {
             const finalSelectValue = select.value;
             if (finalSelectValue === 'product_na') {
-              updateStatusSelectColor(select, 'product_na');
+              // For product_na, use in_progress (like work_performa and maint_performa)
+              select.value = 'in_progress';
+              updateStatusSelectColor(select, 'in_progress');
             } else if (finalSelectValue === 'work_priced_performa') {
               updateStatusSelectColor(select, 'work_priced_performa');
             } else if (finalSelectValue === 'maint_priced_performa') {
@@ -4093,14 +4235,6 @@
             } else if (finalSelectValue === 'maint_performa') {
               updateStatusSelectColor(select, 'maint_performa');
             }
-          } else if (newStatus === 'un_authorized') {
-            // Keep un_authorized value and color
-            select.value = 'un_authorized';
-            updateStatusSelectColor(select, 'un_authorized');
-          } else if (newStatus === 'pertains_to_ge_const_isld') {
-            // Keep pertains_to_ge_const_isld value and color
-            select.value = 'pertains_to_ge_const_isld';
-            updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
           }
         }
       });
@@ -4129,6 +4263,17 @@
       // If badge already has content from server, don't override it
       if (badge.textContent && badge.textContent.trim() !== '') {
         return; // Server-rendered badge, keep it as is
+      }
+      
+      // Don't restore from localStorage if current status is un_authorized or pertains_to_ge_const_isld
+      const currentStatus = sel.value || sel.getAttribute('data-actual-status');
+      if (currentStatus === 'un_authorized' || currentStatus === 'pertains_to_ge_const_isld') {
+        // Clear localStorage for these statuses
+        try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+        // Hide badge for these statuses
+        badge.style.display = 'none';
+        badge.textContent = '';
+        return;
       }
       
       let saved;
@@ -4209,7 +4354,8 @@
             sel.value = 'in_progress';
           }
         } else if (saved === 'product_na') {
-          sel.value = 'product_na';
+          // For product_na, show in_progress in status dropdown (like work_performa and maint_performa)
+          sel.value = 'in_progress';
         }
       }
       // Initialize colors based on current status (always red for in_progress)

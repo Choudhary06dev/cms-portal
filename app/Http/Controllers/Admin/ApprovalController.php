@@ -771,6 +771,46 @@ class ApprovalController extends Controller
     }
 
     /**
+     * Update performa type for approval record
+     */
+    public function updatePerformaType(Request $request, SpareApprovalPerforma $approval)
+    {
+        $validator = Validator::make($request->all(), [
+            'performa_type' => 'required|in:work_performa,maint_performa,product_na',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $approval->update([
+                'performa_type' => $request->performa_type,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Performa type updated successfully.',
+                'approval' => $approval->fresh()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating performa type', [
+                'approval_id' => $approval->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update performa type: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Update reason for in-process status
      */
     public function updateReason(Request $request, SpareApprovalPerforma $approval)
