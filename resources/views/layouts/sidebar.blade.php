@@ -255,8 +255,39 @@
     .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
     .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; white-space: nowrap; }
     .nav-item-parent .nav-link { position: relative; }
-    .nav-arrow-btn:hover { opacity: 0.8; }
-    .nav-arrow-btn:focus { outline: none; box-shadow: none; }
+    .nav-arrow-btn,
+    .nav-arrow-btn.btn-link { 
+      border: none !important; 
+      box-shadow: none !important; 
+      outline: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      text-decoration: none !important;
+    }
+    .nav-arrow-btn:hover,
+    .nav-arrow-btn.btn-link:hover { 
+      opacity: 0.8; 
+      border: none !important; 
+      box-shadow: none !important; 
+      background: transparent !important;
+      text-decoration: none !important;
+    }
+    .nav-arrow-btn:focus,
+    .nav-arrow-btn.btn-link:focus { 
+      outline: none !important; 
+      box-shadow: none !important; 
+      border: none !important;
+      background: transparent !important;
+      text-decoration: none !important;
+    }
+    .nav-arrow-btn:active,
+    .nav-arrow-btn.btn-link:active {
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      text-decoration: none !important;
+    }
     .text-muted { color: #94a3b8 !important; }
     .text-white { color: #ffffff !important; }
     .text-light { color: #cbd5e1 !important; }
@@ -403,7 +434,7 @@
         <a href="{{ route('admin.employees.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
           <i data-feather="user-check" class="me-2"></i> Employees
         </a>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'true' : 'false' }}" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
         </button>
       </div>
