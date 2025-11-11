@@ -270,78 +270,6 @@
     .modal-header { border-radius: 12px 12px 0 0; }
     .modal-footer { border-radius: 0 0 12px 12px; }
     
-    /* Designations, Cities, Sectors, Complaint Types, Complaint Categories Modal Styles */
-    #designationsModal,
-    #citiesModal,
-    #sectorsModal,
-    #complaintTypesModal,
-    #complaintCategoriesModal {
-      z-index: 1055 !important;
-    }
-    #designationsModal .modal-dialog,
-    #citiesModal .modal-dialog,
-    #sectorsModal .modal-dialog,
-    #complaintTypesModal .modal-dialog,
-    #complaintCategoriesModal .modal-dialog {
-      z-index: 1055 !important;
-      position: relative;
-    }
-    #designationsModal .modal-content,
-    #citiesModal .modal-content,
-    #sectorsModal .modal-content,
-    #complaintTypesModal .modal-content,
-    #complaintCategoriesModal .modal-content {
-      max-height: 90vh;
-      overflow-y: auto;
-      z-index: 1055 !important;
-      position: relative;
-    }
-    #designationsModal .modal-body,
-    #citiesModal .modal-body,
-    #sectorsModal .modal-body,
-    #complaintTypesModal .modal-body,
-    #complaintCategoriesModal .modal-body {
-      padding: 1.5rem;
-    }
-    #designationsModal .btn-close,
-    #citiesModal .btn-close,
-    #sectorsModal .btn-close,
-    #complaintTypesModal .btn-close,
-    #complaintCategoriesModal .btn-close {
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      padding: 0.5rem !important;
-      opacity: 1 !important;
-    }
-    #designationsModal .btn-close:hover,
-    #citiesModal .btn-close:hover,
-    #sectorsModal .btn-close:hover,
-    #complaintTypesModal .btn-close:hover,
-    #complaintCategoriesModal .btn-close:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-    }
-    
-    /* Completely remove/hide Bootstrap backdrop for these modals */
-    body.modal-open-blur .modal-backdrop,
-    #designationsModal.modal.show ~ .modal-backdrop,
-    #designationsModal.modal.show + .modal-backdrop,
-    #citiesModal.modal.show ~ .modal-backdrop,
-    #citiesModal.modal.show + .modal-backdrop,
-    #sectorsModal.modal.show ~ .modal-backdrop,
-    #sectorsModal.modal.show + .modal-backdrop,
-    #complaintTypesModal.modal.show ~ .modal-backdrop,
-    #complaintTypesModal.modal.show + .modal-backdrop,
-    #complaintCategoriesModal.modal.show ~ .modal-backdrop,
-    #complaintCategoriesModal.modal.show + .modal-backdrop,
-    .modal-backdrop.show {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      background-color: transparent !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      pointer-events: none !important;
-    }
     .form-control:focus, .form-select:focus { 
       border-color: #3b82f6; 
       box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25); 
@@ -409,15 +337,15 @@
       </div>
       <div class="collapse {{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'show' : '' }}" id="employeesSubmenu">
         @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="javascript:void(0)" onclick="openDesignationsModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+        <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="award" class="me-2"></i> Designations
         </a>
         @endif
         @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-         <a href="javascript:void(0)" onclick="openCitiesModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+         <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="map" class="me-2"></i> Cities
         </a>
-        <a href="javascript:void(0)" onclick="openSectorsModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+        <a href="{{ route('admin.sector.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="map-pin" class="me-2"></i> Sectors
         </a>
         @endif
@@ -438,10 +366,10 @@
         </a>
         @endif
         @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="javascript:void(0)" id="complaintTypesLink" onclick="openComplaintTypesModal()" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;" role="button">
+        <a href="{{ route('admin.complaint-titles.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="file-text" class="me-2"></i> Complaint Types
         </a>
-        <a href="javascript:void(0)" id="complaintCategoriesLink" onclick="openComplaintCategoriesModal()" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;" role="button">
+        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="tag" class="me-2"></i> Complaint Categories
         </a>
         @endif
@@ -872,127 +800,6 @@
     });
   </script>
   
-  <!-- Designations Modal -->
-  <script>
-    // Ensure sidebar submenu links open their modals reliably
-    document.addEventListener('click', function(e) {
-      const typesLink = document.getElementById('complaintTypesLink');
-      const catsLink = document.getElementById('complaintCategoriesLink');
-      if (typesLink && (e.target === typesLink || (typesLink.contains(e.target)))) {
-        e.preventDefault();
-        e.stopPropagation();
-        try { openComplaintTypesModal(); } catch (_) {}
-      }
-      if (catsLink && (e.target === catsLink || (catsLink.contains(e.target)))) {
-        e.preventDefault();
-        e.stopPropagation();
-        try { openComplaintCategoriesModal(); } catch (_) {}
-      }
-    }, true); // capture to intercept before parent handlers
-  </script>
-  <div class="modal fade" id="designationsModal" tabindex="-1" aria-labelledby="designationsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="designationsModalLabel">
-            <i data-feather="award" class="me-2"></i>Designations
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeDesignationsModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="designationsModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Cities Modal -->
-  <div class="modal fade" id="citiesModal" tabindex="-1" aria-labelledby="citiesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="citiesModalLabel">
-            <i data-feather="map" class="me-2"></i>Cities
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeCitiesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="citiesModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sectors Modal -->
-  <div class="modal fade" id="sectorsModal" tabindex="-1" aria-labelledby="sectorsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="sectorsModalLabel">
-            <i data-feather="map-pin" class="me-2"></i>Sectors
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeSectorsModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="sectorsModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Complaint Types Modal -->
-  <div class="modal fade" id="complaintTypesModal" tabindex="-1" aria-labelledby="complaintTypesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="complaintTypesModalLabel">
-            <i data-feather="file-text" class="me-2"></i>Complaint Types
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintTypesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="complaintTypesModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Complaint Categories Modal -->
-  <div class="modal fade" id="complaintCategoriesModal" tabindex="-1" aria-labelledby="complaintCategoriesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="complaintCategoriesModalLabel">
-            <i data-feather="tag" class="me-2"></i>Complaint Categories
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintCategoriesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="complaintCategoriesModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script>
     // Generic function to open modal and load content
@@ -1149,6 +956,80 @@
           // Re-initialize edit modal handlers after content is loaded
           setTimeout(() => {
             feather.replace();
+            
+            // Direct click handlers for City buttons - MUST work
+            const cityButtons = modalBody.querySelectorAll('button[data-bs-target="#editCityModal"], button[data-modal-target="#editCityModal"]');
+            cityButtons.forEach(btn => {
+              // Remove data-bs-toggle to prevent Bootstrap auto-handling
+              btn.removeAttribute('data-bs-toggle');
+              
+              // Add direct click handler with highest priority
+              btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const status = this.getAttribute('data-status');
+                
+                // Wait a bit to ensure modal is in DOM
+                setTimeout(() => {
+                  const editCityModalEl = document.getElementById('editCityModal');
+                  
+                  if (!editCityModalEl) {
+                    console.error('editCityModal not found in DOM');
+                    return;
+                  }
+                  
+                  const form = document.getElementById('editCityForm');
+                  const nameInput = document.getElementById('editCityName');
+                  const statusSelect = document.getElementById('editCityStatus');
+
+                  if (form && id) {
+                    form.action = `${window.location.origin}/admin/city/${id}`;
+                  }
+                  if (nameInput) nameInput.value = name || '';
+                  if (statusSelect) statusSelect.value = status || 'active';
+                  
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  
+                  editCityModalEl.style.zIndex = '1070';
+                  let modal = bootstrap.Modal.getInstance(editCityModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editCityModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }, 50);
+              }, true); // Use capture phase for highest priority
+            });
             
             // Direct click handlers for Designation buttons - MUST work
             const designationButtons = modalBody.querySelectorAll('button[data-bs-target="#editDesignationModal"], button[data-modal-target="#editDesignationModal"]');
@@ -2021,6 +1902,307 @@
               };
             }
             
+            // Handle edit form submissions via AJAX to stay in modal
+            // Define this function outside so it's accessible everywhere
+            if (typeof window.handleEditFormSubmit !== 'function') {
+              window.handleEditFormSubmit = function(form, modalId, parentModalId, parentModalBodyId, route) {
+                // Check if already bound
+                if (form.hasAttribute('data-ajax-bound')) {
+                  return;
+                }
+                form.setAttribute('data-ajax-bound', 'true');
+                
+                form.addEventListener('submit', function(e) {
+                  e.preventDefault();
+                
+                const formData = new FormData(form);
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn ? submitBtn.textContent : '';
+                
+                if (submitBtn) {
+                  submitBtn.disabled = true;
+                  submitBtn.textContent = 'Saving...';
+                }
+                
+                fetch(form.action, {
+                  method: 'POST',
+                  headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token')
+                  },
+                  credentials: 'same-origin',
+                  body: formData
+                })
+                .then(response => {
+                  // Check if response is redirect (302/301) or success
+                  if (response.redirected || response.status === 302 || response.status === 301) {
+                    // Redirect happened, which means success - reload modal
+                    return { success: true, redirected: true };
+                  }
+                  
+                  if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                      return response.json();
+                    }
+                    // If HTML response, treat as success
+                    return { success: true };
+                  }
+                  
+                  return response.text().then(text => {
+                    try {
+                      return JSON.parse(text);
+                    } catch {
+                      // If it's HTML error page, still reload modal
+                      if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                        return { success: true };
+                      }
+                      throw new Error(text || 'Update failed');
+                    }
+                  });
+                })
+                .then(data => {
+                  // Close edit modal
+                  const editModalEl = document.getElementById(modalId);
+                  if (editModalEl) {
+                    const editModal = bootstrap.Modal.getInstance(editModalEl);
+                    if (editModal) {
+                      editModal.hide();
+                    }
+                  }
+                  
+                  // Reload parent modal content
+                  if (parentModalId && parentModalBodyId && route) {
+                    const parentModalBody = document.getElementById(parentModalBodyId);
+                    if (parentModalBody) {
+                      parentModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                      
+                      fetch(route + '?format=html', {
+                        method: 'GET',
+                        headers: {
+                          'X-Requested-With': 'XMLHttpRequest',
+                          'Accept': 'text/html',
+                        },
+                        credentials: 'same-origin'
+                      })
+                      .then(response => response.text())
+                      .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        let contentSection = doc.querySelector('section.content') || doc.querySelector('.content') || doc.querySelector('main') || doc.body;
+                        
+                        let modalContent = '';
+                        const allCards = contentSection.querySelectorAll('.card-glass');
+                        const seenCards = new Set();
+                        allCards.forEach(card => {
+                          const cardHTML = card.outerHTML;
+                          const cardId = cardHTML.substring(0, 300);
+                          if (!seenCards.has(cardId)) {
+                            seenCards.add(cardId);
+                            modalContent += '<div class="mb-3">' + cardHTML + '</div>';
+                          }
+                        });
+                        
+                        if (modalContent) {
+                          parentModalBody.innerHTML = modalContent;
+                          
+                          // Move edit modals to document.body
+                          const fetchedEditModals = doc.querySelectorAll('.modal[id^="edit"]');
+                          fetchedEditModals.forEach(editModal => {
+                            const existing = document.getElementById(editModal.id);
+                            if (existing && existing.parentElement) {
+                              existing.parentElement.removeChild(existing);
+                            }
+                            document.body.appendChild(editModal);
+                            editModal.style.zIndex = '1070';
+                            editModal.style.display = '';
+                          });
+                          
+                          // Re-initialize all handlers by re-running the same code that runs after modal loads
+                          // Extract edit modals and move to document.body
+                          const editModalsFromContent = parentModalBody.querySelectorAll('.modal[id^="edit"]');
+                          editModalsFromContent.forEach(editModal => {
+                            editModal.remove();
+                            document.body.appendChild(editModal);
+                            editModal.style.zIndex = '1070';
+                            editModal.style.display = '';
+                          });
+                          
+                          // Extract and execute scripts
+                          const scripts = parentModalBody.querySelectorAll('script');
+                          scripts.forEach(script => {
+                            const newScript = document.createElement('script');
+                            if (script.src) {
+                              newScript.src = script.src;
+                            } else {
+                              newScript.textContent = script.textContent;
+                            }
+                            document.body.appendChild(newScript);
+                          });
+                          
+                          // Re-initialize handlers after a short delay
+                          setTimeout(() => {
+                            feather.replace();
+                            
+                            // Re-apply all the same handlers (City, Designation, etc.)
+                            // This is the same code that runs initially, so we need to extract it
+                            // For now, just trigger a page reload of the modal by calling openModal again
+                            // But we're already in the modal, so we'll just re-run initialization
+                            
+                            // Re-bind edit form submissions
+                            const editCityForm = document.getElementById('editCityForm');
+                            if (editCityForm && typeof window.handleEditFormSubmit === 'function') {
+                              const cityRoute = window.location.origin + '/admin/city';
+                              window.handleEditFormSubmit(editCityForm, 'editCityModal', parentModalId, parentModalBodyId, cityRoute);
+                            }
+                            
+                            const editSectorForm = document.getElementById('editSectorForm');
+                            if (editSectorForm && typeof window.handleEditFormSubmit === 'function') {
+                              const sectorRoute = window.location.origin + '/admin/sector';
+                              window.handleEditFormSubmit(editSectorForm, 'editSectorModal', parentModalId, parentModalBodyId, sectorRoute);
+                            }
+                            
+                            const editDesignationForm = document.getElementById('editDesignationForm');
+                            if (editDesignationForm && typeof window.handleEditFormSubmit === 'function') {
+                              const designationRoute = window.location.origin + '/admin/designation';
+                              window.handleEditFormSubmit(editDesignationForm, 'editDesignationModal', parentModalId, parentModalBodyId, designationRoute);
+                            }
+                            
+                            const editCategoryForm = document.getElementById('editCategoryForm');
+                            if (editCategoryForm && typeof window.handleEditFormSubmit === 'function') {
+                              const categoryRoute = window.location.origin + '/admin/category';
+                              window.handleEditFormSubmit(editCategoryForm, 'editCategoryModal', parentModalId, parentModalBodyId, categoryRoute);
+                            }
+                            
+                            const editForm = document.getElementById('editForm');
+                            if (editForm && typeof window.handleEditFormSubmit === 'function') {
+                              const complaintTitleRoute = window.location.origin + '/admin/complaint-titles';
+                              window.handleEditFormSubmit(editForm, 'editModal', parentModalId, parentModalBodyId, complaintTitleRoute);
+                            }
+                            
+                            // Re-bind delete handlers
+                            initDeleteHandlers(parentModalBody);
+                            
+                            // Re-bind direct click handlers for City and Designation
+                            const cityButtons = parentModalBody.querySelectorAll('button[data-bs-target="#editCityModal"], button[data-modal-target="#editCityModal"]');
+                            cityButtons.forEach(btn => {
+                              if (!btn.hasAttribute('data-handler-bound')) {
+                                btn.setAttribute('data-handler-bound', 'true');
+                                btn.removeAttribute('data-bs-toggle');
+                                btn.addEventListener('click', function(e) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.stopImmediatePropagation();
+                                  const id = this.getAttribute('data-id');
+                                  const name = this.getAttribute('data-name');
+                                  const status = this.getAttribute('data-status');
+                                  setTimeout(() => {
+                                    const editCityModalEl = document.getElementById('editCityModal');
+                                    if (!editCityModalEl) return;
+                                    const form = document.getElementById('editCityForm');
+                                    const nameInput = document.getElementById('editCityName');
+                                    const statusSelect = document.getElementById('editCityStatus');
+                                    if (form && id) form.action = `${window.location.origin}/admin/city/${id}`;
+                                    if (nameInput) nameInput.value = name || '';
+                                    if (statusSelect) statusSelect.value = status || 'active';
+                                    const parentModal = document.getElementById(parentModalId);
+                                    if (parentModal) {
+                                      parentModal.classList.add('modal-static');
+                                      const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                                      if (parentBackdrop) parentBackdrop.style.pointerEvents = 'none';
+                                    }
+                                    editCityModalEl.style.zIndex = '1070';
+                                    let modal = bootstrap.Modal.getInstance(editCityModalEl);
+                                    if (!modal) modal = new bootstrap.Modal(editCityModalEl, { backdrop: true, keyboard: true, focus: true });
+                                    modal.show();
+                                    setTimeout(() => {
+                                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                                      backdrops.forEach((b, i) => {
+                                        b.style.zIndex = i === backdrops.length - 1 ? '1069' : '1054';
+                                      });
+                                      if (parentModal) {
+                                        parentModal.style.zIndex = '1055';
+                                        parentModal.classList.add('show');
+                                      }
+                                    }, 10);
+                                  }, 50);
+                                }, true);
+                              }
+                            });
+                            
+                            const designationButtons = parentModalBody.querySelectorAll('button[data-bs-target="#editDesignationModal"], button[data-modal-target="#editDesignationModal"]');
+                            designationButtons.forEach(btn => {
+                              if (!btn.hasAttribute('data-handler-bound')) {
+                                btn.setAttribute('data-handler-bound', 'true');
+                                btn.removeAttribute('data-bs-toggle');
+                                btn.addEventListener('click', function(e) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.stopImmediatePropagation();
+                                  const id = this.getAttribute('data-id');
+                                  const category = this.getAttribute('data-category');
+                                  const name = this.getAttribute('data-name');
+                                  const status = this.getAttribute('data-status');
+                                  setTimeout(() => {
+                                    const editDesignationModalEl = document.getElementById('editDesignationModal');
+                                    if (!editDesignationModalEl) return;
+                                    const form = document.getElementById('editDesignationForm');
+                                    const categorySelect = document.getElementById('editDesignationCategory');
+                                    const nameInput = document.getElementById('editDesignationName');
+                                    const statusSelect = document.getElementById('editDesignationStatus');
+                                    if (form && id) form.action = `${window.location.origin}/admin/designation/${id}`;
+                                    if (categorySelect && category) categorySelect.value = category || '';
+                                    if (nameInput) nameInput.value = name || '';
+                                    if (statusSelect) statusSelect.value = status || 'active';
+                                    const parentModal = document.getElementById(parentModalId);
+                                    if (parentModal) {
+                                      parentModal.classList.add('modal-static');
+                                      const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                                      if (parentBackdrop) parentBackdrop.style.pointerEvents = 'none';
+                                    }
+                                    editDesignationModalEl.style.zIndex = '1070';
+                                    let modal = bootstrap.Modal.getInstance(editDesignationModalEl);
+                                    if (!modal) modal = new bootstrap.Modal(editDesignationModalEl, { backdrop: true, keyboard: true, focus: true });
+                                    modal.show();
+                                    setTimeout(() => {
+                                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                                      backdrops.forEach((b, i) => {
+                                        b.style.zIndex = i === backdrops.length - 1 ? '1069' : '1054';
+                                      });
+                                      if (parentModal) {
+                                        parentModal.style.zIndex = '1055';
+                                        parentModal.classList.add('show');
+                                      }
+                                    }, 10);
+                                  }, 50);
+                                }, true);
+                              }
+                            });
+                          }, 200);
+                        }
+                      })
+                      .catch(error => {
+                        console.error('Error reloading modal:', error);
+                        location.reload();
+                      });
+                    }
+                  } else {
+                    // Fallback: reload page
+                    location.reload();
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                  alert('Error updating: ' + (error.message || 'Unknown error'));
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                  }
+                });
+              });
+            };
+            
             // Re-initialize delete form handlers
             modalBody.querySelectorAll('form.city-delete-form, form.sector-delete-form, form.designation-delete-form, form.category-delete-form').forEach(function(form) {
               form.addEventListener('submit', function(e) {
@@ -2055,6 +2237,42 @@
                 });
               });
             });
+          };
+          
+          initDeleteHandlers(modalBody);
+          
+          // Also bind edit forms when modal first loads
+          if (typeof window.handleEditFormSubmit === 'function') {
+            const editCityForm = document.getElementById('editCityForm');
+            if (editCityForm) {
+              const cityRoute = window.location.origin + '/admin/city';
+              window.handleEditFormSubmit(editCityForm, 'editCityModal', modalElement.id, modalBody.id, cityRoute);
+            }
+            
+            const editSectorForm = document.getElementById('editSectorForm');
+            if (editSectorForm) {
+              const sectorRoute = window.location.origin + '/admin/sector';
+              window.handleEditFormSubmit(editSectorForm, 'editSectorModal', modalElement.id, modalBody.id, sectorRoute);
+            }
+            
+            const editDesignationForm = document.getElementById('editDesignationForm');
+            if (editDesignationForm) {
+              const designationRoute = window.location.origin + '/admin/designation';
+              window.handleEditFormSubmit(editDesignationForm, 'editDesignationModal', modalElement.id, modalBody.id, designationRoute);
+            }
+            
+            const editCategoryForm = document.getElementById('editCategoryForm');
+            if (editCategoryForm) {
+              const categoryRoute = window.location.origin + '/admin/category';
+              window.handleEditFormSubmit(editCategoryForm, 'editCategoryModal', modalElement.id, modalBody.id, categoryRoute);
+            }
+            
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+              const complaintTitleRoute = window.location.origin + '/admin/complaint-titles';
+              window.handleEditFormSubmit(editForm, 'editModal', modalElement.id, modalBody.id, complaintTitleRoute);
+            }
+          }
           }, 200);
         } else {
           console.error('Could not find content in response');
@@ -2074,91 +2292,6 @@
         document.body.classList.remove('modal-open-blur');
         feather.replace();
       }, { once: true });
-    }
-    
-    // Function to open designations modal
-    function openDesignationsModal() {
-      openModal('designationsModal', 'designationsModalBody', '{{ route("admin.designation.index") }}', 'Designations');
-    }
-    
-    // Function to close designations modal
-    function closeDesignationsModal() {
-      const modalElement = document.getElementById('designationsModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open cities modal
-    function openCitiesModal() {
-      openModal('citiesModal', 'citiesModalBody', '{{ route("admin.city.index") }}', 'Cities');
-    }
-    
-    // Function to close cities modal
-    function closeCitiesModal() {
-      const modalElement = document.getElementById('citiesModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open sectors modal
-    function openSectorsModal() {
-      openModal('sectorsModal', 'sectorsModalBody', '{{ route("admin.sector.index") }}', 'Sectors');
-    }
-    
-    // Function to close sectors modal
-    function closeSectorsModal() {
-      const modalElement = document.getElementById('sectorsModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open complaint types modal
-    function openComplaintTypesModal() {
-      openModal('complaintTypesModal', 'complaintTypesModalBody', '{{ route("admin.complaint-titles.index") }}', 'Complaint Types');
-    }
-    
-    // Function to close complaint types modal
-    function closeComplaintTypesModal() {
-      const modalElement = document.getElementById('complaintTypesModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open complaint categories modal
-    function openComplaintCategoriesModal() {
-      openModal('complaintCategoriesModal', 'complaintCategoriesModalBody', '{{ route("admin.category.index") }}', 'Complaint Categories');
-    }
-    
-    // Function to close complaint categories modal
-    function closeComplaintCategoriesModal() {
-      const modalElement = document.getElementById('complaintCategoriesModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
     }
   </script>
   

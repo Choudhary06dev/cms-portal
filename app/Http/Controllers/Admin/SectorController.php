@@ -85,9 +85,16 @@ class SectorController extends Controller
             
             $validated = $request->validate($rules);
             $sector->update($validated);
+            
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => true, 'message' => 'Sector updated']);
+            }
             return back()->with('success', 'Sector updated');
         } catch (\Exception $e) {
             Log::error('Sector update error: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+            }
             return back()->with('error', 'Error updating sector: ' . $e->getMessage())->withInput();
         }
     }

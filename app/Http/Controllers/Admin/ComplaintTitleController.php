@@ -125,6 +125,9 @@ class ComplaintTitleController extends Controller
             'description' => $request->description,
         ]);
 
+        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json(['success' => true, 'message' => 'Complaint title updated successfully.']);
+        }
         return redirect()->route('admin.complaint-titles.index')
             ->with('success', 'Complaint title updated successfully.');
     }

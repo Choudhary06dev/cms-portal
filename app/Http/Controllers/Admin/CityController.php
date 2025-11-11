@@ -69,9 +69,16 @@ class CityController extends Controller
             
             $validated = $request->validate($rules);
             $city->update($validated);
+            
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => true, 'message' => 'City updated']);
+            }
             return back()->with('success', 'City updated');
         } catch (\Exception $e) {
             Log::error('City update error: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+            }
             return back()->with('error', 'Error updating city: ' . $e->getMessage())->withInput();
         }
     }
