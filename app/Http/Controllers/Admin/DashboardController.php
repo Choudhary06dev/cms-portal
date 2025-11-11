@@ -200,6 +200,63 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
+        
+        // Add performa type complaints that are stored as in_progress with performa_type in approvals
+        // Work Performa - count in_progress complaints with work_performa performa_type (excluding priced ones)
+        $workPerformaCount = (clone $complaintsByStatusQuery)
+            ->where('status', 'in_progress')
+            ->whereHas('spareApprovals', function($q) {
+                $q->where('performa_type', 'work_performa')
+                  ->where(function($subQ) {
+                      $subQ->where('waiting_for_authority', false)
+                           ->orWhereNull('waiting_for_authority');
+                  });
+            })
+            ->count();
+        if ($workPerformaCount > 0) {
+            $complaintsByStatus['work_performa'] = ($complaintsByStatus['work_performa'] ?? 0) + $workPerformaCount;
+        }
+        
+        // Maintenance Performa - count in_progress complaints with maint_performa performa_type (excluding priced ones)
+        $maintPerformaCount = (clone $complaintsByStatusQuery)
+            ->where('status', 'in_progress')
+            ->whereHas('spareApprovals', function($q) {
+                $q->where('performa_type', 'maint_performa')
+                  ->where(function($subQ) {
+                      $subQ->where('waiting_for_authority', false)
+                           ->orWhereNull('waiting_for_authority');
+                  });
+            })
+            ->count();
+        if ($maintPerformaCount > 0) {
+            $complaintsByStatus['maint_performa'] = ($complaintsByStatus['maint_performa'] ?? 0) + $maintPerformaCount;
+        }
+        
+        // Work Performa Priced - count in_progress complaints with work_performa performa_type and waiting_for_authority
+        $workPricedPerformaCount = (clone $complaintsByStatusQuery)
+            ->where('status', 'in_progress')
+            ->whereHas('spareApprovals', function($q) {
+                $q->where('status', 'pending')
+                  ->where('waiting_for_authority', true)
+                  ->where('performa_type', 'work_performa');
+            })
+            ->count();
+        if ($workPricedPerformaCount > 0) {
+            $complaintsByStatus['work_priced_performa'] = ($complaintsByStatus['work_priced_performa'] ?? 0) + $workPricedPerformaCount;
+        }
+        
+        // Maintenance Performa Priced - count in_progress complaints with maint_performa performa_type and waiting_for_authority
+        $maintPricedPerformaCount = (clone $complaintsByStatusQuery)
+            ->where('status', 'in_progress')
+            ->whereHas('spareApprovals', function($q) {
+                $q->where('status', 'pending')
+                  ->where('waiting_for_authority', true)
+                  ->where('performa_type', 'maint_performa');
+            })
+            ->count();
+        if ($maintPricedPerformaCount > 0) {
+            $complaintsByStatus['maint_priced_performa'] = ($complaintsByStatus['maint_priced_performa'] ?? 0) + $maintPricedPerformaCount;
+        }
 
         // Get complaints by category with location filtering and filters
         $complaintsByTypeQuery = Complaint::query();
@@ -427,12 +484,61 @@ class DashboardController extends Controller
         
         // Filter by complaint status
         if ($complaintStatus) {
-            // Handle special performa statuses - work_performa and maint_performa are shown as in_progress
-            if ($complaintStatus === 'work_performa' || $complaintStatus === 'maint_performa') {
-                // These are shown as in_progress with special badges
-                $query->where('status', 'in_progress');
+            // Handle special performa statuses - work_performa and maint_performa
+            if ($complaintStatus === 'work_performa') {
+                // Match complaints with work_performa status OR in_progress with work_performa performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'work_performa')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('performa_type', 'work_performa');
+                               });
+                      });
+                });
+            } elseif ($complaintStatus === 'maint_performa') {
+                // Match complaints with maint_performa status OR in_progress with maint_performa performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'maint_performa')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('performa_type', 'maint_performa');
+                               });
+                      });
+                });
+            } elseif ($complaintStatus === 'work_priced_performa') {
+                // Match work_priced_performa status OR in_progress with waiting_for_authority and work_performa performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'work_priced_performa')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('status', 'pending')
+                                             ->where('waiting_for_authority', true)
+                                             ->where('performa_type', 'work_performa');
+                               });
+                      });
+                })
+                ->where('status', '!=', 'work_performa')
+                ->where('status', '!=', 'maint_performa');
+            } elseif ($complaintStatus === 'maint_priced_performa') {
+                // Match maint_priced_performa status OR in_progress with waiting_for_authority and maint_performa performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'maint_priced_performa')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('status', 'pending')
+                                             ->where('waiting_for_authority', true)
+                                             ->where('performa_type', 'maint_performa');
+                               });
+                      });
+                })
+                ->where('status', '!=', 'work_performa')
+                ->where('status', '!=', 'maint_performa');
             } else {
-                // For priced performa and other statuses, filter by actual status
+                // For other statuses, filter by actual status
                 $query->where('status', $complaintStatus);
             }
         }
@@ -520,9 +626,25 @@ class DashboardController extends Controller
             'complaints_this_month' => (clone $complaintsQuery)->where('created_at', '>=', $thisMonth)->count(),
             'complaints_last_month' => (clone $complaintsQuery)->whereBetween('created_at', [$lastMonth, $thisMonth])->count(),
 
-            // Complaint status statistics
-            'work_performa' => (clone $complaintsQuery)->where('status', 'work_performa')->count(),
-            'maint_performa' => (clone $complaintsQuery)->where('status', 'maint_performa')->count(),
+            // Complaint status statistics - include both direct status and performa_type from approvals
+            'work_performa' => (clone $complaintsQuery)->where(function($q) {
+                $q->where('status', 'work_performa')
+                  ->orWhere(function($subQ) {
+                      $subQ->where('status', 'in_progress')
+                           ->whereHas('spareApprovals', function($approvalQ) {
+                               $approvalQ->where('performa_type', 'work_performa');
+                           });
+                  });
+            })->count(),
+            'maint_performa' => (clone $complaintsQuery)->where(function($q) {
+                $q->where('status', 'maint_performa')
+                  ->orWhere(function($subQ) {
+                      $subQ->where('status', 'in_progress')
+                           ->whereHas('spareApprovals', function($approvalQ) {
+                               $approvalQ->where('performa_type', 'maint_performa');
+                           });
+                  });
+            })->count(),
             'work_priced_performa' => (clone $complaintsQuery)->where('status', 'work_priced_performa')->count(),
             'maint_priced_performa' => (clone $complaintsQuery)->where('status', 'maint_priced_performa')->count(),
             'un_authorized' => (clone $complaintsQuery)->where('status', 'un_authorized')->count(),
