@@ -1,3 +1,4 @@
+
 @extends('layouts.sidebar')
 
 @section('title', 'Dashboard — CMS Admin')
@@ -20,37 +21,345 @@
     color: #1e293b !important;
   }
   
+  /* Modern Glass Morphism Cards */
   .theme-light .card-glass {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
-    border: 1px solid rgba(59, 130, 246, 0.15) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%) !important;
+    border: 1px solid rgba(59, 130, 246, 0.1) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    backdrop-filter: blur(10px) !important;
     color: #1e293b !important;
-    transition: all 0.3s ease !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+  
+  .theme-light .card-glass::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 3px !important;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899) !important;
+    opacity: 0 !important;
+    transition: opacity 0.4s ease !important;
+  }
+  
+  .theme-light .card-glass:hover::before {
+    opacity: 1 !important;
   }
   
   .theme-light .card-glass:hover {
-    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05) !important;
-    transform: translateY(-2px) !important;
+    box-shadow: 0 16px 48px rgba(59, 130, 246, 0.15), 0 8px 16px rgba(59, 130, 246, 0.1) !important;
+    transform: translateY(-4px) scale(1.02) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
   }
   
+  /* Gradient Stat Cards */
+  .stat-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%) !important;
+    border-radius: 24px !important;
+    padding: 2rem !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .stat-card::after {
+    content: '' !important;
+    position: absolute !important;
+    top: -50% !important;
+    right: -50% !important;
+    width: 200% !important;
+    height: 200% !important;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%) !important;
+    opacity: 0 !important;
+    transition: opacity 0.6s ease !important;
+  }
+  
+  .stat-card:hover::after {
+    opacity: 1 !important;
+    animation: shimmer 2s infinite !important;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-8px) scale(1.03) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12) !important;
+  }
+  
+  /* Stat Card Icon Containers */
+  .stat-icon {
+    width: 70px !important;
+    height: 70px !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.4s ease !important;
+  }
+  
+  .stat-card:hover .stat-icon {
+    transform: rotate(360deg) scale(1.1) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  /* Animated Number Display */
+  .stat-number {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, currentColor 0%, currentColor 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+  }
+  
+  .stat-label {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    margin-top: 0.5rem !important;
+    letter-spacing: 0.3px !important;
+  }
+  
+  /* Typography Enhancements */
   .theme-light h1, .theme-light h2, .theme-light h3, 
   .theme-light h4, .theme-light h5, .theme-light h6 {
     color: #0f172a !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
   }
   
   .theme-light .dashboard-header h2 {
     color: #0f172a !important;
-    font-weight: 700 !important;
-    font-size: 1.875rem !important;
+    font-weight: 800 !important;
+    font-size: 2.25rem !important;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
   }
   
   .theme-light .dashboard-header p {
-    color: #475569 !important;
-    font-size: 0.95rem !important;
+    color: #64748b !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
   }
   
+  /* Enhanced Button Styling */
+  .theme-light .btn {
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+    padding: 0.625rem 1.5rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    letter-spacing: 0.3px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  .theme-light .btn-primary,
+  .theme-light .btn-accent {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .theme-light .btn-primary:hover,
+  .theme-light .btn-accent:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4) !important;
+    transform: translateY(-2px) !important;
+  }
+  
+  .theme-light .btn-outline-secondary {
+    color: #64748b !important;
+    border: 2px solid #e2e8f0 !important;
+    background: transparent !important;
+  }
+  
+  .theme-light .btn-outline-secondary:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+  }
+  
+  /* Modern Table Styling */
+  .theme-light .table {
+    color: #1e293b !important;
+    background: transparent !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+  }
+  
+  .theme-light .table th {
+    color: #0f172a !important;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    padding: 1rem !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.5px !important;
+  }
+  
+  .theme-light .table td {
+    color: #334155 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 1rem !important;
+    font-weight: 500 !important;
+  }
+  
+  .theme-light .table tbody tr {
+    transition: all 0.2s ease !important;
+  }
+  
+  .theme-light .table tbody tr:hover {
+    background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%) !important;
+    transform: scale(1.01) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  }
+  
+  /* Enhanced Badge Styling */
+  .theme-light .badge,
+  .theme-light .status-badge,
+  .theme-light .priority-badge {
+    font-weight: 700 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 10px !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .theme-light .badge:hover,
+  .theme-light .status-badge:hover,
+  .theme-light .priority-badge:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  /* Form Controls */
+  .theme-light .form-control,
+  .theme-light .form-select {
+    background: #ffffff !important;
+    border: 2px solid #e2e8f0 !important;
+    color: #1e293b !important;
+    border-radius: 10px !important;
+    padding: 0.625rem 1rem !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .theme-light .form-control:focus,
+  .theme-light .form-select:focus {
+    background: #ffffff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .theme-light .form-label {
+    color: #1e293b !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.3px !important;
+  }
+  
+  /* Progress Bars with Gradient */
+  .theme-light .progress {
+    background: #f1f5f9 !important;
+    border-radius: 10px !important;
+    height: 16px !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+    overflow: hidden !important;
+  }
+  
+  .theme-light .progress-bar {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+    transition: width 0.6s ease !important;
+  }
+  
+  /* Chart Container Enhancements */
+  .chart-container {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-radius: 20px !important;
+    padding: 2rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  /* Filter Box Styling */
+  .filter-box {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-radius: 20px !important;
+    padding: 1.5rem 2rem !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  /* Icon Feature Enhancements */
+  .feather-lg {
+    width: 32px !important;
+    height: 32px !important;
+    stroke-width: 2.5 !important;
+  }
+  
+  /* Alert Boxes */
+  .theme-light .alert {
+    background: #ffffff !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 16px !important;
+    padding: 1.25rem 1.5rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  .theme-light .alert-success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+    border-color: #22c55e !important;
+    color: #166534 !important;
+  }
+  
+  .theme-light .alert-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+    border-color: #f59e0b !important;
+    color: #92400e !important;
+  }
+  
+  /* Colored Text Classes */
+  .theme-light .text-primary {
+    color: #2563eb !important;
+    font-weight: 700 !important;
+  }
+  
+  .theme-light .text-success {
+    color: #16a34a !important;
+    font-weight: 700 !important;
+  }
+  
+  .theme-light .text-warning {
+    color: #ea580c !important;
+    font-weight: 700 !important;
+  }
+  
+  .theme-light .text-danger {
+    color: #dc2626 !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Keep all other existing theme-light styles */
   .theme-light p, .theme-light span, .theme-light div {
     color: #1e293b !important;
   }
@@ -70,643 +379,75 @@
     font-weight: 500 !important;
   }
   
-  .theme-light .text-secondary {
-    color: #64748b !important;
-  }
-  
-  /* Enhanced table styling */
-  .theme-light .table {
-    color: #1e293b !important;
-    background: transparent !important;
-  }
-  
-  .theme-light .table th {
-    color: #0f172a !important;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
-    font-weight: 600 !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    padding: 0.875rem !important;
-  }
-  
-  .theme-light .table td {
-    color: #334155 !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    padding: 0.875rem !important;
-  }
-  
-  .theme-light .table tbody tr:hover {
-    background: #f8fafc !important;
-    transition: background 0.2s ease !important;
-  }
-  
-  .theme-light .table-dark {
-    background: transparent !important;
-  }
-  
-  .theme-light .table-dark thead {
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
-  }
-  
-  /* Enhanced button styling */
-  .theme-light .btn {
-    font-weight: 500 !important;
-    border-radius: 8px !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .theme-light .btn-primary,
-  .theme-light .btn-accent {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-    border-color: #3b82f6 !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2) !important;
-  }
-  
-  .theme-light .btn-primary:hover,
-  .theme-light .btn-accent:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3) !important;
-    transform: translateY(-1px) !important;
-  }
-  
-  .theme-light .btn-outline-primary,
-  .theme-light .btn-outline-warning {
-    color: #3b82f6 !important;
-    border-color: #3b82f6 !important;
-    background: transparent !important;
-  }
-  
-  .theme-light .btn-outline-primary:hover,
-  .theme-light .btn-outline-warning:hover {
-    background: #3b82f6 !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2) !important;
-  }
-  
-  /* Enhanced color classes */
-  .theme-light .text-primary {
-    color: #2563eb !important;
-    font-weight: 600 !important;
-  }
-  
-  .theme-light .text-success {
-    color: #16a34a !important;
-    font-weight: 600 !important;
-  }
-  
-  .theme-light .text-warning {
-    color: #ea580c !important;
-    font-weight: 600 !important;
-  }
-  
-  .theme-light .text-danger {
-    color: #dc2626 !important;
-    font-weight: 600 !important;
-  }
-  
-  .theme-light .text-info {
-    color: #0891b2 !important;
-    font-weight: 600 !important;
-  }
-  
-  /* Enhanced badge styling */
-  .theme-light .badge {
-    font-weight: 600 !important;
-    padding: 0.375rem 0.75rem !important;
-    border-radius: 6px !important;
-    font-size: 0.75rem !important;
-  }
-  
-  /* Statistics cards with colored accents */
-  .theme-light .card-glass .text-primary {
-    color: #2563eb !important;
-  }
-  
-  .theme-light .card-glass .text-warning {
-    color: #ea580c !important;
-  }
-  
-  .theme-light .card-glass .text-success {
-    color: #16a34a !important;
-  }
-  
-  .theme-light .card-glass .text-danger {
-    color: #dc2626 !important;
-  }
-  
-  .theme-light .card-glass .text-info {
-    color: #0891b2 !important;
-  }
-  
-  .theme-light .form-control {
-    background: #ffffff !important;
-    border: 1px solid #d1d5db !important;
-    color: #000000 !important;
-  }
-  
-  .theme-light .form-control:focus {
-    background: #ffffff !important;
-    border-color: #3b82f6 !important;
-    color: #000000 !important;
-  }
-  
-  .theme-light .form-label {
-    color: #000000 !important;
-  }
-  
-  .theme-light .alert {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
-    color: #000000 !important;
-  }
-  
-  .theme-light .alert-success {
-    background: #f0fdf4 !important;
-    border-color: #22c55e !important;
-    color: #166534 !important;
-  }
-  
-  .theme-light .alert-warning {
-    background: #fffbeb !important;
-    border-color: #f59e0b !important;
-    color: #92400e !important;
-  }
-  
-  .theme-light .alert-danger {
-    background: #fef2f2 !important;
-    border-color: #ef4444 !important;
-    color: #991b1b !important;
-  }
-  
-  .theme-light .alert-info {
-    background: #f0f9ff !important;
-    border-color: #06b6d4 !important;
-    color: #155e75 !important;
-  }
-  
-  .theme-light .progress {
-    background: #f3f4f6 !important;
-  }
-  
-  .theme-light .progress-bar {
-    background: #3b82f6 !important;
-  }
-  
-  .theme-light .list-group-item {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
-    color: #000000 !important;
-  }
-  
-  .theme-light .list-group-item:hover {
-    background: #f9fafb !important;
-  }
-  
-  /* Table hover effects removed - no hover styling */
-  
-  /* Chart toolbar dropdown visibility */
+  /* Chart toolbar and tooltip fixes remain the same */
   .apexcharts-toolbar {
     z-index: 1000 !important;
   }
   
-  .apexcharts-menu {
-    background: #1f2937 !important;
-    border: 1px solid #374151 !important;
-    border-radius: 6px !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-  }
-  
-  .apexcharts-menu-item {
-    color: #ffffff !important;
-    background: transparent !important;
-  }
-  
-  .apexcharts-menu-item:hover {
-    background: #374151 !important;
-    color: #ffffff !important;
-  }
-  
-  /* Light theme chart toolbar */
   .theme-light .apexcharts-menu {
     background: #ffffff !important;
     border: 1px solid #d1d5db !important;
-    color: #000000 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12) !important;
   }
   
   .theme-light .apexcharts-menu-item {
-    color: #000000 !important;
+    color: #1e293b !important;
+    padding: 0.625rem 1rem !important;
+    font-weight: 500 !important;
   }
   
   .theme-light .apexcharts-menu-item:hover {
     background: #f3f4f6 !important;
-    color: #000000 !important;
   }
   
-  /* Chart tooltip styling for light theme */
   .theme-light .apexcharts-tooltip {
     background: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #d1d5db !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    color: #1e293b !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
   }
   
   .theme-light .apexcharts-tooltip-title {
     background: #f9fafb !important;
-    color: #000000 !important;
-    border-bottom: 1px solid #d1d5db !important;
-  }
-  
-  .theme-light .apexcharts-tooltip-series-group {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip-y-group {
-    color: #000000 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip-marker {
-    background: #ffffff !important;
-  }
-  
-  /* Chart tooltip content styling for light theme */
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
-    background: #f9fafb !important;
-    color: #000000 !important;
-    border-bottom: 1px solid #d1d5db !important;
-    font-weight: 600 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group .apexcharts-tooltip-y-group {
-    color: #000000 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group .apexcharts-tooltip-y-group .apexcharts-tooltip-y-label {
-    color: #6b7280 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group .apexcharts-tooltip-y-group .apexcharts-tooltip-y-value {
-    color: #000000 !important;
-    font-weight: 600 !important;
-  }
-  
-  /* Force all tooltip text to be black in light theme */
-  .theme-light .apexcharts-tooltip * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
-    color: #000000 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-series-group * {
-    color: #000000 !important;
-  }
-  
-  /* Specific styling for month/date in tooltip */
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
-    background: #f9fafb !important;
-    color: #000000 !important;
-    border-bottom: 1px solid #d1d5db !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title * {
-    color: #000000 !important;
-    background: transparent !important;
-  }
-  
-  /* Force tooltip title background to be light */
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title {
-    background: #f9fafb !important;
-    background-color: #f9fafb !important;
-  }
-  
-  /* Override all inline styles */
-  .theme-light [style*="color: #ffffff"] {
-    color: #000000 !important;
-  }
-  
-  /* Force tooltip title to have light background and black text */
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="background"] {
-    background: #f9fafb !important;
-    background-color: #f9fafb !important;
-    color: #000000 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="color"] {
-    color: #000000 !important;
-  }
-  
-  /* Override any dark background styles */
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="background-color: #000000"],
-  .theme-light .apexcharts-tooltip .apexcharts-tooltip-title[style*="background: #000000"] {
-    background: #f9fafb !important;
-    background-color: #f9fafb !important;
-    color: #000000 !important;
-  }
-  
-  /* Force all ApexCharts tooltips to be light theme */
-  .apexcharts-tooltip {
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #d1d5db !important;
-  }
-  
-  .apexcharts-tooltip .apexcharts-tooltip-title {
-    background: #f9fafb !important;
-    color: #000000 !important;
-    border-bottom: 1px solid #d1d5db !important;
-  }
-  
-  .apexcharts-tooltip .apexcharts-tooltip-series-group {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-  
-  .apexcharts-tooltip .apexcharts-tooltip-series-group * {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #cbd5e1"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #94a3b8"] {
-    color: #6b7280 !important;
-  }
-  
-  .theme-light [style*="color: #1e293b"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #f1f5f9"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #64748b"] {
-    color: #6b7280 !important;
-  }
-  
-  /* Force ALL headings to be black in light theme */
-  .theme-light h1, .theme-light h2, .theme-light h3, 
-  .theme-light h4, .theme-light h5, .theme-light h6 {
-    color: #000000 !important;
-  }
-  
-  .theme-light .dashboard-header h2 {
-    color: #000000 !important;
-  }
-  
-  .theme-light .dashboard-header p {
-    color: #000000 !important;
-  }
-  
-  .theme-light .mb-4 h2 {
-    color: #000000 !important;
-  }
-  
-  .theme-light .mb-4 p {
-    color: #000000 !important;
-  }
-  
-  .theme-light .card-glass h1,
-  .theme-light .card-glass h2,
-  .theme-light .card-glass h3,
-  .theme-light .card-glass h4,
-  .theme-light .card-glass h5,
-  .theme-light .card-glass h6 {
-    color: #000000 !important;
-  }
-  
-  .theme-light .content h1,
-  .theme-light .content h2,
-  .theme-light .content h3,
-  .theme-light .content h4,
-  .theme-light .content h5,
-  .theme-light .content h6 {
-    color: #000000 !important;
-  }
-  
-  /* Override any remaining white text */
-  .theme-light * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-muted {
-    color: #6b7280 !important;
-  }
-  
-  .theme-light .text-secondary {
-    color: #6b7280 !important;
-  }
-  
-  /* Force all text in light theme to be black */
-  .theme-light .text-white {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-light {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-dark {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-body {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-reset {
-    color: #000000 !important;
-  }
-  
-  /* Force override of ALL inline styles in light theme */
-  .theme-light [style*="color: #ffffff"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #cbd5e1"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #94a3b8"] {
-    color: #6b7280 !important;
-  }
-  
-  .theme-light [style*="color: #1e293b"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #f1f5f9"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light [style*="color: #64748b"] {
-    color: #6b7280 !important;
-  }
-  
-  /* Force all dashboard content to be black */
-  .theme-light .dashboard-header * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .card-glass * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .content * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .mb-4 * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .row * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .col-md-3 * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .col-md-6 * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .col-md-4 * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .col-md-8 * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .col-md-12 * {
-    color: #000000 !important;
-  }
-  
-  /* Override specific dashboard elements */
-  .theme-light .dashboard-header h2[style*="color: #ffffff"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light .dashboard-header p[style*="color: #cbd5e1"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light .card-glass div[style*="color: #ffffff"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light .card-glass div[style*="color: #94a3b8"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light .card-glass div[style*="color: #cbd5e1"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #ffffff"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #f59e0b"] {
-    color: #f59e0b !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #22c55e"] {
-    color: #22c55e !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #ef4444"] {
-    color: #ef4444 !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #3b82f6"] {
-    color: #3b82f6 !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #06b6d4"] {
-    color: #06b6d4 !important;
-  }
-  
-  /* Status and priority badges in light theme */
-  .theme-light .status-badge,
-  .theme-light .priority-badge {
-    font-weight: 600 !important;
-    padding: 0.375rem 0.75rem !important;
-    border-radius: 6px !important;
-    font-size: 0.75rem !important;
-    text-transform: capitalize !important;
-  }
-  
-  .theme-light .status-badge.status-pending {
-    background: rgba(234, 88, 12, 0.1) !important;
-    color: #ea580c !important;
-    border: 1px solid rgba(234, 88, 12, 0.2) !important;
-  }
-  
-  .theme-light .status-badge.status-resolved {
-    background: rgba(22, 163, 74, 0.1) !important;
-    color: #16a34a !important;
-    border: 1px solid rgba(22, 163, 74, 0.2) !important;
-  }
-  
-  .theme-light .priority-badge.priority-high,
-  .theme-light .priority-badge.priority-urgent,
-  .theme-light .priority-badge.priority-emergency {
-    background: rgba(220, 38, 38, 0.1) !important;
-    color: #dc2626 !important;
-    border: 1px solid rgba(220, 38, 38, 0.2) !important;
-  }
-  
-  /* Keep colored numbers visible and attractive */
-  .theme-light .card-glass .h4[style*="color: #f59e0b"],
-  .theme-light .card-glass .h5[style*="color: #f59e0b"] {
-    color: #ea580c !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #22c55e"],
-  .theme-light .card-glass .h5[style*="color: #22c55e"] {
-    color: #16a34a !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #ef4444"],
-  .theme-light .card-glass .h5[style*="color: #ef4444"] {
-    color: #dc2626 !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #3b82f6"],
-  .theme-light .card-glass .h5[style*="color: #3b82f6"] {
-    color: #2563eb !important;
-  }
-  
-  .theme-light .card-glass .h4[style*="color: #06b6d4"],
-  .theme-light .card-glass .h5[style*="color: #06b6d4"] {
-    color: #0891b2 !important;
-  }
-  
-  /* Override plain text but keep colored stats */
-  .theme-light .card-glass div[style*="color: #94a3b8"] {
-    color: #64748b !important;
-  }
-  
-  .theme-light .card-glass div[style*="color: #cbd5e1"] {
-    color: #64748b !important;
-  }
-  
-  .theme-light .card-glass div[style*="color: #ffffff"] {
     color: #1e293b !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    font-weight: 700 !important;
+    padding: 0.75rem 1rem !important;
   }
   
-  /* Night theme styles */
+  /* GE Progress Cards Enhancement */
+  .ge-progress-card {
+    border-radius: 24px !important;
+    padding: 2rem !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .ge-progress-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2), transparent) !important;
+    opacity: 0 !important;
+    transition: opacity 0.4s ease !important;
+  }
+  
+  .ge-progress-card:hover::before {
+    opacity: 1 !important;
+  }
+  
+  .ge-progress-card:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  /* Keep all dark/night theme styles unchanged */
   .theme-night body {
     background: linear-gradient(135deg, #000000 0%, #111111 100%);
     color: #e5e5e5;
@@ -722,85 +463,6 @@
     color: #e5e5e5 !important;
   }
   
-  .theme-night h1, .theme-night h2, .theme-night h3, 
-  .theme-night h4, .theme-night h5, .theme-night h6 {
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-night p, .theme-night span, .theme-night div {
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-night .text-white {
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-night .text-muted {
-    color: #9ca3af !important;
-  }
-  
-  .theme-night .text-secondary {
-    color: #9ca3af !important;
-  }
-  
-  .theme-night .table {
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-night .table th {
-    color: #e5e5e5 !important;
-    background: rgba(0, 0, 0, 0.5) !important;
-  }
-  
-  .theme-night .table td {
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-night .btn {
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-night .btn-primary {
-    background: #1d4ed8 !important;
-    border-color: #1d4ed8 !important;
-    color: #ffffff !important;
-  }
-  
-  .theme-night .btn-outline-primary {
-    color: #60a5fa !important;
-    border-color: #60a5fa !important;
-  }
-  
-  .theme-night .btn-outline-primary:hover {
-    background: #60a5fa !important;
-    color: #000000 !important;
-  }
-  
-  .theme-night .text-primary {
-    color: #60a5fa !important;
-  }
-  
-  .theme-night .text-success {
-    color: #34d399 !important;
-  }
-  
-  .theme-night .text-warning {
-    color: #fbbf24 !important;
-  }
-  
-  .theme-night .text-danger {
-    color: #f87171 !important;
-  }
-  
-  .theme-night .text-info {
-    color: #22d3ee !important;
-  }
-  
-  .theme-night .badge {
-    color: #ffffff !important;
-  }
-  
-  /* Dark theme styles */
   .theme-dark body {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     color: #e2e8f0;
@@ -815,634 +477,514 @@
     border: 1px solid rgba(148, 163, 184, 0.1) !important;
     color: #e2e8f0 !important;
   }
-  
-  .theme-dark h1, .theme-dark h2, .theme-dark h3, 
-  .theme-dark h4, .theme-dark h5, .theme-dark h6 {
-    color: #e2e8f0 !important;
-  }
-  
-  .theme-dark .text-white {
-    color: #e2e8f0 !important;
-  }
-  
-  .theme-dark .text-muted {
-    color: #94a3b8 !important;
-  }
-  
-  .theme-dark .text-secondary {
-    color: #94a3b8 !important;
-  }
-  
-  .theme-dark .btn {
-    color: #e2e8f0 !important;
-  }
-  
-  /* Filter labels styling for dark and night themes - white text (override inline !important) */
-  /* Use maximum specificity to override inline styles - inline styles with !important require JavaScript */
-  /* CSS fallback with maximum specificity */
-  .theme-dark .card-glass.mb-4 .row .col-md-3 label.form-label.small.mb-1,
-  .theme-night .card-glass.mb-4 .row .col-md-3 label.form-label.small.mb-1,
-  .theme-dark .card-glass.mb-4 .row .col-sm-6 label.form-label.small.mb-1,
-  .theme-night .card-glass.mb-4 .row .col-sm-6 label.form-label.small.mb-1,
-  .theme-dark .card-glass.mb-4 form .row label,
-  .theme-night .card-glass.mb-4 form .row label,
-  .theme-dark .card-glass.mb-4 form .row .form-label,
-  .theme-night .card-glass.mb-4 form .row .form-label {
-    color: #ffffff !important;
-  }
-  
-  /* Override inline styles with !important - use attribute selector */
-  .theme-dark .card-glass.mb-4 label[style*="color: #1e293b"],
-  .theme-night .card-glass.mb-4 label[style*="color: #1e293b"],
-  .theme-dark .card-glass.mb-4 .form-label[style*="color: #1e293b"],
-  .theme-night .card-glass.mb-4 .form-label[style*="color: #1e293b"] {
-    color: #ffffff !important;
-  }
-  
-  /* Force all filter box labels to white in dark/night theme */
-  .theme-dark .card-glass.mb-4 label,
-  .theme-night .card-glass.mb-4 label,
-  .theme-dark .card-glass.mb-4 .form-label,
-  .theme-night .card-glass.mb-4 .form-label {
-    color: #ffffff !important;
-  }
-  
-  /* NUCLEAR OPTION - Force ALL text to be black in light theme */
-  .theme-light * {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-muted {
-    color: #6b7280 !important;
-  }
-  
-  .theme-light .text-secondary {
-    color: #6b7280 !important;
-  }
-  
-  /* Override ALL inline styles with maximum specificity */
-  .theme-light h1[style*="color"],
-  .theme-light h2[style*="color"],
-  .theme-light h3[style*="color"],
-  .theme-light h4[style*="color"],
-  .theme-light h5[style*="color"],
-  .theme-light h6[style*="color"],
-  .theme-light p[style*="color"],
-  .theme-light span[style*="color"],
-  .theme-light div[style*="color"] {
-    color: #000000 !important;
-  }
-  
-  /* Force dashboard header to be black */
-  .theme-light .dashboard-header h2[style*="color: #ffffff"] {
-    color: #000000 !important;
-  }
-  
-  .theme-light .dashboard-header p[style*="color: #cbd5e1"] {
-    color: #000000 !important;
-  }
-  
-  /* Force all card content to be black */
-  .theme-light .card-glass h1[style*="color"],
-  .theme-light .card-glass h2[style*="color"],
-  .theme-light .card-glass h3[style*="color"],
-  .theme-light .card-glass h4[style*="color"],
-  .theme-light .card-glass h5[style*="color"],
-  .theme-light .card-glass h6[style*="color"],
-  .theme-light .card-glass p[style*="color"],
-  .theme-light .card-glass span[style*="color"],
-  .theme-light .card-glass div[style*="color"] {
-    color: #000000 !important;
-  }
-  
-  /* Override Bootstrap classes with maximum specificity */
-  .theme-light .text-white {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-light {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-dark {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-body {
-    color: #000000 !important;
-  }
-  
-  .theme-light .text-reset {
-    color: #000000 !important;
-  }
-  
-  /* Force all headings to be black */
-  .theme-light h1,
-  .theme-light h2,
-  .theme-light h3,
-  .theme-light h4,
-  .theme-light h5,
-  .theme-light h6 {
-    color: #000000 !important;
-  }
-  
-  /* Force all paragraphs to be black */
-  .theme-light p {
-    color: #000000 !important;
-  }
-  
-  /* Force all spans to be black */
-  .theme-light span {
-    color: #000000 !important;
-  }
-  
-  /* Force all divs to be black */
-  .theme-light div {
-    color: #000000 !important;
-  }
 </style>
+
 <!-- DASHBOARD HEADER -->
-<div class="mb-4 dashboard-header">
+<div class="mb-5 dashboard-header">
   <h2 class="text-white mb-2">Dashboard Overview</h2>
   <p class="text-light">Real-time complaint management system</p>
-    </div>
+</div>
 
-    <!-- FILTERS SECTION -->
-    @php
-      $user = Auth::user();
-      // Get filter values from request
-      $filterCityId = request('city_id');
-      if (!$filterCityId && isset($cityId)) {
-        $filterCityId = $cityId;
-      }
-      
-      // Check user table: if city_id is null, user can see all cities, so show city filter
-      // Keep GE filter visible at all times when user has no city assigned (don't hide when city is selected)
-      // If city_id is not null, user is assigned to specific city, so don't show city filter
-      // Show GE filter if: user exists AND user has no city_id (regardless of filter selection)
-      $userHasNoCity = $user && (is_null($user->city_id) || $user->city_id == 0 || $user->city_id === '');
-      // Always show GE filter if user has no city assigned, even when a city is selected in filter
-      $showCityFilter = $userHasNoCity;
-      
-      // Check user table: if sector_id is null, user can see sectors (all or in their city), so show sector filter
-      // If sector_id is not null, user is assigned to specific sector, so don't show sector filter
-      $showSectorFilter = $user && (!$user->sector_id || $user->sector_id == null || $user->sector_id == 0 || $user->sector_id == '');
-    @endphp
-    
-    @if($showCityFilter || $showSectorFilter || $categories->count() > 0 || (isset($complaintStatuses) && count($complaintStatuses) > 0) || true)
-    <div class="mb-4 d-flex justify-content-center">
-      <div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
-        <form id="dashboardFiltersForm" method="GET" action="{{ route('admin.dashboard') }}">
-          <div class="row g-2 align-items-end">
-          @if($showCityFilter)
-          <div class="col-auto" id="cityFilterContainer">
-            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">GE</label>
-            <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
-              <option value=""> Select GE</option>
-              @if($cities && $cities->count() > 0)
-                @foreach($cities as $city)
-                  @php
-                    $geUser = $city->users->where('role_id', $geRole->id ?? null)->where('status', 'active')->first();
-                    $displayName = $city->name;
-                    if ($geUser) {
-                      if ($geUser->name) {
-                        $displayName = $geUser->name . ' - ' . $city->name;
-                      } elseif ($geUser->username) {
-                        $displayName = $geUser->username . ' - ' . $city->name;
-                      }
+<!-- FILTERS SECTION -->
+@php
+  $user = Auth::user();
+  $filterCityId = request('city_id');
+  if (!$filterCityId && isset($cityId)) {
+    $filterCityId = $cityId;
+  }
+  
+  $userHasNoCity = $user && (is_null($user->city_id) || $user->city_id == 0 || $user->city_id === '');
+  $showCityFilter = $userHasNoCity;
+  $showSectorFilter = $user && (!$user->sector_id || $user->sector_id == null || $user->sector_id == 0 || $user->sector_id == '');
+@endphp
+
+@if($showCityFilter || $showSectorFilter || $categories->count() > 0 || (isset($complaintStatuses) && count($complaintStatuses) > 0) || true)
+<div class="mb-5 d-flex justify-content-center">
+  <div class="filter-box" style="display: inline-block; width: fit-content;">
+    <form id="dashboardFiltersForm" method="GET" action="{{ route('admin.dashboard') }}">
+      <div class="row g-3 align-items-end">
+        @if($showCityFilter)
+        <div class="col-auto" id="cityFilterContainer">
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">GE</label>
+          <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px;">
+            <option value="">Select GE</option>
+            @if($cities && $cities->count() > 0)
+              @foreach($cities as $city)
+                @php
+                  $geUser = $city->users->where('role_id', $geRole->id ?? null)->where('status', 'active')->first();
+                  $displayName = $city->name;
+                  if ($geUser) {
+                    if ($geUser->name) {
+                      $displayName = $geUser->name . ' - ' . $city->name;
+                    } elseif ($geUser->username) {
+                      $displayName = $geUser->username . ' - ' . $city->name;
                     }
-                  @endphp
-                  <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $displayName }}</option>
-                @endforeach
-              @endif
-            </select>
-          </div>
-          @endif
-          
-          @if($showSectorFilter)
-          <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Sector</label>
-            <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
-              <option value="">All Sectors</option>
-              @if($sectors && $sectors->count() > 0)
-                @foreach($sectors as $sector)
-                  <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
-                @endforeach
-              @endif
-            </select>
-          </div>
-          @endif
-          
-          <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Complaint Category</label>
-            <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
-              <option value="">All Categories</option>
-              @if($categories && $categories->count() > 0)
-                @foreach($categories as $cat)
-                  <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-                @endforeach
-              @endif
-            </select>
-          </div>
-          
-          @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
-          <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Complaints Status</label>
-            <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
-              <option value="">All Status</option>
-              @foreach($complaintStatuses as $statusKey => $statusLabel)
-                <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
+                  }
+                @endphp
+                <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $displayName }}</option>
               @endforeach
-            </select>
-          </div>
-          @endif
-          
-          <div class="col-auto">
-            <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Date Range</label>
-            <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px; border: 1px solid #d1d5db; background: #ffffff; color: #1e293b;">
-              <option value="">All Time</option>
-              <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
-              <option value="today" {{ (request('date_range') == 'today' || $dateRange == 'today') ? 'selected' : '' }}>Today</option>
-              <option value="this_week" {{ (request('date_range') == 'this_week' || $dateRange == 'this_week') ? 'selected' : '' }}>This Week</option>
-              <option value="last_week" {{ (request('date_range') == 'last_week' || $dateRange == 'last_week') ? 'selected' : '' }}>Last Week</option>
-              <option value="this_month" {{ (request('date_range') == 'this_month' || $dateRange == 'this_month') ? 'selected' : '' }}>This Month</option>
-              <option value="last_month" {{ (request('date_range') == 'last_month' || $dateRange == 'last_month') ? 'selected' : '' }}>Last Month</option>
-              <option value="last_6_months" {{ (request('date_range') == 'last_6_months' || $dateRange == 'last_6_months') ? 'selected' : '' }}>Last 6 Months</option>
-            </select>
-          </div>
-          
-          <div class="col-auto">
-            <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
-            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetDashboardFilters()" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
-              <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
-            </button>
-          </div>
-          </div>
-        </form>
+            @endif
+          </select>
+        </div>
+        @endif
+        
+        @if($showSectorFilter)
+        <div class="col-auto">
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Sector</label>
+          <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px;">
+            <option value="">All Sectors</option>
+            @if($sectors && $sectors->count() > 0)
+              @foreach($sectors as $sector)
+                <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
+              @endforeach
+            @endif
+          </select>
+        </div>
+        @endif
+        
+        <div class="col-auto">
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Complaint Category</label>
+          <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px;">
+            <option value="">All Categories</option>
+            @if($categories && $categories->count() > 0)
+              @foreach($categories as $cat)
+                <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+              @endforeach
+            @endif
+          </select>
+        </div>
+        
+        @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
+        <div class="col-auto">
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Complaints Status</label>
+          <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px;">
+            <option value="">All Status</option>
+            @foreach($complaintStatuses as $statusKey => $statusLabel)
+              <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
+            @endforeach
+          </select>
+        </div>
+        @endif
+        
+        <div class="col-auto">
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Date Range</label>
+          <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px;">
+            <option value="">All Time</option>
+            <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
+            <option value="today" {{ (request('date_range') == 'today' || $dateRange == 'today') ? 'selected' : '' }}>Today</option>
+            <option value="this_week" {{ (request('date_range') == 'this_week' || $dateRange == 'this_week') ? 'selected' : '' }}>This Week</option>
+            <option value="last_week" {{ (request('date_range') == 'last_week' || $dateRange == 'last_week') ? 'selected' : '' }}>Last Week</option>
+            <option value="this_month" {{ (request('date_range') == 'this_month' || $dateRange == 'this_month') ? 'selected' : '' }}>This Month</option>
+            <option value="last_month" {{ (request('date_range') == 'last_month' || $dateRange == 'last_month') ? 'selected' : '' }}>Last Month</option>
+            <option value="last_6_months" {{ (request('date_range') == 'last_6_months' || $dateRange == 'last_6_months') ? 'selected' : '' }}>Last 6 Months</option>
+          </select>
+        </div>
+        
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetDashboardFilters()" style="font-size: 0.9rem; padding: 0.5rem 1.25rem;">
+            <i data-feather="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>Reset
+          </button>
+        </div>
       </div>
-    </div>
-    @endif
+    </form>
+  </div>
+</div>
+@endif
 
-    <!-- STATISTICS CARDS -->
-    <div class="row mb-4">
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.3) 100%) !important; border: 1px solid rgba(59, 130, 246, 0.4) !important;">
-      <div class="d-flex align-items-center">
+<!-- STATISTICS CARDS -->
+<div class="row mb-5 g-4">
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.25) 100%) !important; border: 2px solid rgba(59, 130, 246, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="h4 mb-1 text-white" style="font-size: 2rem; font-weight: bold;">{{ $stats['total_complaints'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Total Complaints</div>
+          <div class="stat-number text-primary">{{ $stats['total_complaints'] ?? 0 }}</div>
+          <div class="stat-label">Total Complaints</div>
         </div>
-        <div class="text-primary">
-          <i data-feather="alert-circle" class="feather-lg"></i>
-        </div>
-      </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%) !important; border: 1px solid rgba(239, 68, 68, 0.4) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1 text-danger" style="font-size: 2rem; font-weight: bold;">{{ $stats['pending_complaints'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Pending</div>
-        </div>
-        <div class="text-danger">
-          <i data-feather="clock" class="feather-lg"></i>
-        </div>
-
-      </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.3) 100%) !important; border: 1px solid rgba(34, 197, 94, 0.4) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1 text-success" style="font-size: 2rem; font-weight: bold;">{{ $stats['addressed_complaints'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Addressed</div>
-        </div>
-        <div class="text-success">
-          <i data-feather="check-circle" class="feather-lg"></i>
-        </div>
-      </div>
-        </div>
-            </div>
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%) !important; border: 1px solid rgba(239, 68, 68, 0.4) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1 text-danger" style="font-size: 2rem; font-weight: bold;">{{ $stats['overdue_complaints'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Overdue</div>
-        </div>
-        <div class="text-danger">
-          <i data-feather="alert-triangle" class="feather-lg"></i>
-        </div>
-      </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.4)) !important;">
+          <i data-feather="alert-circle" class="feather-lg" style="color: #3b82f6;"></i>
         </div>
       </div>
     </div>
-
-    <!-- COMPLAINT STATUS CARDS -->
-    <div class="row mb-4">
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.3) 100%) !important; border: 1px solid rgba(96, 165, 250, 0.4) !important;">
-      <div class="d-flex align-items-center">
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.25) 100%) !important; border: 2px solid rgba(239, 68, 68, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #60a5fa;">{{ $stats['work_performa'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Work Performa</div>
+          <div class="stat-number text-danger">{{ $stats['pending_complaints'] ?? 0 }}</div>
+          <div class="stat-label">Pending</div>
         </div>
-        <div style="color: #60a5fa;">
-          <i data-feather="file-text" class="feather-lg"></i>
-        </div>
-      </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(217, 119, 6, 0.3) 100%) !important; border: 1px solid rgba(234, 179, 8, 0.4) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #eab308;">{{ $stats['maint_performa'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Maintenance Performa</div>
-        </div>
-        <div style="color: #eab308;">
-          <i data-feather="tool" class="feather-lg"></i>
-        </div>
-      </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(126, 34, 206, 0.3) 100%) !important; border: 1px solid rgba(147, 51, 234, 0.4) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #9333ea;">{{ $stats['work_priced_performa'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Work Performa Priced</div>
-        </div>
-        <div style="color: #9333ea;">
-          <i data-feather="dollar-sign" class="feather-lg"></i>
-        </div>
-      </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.2) 0%, rgba(194, 65, 12, 0.3) 100%) !important; border: 1px solid rgba(234, 88, 12, 0.4) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #ea580c;">{{ $stats['maint_priced_performa'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Maintenance Performa Priced</div>
-        </div>
-        <div style="color: #ea580c;">
-          <i data-feather="dollar-sign" class="feather-lg"></i>
-        </div>
-      </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.4)) !important;">
+          <i data-feather="clock" class="feather-lg" style="color: #ef4444;"></i>
         </div>
       </div>
     </div>
-
-    <div class="row mb-4">
-      <div class="col-md-4 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(219, 39, 119, 0.3) 100%) !important; border: 1px solid rgba(236, 72, 153, 0.4) !important;">
-      <div class="d-flex align-items-center">
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.25) 100%) !important; border: 2px solid rgba(34, 197, 94, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #ec4899;">{{ $stats['un_authorized'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Un Authorized</div>
+          <div class="stat-number text-success">{{ $stats['addressed_complaints'] ?? 0 }}</div>
+          <div class="stat-label">Addressed</div>
         </div>
-        <div style="color: #ec4899;">
-          <i data-feather="x-octagon" class="feather-lg"></i>
-        </div>
-      </div>
-        </div>
-      </div>
-      <div class="col-md-4 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(26, 26, 26, 0.4) 100%) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #ffffff;">{{ $stats['product_na'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Product N/A</div>
-        </div>
-        <div style="color: #ffffff;">
-          <i data-feather="package-x" class="feather-lg"></i>
-        </div>
-      </div>
-        </div>
-      </div>
-      <div class="col-md-4 mb-3">
-    <div class="card-glass" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.3) 100%) !important; border: 1px solid rgba(6, 182, 212, 0.4) !important;">
-      <div class="d-flex align-items-center">
-        <div class="flex-grow-1">
-          <div class="h4 mb-1" style="font-size: 2rem; font-weight: bold; color: #06b6d4;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
-          <div class="text-muted" style="font-size: 0.9rem;">Pertains to GE/Const/Isld</div>
-        </div>
-        <div style="color: #06b6d4;">
-          <i data-feather="map-pin" class="feather-lg"></i>
-        </div>
-      </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.4)) !important;">
+          <i data-feather="check-circle" class="feather-lg" style="color: #22c55e;"></i>
         </div>
       </div>
     </div>
-
-    <!-- ADDITIONAL STATS -->
-    <div class="row mb-4 justify-content-center">
-      <div class="col-md-2 mb-3">
-    <div class="card-glass text-center">
-      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_users'] ?? 0 }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Users</div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.25) 100%) !important; border: 2px solid rgba(239, 68, 68, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number text-danger">{{ $stats['overdue_complaints'] ?? 0 }}</div>
+          <div class="stat-label">Overdue</div>
         </div>
-      </div>
-      <div class="col-md-2 mb-3">
-    <div class="card-glass text-center">
-      <div class="h5 mb-1 text-white" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['total_employees'] ?? 0 }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Employees</div>
-        </div>
-      </div>
-      <div class="col-md-2 mb-3">
-    <div class="card-glass text-center">
-      <div class="h5 mb-1 text-warning" style="font-size: 1.5rem; font-weight: bold;">{{ $stats['low_stock_items'] ?? 0 }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Low Stock</div>
-        </div>
-      </div>
-      <div class="col-md-2 mb-3">
-    <div class="card-glass text-center">
-      <div class="h5 mb-1 text-success" style="font-size: 1.5rem; font-weight: bold;">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
-      <div class="text-muted" style="font-size: 0.8rem;">SLA Performance</div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.4)) !important;">
+          <i data-feather="alert-triangle" class="feather-lg" style="color: #ef4444;"></i>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- CHARTS ROW -->
-    <div class="row mb-4">
-      <div class="col-md-6">
-    <div class="card-glass">
-      <h5 class="mb-3 text-white" style="font-weight: bold;">Complaints by Status</h5>
+<!-- COMPLAINT STATUS CARDS -->
+<div class="row mb-5 g-4">
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(59, 130, 246, 0.25) 100%) !important; border: 2px solid rgba(96, 165, 250, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number" style="color: #60a5fa;">{{ $stats['work_performa'] ?? 0 }}</div>
+          <div class="stat-label">Work Performa</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(96, 165, 250, 0.4)) !important;">
+          <i data-feather="file-text" class="feather-lg" style="color: #60a5fa;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%) !important; border: 2px solid rgba(234, 179, 8, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number" style="color: #eab308;">{{ $stats['maint_performa'] ?? 0 }}</div>
+          <div class="stat-label">Maintenance Performa</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(234, 179, 8, 0.4)) !important;">
+          <i data-feather="tool" class="feather-lg" style="color: #eab308;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(126, 34, 206, 0.25) 100%) !important; border: 2px solid rgba(147, 51, 234, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number" style="color: #9333ea;">{{ $stats['work_priced_performa'] ?? 0 }}</div>
+          <div class="stat-label">Work Performa Priced</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(147, 51, 234, 0.4)) !important;">
+          <i data-feather="dollar-sign" class="feather-lg" style="color: #9333ea;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, rgba(194, 65, 12, 0.25) 100%) !important; border: 2px solid rgba(234, 88, 12, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number" style="color: #ea580c;">{{ $stats['maint_priced_performa'] ?? 0 }}</div>
+          <div class="stat-label">Maintenance Performa Priced</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.2), rgba(234, 88, 12, 0.4)) !important;">
+          <i data-feather="dollar-sign" class="feather-lg" style="color: #ea580c;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-5 g-4">
+  <div class="col-md-4">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(219, 39, 119, 0.25) 100%) !important; border: 2px solid rgba(236, 72, 153, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number" style="color: #ec4899;">{{ $stats['un_authorized'] ?? 0 }}</div>
+          <div class="stat-label">Un Authorized</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.4)) !important;">
+          <i data-feather="x-octagon" class="feather-lg" style="color: #ec4899;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(100, 116, 139, 0.15) 0%, rgba(71, 85, 105, 0.25) 100%) !important; border: 2px solid rgba(100, 116, 139, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number" style="color: #64748b;">{{ $stats['product_na'] ?? 0 }}</div>
+          <div class="stat-label">Product N/A</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(100, 116, 139, 0.2), rgba(100, 116, 139, 0.4)) !important;">
+          <i data-feather="package-x" class="feather-lg" style="color: #64748b;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="stat-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.25) 100%) !important; border: 2px solid rgba(6, 182, 212, 0.3) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number" style="color: #06b6d4;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
+          <div class="stat-label">Pertains to GE/Const/Isld</div>
+        </div>
+        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.4)) !important;">
+          <i data-feather="map-pin" class="feather-lg" style="color: #06b6d4;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADDITIONAL STATS -->
+<div class="row mb-5 justify-content-center g-4">
+  <div class="col-md-3">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.25) 100%) !important; border: 2px solid rgba(99, 102, 241, 0.3) !important;">
+      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.4)) !important;">
+        <i data-feather="users" class="feather-lg" style="color: #6366f1;"></i>
+      </div>
+      <div class="stat-number" style="color: #6366f1;">{{ $stats['total_users'] ?? 0 }}</div>
+      <div class="stat-label">Users</div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.25) 100%) !important; border: 2px solid rgba(168, 85, 247, 0.3) !important;">
+      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.4)) !important;">
+        <i data-feather="user-check" class="feather-lg" style="color: #a855f7;"></i>
+      </div>
+      <div class="stat-number" style="color: #a855f7;">{{ $stats['total_employees'] ?? 0 }}</div>
+      <div class="stat-label">Employees</div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(249, 115, 22, 0.25) 100%) !important; border: 2px solid rgba(251, 146, 60, 0.3) !important;">
+      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.4)) !important;">
+        <i data-feather="alert-triangle" class="feather-lg" style="color: #fb923c;"></i>
+      </div>
+      <div class="stat-number text-warning">{{ $stats['low_stock_items'] ?? 0 }}</div>
+      <div class="stat-label">Low Stock</div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%) !important; border: 2px solid rgba(16, 185, 129, 0.3) !important;">
+      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.4)) !important;">
+        <i data-feather="trending-up" class="feather-lg" style="color: #10b981;"></i>
+      </div>
+      <div class="stat-number text-success">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
+      <div class="stat-label">SLA Performance</div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="row mb-5 g-4">
+  <div class="col-md-6">
+    <div class="card-glass chart-container">
+      <h5 class="mb-4 text-white" style="font-weight: 700; font-size: 1.25rem;">
+        <i data-feather="pie-chart" class="me-2" style="width: 24px; height: 24px;"></i>
+        Complaints by Status
+      </h5>
       <div id="complaintsStatusChart" style="height: 300px;"></div>
-        </div>
-      </div>
-      <div class="col-md-6">
-    <div class="card-glass">
-      <h5 class="mb-3 text-white" style="font-weight: bold;">Complaints by Type</h5>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card-glass chart-container">
+      <h5 class="mb-4 text-white" style="font-weight: 700; font-size: 1.25rem;">
+        <i data-feather="bar-chart-2" class="me-2" style="width: 24px; height: 24px;"></i>
+        Complaints by Type
+      </h5>
       <div id="complaintsTypeChart" style="height: 300px;"></div>
-        </div>
-      </div>
-        </div>
+    </div>
+  </div>
+</div>
 
-    <!-- GE PROGRESS SECTION (For Director Only) -->
-    @if(isset($geProgress) && count($geProgress) > 0)
-    <div class="row mt-4">
-      <div class="col-12">
-        <div class="card-glass">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0 text-white" style="font-weight: bold;">
-              <i data-feather="users" class="me-2"></i>GE Feedback Overview
-            </h5>
-          </div>
-          <div class="row">
-            @php
-              $colorSchemes = [
-                ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => '#60a5fa', 'progress' => 'linear-gradient(90deg, #3b82f6, #60a5fa)'],
-                ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
-                ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
-                ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
-                ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
-              ];
-              $totalCards = count($geProgress);
-            @endphp
-            @foreach($geProgress as $index => $geData)
-            @php
-              $colorScheme = $colorSchemes[$index % count($colorSchemes)];
-              // Progress bar color - white/light color for better visibility on all gradient backgrounds
-              $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
-                              ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
-                              ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
-              
-              // Calculate centering classes
-              $colClasses = 'col-md-6 col-lg-4 mb-3';
-              $offsetClasses = '';
-              
-              // If only 1 card, center it on all screen sizes
-              if ($totalCards == 1) {
-                $colClasses = 'col-md-6 col-lg-4 mb-3';
-                $offsetClasses = 'offset-md-3 offset-lg-4';
-              }
-              // If last row has 2 cards (total % 3 == 2), center them on large screens
-              elseif ($totalCards % 3 == 2 && $index >= $totalCards - 2) {
-                if ($index == $totalCards - 2) {
-                  // Second to last card - add offset on large screens to center the pair
-                  $offsetClasses = 'offset-lg-2';
-                }
-              }
-              // If last row has 1 card (total % 3 == 1), center it on large screens
-              elseif ($totalCards % 3 == 1 && $index == $totalCards - 1) {
-                $offsetClasses = 'offset-lg-4';
-              }
-            @endphp
-            <div class="{{ $colClasses }} {{ $offsetClasses }}">
-              <div class="card-glass" style="padding: 1.25rem; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; transition: all 0.3s ease;">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div>
-                    <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.1rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
-                    <p class="mb-0 text-white" style="font-size: 0.85rem; opacity: 0.9; color: #ffffff !important;">
-                      <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
-                      <span style="color: #ffffff !important;">{{ $geData['city'] }}</span>
-                    </p>
-                  </div>
-                  <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-                    <i data-feather="user-check" style="width: 24px; height: 24px; color: #ffffff;"></i>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-white" style="font-size: 0.9rem; font-weight: 500; opacity: 0.95; color: #ffffff !important;">Progress</span>
-                    <span class="text-white" style="font-weight: 700; font-size: 1.5rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
-                  </div>
-                  <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.2); border-radius: 7px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div class="progress-bar" role="progressbar" 
-                         style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, #f0f9ff 100%); border-radius: 7px; box-shadow: 0 2px 8px rgba(255, 255, 255, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.6); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.3);" 
-                         aria-valuenow="{{ $geData['progress_percentage'] }}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
-                    </div>
-                  </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
-                    <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
-                    <span style="font-weight: 600; color: #ffffff !important;">{{ $geData['resolved_complaints'] }}</span> <span style="color: #ffffff !important;">Resolved</span>
-                  </span>
-                  <span class="text-white" style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
-                    <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
-                    <span style="font-weight: 600; color: #ffffff !important;">{{ $geData['total_complaints'] }}</span> <span style="color: #ffffff !important;">Total</span>
-                  </span>
+<!-- GE PROGRESS SECTION (For Director Only) -->
+@if(isset($geProgress) && count($geProgress) > 0)
+<div class="row mt-5 mb-5">
+  <div class="col-12">
+    <div class="card-glass" style="padding: 2.5rem;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 text-white" style="font-weight: 700; font-size: 1.5rem;">
+          <i data-feather="users" class="me-2" style="width: 28px; height: 28px;"></i>GE Feedback Overview
+        </h5>
+      </div>
+      <div class="row g-4">
+        @php
+          $colorSchemes = [
+            ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => '#60a5fa', 'progress' => 'linear-gradient(90deg, #3b82f6, #60a5fa)'],
+            ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
+            ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
+            ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
+            ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
+          ];
+          $totalCards = count($geProgress);
+        @endphp
+        @foreach($geProgress as $index => $geData)
+        @php
+          $colorScheme = $colorSchemes[$index % count($colorSchemes)];
+          $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                          ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                          ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
+          
+          $colClasses = 'col-md-6 col-lg-4 mb-3';
+          $offsetClasses = '';
+          
+          if ($totalCards == 1) {
+            $colClasses = 'col-md-6 col-lg-4 mb-3';
+            $offsetClasses = 'offset-md-3 offset-lg-4';
+          }
+          elseif ($totalCards % 3 == 2 && $index >= $totalCards - 2) {
+            if ($index == $totalCards - 2) {
+              $offsetClasses = 'offset-lg-2';
+            }
+          }
+          elseif ($totalCards % 3 == 1 && $index == $totalCards - 1) {
+            $offsetClasses = 'offset-lg-4';
+          }
+        @endphp
+        <div class="{{ $colClasses }} {{ $offsetClasses }}">
+          <div class="ge-progress-card" style="padding: 2rem; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 24px !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.25rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
+                <p class="mb-0 text-white" style="font-size: 0.9rem; opacity: 0.95; color: #ffffff !important;">
+                  <i data-feather="map-pin" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
+                  <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
+                </p>
+              </div>
+              <div style="width: 60px; height: 60px; background: rgba(255, 255, 255, 0.25); border-radius: 16px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);">
+                <i data-feather="user-check" style="width: 28px; height: 28px; color: #ffffff;"></i>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-white" style="font-size: 0.95rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Progress</span>
+                <span class="text-white" style="font-weight: 800; font-size: 1.75rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
+              </div>
+              <div class="progress" style="height: 18px; background-color: rgba(0, 0, 0, 0.25); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 10px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);" 
+                     aria-valuenow="{{ $geData['progress_percentage'] }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
                 </div>
               </div>
             </div>
-            @endforeach
-          </div>
-        </div>
-      </div>
-    </div>
-    @endif
-
-    <!-- MONTHLY TRENDS CHART -->
-    <div class="row mb-4">
-      <div class="col-12">
-    <div class="card-glass">
-      <h5 class="mb-3 text-white" style="font-weight: bold;">Monthly Trends</h5>
-      <div id="monthlyTrendsChart" style="height: 420px;"></div>
-        </div>
-      </div>
+            <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.25);">
+              <span class="text-white" style="font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+                <i data-feather="check-circle" style="width: 18px; height: 18px; color: #ffffff;"></i>
+                <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['resolved_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Resolved</span>
+              </span>
+              <span class="text-white" style="font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+                <i data-feather="file-text" style="width: 18px; height: 18px; color: #ffffff;"></i>
+                <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['total_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Total</span>
+              </span>
             </div>
-
-    <!-- TABLES ROW -->
-    <div class="row">
-      <div class="col-12">
-        <div class="card-glass">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 text-white" style="font-weight: bold;">Recent Complaints</h5>
-        <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">View All</a>
           </div>
-          <div class="table-responsive">
-            <table class="table table-dark ">
-                <thead>
-                <tr>
-                  <th>Complaint ID</th>
-                  <th>Complainant</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                </tr>
-                </thead>
-              <tbody>
-            @forelse($recentComplaints ?? [] as $complaint)
-                <tr>
-                  <td>{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</td>
-                  <td>{{ $complaint->client->client_name }}</td>
-                  <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
-                  <td>
-                    @if($complaint->status === 'resolved')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border: 1px solid #166534 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'in_progress')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border: 1px solid #991b1b !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'assigned')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'un_authorized')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border: 1px solid #db2777 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'pertains_to_ge_const_isld')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border: 1px solid #0891b2 !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @elseif($complaint->status === 'product_na')
-                      <span class="status-badge status-{{ $complaint->status }}" style="background-color: #000000 !important; color: #ffffff !important; border: 1px solid #1a1a1a !important; padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @else
-                      <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                    @endif
-                  </td>
-                  <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="5" class="text-center py-3">No recent complaints</td>
-                </tr>
-                @endforelse
-                </tbody>
-              </table>
         </div>
+        @endforeach
       </div>
     </div>
+  </div>
+</div>
+@endif
+
+<!-- MONTHLY TRENDS CHART -->
+<div class="row mb-5">
+  <div class="col-12">
+    <div class="card-glass chart-container">
+      <h5 class="mb-4 text-white" style="font-weight: 700; font-size: 1.25rem;">
+        <i data-feather="trending-up" class="me-2" style="width: 24px; height: 24px;"></i>
+        Monthly Trends
+      </h5>
+      <div id="monthlyTrendsChart" style="height: 420px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLES ROW -->
+<div class="row mb-5">
+  <div class="col-12">
+    <div class="card-glass" style="padding: 2rem;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 text-white" style="font-weight: 700; font-size: 1.25rem;">
+          <i data-feather="list" class="me-2" style="width: 24px; height: 24px;"></i>
+          Recent Complaints
+        </h5>
+        <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">
+          <i data-feather="arrow-right" class="me-1" style="width: 16px; height: 16px;"></i>
+          View All
+        </a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark">
+          <thead>
+            <tr>
+              <th>Complaint ID</th>
+              <th>Complainant</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($recentComplaints ?? [] as $complaint)
+            <tr>
+              <td><strong>#{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</strong></td>
+              <td>{{ $complaint->client->client_name }}</td>
+              <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
+              <td>
+                @if($complaint->status === 'resolved')
+                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($complaint->status === 'in_progress')
+                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border-color: #991b1b !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($complaint->status === 'assigned')
+                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($complaint->status === 'un_authorized')
+                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($complaint->status === 'pertains_to_ge_const_isld')
+                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($complaint->status === 'product_na')
+                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @else
+                  <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @endif
+              </td>
+              <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
+            </tr>
+            @empty
+            <tr>
+              <td colspan="5" class="text-center py-4" style="color: #64748b; font-style: italic;">No recent complaints</td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- APPROVALS SECTION -->
     @if(isset($pendingApprovals) && $pendingApprovals->count() > 0)
