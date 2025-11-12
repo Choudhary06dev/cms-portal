@@ -88,14 +88,31 @@
   margin-top: 0 !important;
 }
 
-/* Ensure all cards have equal height */
-.row .col-md-2,
-.row .col-lg-2 {
+/* Ensure all cards have equal height and set to 5 cards per row */
+/* Target stat card columns specifically */
+.row.mb-5.g-3 .col-md-2,
+.row.mb-5.g-3 .col-lg-2 {
   display: flex !important;
+  flex: 0 0 20% !important; /* 5 cards per row (100% / 5 = 20%) */
+  max-width: 20% !important;
 }
 
-.row .col-md-2 > .stat-card,
-.row .col-lg-2 > .stat-card {
+@media (min-width: 768px) and (max-width: 991px) {
+  .row.mb-5.g-3 .col-md-2 {
+    flex: 0 0 20% !important; /* 5 cards per row on medium screens */
+    max-width: 20% !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .row.mb-5.g-3 .col-lg-2 {
+    flex: 0 0 20% !important; /* 5 cards per row on large screens */
+    max-width: 20% !important;
+  }
+}
+
+.row.mb-5.g-3 .col-md-2 > .stat-card,
+.row.mb-5.g-3 .col-lg-2 > .stat-card {
   width: 100% !important;
 }
 

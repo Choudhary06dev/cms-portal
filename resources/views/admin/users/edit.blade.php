@@ -125,14 +125,14 @@
             <label for="city_id" class="form-label text-white">GE Groups</label>
             <select class="form-select @error('city_id') is-invalid @enderror" 
                     id="city_id" name="city_id">
-              <option value="">Select GE Groups (if required)</option>
+              <option value="">Select GE Groups</option>
               @foreach($cities as $city)
                 <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id', $user->city_id) == $city->id ? 'selected' : '' }}>
                   {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                 </option>
               @endforeach
             </select>
-            <small class="text-muted">Required for: GE, Complaint Center, Department Staff</small>
+            <small class="text-muted"></small>
             @error('city_id')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -153,7 +153,7 @@
             </select>
             <!-- Hidden field to ensure sector_id is always submitted even when select is disabled -->
             <input type="hidden" id="sector_id_hidden" name="sector_id" value="{{ old('sector_id', $user->sector_id) }}">
-            <small class="text-muted">Required for: Complaint Center, Department Staff</small>
+            <small class="text-muted"></small>
             @error('sector_id')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror

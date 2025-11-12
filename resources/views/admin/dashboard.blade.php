@@ -179,10 +179,7 @@
       </div>
     </div>
   </div>
-</div>
-
-<!-- COMPLAINT STATUS CARDS -->
-<div class="row mb-5 g-3 justify-content-center">
+  
   <div class="col-md-2 col-lg-2">
     <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
@@ -238,10 +235,7 @@
       </div>
     </div>
   </div>
-</div>
-
-<!-- ADDITIONAL STATS -->
-<div class="row mb-5 justify-content-center g-3">
+  
   <div class="col-md-2 col-lg-2">
     <div class="stat-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
@@ -265,34 +259,6 @@
         </div>
         <div class="stat-icon">
           <i data-feather="user-check" class="feather-lg"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['low_stock_items'] ?? 0 }}</div>
-          <div class="stat-label">Low Stock</div>
-        </div>
-        <div class="stat-icon">
-          <i data-feather="alert-triangle" class="feather-lg"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="flex-grow-1">
-          <div class="stat-number">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
-          <div class="stat-label">SLA Performance</div>
-        </div>
-        <div class="stat-icon">
-          <i data-feather="trending-up" class="feather-lg"></i>
         </div>
       </div>
     </div>
