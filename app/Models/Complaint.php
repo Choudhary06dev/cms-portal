@@ -132,7 +132,7 @@ class Complaint extends Model
         return [
             'new' => 'New',
             'assigned' => 'Assigned',
-            'in_progress' => 'In Progress',
+            'in_progress' => 'In Process',
             'resolved' => 'Resolved',
             'closed' => 'Closed',
         ];

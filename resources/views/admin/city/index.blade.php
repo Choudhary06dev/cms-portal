@@ -1,13 +1,13 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Cities — CMS Admin')
+@section('title', 'GE Groups — CMS Admin')
 
 @section('content')
 <div class="container-narrow">
 <div class="mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <h2 class="text-white mb-1">Cities</h2>
-    <p class="text-light mb-0">Manage cities for employee selection</p>
+    <h2 class="text-white mb-1">GE Groups</h2>
+    <p class="text-light mb-0">Manage GE Groups for employee selection</p>
   </div>
 </div>
 
@@ -36,14 +36,14 @@
 
 <div class="card-glass mb-3">
   <div class="card-header">
-    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add City</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add GE Groups</h5>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ route('admin.city.store') }}" class="d-flex flex-wrap align-items-end gap-2">
       @csrf
       <div style="min-width: 220px; flex: 0 0 260px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Name</label>
-        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="City name" required>
+        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="GE Groups name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 160px; flex: 0 0 180px;">
@@ -73,7 +73,7 @@
 
 <div class="card-glass">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>Cities</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>GE Groups</h5>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -110,7 +110,7 @@
           </tr>
           @empty
           <tr>
-            <td colspan="4" class="text-center text-muted">No cities yet.</td>
+            <td colspan="4" class="text-center text-muted">No GE Groups yet.</td>
           </tr>
           @endforelse
         </tbody>
@@ -135,7 +135,7 @@
   <div class="modal-dialog">
     <div class="modal-content bg-dark text-white">
       <div class="modal-header">
-        <h5 class="modal-title" id="editCityModalLabel">Edit City</h5>
+        <h5 class="modal-title" id="editCityModalLabel">Edit GE Groups</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="editCityForm" method="POST">

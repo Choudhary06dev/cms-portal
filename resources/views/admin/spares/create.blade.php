@@ -82,10 +82,10 @@
                     
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="city_id" class="form-label text-white">City</label>
+                            <label for="city_id" class="form-label text-white">GE Groups</label>
                             <select class="form-select @error('city_id') is-invalid @enderror" 
                                     id="city_id" name="city_id">
-                                <option value="">Select City</option>
+                                <option value="">Select GE Groups</option>
                                 @if(isset($cities) && $cities->count() > 0)
                                     @foreach ($cities as $city)
                                         <option value="{{ $city->id }}" {{ old('city_id', $defaultCityId ?? null) == $city->id ? 'selected' : '' }}>
@@ -102,10 +102,10 @@
                     
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="sector_id" class="form-label text-white">Sector</label>
+                            <label for="sector_id" class="form-label text-white">GE Nodes</label>
                             <select class="form-select @error('sector_id') is-invalid @enderror" 
                                     id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
-                                <option value="">{{ (old('city_id', $defaultCityId ?? null)) ? 'Loading sectors...' : 'Select City First' }}</option>
+                                <option value="">{{ (old('city_id', $defaultCityId ?? null)) ? 'Loading GE Nodes...' : 'Select GE Groups First' }}</option>
                             </select>
                             @error('sector_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
-                    sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+                    sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
                     const sectors = Array.isArray(data) ? data : (data.sectors || []);
                     if (sectors && sectors.length > 0) {
                         sectors.forEach(function(sector) {
@@ -309,15 +309,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         sectorSelect.disabled = false;
                     } else {
-                        sectorSelect.innerHTML = '<option value="">No Sector Available</option>';
+                        sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching sectors:', error);
-                    sectorSelect.innerHTML = '<option value="">Error Loading Sectors</option>';
+                    console.error('Error fetching GE Nodes:', error);
+                    sectorSelect.innerHTML = '<option value="">Error Loading GE Nodes</option>';
                 });
             } else {
-                sectorSelect.innerHTML = '<option value="">Select City First</option>';
+                sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
             }
         });
         
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(resp => resp.json())
             .then(data => {
-                sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+                sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
                 const sectors = Array.isArray(data) ? data : (data.sectors || []);
                 if (sectors && sectors.length > 0) {
                     sectors.forEach(sector => {
@@ -351,11 +351,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     sectorSelect.disabled = false;
                 } else {
-                    sectorSelect.innerHTML = '<option value="">No Sector Available</option>';
+                    sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
                 }
             })
             .catch(() => {
-                sectorSelect.innerHTML = '<option value="">Error Loading Sectors</option>';
+                sectorSelect.innerHTML = '<option value="">Error Loading GE Nodes</option>';
             });
         }
     }

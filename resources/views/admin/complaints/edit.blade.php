@@ -43,10 +43,10 @@
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
-                  <label for="city_id" class="form-label text-white">City</label>
+                  <label for="city_id" class="form-label text-white">GE Groups</label>
                   <select class="form-select @error('city_id') is-invalid @enderror" 
                           id="city_id" name="city_id">
-                    <option value="">Select City</option>
+                    <option value="">Select GE Groups</option>
                     @if(isset($cities) && $cities->count() > 0)
                       @foreach($cities as $city)
                         <option value="{{ $city->id }}" {{ (string)old('city_id', $defaultCityId ?? '') === (string)$city->id ? 'selected' : '' }}>
@@ -62,11 +62,11 @@
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
-                  <label for="sector_id" class="form-label text-white">Sector</label>
+                  <label for="sector_id" class="form-label text-white">GE Nodes</label>
                   <select class="form-select @error('sector_id') is-invalid @enderror" 
                           id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
                     @php $hasCity = old('city_id', $defaultCityId ?? null); @endphp
-                    <option value="">{{ $hasCity ? 'Loading sectors...' : 'Select City First' }}</option>
+                    <option value="">{{ $hasCity ? 'Loading GE Nodes...' : 'Select GE Groups First' }}</option>
                     @if(isset($sectors) && $sectors->count() > 0)
                       @foreach($sectors as $sector)
                         <option value="{{ $sector->id }}" {{ (string)old('sector_id', $defaultSectorId ?? '') === (string)$sector->id ? 'selected' : '' }}>
@@ -685,11 +685,11 @@ document.addEventListener('DOMContentLoaded', function() {
     citySelect.addEventListener('change', function() {
       const cityId = this.value;
       if (!cityId) {
-        sectorSelect.innerHTML = '<option value="">Select City First</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
         sectorSelect.disabled = true;
         return;
       }
-      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+      sectorSelect.innerHTML = '<option value="">Loading GE Nodes...</option>';
       sectorSelect.disabled = true;
       fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
         headers: {
@@ -700,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(response => response.json())
       .then(data => {
-        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
         if (data && data.length > 0) {
           data.forEach(sector => {
             const option = document.createElement('option');
@@ -709,13 +709,13 @@ document.addEventListener('DOMContentLoaded', function() {
             sectorSelect.appendChild(option);
           });
         } else {
-          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+          sectorSelect.innerHTML = '<option value="">No GE Nodes found for this GE Groups</option>';
         }
         sectorSelect.disabled = false;
       })
       .catch(error => {
-        console.error('Error loading sectors:', error);
-        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        console.error('Error loading GE Nodes:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading GE Nodes</option>';
         sectorSelect.disabled = false;
       });
     });
@@ -734,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(response => response.json())
       .then(data => {
-        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
         if (data && data.length > 0) {
           data.forEach(sector => {
             const option = document.createElement('option');
@@ -746,13 +746,13 @@ document.addEventListener('DOMContentLoaded', function() {
             sectorSelect.appendChild(option);
           });
         } else {
-          sectorSelect.innerHTML = '<option value=\"\">No sectors found for this city</option>';
+          sectorSelect.innerHTML = '<option value=\"\">No GE Nodes found for this GE Groups</option>';
         }
         sectorSelect.disabled = false;
       })
       .catch(error => {
-        console.error('Error loading sectors:', error);
-        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        console.error('Error loading GE Nodes:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading GE Nodes</option>';
         sectorSelect.disabled = false;
       });
     }

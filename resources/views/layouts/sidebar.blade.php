@@ -397,10 +397,10 @@
         @endif
         @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
          <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="map" class="me-2"></i> Cities
+          <i data-feather="map" class="me-2"></i> GE Groups
         </a>
         <a href="{{ route('admin.sector.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="map-pin" class="me-2"></i> Sectors
+          <i data-feather="map-pin" class="me-2"></i> GE Nodes
         </a>
         @endif
        

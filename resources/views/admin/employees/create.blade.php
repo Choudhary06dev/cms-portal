@@ -74,10 +74,10 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="city_id" class="form-label text-white">City</label>
+          <label for="city_id" class="form-label text-white">GE Groups</label>
           <select class="form-select @error('city_id') is-invalid @enderror" 
                   id="city_id" name="city_id">
-            <option value="">Select City</option>
+            <option value="">Select GE Groups</option>
             @if(isset($cities) && $cities->count() > 0)
               @foreach ($cities as $city)
                 <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
@@ -91,10 +91,10 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="sector_id" class="form-label text-white">Sector</label>
+          <label for="sector_id" class="form-label text-white">GE Nodes</label>
           <select class="form-select @error('sector_id') is-invalid @enderror" 
                   id="sector_id" name="sector_id" disabled>
-            <option value="">Select City First</option>
+            <option value="">Select GE Groups First</option>
           </select>
           @error('sector_id')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -242,9 +242,9 @@
             return response.json();
           })
           .then(data => {
-            console.log('Sectors data received:', data);
-            console.log('Number of sectors for city:', data.sectors ? data.sectors.length : 0);
-            sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+            console.log('GE Nodes data received:', data);
+            console.log('Number of GE Nodes for GE Groups:', data.sectors ? data.sectors.length : 0);
+            sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
             
             if (data.sectors && data.sectors.length > 0) {
               data.sectors.forEach(function(sector) {
@@ -254,18 +254,18 @@
                 sectorSelect.appendChild(option);
               });
               sectorSelect.disabled = false;
-              console.log('Sectors loaded successfully:', data.sectors.length);
+              console.log('GE Nodes loaded successfully:', data.sectors.length);
             } else {
-              sectorSelect.innerHTML = '<option value="">No Sector Available</option>';
-              console.log('No sectors found for city ID:', actualCityId);
+              sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
+              console.log('No GE Nodes found for GE Groups ID:', actualCityId);
             }
           })
           .catch(error => {
-            console.error('Error fetching sectors:', error);
-            sectorSelect.innerHTML = '<option value="">Error Loading Sectors</option>';
+            console.error('Error fetching GE Nodes:', error);
+            sectorSelect.innerHTML = '<option value="">Error Loading GE Nodes</option>';
           });
         } else {
-          sectorSelect.innerHTML = '<option value="">Select City First</option>';
+          sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
         }
       });
     }
