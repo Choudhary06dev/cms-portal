@@ -19,8 +19,8 @@ class CategoryController extends Controller
                 ->with('error', 'Run migrations to create complaint_categories table.');
         }
 
-        // Show all categories - ordered by ID (descending - latest first)
-        $categories = ComplaintCategory::orderBy('id', 'desc')->paginate(15);
+        // Show all categories - ordered by ID (ascending - 1, 2, 3...)
+        $categories = ComplaintCategory::orderBy('id', 'asc')->paginate(15);
         return view('admin.category.index', compact('categories'));
     }
 

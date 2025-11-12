@@ -1164,13 +1164,13 @@
   
   /* Zebra striping for addStockModal */
   #addStockModal .table tbody tr:nth-child(odd) {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.25) !important;
   }
   #addStockModal .table tbody tr:nth-child(even) {
-    background-color: rgba(59, 130, 246, 0.12) !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
   }
   #addStockModal .table tbody tr:hover {
-    background-color: rgba(59, 130, 246, 0.25) !important;
+    background-color: rgba(59, 130, 246, 0.35) !important;
   }
   
   #addStockModal .table-responsive {

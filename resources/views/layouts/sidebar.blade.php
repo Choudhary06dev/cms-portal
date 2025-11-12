@@ -409,14 +409,12 @@
     @endif
     @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff') || ($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer')))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important;" id="complaintsManagementToggle">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important; cursor: pointer;" id="complaintsManagementToggle" data-bs-toggle="collapse" data-bs-target="#complaintsManagementSubmenu" aria-expanded="{{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'true' : 'false' }}">
         <div class="d-flex align-items-center flex-grow-1">
           <i data-feather="file-text" class="me-2"></i> 
           <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Mgmt</span>
         </div>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsManagementSubmenu" aria-expanded="{{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'true' : 'false' }}" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
-        </button>
       </div>
       <div class="collapse {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'show' : '' }}" id="complaintsManagementSubmenu">
         @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
@@ -662,23 +660,13 @@
         });
       }
 
-      // Handle Complaints Management submenu - ONLY arrow button should toggle
+      // Handle Complaints Management submenu - entire menu item is clickable
       const complaintsManagementToggle = document.getElementById('complaintsManagementToggle');
       const complaintsManagementSubmenu = document.getElementById('complaintsManagementSubmenu');
-      const complaintsArrowBtn = complaintsManagementToggle ? complaintsManagementToggle.querySelector('.nav-arrow-btn') : null;
       
-      if (complaintsManagementToggle && complaintsManagementSubmenu && complaintsArrowBtn) {
-        // Prevent clicks on the toggle div itself from opening submenu
-        complaintsManagementToggle.addEventListener('click', function(e) {
-          // Only allow if clicking directly on the arrow button
-          const clickedArrowBtn = e.target.closest('.nav-arrow-btn');
-          if (!clickedArrowBtn || clickedArrowBtn !== complaintsArrowBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-          }
-        }, true); // Use capture phase to intercept early
+      if (complaintsManagementToggle && complaintsManagementSubmenu) {
+        // The entire toggle div is now clickable via data-bs-toggle attribute
+        // No need to prevent clicks anymore
         
         // Prevent modal clicks from triggering submenu
         document.addEventListener('click', function(e) {

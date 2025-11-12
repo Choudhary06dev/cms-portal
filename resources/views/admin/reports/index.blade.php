@@ -94,41 +94,41 @@
         <div class="row g-3">
           <!-- Row 1: 3 items -->
           <div class="col-md-4 col-6">
-            <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #3b82f6;">
-              <div class="h3 text-primary mb-1 fw-bold">{{ $stats['total_complaints_this_month'] ?? 0 }}</div>
-              <div class="text-muted small">Total Complaints This Month</div>
+            <div class="text-center p-3" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 8px; border: none;">
+              <div class="h3 mb-1 fw-bold" style="color: #ffffff !important;">{{ $stats['total_complaints_this_month'] ?? 0 }}</div>
+              <div class="small" style="color: #ffffff !important; opacity: 0.95;">Total Complaints This Month</div>
             </div>
           </div>
           <div class="col-md-4 col-6">
-            <div class="text-center p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid #10b981;">
-              <div class="h3 text-success mb-1 fw-bold">{{ $stats['resolved_this_month'] ?? 0 }}</div>
-              <div class="text-muted small">Resolved This Month</div>
+            <div class="text-center p-3" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 8px; border: none;">
+              <div class="h3 mb-1 fw-bold" style="color: #ffffff !important;">{{ $stats['resolved_this_month'] ?? 0 }}</div>
+              <div class="small" style="color: #ffffff !important; opacity: 0.95;">Resolved This Month</div>
             </div>
           </div>
           <div class="col-md-4 col-6">
-            <div class="text-center p-3" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #06b6d4;">
-              <div class="h3 text-info mb-1 fw-bold">{{ $stats['active_employees'] ?? 0 }}</div>
-              <div class="text-muted small">Active Employees</div>
+            <div class="text-center p-3" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 8px; border: none;">
+              <div class="h3 mb-1 fw-bold" style="color: #ffffff !important;">{{ $stats['active_employees'] ?? 0 }}</div>
+              <div class="small" style="color: #ffffff !important; opacity: 0.95;">Active Employees</div>
             </div>
           </div>
           
           <!-- Row 2: 3 items -->
           <div class="col-md-4 col-6">
-            <div class="text-center p-3" style="background: rgba(139, 92, 246, 0.1); border-radius: 8px; border-left: 3px solid #8b5cf6;">
-              <div class="h3 text-secondary mb-1 fw-bold">{{ $stats['total_spares'] ?? 0 }}</div>
-              <div class="text-muted small">Total Products</div>
+            <div class="text-center p-3" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); border-radius: 8px; border: none;">
+              <div class="h3 mb-1 fw-bold" style="color: #ffffff !important;">{{ $stats['total_spares'] ?? 0 }}</div>
+              <div class="small" style="color: #ffffff !important; opacity: 0.95;">Total Products</div>
             </div>
           </div>
           <div class="col-md-4 col-6">
-            <div class="text-center p-3" style="background: rgba(239, 68, 68, 0.1); border-radius: 8px; border-left: 3px solid #ef4444;">
-              <div class="h3 text-danger mb-1 fw-bold">{{ $stats['low_stock_items'] ?? 0 }}</div>
-              <div class="text-muted small">Low Stock Items</div>
+            <div class="text-center p-3" style="background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); border-radius: 8px; border: none;">
+              <div class="h3 mb-1 fw-bold" style="color: #ffffff !important;">{{ $stats['low_stock_items'] ?? 0 }}</div>
+              <div class="small" style="color: #ffffff !important; opacity: 0.95;">Low Stock Items</div>
             </div>
           </div>
           <div class="col-md-4 col-6">
-            <div class="text-center p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid #10b981;">
-              <div class="h3 text-success mb-1 fw-bold">{{ $stats['employee_performance'] ?? 0 }}%</div>
-              <div class="text-muted small">Avg Performance</div>
+            <div class="text-center p-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; border: none;">
+              <div class="h3 mb-1 fw-bold" style="color: #ffffff !important;">{{ $stats['employee_performance'] ?? 0 }}%</div>
+              <div class="small" style="color: #ffffff !important; opacity: 0.95;">Avg Performance</div>
             </div>
           </div>
         </div>
@@ -188,23 +188,23 @@
           <i data-feather="activity" class="me-2"></i>Recent Activity
         </h5>
       </div>
-      <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+      <div class="card-body" style="max-height: 400px; overflow-y: auto; padding: 1rem !important;">
         <div class="list-group list-group-flush">
           @forelse($recentActivity as $activity)
-          <div class="list-group-item px-0 py-2" style="background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1) !important;">
-            <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1">
-                <div class="fw-bold text-white mb-1" style="font-size: 0.9rem;">{{ $activity['title'] }}</div>
-                <small class="text-muted d-block" style="font-size: 0.8rem;">{{ $activity['description'] }}</small>
-                <small class="text-muted" style="font-size: 0.75rem;">{{ $activity['time'] }}</small>
+          <div class="list-group-item py-2 mb-2" style="background: transparent !important; border: none !important; border-bottom: 1px solid rgba(0,0,0,0.1) !important; padding-left: 0 !important; padding-right: 0 !important;">
+            <div class="d-flex justify-content-between align-items-start" style="gap: 10px;">
+              <div class="flex-grow-1" style="min-width: 0;">
+                <div class="fw-bold mb-1" style="font-size: 0.9rem; color: #000000 !important;">{{ $activity['title'] }}</div>
+                <small class="d-block mb-1" style="font-size: 0.8rem; color: rgba(0,0,0,0.85) !important;">{{ $activity['description'] }}</small>
+                <small style="font-size: 0.75rem; color: rgba(0,0,0,0.7) !important;">{{ $activity['time'] }}</small>
               </div>
-              <span class="badge bg-{{ $activity['badge_class'] }} ms-2">{{ $activity['badge'] }}</span>
+              <span class="badge bg-{{ $activity['badge_class'] }} ms-2" style="flex-shrink: 0; white-space: nowrap;">{{ $activity['badge'] }}</span>
             </div>
           </div>
           @empty
           <div class="text-center py-4">
-            <i data-feather="inbox" class="feather-lg text-muted mb-2"></i>
-            <div class="text-muted">No recent activity</div>
+            <i data-feather="inbox" class="feather-lg mb-2" style="color: rgba(0,0,0,0.5) !important;"></i>
+            <div style="color: rgba(0,0,0,0.7) !important;">No recent activity</div>
           </div>
           @endforelse
         </div>

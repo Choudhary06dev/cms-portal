@@ -113,7 +113,7 @@ class SpareController extends Controller
         
         // Get cities and sectors based on user role
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $sectors = collect();
@@ -288,7 +288,7 @@ class SpareController extends Controller
         
         // Get cities and sectors based on user role
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $sectors = collect();

@@ -48,7 +48,7 @@ class DashboardController extends Controller
         if (Schema::hasTable('cities')) {
             if (!$user->city_id) {
                 // User has no city_id assigned, can see all cities
-                $cities = City::where('status', 'active')->orderBy('name')->get();
+                $cities = City::where('status', 'active')->orderBy('id', 'asc')->get();
                 // Load GE users for each city
                 if ($geRole) {
                     $cities->load(['users' => function($query) use ($geRole) {
@@ -79,14 +79,14 @@ class DashboardController extends Controller
                 if (!$user->city_id) {
                     // If user has no city_id, show all sectors or sectors of selected city
                     if ($cityId) {
-                        $sectors = Sector::where('city_id', $cityId)->where('status', 'active')->orderBy('name')->get();
+                        $sectors = Sector::where('city_id', $cityId)->where('status', 'active')->orderBy('id', 'asc')->get();
                     } else {
                         // User has no city_id and no sector_id - show all sectors
-                        $sectors = Sector::where('status', 'active')->orderBy('name')->get();
+                        $sectors = Sector::where('status', 'active')->orderBy('id', 'asc')->get();
                     }
                 } else {
                     // If user has city_id, show sectors in their city
-                    $sectors = Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('name')->get();
+                    $sectors = Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('id', 'asc')->get();
                 }
             } elseif ($user->sector_id && $user->sector) {
                 // User has sector_id assigned, sees only their sector

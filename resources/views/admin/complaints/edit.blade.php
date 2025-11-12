@@ -92,7 +92,9 @@
               <div class="col-md-3">
                 <div class="mb-3">
                   <label for="phone" class="form-label text-white">Phone No.</label>
-                  <input type="text" class="form-control @error('phone') is-invalid @enderror" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number">
+                  <input type="tel" class="form-control @error('phone') is-invalid @enderror" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number"
+                    pattern="[0-9]*" inputmode="numeric" 
+                    onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                   @error('phone')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -286,6 +288,20 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Phone number input validation - only allow numbers
+  const phoneInput = document.getElementById('client_phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    phoneInput.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+      const numbersOnly = pastedText.replace(/[^0-9]/g, '');
+      this.value = numbersOnly;
+    });
+  }
+  
   const categorySelect = document.getElementById('category');
   const employeeSelect = document.getElementById('assigned_employee_id');
   const addressInput = document.getElementById('client_address');

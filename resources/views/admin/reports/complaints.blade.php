@@ -10,10 +10,10 @@
       <h2 class="text-white mb-2">(CMS) COMPLAINT MANAGEMENT SYSTEM</h2>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-success" onclick="window.print()">
+      <button class="btn btn-primary" onclick="window.print()">
         <i data-feather="printer" class="me-2"></i>Print Pdf
       </button>
-      <a href="{{ route('admin.reports.complaints', array_merge(request()->query(), ['format' => 'excel'])) }}" class="btn btn-success">
+      <a href="{{ route('admin.reports.complaints', array_merge(request()->query(), ['format' => 'excel'])) }}" class="btn btn-primary">
         <i data-feather="download" class="me-2"></i>Excel
       </a>
     </div>
