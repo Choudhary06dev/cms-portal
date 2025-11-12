@@ -81,7 +81,7 @@
               </div>
             </div>
           </td>
-          <td>{{ ucfirst($employee->department ?? 'N/A') }}</td>
+          <td>{{ ucfirst($employee->category ?? 'N/A') }}</td>
           <td>{{ $employee->designation ?? '' }}</td>
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>

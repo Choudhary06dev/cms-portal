@@ -170,7 +170,7 @@
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
                         <option value="{{ $employee->id }}" 
-                                data-category="{{ $employee->department }}"
+                                data-category="{{ $employee->category ?? '' }}"
                                 data-city="{{ $employee->city_id }}"
                                 data-sector="{{ $employee->sector_id }}"
                                 {{ (string)old('assigned_employee_id', $complaint->assigned_employee_id) === (string)$employee->id ? 'selected' : '' }}>

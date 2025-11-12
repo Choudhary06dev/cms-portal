@@ -23,7 +23,7 @@ class ComplaintLog extends Model
      */
     public function complaint(): BelongsTo
     {
-        return $this->belongsTo(Complaint::class);
+        return $this->belongsTo(Complaint::class, 'complaint_id', 'id');
     }
 
     /**
@@ -31,7 +31,7 @@ class ComplaintLog extends Model
      */
     public function actionBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'action_by');
+        return $this->belongsTo(Employee::class, 'action_by', 'id');
     }
 
     /**

@@ -96,13 +96,13 @@
         <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Work Information</h5>
       </div>
       
-      @if($employee->department)
+      @if($employee->category)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
-          <i data-feather="building" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <i data-feather="tag" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Department</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $employee->department }}</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Category</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $employee->category }}</div>
           </div>
         </div>
       </div>

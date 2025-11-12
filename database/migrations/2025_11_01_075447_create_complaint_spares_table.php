@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('complaint_spares', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('complaint_id')->constrained('complaints')->onDelete('cascade');
-            $table->foreignId('spare_id')->constrained('spares')->onDelete('cascade');
+            $table->unsignedBigInteger('complaint_id');
+            $table->unsignedBigInteger('spare_id');
             $table->integer('quantity')->default(1);
             $table->unsignedBigInteger('used_by')->nullable();
-            $table->foreign('used_by')->references('id')->on('employees')->onDelete('set null');
             $table->timestamp('used_at')->nullable();
             $table->timestamps();
             $table->softDeletes();

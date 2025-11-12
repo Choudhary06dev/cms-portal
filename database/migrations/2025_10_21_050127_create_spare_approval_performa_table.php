@@ -23,10 +23,6 @@ return new class extends Migration
             $table->text('remarks')->nullable();
             $table->timestamps();
 
-            // Foreign key constraints
-            $table->foreign('complaint_id')->references('id')->on('complaints')->onDelete('cascade');
-            // Foreign key constraints removed for easier data management
-
             // Indexes for better performance
             $table->index(['status', 'created_at']);
             $table->index(['requested_by', 'status']);

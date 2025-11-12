@@ -43,7 +43,7 @@ class Spare extends Model
      */
     public function stockLogs(): HasMany
     {
-        return $this->hasMany(SpareStockLog::class);
+        return $this->hasMany(SpareStockLog::class, 'spare_id', 'id');
     }
 
     /**
@@ -51,7 +51,7 @@ class Spare extends Model
      */
     public function complaintSpares(): HasMany
     {
-        return $this->hasMany(ComplaintSpare::class);
+        return $this->hasMany(ComplaintSpare::class, 'spare_id', 'id');
     }
 
     /**
@@ -59,7 +59,7 @@ class Spare extends Model
      */
     public function approvalItems(): HasMany
     {
-        return $this->hasMany(SpareApprovalItem::class);
+        return $this->hasMany(SpareApprovalItem::class, 'spare_id', 'id');
     }
 
     /**
@@ -67,7 +67,7 @@ class Spare extends Model
      */
     public function city()
     {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(City::class, 'city_id', 'id');
     }
 
     /**
@@ -75,7 +75,7 @@ class Spare extends Model
      */
     public function sector()
     {
-        return $this->belongsTo(Sector::class);
+        return $this->belongsTo(Sector::class, 'sector_id', 'id');
     }
 
     /**

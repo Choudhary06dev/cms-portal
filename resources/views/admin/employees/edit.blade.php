@@ -51,7 +51,7 @@
             <option value="">Select Category</option>
             @if(isset($categories) && $categories->count() > 0)
               @foreach ($categories as $cat)
-                <option value="{{ $cat }}" {{ old('category', $employee->department) == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                <option value="{{ $cat }}" {{ old('category', $employee->category) == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
               @endforeach
             @endif
           </select>
@@ -64,8 +64,8 @@
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation</label>
           <select class="form-select @error('designation') is-invalid @enderror" 
-                  id="designation" name="designation" {{ old('category', $employee->department) ? '' : 'disabled' }}>
-            <option value="">{{ old('category', $employee->department) ? 'Loading...' : 'Select Category First' }}</option>
+                  id="designation" name="designation" {{ old('category', $employee->category) ? '' : 'disabled' }}>
+            <option value="">{{ old('category', $employee->category) ? 'Loading...' : 'Select Category First' }}</option>
           </select>
           @error('designation')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -162,7 +162,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     const categorySelect = document.getElementById('category');
     const designationSelect = document.getElementById('designation');
-    const currentCategory = '{{ old('category', $employee->department) }}';
+    const currentCategory = '{{ old('category', $employee->category) }}';
     const currentDesignation = '{{ old('designation', $employee->designation) }}';
     const citySelect = document.getElementById('city_id');
     const sectorSelect = document.getElementById('sector_id');

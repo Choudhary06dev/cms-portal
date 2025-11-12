@@ -89,7 +89,7 @@
       </div>
       @endif
       
-      @if($complaint->city)
+      @if($complaint->city_id && $complaint->city)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
@@ -101,7 +101,7 @@
       </div>
       @endif
       
-      @if($complaint->sector)
+      @if($complaint->sector_id && $complaint->sector)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
@@ -353,15 +353,12 @@
                 </tr>
                 @php
                   $geUser = null;
-                  if ($complaint->city) {
-                    $city = \App\Models\City::where('name', $complaint->city)->first();
-                    if ($city) {
-                      $geUser = \App\Models\User::where('city_id', $city->id)
-                        ->whereHas('role', function($q) {
-                          $q->where('role_name', 'garrison_engineer');
-                        })
-                        ->first();
-                    }
+                  if ($complaint->city_id && $complaint->city) {
+                    $geUser = \App\Models\User::where('city_id', $complaint->city_id)
+                      ->whereHas('role', function($q) {
+                        $q->where('role_name', 'garrison_engineer');
+                      })
+                      ->first();
                   }
                 @endphp
                 @if($geUser)

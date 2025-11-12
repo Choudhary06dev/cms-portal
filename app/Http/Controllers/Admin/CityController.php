@@ -31,8 +31,6 @@ class CityController extends Controller
         }
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:cities,name,NULL,id,status,active',
-            'province' => 'nullable|string|max:100|in:Sindh,Punjab,KPK,Balochistan,Federal,Azad Kashmir',
-            'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
         City::create($validated);
@@ -50,8 +48,6 @@ class CityController extends Controller
             
             $rules = [
                 'name' => 'required|string|max:100',
-                'province' => 'nullable|string|max:100|in:Sindh,Punjab,KPK,Balochistan,Federal,Azad Kashmir',
-                'description' => 'nullable|string',
                 'status' => 'required|in:active,inactive',
             ];
             

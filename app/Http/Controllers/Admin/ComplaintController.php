@@ -39,7 +39,7 @@ class ComplaintController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Complaint::with(['client', 'assignedEmployee', 'attachments', 'spareParts.spare', 'spareApprovals']);
+        $query = Complaint::with(['client', 'assignedEmployee', 'city', 'sector', 'attachments', 'spareParts.spare', 'spareApprovals']);
 
         // Apply location-based filtering
         $this->filterComplaintsByLocation($query, $user);
@@ -263,8 +263,8 @@ class ComplaintController extends Controller
             // Status removed from form - will be managed in approvals view, default to 'new'
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
-            'city' => 'nullable|string|max:100',
-            'sector' => 'nullable|string|max:100',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
             'email' => 'nullable|string|max:150',
             'phone' => 'nullable|string|max:50',
@@ -283,7 +283,7 @@ class ComplaintController extends Controller
         DB::beginTransaction();
         
         try {
-            // Get city and sector names from IDs if provided
+            // Get city and sector names from IDs if provided (for client table)
             $cityName = null;
             $sectorName = null;
             
@@ -297,15 +297,6 @@ class ComplaintController extends Controller
                 $sectorName = $sector ? $sector->name : null;
             }
             
-            // Fallback to text inputs if present
-            $cityName = $cityName ?? ($request->city ?: null);
-            $sectorName = $sectorName ?? ($request->sector ?: '');
-            
-            // Ensure sector is not null (column is not nullable)
-            if (empty($sectorName)) {
-                $sectorName = '';
-            }
-            
             // Find or create client by name
             $client = Client::firstOrCreate(
                 ['client_name' => trim($request->client_name)],
@@ -314,7 +305,7 @@ class ComplaintController extends Controller
                     'email' => $request->input('email', ''),
                     'phone' => $request->input('phone', ''),
                     'city' => $cityName ?? '',
-                    'sector' => $sectorName,
+                    'sector' => $sectorName ?? '',
                     'address' => $request->input('address'),
                     'status' => 'active',
                 ]
@@ -349,12 +340,12 @@ class ComplaintController extends Controller
             $complaint = Complaint::create([
                 'title' => $finalTitle,
                 'client_id' => $client->id,
-                'city' => $cityName,
-                'sector' => $sectorName,
+                'city_id' => $request->city_id ?: null,
+                'sector_id' => $request->sector_id ?: null,
                 'category' => $request->category,
                 'priority' => $request->priority,
                 'description' => $request->description,
-                'assigned_employee_id' => $request->assigned_employee_id,
+                'assigned_employee_id' => $request->assigned_employee_id ?: null,
                 'status' => 'new', // Default to 'new' - status will be managed in approvals view
             ]);
 
@@ -416,6 +407,8 @@ class ComplaintController extends Controller
             $complaint->load([
                 'client',
                 'assignedEmployee',
+                'city',
+                'sector',
                 'attachments',
                 'logs.actionBy',
                 'spareParts.spare',
@@ -486,30 +479,17 @@ class ComplaintController extends Controller
             ? City::where('status', 'active')->orderBy('name')->get()
             : collect();
 
-        // Derive defaults from existing complaint city/sector names
-        $defaultCityId = null;
-        $defaultSectorId = null;
+        // Get default city_id and sector_id from complaint
+        $defaultCityId = $complaint->city_id;
+        $defaultSectorId = $complaint->sector_id;
         $sectors = collect();
 
-        if ($complaint->city && Schema::hasTable('cities')) {
-            $city = City::where('name', $complaint->city)->first();
-            if ($city) {
-                $defaultCityId = $city->id;
-                if (Schema::hasTable('sectors')) {
-                    $sectors = Sector::where('city_id', $city->id)
-                        ->where('status', 'active')
-                        ->orderBy('name')
-                        ->get();
-                    if ($complaint->sector) {
-                        $sector = Sector::where('city_id', $city->id)
-                            ->where('name', $complaint->sector)
-                            ->first();
-                        if ($sector) {
-                            $defaultSectorId = $sector->id;
-                        }
-                    }
-                }
-            }
+        // Load sectors for the selected city
+        if ($defaultCityId && Schema::hasTable('sectors')) {
+            $sectors = Sector::where('city_id', $defaultCityId)
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get();
         }
 
         return view('admin.complaints.edit', compact(
@@ -544,8 +524,6 @@ class ComplaintController extends Controller
             'spare_parts' => 'nullable|array',
             'spare_parts.0.spare_id' => 'nullable|exists:spares,id',
             'spare_parts.0.quantity' => 'nullable|integer|min:1',
-            'city' => 'nullable|string|max:100',
-            'sector' => 'nullable|string|max:100',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
@@ -617,12 +595,12 @@ class ComplaintController extends Controller
         $complaint->update([
             'title' => $finalTitle,
             'client_id' => $client->id,
-            'city' => $cityName,
-            'sector' => $sectorName,
+            'city_id' => $request->city_id ?: null,
+            'sector_id' => $request->sector_id ?: null,
             'category' => $request->category,
             'priority' => $request->priority,
             'description' => $request->description,
-            'assigned_employee_id' => $request->assigned_employee_id,
+            'assigned_employee_id' => $request->assigned_employee_id ?: null,
             // Status not updated here - will be managed in approvals view
             // Keep existing status and closed_at
         ]);

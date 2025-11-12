@@ -24,7 +24,7 @@ class SpareStockLog extends Model
      */
     public function spare(): BelongsTo
     {
-        return $this->belongsTo(Spare::class);
+        return $this->belongsTo(Spare::class, 'spare_id', 'id');
     }
 
     /**

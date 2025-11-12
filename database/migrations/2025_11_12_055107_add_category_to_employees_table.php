@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('departments', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 100)->unique();
-            $table->text('description')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->timestamps();
+        Schema::table('employees', function (Blueprint $table) {
+            $table->string('category', 100)->nullable()->after('name');
         });
     }
 
@@ -25,7 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('departments');
+        Schema::table('employees', function (Blueprint $table) {
+            $table->dropColumn('category');
+        });
     }
 };
-
