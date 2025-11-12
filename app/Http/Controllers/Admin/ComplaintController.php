@@ -191,7 +191,10 @@ class ComplaintController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $complaints = $query->orderBy('id', 'desc')->paginate(15);
+        // Order by ID descending (3, 2, 1...) - newest/highest ID first
+        // Clear any existing orders and set explicit descending order
+        $query->reorder()->orderBy('id', 'desc');
+        $complaints = $query->paginate(15);
         
         // Filter employees by location
         $employeesQuery = Employee::where('status', 'active');
@@ -220,7 +223,7 @@ class ComplaintController extends Controller
         
         // Get cities and sectors for dropdowns
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $sectors = collect(); // Will be loaded dynamically based on city selection
@@ -476,7 +479,7 @@ class ComplaintController extends Controller
 
         // Provide cities/sectors for dropdowns (match create() UX)
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
 
         // Get default city_id and sector_id from complaint

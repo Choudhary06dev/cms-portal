@@ -73,7 +73,7 @@ class EmployeeController extends Controller
             : collect();
         
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $designations = Schema::hasTable('designations')
@@ -218,7 +218,7 @@ class EmployeeController extends Controller
             : collect();
         
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $designations = Schema::hasTable('designations')
@@ -296,7 +296,7 @@ class EmployeeController extends Controller
         // Explicitly filter by city_id - ensure only sectors for this city are returned
         $sectors = Sector::where('city_id', '=', $cityId)
             ->where('status', '=', 'active')
-            ->orderBy('name')
+            ->orderBy('id', 'asc')
             ->get(['id', 'name']);
         
         // Log all sectors in database for debugging (remove in production)

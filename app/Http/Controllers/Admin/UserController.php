@@ -58,7 +58,7 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        $cities = City::where('status', 'active')->orderBy('name')->get();
+        $cities = City::where('status', 'active')->orderBy('id', 'asc')->get();
         $sectors = collect(); // Will be populated dynamically based on selected city
         return view('admin.users.create', compact('roles', 'cities', 'sectors'));
     }
@@ -138,9 +138,9 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        $cities = City::where('status', 'active')->orderBy('name')->get();
+        $cities = City::where('status', 'active')->orderBy('id', 'asc')->get();
         $sectors = $user->city_id 
-            ? Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('name')->get()
+            ? Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         return view('admin.users.edit', compact('user', 'roles', 'cities', 'sectors'));
     }

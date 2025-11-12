@@ -11,7 +11,7 @@
       <p class="text-light">Employee Performance Report</p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-success" onclick="window.print()">
+      <button class="btn btn-primary" onclick="window.print()">
         <i data-feather="printer" class="me-2"></i>Print
       </button>
       <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">

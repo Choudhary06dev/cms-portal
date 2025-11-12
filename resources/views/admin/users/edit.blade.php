@@ -56,8 +56,10 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="phone" class="form-label text-white">Phone</label>
-            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
+            <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}" 
+                   pattern="[0-9]*" inputmode="numeric" 
+                   onkeypress="return event.charCode >= 48 && event.charCode <= 57">
             @error('phone')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -259,6 +261,22 @@
 @push('scripts')
 <script>
   feather.replace();
+
+  // Phone number input validation - only allow numbers
+  document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+      phoneInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        const numbersOnly = pastedText.replace(/[^0-9]/g, '');
+        this.value = numbersOnly;
+      });
+    }
+  });
 
   // Dynamic sector loading based on city
   const citySelect = document.getElementById('city_id');
