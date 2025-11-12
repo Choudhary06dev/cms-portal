@@ -288,11 +288,27 @@
   </div>
 </div>
 
-<!-- GE PROGRESS SECTION (For Director Only) -->
-@if(isset($geProgress) && count($geProgress) > 0)
+<!-- GE FEEDBACK OVERVIEW SECTION -->
 @php
-  $displayedProgress = array_slice($geProgress, 0, 3);
-  $hasMore = count($geProgress) > 3;
+  $showGEFeedback = false;
+  $user = auth()->user();
+  $userRoleName = strtolower($user->role->role_name ?? '');
+  $isDirector = in_array($userRoleName, ['director', 'admin']);
+  $isGE = (strpos($userRoleName, 'garrison') !== false && strpos($userRoleName, 'engineer') !== false) 
+          || strpos($userRoleName, 'ge') !== false;
+  $canSeeAllData = (!$user->city_id && !$user->sector_id);
+  
+  // Show section if user has permission and GE role exists
+  if (isset($geRole) && ($isDirector || $isGE || $canSeeAllData)) {
+    $showGEFeedback = true;
+  }
+@endphp
+
+@if($showGEFeedback)
+@php
+  $hasData = isset($geProgress) && count($geProgress) > 0;
+  $displayedProgress = $hasData ? array_slice($geProgress, 0, 3) : [];
+  $hasMore = $hasData && count($geProgress) > 3;
 @endphp
 <div class="row mt-5 mb-5">
   <div class="col-12">
@@ -302,6 +318,7 @@
           <i data-feather="users" class="me-2" style="width: 28px; height: 28px;"></i>GE Feedback Overview
         </h5>
       </div>
+      @if($hasData)
       <div class="row g-4">
         @php
           $colorSchemes = [
@@ -378,7 +395,13 @@
         </div>
         @endforeach
       </div>
-      @if($hasMore)
+      @else
+      <div class="text-center py-5">
+        <i data-feather="users" class="feather-lg mb-3 text-muted"></i>
+        <p class="text-muted mb-0">No GE Feedback data available at the moment.</p>
+      </div>
+      @endif
+      @if($hasData && $hasMore)
       <div class="row g-4 mt-2" id="allGEProgress" style="display: none;">
         @php
           $remainingProgress = array_slice($geProgress, 3);

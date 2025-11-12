@@ -40,8 +40,13 @@ class DashboardController extends Controller
         $complaintStatus = $request->input('complaint_status');
         $dateRange = $request->input('date_range');
         
-        // Get GE role for loading users
-        $geRole = \App\Models\Role::where('role_name', 'garrison_engineer')->first();
+        // Get GE role for loading users - try multiple variations
+        $geRole = \App\Models\Role::where(function($q) {
+            $q->whereRaw('LOWER(role_name) = ?', ['garrison_engineer'])
+              ->orWhereRaw('LOWER(role_name) = ?', ['garrison engineer'])
+              ->orWhereRaw('LOWER(role_name) LIKE ?', ['%garrison%engineer%'])
+              ->orWhereRaw('LOWER(role_name) LIKE ?', ['%ge%']);
+        })->first();
         
         // Get cities for filter: Check user table - if city_id is null, user can see all cities
         $cities = collect();
@@ -314,7 +319,8 @@ class DashboardController extends Controller
         $geProgress = [];
         $userRoleName = strtolower($user->role->role_name ?? '');
         $isDirector = $this->canViewAllData($user);
-        $isGE = ($userRoleName === 'garrison_engineer');
+        $isGE = (strpos($userRoleName, 'garrison') !== false && strpos($userRoleName, 'engineer') !== false) 
+                || strpos($userRoleName, 'ge') !== false;
         
         // Show GE Feedback Overview if:
         // 1. User is Director (canViewAllData)
@@ -322,7 +328,9 @@ class DashboardController extends Controller
         // 3. OR user has city_id and sector_id both null (can see all data)
         $canSeeAllData = (!$user->city_id && !$user->sector_id);
         
-        if (($isDirector || $isGE || $canSeeAllData) && $geRole) {
+        // Check if GE role exists and user has permission to see GE Feedback Overview
+        // Always initialize geProgress array even if empty, so view can check permissions
+        if ($geRole && ($isDirector || $isGE || $canSeeAllData)) {
             // If Director or user can see all data (city_id and sector_id both null), show all active GEs or filtered GE
             // If GE, show only their own progress (if they are active)
             if ($isDirector || $canSeeAllData) {
@@ -339,7 +347,11 @@ class DashboardController extends Controller
                 $geUsers = $geUsersQuery->orderBy('name')->get();
             } else {
                 // GE user - show only their own progress if they are active
-                if ($user->status === 'active') {
+                if ($user->status === 'active' && $user->city_id) {
+                    // Ensure city relationship is loaded
+                    if (!$user->relationLoaded('city')) {
+                        $user->load('city');
+                    }
                     $geUsers = collect([$user]);
                 } else {
                     $geUsers = collect();
