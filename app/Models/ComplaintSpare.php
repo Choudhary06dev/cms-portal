@@ -30,7 +30,7 @@ class ComplaintSpare extends Model
      */
     public function complaint(): BelongsTo
     {
-        return $this->belongsTo(Complaint::class);
+        return $this->belongsTo(Complaint::class, 'complaint_id', 'id');
     }
 
     /**
@@ -38,7 +38,7 @@ class ComplaintSpare extends Model
      */
     public function spare(): BelongsTo
     {
-        return $this->belongsTo(Spare::class);
+        return $this->belongsTo(Spare::class, 'spare_id', 'id');
     }
 
     /**
@@ -46,7 +46,7 @@ class ComplaintSpare extends Model
      */
     public function usedBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'used_by');
+        return $this->belongsTo(Employee::class, 'used_by', 'id');
     }
 
     /**

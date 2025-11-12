@@ -15,10 +15,9 @@ class Complaint extends Model
     protected $fillable = [
         'title',
         'client_id',
-        'city',
-        'sector',
+        'city_id',
+        'sector_id',
         'category',
-        'department',
         'priority',
         'description',
         'assigned_employee_id',
@@ -35,7 +34,7 @@ class Complaint extends Model
      */
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class)->withTrashed();
+        return $this->belongsTo(Client::class, 'client_id', 'id')->withTrashed();
     }
 
     /**
@@ -43,7 +42,23 @@ class Complaint extends Model
      */
     public function assignedEmployee(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'assigned_employee_id')->withTrashed();
+        return $this->belongsTo(Employee::class, 'assigned_employee_id', 'id')->withTrashed();
+    }
+
+    /**
+     * Get the city that owns the complaint.
+     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id', 'id');
+    }
+
+    /**
+     * Get the sector that owns the complaint.
+     */
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(Sector::class, 'sector_id', 'id');
     }
 
     /**
@@ -51,7 +66,7 @@ class Complaint extends Model
      */
     public function attachments(): HasMany
     {
-        return $this->hasMany(ComplaintAttachment::class);
+        return $this->hasMany(ComplaintAttachment::class, 'complaint_id', 'id');
     }
 
     /**
@@ -59,7 +74,7 @@ class Complaint extends Model
      */
     public function logs(): HasMany
     {
-        return $this->hasMany(ComplaintLog::class);
+        return $this->hasMany(ComplaintLog::class, 'complaint_id', 'id');
     }
 
     /**
@@ -67,7 +82,7 @@ class Complaint extends Model
      */
     public function spareParts(): HasMany
     {
-        return $this->hasMany(ComplaintSpare::class);
+        return $this->hasMany(ComplaintSpare::class, 'complaint_id', 'id');
     }
 
     /**
@@ -75,7 +90,7 @@ class Complaint extends Model
      */
     public function spareApprovals(): HasMany
     {
-        return $this->hasMany(SpareApprovalPerforma::class);
+        return $this->hasMany(SpareApprovalPerforma::class, 'complaint_id', 'id');
     }
 
     /**
@@ -83,7 +98,7 @@ class Complaint extends Model
      */
     public function feedback(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(ComplaintFeedback::class);
+        return $this->hasOne(ComplaintFeedback::class, 'complaint_id', 'id');
     }
 
     /**
@@ -91,7 +106,7 @@ class Complaint extends Model
      */
     public function stockLogs(): HasMany
     {
-        return $this->hasMany(SpareStockLog::class, 'reference_id');
+        return $this->hasMany(SpareStockLog::class, 'reference_id', 'id');
     }
 
     /**

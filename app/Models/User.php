@@ -50,7 +50,7 @@ class User extends Authenticatable
      */
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 
     /**
@@ -58,7 +58,7 @@ class User extends Authenticatable
      */
     public function city(): BelongsTo
     {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(City::class, 'city_id', 'id');
     }
 
     /**
@@ -66,7 +66,7 @@ class User extends Authenticatable
      */
     public function sector(): BelongsTo
     {
-        return $this->belongsTo(Sector::class);
+        return $this->belongsTo(Sector::class, 'sector_id', 'id');
     }
 
     /**
@@ -74,7 +74,7 @@ class User extends Authenticatable
      */
     public function employee(): HasOne
     {
-        return $this->hasOne(Employee::class);
+        return $this->hasOne(Employee::class, 'user_id', 'id');
     }
 
     /**
@@ -82,7 +82,7 @@ class User extends Authenticatable
      */
     public function loggedComplaints(): HasMany
     {
-        return $this->hasMany(Complaint::class, 'logged_by');
+        return $this->hasMany(Complaint::class, 'logged_by', 'id');
     }
 
     /**
@@ -90,7 +90,7 @@ class User extends Authenticatable
      */
     public function slaRules(): HasMany
     {
-        return $this->hasMany(SlaRule::class, 'notify_to');
+        return $this->hasMany(SlaRule::class, 'notify_to', 'id');
     }
 
     /**

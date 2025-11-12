@@ -32,7 +32,7 @@ class Client extends Model
      */
     public function complaints(): HasMany
     {
-        return $this->hasMany(Complaint::class);
+        return $this->hasMany(Complaint::class, 'client_id', 'id');
     }
 
     /**

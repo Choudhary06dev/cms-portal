@@ -58,7 +58,6 @@ class DesignationController extends Controller
                     }
                 }
             ],
-            'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ];
         

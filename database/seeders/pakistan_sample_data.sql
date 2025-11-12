@@ -39,31 +39,19 @@ INSERT INTO `sectors` (`city_id`, `name`, `description`, `status`, `created_at`,
 (4, 'Cantonment Area', 'Military residential area in Rawalpindi', 'active', NOW(), NOW());
 
 -- ============================================
--- 4. DEPARTMENTS TABLE
+-- 4. DESIGNATIONS TABLE
 -- ============================================
-INSERT INTO `departments` (`name`, `description`, `status`, `created_at`, `updated_at`) VALUES
-('Electrical', 'Handles electrical maintenance and repairs', 'active', NOW(), NOW()),
-('Plumbing', 'Handles water supply, drainage, and plumbing issues', 'active', NOW(), NOW()),
-('HVAC', 'Heating, Ventilation, and Air Conditioning department', 'active', NOW(), NOW()),
-('Building & Maintenance', 'Building structure maintenance and repairs', 'active', NOW(), NOW()),
-('IT Support', 'Information technology support and services', 'active', NOW(), NOW()),
-('Security', 'Security services and surveillance', 'active', NOW(), NOW()),
-('Landscaping', 'Gardening, landscaping, and outdoor maintenance', 'active', NOW(), NOW());
+INSERT INTO `designations` (`category`, `name`, `description`, `status`, `created_at`, `updated_at`) VALUES
+('Electric', 'Electrical Engineer', 'Senior electrical engineer', 'active', NOW(), NOW()),
+('Electric', 'Electrician', 'Skilled electrician', 'active', NOW(), NOW()),
+('Plumbing', 'Plumbing Supervisor', 'Supervises plumbing work', 'active', NOW(), NOW()),
+('Plumbing', 'Plumber', 'Skilled plumber', 'active', NOW(), NOW()),
+('HVAC', 'HVAC Technician', 'HVAC system technician', 'active', NOW(), NOW()),
+('Building & Maintenance', 'Maintenance Officer', 'Building maintenance officer', 'active', NOW(), NOW()),
+('IT Support', 'IT Support Specialist', 'IT support and troubleshooting', 'active', NOW(), NOW());
 
 -- ============================================
--- 5. DESIGNATIONS TABLE (assuming department_id 1-7)
--- ============================================
-INSERT INTO `designations` (`department_id`, `name`, `description`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Electrical Engineer', 'Senior electrical engineer', 'active', NOW(), NOW()),
-(1, 'Electrician', 'Skilled electrician', 'active', NOW(), NOW()),
-(2, 'Plumbing Supervisor', 'Supervises plumbing work', 'active', NOW(), NOW()),
-(2, 'Plumber', 'Skilled plumber', 'active', NOW(), NOW()),
-(3, 'HVAC Technician', 'HVAC system technician', 'active', NOW(), NOW()),
-(4, 'Maintenance Officer', 'Building maintenance officer', 'active', NOW(), NOW()),
-(5, 'IT Support Specialist', 'IT support and troubleshooting', 'active', NOW(), NOW());
-
--- ============================================
--- 6. USERS TABLE (assuming role_id 1-7, city_id 1-7, sector_id 1-7)
+-- 5. USERS TABLE (assuming role_id 1-7, city_id 1-7, sector_id 1-7)
 -- ============================================
 INSERT INTO `users` (`username`, `password`, `email`, `phone`, `role_id`, `city_id`, `sector_id`, `status`, `theme`, `created_at`, `updated_at`) VALUES
 ('director.isb', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'director@cms.pk', '03001234567', 1, 1, NULL, 'active', 'auto', NOW(), NOW()),
@@ -75,7 +63,7 @@ INSERT INTO `users` (`username`, `password`, `email`, `phone`, `role_id`, `city_
 ('employee.001', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'emp001@cms.pk', '03001234573', 7, 2, 3, 'active', 'auto', NOW(), NOW());
 
 -- ============================================
--- 7. COMPLAINT_CATEGORIES TABLE
+-- 6. COMPLAINT_CATEGORIES TABLE
 -- ============================================
 INSERT INTO `complaint_categories` (`name`, `description`, `created_at`, `updated_at`) VALUES
 ('Electric', 'Electrical complaints and issues', NOW(), NOW()),
@@ -87,7 +75,7 @@ INSERT INTO `complaint_categories` (`name`, `description`, `created_at`, `update
 ('Other', 'Other miscellaneous complaints', NOW(), NOW());
 
 -- ============================================
--- 8. COMPLAINT_TITLES TABLE
+-- 7. COMPLAINT_TITLES TABLE
 -- ============================================
 INSERT INTO `complaint_titles` (`category`, `title`, `description`, `created_at`, `updated_at`) VALUES
 ('Electric', 'Power Outage', 'No electricity supply in the area', NOW(), NOW()),
@@ -99,7 +87,7 @@ INSERT INTO `complaint_titles` (`category`, `title`, `description`, `created_at`
 ('IT Support', 'Network Issue', 'Internet or network connectivity problem', NOW(), NOW());
 
 -- ============================================
--- 9. CLIENTS TABLE
+-- 8. CLIENTS TABLE
 -- ============================================
 INSERT INTO `clients` (`client_name`, `contact_person`, `email`, `phone`, `address`, `city`, `sector`, `state`, `status`, `created_at`, `updated_at`) VALUES
 ('Muhammad Ali', 'Muhammad Ali', 'm.ali@email.com', '03001234574', 'House 123, Street 5, Sector G-6', 'Islamabad', 'Sector G-6', 'Islamabad Capital Territory', 'active', NOW(), NOW()),
@@ -111,7 +99,7 @@ INSERT INTO `clients` (`client_name`, `contact_person`, `email`, `phone`, `addre
 ('Bilal Ahmed', 'Bilal Ahmed', 'b.ahmed@email.com', '03001234580', 'Housing Scheme Phase 1, Peshawar', 'Peshawar', 'Phase 1', 'Khyber Pakhtunkhwa', 'active', NOW(), NOW());
 
 -- ============================================
--- 10. EMPLOYEES TABLE (assuming city_id 1-7, sector_id 1-7)
+-- 9. EMPLOYEES TABLE (assuming city_id 1-7, sector_id 1-7)
 -- ============================================
 INSERT INTO `employees` (`name`, `email`, `department`, `designation`, `phone`, `biometric_id`, `date_of_hire`, `leave_quota`, `address`, `city_id`, `sector_id`, `status`, `created_at`, `updated_at`) VALUES
 ('Ahmed Hassan', 'ahmed.hassan@cms.pk', 'Electrical', 'Electrical Engineer', '03001234581', 'EMP001', '2020-01-15', 30, 'Sector F-7, Islamabad', 1, 2, 'active', NOW(), NOW()),
@@ -123,7 +111,7 @@ INSERT INTO `employees` (`name`, `email`, `department`, `designation`, `phone`, 
 ('Zain Butt', 'zain.butt@cms.pk', 'Plumbing', 'Plumber', '03001234587', 'EMP007', '2021-07-25', 30, 'Clifton Block 2, Karachi', 3, 5, 'active', NOW(), NOW());
 
 -- ============================================
--- 11. SPARES TABLE
+-- 10. SPARES TABLE
 -- ============================================
 INSERT INTO `spares` (`product_code`, `brand_name`, `item_name`, `category`, `unit_price`, `total_received_quantity`, `issued_quantity`, `stock_quantity`, `threshold_level`, `supplier`, `description`, `last_stock_in_at`, `created_at`, `updated_at`) VALUES
 ('ELEC001', 'Osaka', 'Electrical Wire 12 AWG', 'Electric', 2500.00, 100, 30, 70, 20, 'Karachi Electrical Suppliers', 'Copper wire 12 AWG, 100 meters roll', NOW(), NOW(), NOW()),
@@ -135,7 +123,7 @@ INSERT INTO `spares` (`product_code`, `brand_name`, `item_name`, `category`, `un
 ('IT001', 'TP-Link', 'Network Cable Cat6', 'IT Support', 1200.00, 60, 20, 40, 10, 'Tech Solutions Lahore', 'Ethernet cable Cat6, 5 meters', NOW(), NOW(), NOW());
 
 -- ============================================
--- 12. COMPLAINTS TABLE (assuming client_id 1-7, assigned_employee_id 1-7, spare_id 1-7)
+-- 11. COMPLAINTS TABLE (assuming client_id 1-7, assigned_employee_id 1-7, spare_id 1-7)
 -- ============================================
 INSERT INTO `complaints` (`title`, `client_id`, `city`, `sector`, `category`, `department`, `description`, `status`, `assigned_employee_id`, `priority`, `spare_id`, `spare_quantity`, `created_at`, `updated_at`) VALUES
 ('Power Outage in Sector G-6', 1, 'Islamabad', 'Sector G-6', 'Electric', 'Electrical', 'No electricity since morning, affecting entire sector', 'in_progress', 1, 'high', 1, 2, NOW(), NOW()),
@@ -147,7 +135,7 @@ INSERT INTO `complaints` (`title`, `client_id`, `city`, `sector`, `category`, `d
 ('Blocked Drainage System', 7, 'Peshawar', 'Phase 1', 'Plumbing', 'Plumbing', 'Drainage blockage causing water accumulation', 'assigned', 2, 'high', 2, 3, NOW(), NOW());
 
 -- ============================================
--- 13. ROLE_PERMISSIONS TABLE (assuming role_id 1-7)
+-- 12. ROLE_PERMISSIONS TABLE (assuming role_id 1-7)
 -- ============================================
 INSERT INTO `role_permissions` (`role_id`, `module_name`, `created_at`, `updated_at`) VALUES
 (1, 'dashboard', NOW(), NOW()),
@@ -161,7 +149,7 @@ INSERT INTO `role_permissions` (`role_id`, `module_name`, `created_at`, `updated
 -- Note: You may need to add more permissions for other roles as per your requirements
 
 -- ============================================
--- 14. SLA_RULES TABLE (assuming notify_to user_id 1-7)
+-- 13. SLA_RULES TABLE (assuming notify_to user_id 1-7)
 -- ============================================
 INSERT INTO `sla_rules` (`complaint_type`, `priority`, `max_response_time`, `max_resolution_time`, `notify_to`, `status`, `created_at`, `updated_at`) VALUES
 ('Electric', 'urgent', 2, 24, 1, 'active', NOW(), NOW()),
@@ -176,7 +164,7 @@ INSERT INTO `sla_rules` (`complaint_type`, `priority`, `max_response_time`, `max
 -- END OF SQL INSERT QUERIES
 -- ============================================
 -- Note: Foreign key constraints may require tables to be populated in order
--- Suggested order: roles -> cities -> sectors -> departments -> designations -> 
+-- Suggested order: roles -> cities -> sectors -> designations -> 
 --                 users -> complaint_categories -> complaint_titles -> clients -> 
 --                 employees -> spares -> complaints -> role_permissions -> sla_rules
 

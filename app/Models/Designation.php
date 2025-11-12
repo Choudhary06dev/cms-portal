@@ -12,7 +12,6 @@ class Designation extends Model
     protected $fillable = [
         'category',
         'name',
-        'description',
         'status',
     ];
 }

@@ -37,7 +37,6 @@ class SectorController extends Controller
         $validated = $request->validate([
             'city_id' => 'required|exists:cities,id',
             'name' => 'required|string|max:100',
-            'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
         
@@ -66,7 +65,6 @@ class SectorController extends Controller
             $rules = [
                 'city_id' => 'required|exists:cities,id',
                 'name' => 'required|string|max:100',
-                'description' => 'nullable|string',
                 'status' => 'required|in:active,inactive',
             ];
             

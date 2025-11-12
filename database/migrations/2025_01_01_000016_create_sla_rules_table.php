@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('priority', ['low', 'medium', 'high', 'urgent', 'emergency'])->default('medium');
             $table->integer('max_response_time'); // in hours
             $table->integer('max_resolution_time')->nullable(); // in hours
-            $table->foreignId('notify_to')->constrained('users');
+            $table->unsignedBigInteger('notify_to');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });

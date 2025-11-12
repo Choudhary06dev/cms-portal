@@ -44,16 +44,11 @@ class EmployeeController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%") // department field stores category
                   ->orWhere('designation', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        // Filter by category (stored in department field for backward compatibility)
-        if ($request->has('category') && $request->category) {
-            $query->where('department', 'like', "%{$request->category}%");
-        }
 
         // Filter by status
         if ($request->has('status') && $request->status) {
@@ -147,7 +142,7 @@ class EmployeeController extends Controller
             // Create employee record (no user creation)
             $employee = Employee::create([
                 'name' => $request->name,
-                'department' => $request->category, // Store category in department field for backward compatibility
+                'category' => $request->category,
                 'designation' => $request->designation,
                 'phone' => $request->phone,
                 // 'emp_id' removed
@@ -358,7 +353,7 @@ class EmployeeController extends Controller
             // Update employee
             $employee->update([
                 'name' => $request->name,
-                'department' => $request->category, // Store category in department field for backward compatibility
+                'category' => $request->category,
                 'designation' => $request->designation ?? $employee->designation,
                 'phone' => $request->phone,
                 // 'emp_id' removed
@@ -473,104 +468,6 @@ class EmployeeController extends Controller
         }
     }
 
-    /**
-     * Get employee leaves
-     */
-    public function getLeaves(Employee $employee)
-    {
-        $leaves = $employee->leaves()->latest()->paginate(10);
-        
-        return response()->json([
-            'success' => true,
-            'leaves' => $leaves
-        ]);
-    }
-
-    /**
-     * Create leave for employee
-     */
-    public function createLeave(Request $request, Employee $employee)
-    {
-        $validator = Validator::make($request->all(), [
-            'leave_type' => 'required|string|max:50',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'reason' => 'required|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $leave = $employee->leaves()->create([
-                'leave_type' => $request->leave_type,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'reason' => $request->reason,
-                'status' => 'pending',
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave request created successfully.',
-                'leave' => $leave
-            ]);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error creating leave request: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Approve leave
-     */
-    public function approveLeave(Employee $employee, $leaveId)
-    {
-        try {
-            $leave = $employee->leaves()->findOrFail($leaveId);
-            $leave->update(['status' => 'approved']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave approved successfully.'
-            ]);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error approving leave: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Reject leave
-     */
-    public function rejectLeave(Employee $employee, $leaveId)
-    {
-        try {
-            $leave = $employee->leaves()->findOrFail($leaveId);
-            $leave->update(['status' => 'rejected']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave rejected successfully.'
-            ]);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error rejecting leave: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 
     /**
      * Get employee performance

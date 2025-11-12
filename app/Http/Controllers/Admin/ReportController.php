@@ -8,7 +8,6 @@ use App\Models\Employee;
 use App\Models\Client;
 use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
-use App\Models\EmployeeLeave;
 use App\Models\ReportsSummary;
 use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
@@ -93,7 +92,6 @@ class ReportController extends Controller
             'employees' => [
                 'total' => (clone $employeesQuery)->count(),
                 'active' => (clone $employeesQuery)->count(),
-                'on_leave' => \App\Models\EmployeeLeave::where('status', 'pending')->count(),
                 'avg_performance' => $this->getAverageEmployeePerformance($user)
             ],
             'spares' => [
@@ -377,32 +375,6 @@ class ReportController extends Controller
                     'time' => $approval->created_at->diffForHumans(),
                     'badge' => ucfirst($approval->status),
                     'badge_class' => $this->getApprovalBadgeClass($approval->status)
-                ]);
-            }
-            
-            // Recent employee activities with location filtering
-            $recentLeavesQuery = EmployeeLeave::with(['employee'])
-                ->where('status', 'pending');
-            
-            // Apply location filtering to employee leaves
-            if ($user && !$this->canViewAllData($user)) {
-                $recentLeavesQuery->whereHas('employee', function($q) use ($user) {
-                    $this->filterEmployeesByLocation($q, $user);
-                });
-            }
-            
-            $recentLeaves = $recentLeavesQuery->latest()
-                ->limit(1)
-                ->get();
-                
-            foreach ($recentLeaves as $leave) {
-                $activities->push([
-                    'type' => 'leave',
-                    'title' => 'Employee leave request',
-                'description' => ($leave->employee->name ?? 'Unknown') . ' requested leave',
-                    'time' => $leave->created_at->diffForHumans(),
-                    'badge' => 'Pending',
-                    'badge_class' => 'warning'
                 ]);
             }
             
@@ -824,7 +796,6 @@ class ReportController extends Controller
         // Set default values if not provided
         $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
         $dateTo = $request->date_to ?? now()->format('Y-m-d');
-        $department = $request->department;
         $format = $request->format ?? 'html';
 
         // Validate only if parameters are provided
@@ -832,7 +803,6 @@ class ReportController extends Controller
             $request->validate([
                 'date_from' => 'date',
                 'date_to' => 'date|after_or_equal:date_from',
-                'department' => 'nullable|string',
                 'format' => 'nullable|in:html,pdf,excel',
             ]);
         }
@@ -858,10 +828,6 @@ class ReportController extends Controller
         // Apply location-based filtering to employees
         $this->filterEmployeesByLocation($query, $user);
 
-        if ($department) {
-            $query->where('department', $department);
-        }
-
         $employees = $query->get()->map(function($employee) {
             $complaints = $employee->assignedComplaints;
             $resolved = $complaints->whereIn('status', ['resolved', 'closed']);
@@ -884,7 +850,7 @@ class ReportController extends Controller
         ];
 
         if ($format === 'html') {
-            return view('admin.reports.employees', compact('employees', 'summary', 'dateFrom', 'dateTo', 'department'));
+            return view('admin.reports.employees', compact('employees', 'summary', 'dateFrom', 'dateTo'));
         } else {
             return $this->exportReport('employees', $employees, $summary, $format);
         }
@@ -1546,8 +1512,6 @@ class ReportController extends Controller
     {
         $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
-        $department = $request->get('department');
-
         $user = Auth::user();
         $query = Employee::with(['user','assignedComplaints' => function($q) use ($dateFrom, $dateTo, $user){ 
             $q->whereBetween('created_at', [$dateFrom, $dateTo]);
@@ -1569,7 +1533,10 @@ class ReportController extends Controller
         // Apply location-based filtering to employees
         $this->filterEmployeesByLocation($query, $user);
         
-        if ($department) { $query->where('department', $department); }
+        // Filter by category if provided
+        if ($request->has('category') && $request->category) {
+            $query->where('category', $request->category);
+        }
 
         $employees = $query->get()->map(function($employee){
             $complaints = $employee->assignedComplaints; $resolved = $complaints->whereIn('status', ['resolved','closed']);

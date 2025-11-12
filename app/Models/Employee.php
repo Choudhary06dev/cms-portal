@@ -13,7 +13,7 @@ class Employee extends Model
 
     protected $fillable = [
         'name',
-        'department',
+        'category',
         'designation',
         'phone',
         'date_of_hire',
@@ -34,19 +34,11 @@ class Employee extends Model
     }
 
     /**
-     * Get the leaves for the employee.
-     */
-    public function leaves(): HasMany
-    {
-        return $this->hasMany(EmployeeLeave::class);
-    }
-
-    /**
      * Get the complaints assigned to this employee.
      */
     public function assignedComplaints(): HasMany
     {
-        return $this->hasMany(Complaint::class, 'assigned_employee_id');
+        return $this->hasMany(Complaint::class, 'assigned_employee_id', 'id');
     }
 
     /**
@@ -54,7 +46,7 @@ class Employee extends Model
      */
     public function usedSpares(): HasMany
     {
-        return $this->hasMany(ComplaintSpare::class, 'used_by');
+        return $this->hasMany(ComplaintSpare::class, 'used_by', 'id');
     }
 
     /**
@@ -62,7 +54,7 @@ class Employee extends Model
      */
     public function requestedApprovals(): HasMany
     {
-        return $this->hasMany(SpareApprovalPerforma::class, 'requested_by');
+        return $this->hasMany(SpareApprovalPerforma::class, 'requested_by', 'id');
     }
 
     /**
@@ -70,7 +62,7 @@ class Employee extends Model
      */
     public function approvedApprovals(): HasMany
     {
-        return $this->hasMany(SpareApprovalPerforma::class, 'approved_by');
+        return $this->hasMany(SpareApprovalPerforma::class, 'approved_by', 'id');
     }
 
     /**
@@ -78,7 +70,7 @@ class Employee extends Model
      */
     public function complaintLogs(): HasMany
     {
-        return $this->hasMany(ComplaintLog::class, 'action_by');
+        return $this->hasMany(ComplaintLog::class, 'action_by', 'id');
     }
 
     /**
@@ -86,7 +78,7 @@ class Employee extends Model
      */
     public function city()
     {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(City::class, 'city_id', 'id');
     }
 
     /**
@@ -94,39 +86,10 @@ class Employee extends Model
      */
     public function sector()
     {
-        return $this->belongsTo(Sector::class);
+        return $this->belongsTo(Sector::class, 'sector_id', 'id');
     }
 
     // Removed username/email/status/user-dependent accessors
-
-    /**
-     * Get total leaves taken this year
-     */
-    public function getTotalLeavesTaken(): int
-    {
-        return $this->leaves()
-            ->where('status', 'approved')
-            ->whereYear('created_at', now()->year)
-            ->sum('leave_days');
-    }
-
-    /**
-     * Get remaining leave quota
-     */
-    public function getRemainingLeaves(): int
-    {
-        return $this->leave_quota - $this->getTotalLeavesTaken();
-    }
-
-    /**
-     * Get pending leave requests
-     */
-    public function getPendingLeaves(): int
-    {
-        return $this->leaves()
-            ->where('status', 'pending')
-            ->count();
-    }
 
     /**
      * Get employee performance metrics
@@ -146,20 +109,6 @@ class Employee extends Model
             'resolved_complaints' => $resolvedComplaints,
             'closed_complaints' => $closedComplaints,
             'resolution_rate' => $totalComplaints > 0 ? round(($resolvedComplaints + $closedComplaints) / $totalComplaints * 100, 2) : 0,
-        ];
-    }
-
-    /**
-     * Get available departments
-     */
-    public static function getAvailableDepartments(): array
-    {
-        return [
-            'electric' => 'Electrical Department',
-            'sanitary' => 'Sanitary Department',
-            'kitchen' => 'Kitchen Appliances',
-            'general' => 'General Maintenance',
-            'admin' => 'Administration',
         ];
     }
 

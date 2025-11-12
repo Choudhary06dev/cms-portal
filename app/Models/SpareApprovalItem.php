@@ -29,7 +29,7 @@ class SpareApprovalItem extends Model
      */
     public function performa(): BelongsTo
     {
-        return $this->belongsTo(SpareApprovalPerforma::class, 'performa_id');
+        return $this->belongsTo(SpareApprovalPerforma::class, 'performa_id', 'id');
     }
 
     /**

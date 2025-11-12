@@ -20,10 +20,6 @@ return new class extends Migration
             $table->text('reason')->nullable();
             $table->timestamps();
 
-            // Foreign key constraints
-            $table->foreign('performa_id')->references('id')->on('spare_approval_performa')->onDelete('cascade');
-            $table->foreign('spare_id')->references('id')->on('spares')->onDelete('cascade');
-
             // Indexes for better performance
             $table->index(['performa_id', 'spare_id']);
             $table->index('spare_id');

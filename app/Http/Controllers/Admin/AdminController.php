@@ -7,7 +7,6 @@ use App\Models\Complaint;
 use App\Models\Employee;
 use App\Models\Client;
 use App\Models\Spare;
-use App\Models\EmployeeLeave;
 use App\Models\SpareApprovalPerforma;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -99,7 +98,6 @@ class AdminController extends Controller
             'total_spares' => Spare::count(),
             'low_stock_items' => Spare::lowStock()->count(),
             'out_of_stock_items' => Spare::outOfStock()->count(),
-            'employees_on_leave' => EmployeeLeave::active()->count(),
         ];
     }
 
@@ -131,7 +129,6 @@ class AdminController extends Controller
                 return [
                     'id' => $employee->id,
                     'name' => $employee->name,
-                    'department' => $employee->department,
                     'total_complaints' => $metrics['total_complaints'],
                     'resolved_complaints' => $metrics['resolved_complaints'],
                     'resolution_rate' => $metrics['resolution_rate'],

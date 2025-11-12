@@ -66,7 +66,7 @@ class Role extends Model
      */
     public function users(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'role_id', 'id');
     }
 
     /**
@@ -74,7 +74,7 @@ class Role extends Model
      */
     public function rolePermissions(): HasMany
     {
-        return $this->hasMany(RolePermission::class);
+        return $this->hasMany(RolePermission::class, 'role_id', 'id');
     }
 
     /**

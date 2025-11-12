@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('complaint_attachments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('complaint_id')->constrained('complaints');
+            $table->unsignedBigInteger('complaint_id');
             $table->string('file_path', 255);
             $table->timestamp('uploaded_at')->useCurrent();
             $table->timestamps();

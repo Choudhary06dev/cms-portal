@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('complaint_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('complaint_id')->constrained('complaints');
+            $table->unsignedBigInteger('complaint_id');
             $table->unsignedBigInteger('action_by');
             $table->string('action', 100);
             $table->text('remarks')->nullable();

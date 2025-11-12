@@ -26,7 +26,7 @@ class SlaRule extends Model
      */
     public function notifyTo(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'notify_to')->withTrashed();
+        return $this->belongsTo(User::class, 'notify_to', 'id')->withTrashed();
     }
 
     /**

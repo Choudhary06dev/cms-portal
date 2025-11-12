@@ -45,7 +45,7 @@ class ComplaintFeedback extends Model
      */
     public function complaint(): BelongsTo
     {
-        return $this->belongsTo(Complaint::class);
+        return $this->belongsTo(Complaint::class, 'complaint_id', 'id');
     }
 
     /**
@@ -53,7 +53,7 @@ class ComplaintFeedback extends Model
      */
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class, 'client_id', 'id');
     }
 
     /**
@@ -61,7 +61,7 @@ class ComplaintFeedback extends Model
      */
     public function enteredBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'entered_by');
+        return $this->belongsTo(User::class, 'entered_by', 'id');
     }
 
     /**
