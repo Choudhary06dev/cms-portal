@@ -275,8 +275,9 @@
   font-weight: 500 !important;
 }
 
-/* Enhanced Button Styling */
-.theme-light .btn {
+/* Enhanced Button Styling - Only for dashboard content area, exclude topbar */
+.theme-light .content .btn,
+.theme-light .filter-box .btn {
   font-weight: 600 !important;
   border-radius: 12px !important;
   padding: 0.625rem 1.5rem !important;
@@ -285,28 +286,34 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 
-.theme-light .btn-primary,
-.theme-light .btn-accent {
+.theme-light .content .btn-primary,
+.theme-light .content .btn-accent,
+.theme-light .filter-box .btn-primary,
+.theme-light .filter-box .btn-accent {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
   border: none !important;
   color: #ffffff !important;
   box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3) !important;
 }
 
-.theme-light .btn-primary:hover,
-.theme-light .btn-accent:hover {
+.theme-light .content .btn-primary:hover,
+.theme-light .content .btn-accent:hover,
+.theme-light .filter-box .btn-primary:hover,
+.theme-light .filter-box .btn-accent:hover {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4) !important;
   transform: translateY(-2px) !important;
 }
 
-.theme-light .btn-outline-secondary {
+.theme-light .content .btn-outline-secondary,
+.theme-light .filter-box .btn-outline-secondary {
   color: #64748b !important;
   border: 2px solid #e2e8f0 !important;
   background: transparent !important;
 }
 
-.theme-light .btn-outline-secondary:hover {
+.theme-light .content .btn-outline-secondary:hover,
+.theme-light .filter-box .btn-outline-secondary:hover {
   background: #f8fafc !important;
   border-color: #cbd5e1 !important;
   color: #475569 !important;
@@ -379,9 +386,11 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Form Controls */
-.theme-light .form-control,
-.theme-light .form-select {
+/* Form Controls - Only for dashboard content area, exclude topbar */
+.theme-light .content .form-control,
+.theme-light .content .form-select,
+.theme-light .filter-box .form-control,
+.theme-light .filter-box .form-select {
   background: #ffffff !important;
   border: 2px solid #e2e8f0 !important;
   color: #1e293b !important;
@@ -391,12 +400,78 @@
   transition: all 0.3s ease !important;
 }
 
-.theme-light .form-control:focus,
-.theme-light .form-select:focus {
+.theme-light .content .form-control:focus,
+.theme-light .content .form-select:focus,
+.theme-light .filter-box .form-control:focus,
+.theme-light .filter-box .form-select:focus {
   background: #ffffff !important;
   border-color: #3b82f6 !important;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
   transform: translateY(-1px) !important;
+}
+
+/* Dark and Night theme form controls - Only for dashboard content area, exclude topbar */
+.theme-dark .content .form-control,
+.theme-dark .content .form-select,
+.theme-night .content .form-control,
+.theme-night .content .form-select,
+.theme-dark .filter-box .form-control,
+.theme-dark .filter-box .form-select,
+.theme-night .filter-box .form-control,
+.theme-night .filter-box .form-select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  color: #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 0.625rem 1rem !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.theme-dark .content .form-control::placeholder,
+.theme-night .content .form-control::placeholder,
+.theme-dark .filter-box .form-control::placeholder,
+.theme-night .filter-box .form-control::placeholder {
+  color: rgba(226, 232, 240, 0.6) !important;
+}
+
+.theme-dark .content .form-control:focus,
+.theme-dark .content .form-select:focus,
+.theme-night .content .form-control:focus,
+.theme-night .content .form-select:focus,
+.theme-dark .filter-box .form-control:focus,
+.theme-dark .filter-box .form-select:focus,
+.theme-night .filter-box .form-control:focus,
+.theme-night .filter-box .form-select:focus {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: #3b82f6 !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+.theme-dark .content .form-select option,
+.theme-night .content .form-select option,
+.theme-dark .filter-box .form-select option,
+.theme-night .filter-box .form-select option {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+.theme-dark .content .form-select option:hover,
+.theme-night .content .form-select option:hover,
+.theme-dark .filter-box .form-select option:hover,
+.theme-night .filter-box .form-select option:hover {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+.theme-dark .content .form-select option:checked,
+.theme-night .content .form-select option:checked,
+.theme-dark .filter-box .form-select option:checked,
+.theme-night .filter-box .form-select option:checked {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
 }
 
 .theme-light .form-label {
@@ -437,6 +512,39 @@
   padding: 1.5rem 2rem !important;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
   border: 1px solid rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Dark and Night theme filter box */
+.theme-dark .filter-box,
+.theme-night .filter-box {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+.theme-dark .filter-box .form-select,
+.theme-night .filter-box .form-select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  color: #e2e8f0 !important;
+}
+
+.theme-dark .filter-box .form-select option,
+.theme-night .filter-box .form-select option {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+/* Dark and Night theme filter labels - make them white - maximum specificity */
+body.theme-dark .filter-box label,
+body.theme-night .filter-box label,
+body.theme-dark .filter-box .form-label,
+body.theme-night .filter-box .form-label,
+body.theme-dark .filter-box .col-auto label,
+body.theme-night .filter-box .col-auto label,
+body.theme-dark .filter-box label[style],
+body.theme-night .filter-box label[style] {
+  color: #e2e8f0 !important;
 }
 
 /* Icon Feature Enhancements */
@@ -548,7 +656,7 @@
 
 /* GE Progress Cards Enhancement */
 .ge-progress-card {
-  border-radius: 24px !important;
+  border-radius: 0 !important;
   padding: 1.25rem 1.5rem !important;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
   position: relative !important;

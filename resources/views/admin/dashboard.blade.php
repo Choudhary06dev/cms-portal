@@ -371,7 +371,7 @@
           }
         @endphp
         <div class="{{ $colClasses }} {{ $offsetClasses }}">
-          <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 24px !important;">
+          <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
                 <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
@@ -412,13 +412,6 @@
         </div>
         @endforeach
       </div>
-      @if($hasMore)
-      <div class="text-center mt-4">
-        <button type="button" class="btn btn-accent btn-sm" onclick="showAllGEProgress()" id="seeMoreBtn">
-          <i data-feather="chevron-down" class="me-1" style="width: 16px; height: 16px;"></i>See More
-        </button>
-      </div>
-      @endif
       @if($hasMore)
       <div class="row g-4 mt-2" id="allGEProgress" style="display: none;">
         @php
@@ -450,7 +443,7 @@
           }
         @endphp
         <div class="{{ $colClasses }} {{ $offsetClasses }}">
-          <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 24px !important;">
+          <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
                 <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
@@ -490,6 +483,13 @@
           </div>
         </div>
         @endforeach
+      </div>
+      @endif
+      @if($hasMore)
+      <div class="text-center mt-4">
+        <button type="button" class="btn btn-accent btn-sm" onclick="showAllGEProgress()" id="seeMoreBtn">
+          <i data-feather="chevron-down" class="me-1" style="width: 16px; height: 16px;"></i>See More
+        </button>
       </div>
       @endif
     </div>
@@ -1294,24 +1294,78 @@
       });
     }
     
-    // Override inline styles for filter labels in dark/night theme
+    // Override inline styles for filter labels in dark/night theme using style injection
     function updateFilterLabelsColor() {
       const body = document.body;
       const isDarkTheme = body.classList.contains('theme-dark');
       const isNightTheme = body.classList.contains('theme-night');
       
       if (isDarkTheme || isNightTheme) {
-        const filterLabels = document.querySelectorAll('.card-glass.mb-4 label.form-label');
+        // Inject a style tag with maximum specificity to override inline styles
+        let styleId = 'filter-labels-dark-theme-style';
+        let existingStyle = document.getElementById(styleId);
+        if (!existingStyle) {
+          existingStyle = document.createElement('style');
+          existingStyle.id = styleId;
+          existingStyle.innerHTML = `
+            body.theme-dark .filter-box label,
+            body.theme-night .filter-box label,
+            body.theme-dark .filter-box .form-label,
+            body.theme-night .filter-box .form-label,
+            body.theme-dark .filter-box .col-auto label,
+            body.theme-night .filter-box .col-auto label {
+              color: #e2e8f0 !important;
+            }
+          `;
+          document.head.appendChild(existingStyle);
+        }
+        
+        // Also directly manipulate the style attribute
+        const filterLabels = document.querySelectorAll('.filter-box label, .filter-box .form-label, .filter-box .col-auto label');
         filterLabels.forEach(function(label) {
-          if (label.style.color && label.style.color.includes('#1e293b')) {
-            label.style.setProperty('color', '#ffffff', 'important');
+          // Completely replace the style attribute
+          let currentStyle = label.getAttribute('style') || '';
+          // Split by semicolon and filter out color
+          let styles = currentStyle.split(';').filter(function(style) {
+            return !style.trim().toLowerCase().startsWith('color');
+          });
+          // Join back and add white color
+          let newStyle = styles.join(';').trim();
+          if (newStyle && !newStyle.endsWith(';')) {
+            newStyle += ';';
           }
+          newStyle += ' color: #e2e8f0 !important;';
+          // Set the new style
+          label.setAttribute('style', newStyle);
+          // Also use cssText as backup
+          label.style.cssText = newStyle;
         });
+      } else {
+        // Remove the injected style in light theme
+        let styleId = 'filter-labels-dark-theme-style';
+        let existingStyle = document.getElementById(styleId);
+        if (existingStyle) {
+          existingStyle.remove();
+        }
       }
     }
     
-    // Run on page load
+    // Run immediately and multiple times to ensure it works
     updateFilterLabelsColor();
+    
+    // Run on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        updateFilterLabelsColor();
+        setTimeout(updateFilterLabelsColor, 100);
+        setTimeout(updateFilterLabelsColor, 500);
+        setTimeout(updateFilterLabelsColor, 1000);
+      });
+    } else {
+      setTimeout(updateFilterLabelsColor, 100);
+      setTimeout(updateFilterLabelsColor, 500);
+      setTimeout(updateFilterLabelsColor, 1000);
+    }
     
     // Watch for theme changes
     const observer = new MutationObserver(function(mutations) {

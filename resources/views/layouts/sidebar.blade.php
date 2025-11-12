@@ -414,11 +414,11 @@
           <i data-feather="file-text" class="me-2"></i> 
           <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Mgmt</span>
         </div>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsManagementSubmenu" aria-expanded="false" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#complaintsManagementSubmenu" aria-expanded="{{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'true' : 'false' }}" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
         </button>
       </div>
-      <div class="collapse" id="complaintsManagementSubmenu">
+      <div class="collapse {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'show' : '' }}" id="complaintsManagementSubmenu">
         @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
         <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="list" class="me-2" style="width: 18px; height: 18px;"></i> Complaints Regn
@@ -700,17 +700,77 @@
           }
         }, true);
         
-        // Prevent submenu links from triggering parent toggle
+        // Prevent submenu links from closing the dropdown
         const submenuLinks = complaintsManagementSubmenu.querySelectorAll('a');
         submenuLinks.forEach(link => {
           link.addEventListener('click', function(e) {
             e.stopPropagation();
+            // Prevent Bootstrap collapse from hiding
+            e.stopImmediatePropagation();
           }, true);
         });
         
-        // Ensure submenu starts closed on page load
-        if (complaintsManagementSubmenu.classList.contains('show')) {
-          complaintsManagementSubmenu.classList.remove('show');
+        // Prevent collapse from hiding when clicking on submenu links
+        let preventHide = false;
+        
+        // Track clicks on submenu links
+        submenuLinks.forEach(link => {
+          link.addEventListener('mousedown', function() {
+            preventHide = true;
+          });
+          link.addEventListener('click', function() {
+            preventHide = true;
+            // Reset after navigation
+            setTimeout(() => {
+              preventHide = false;
+            }, 100);
+          });
+        });
+        
+        // Prevent hide event if clicking on submenu links
+        complaintsManagementSubmenu.addEventListener('hide.bs.collapse', function(e) {
+          if (preventHide) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            preventHide = false;
+            return false;
+          }
+        });
+        
+        // Also prevent clicks outside from closing if clicking on submenu
+        document.addEventListener('click', function(e) {
+          const clickedLink = e.target.closest('#complaintsManagementSubmenu a');
+          if (clickedLink) {
+            preventHide = true;
+            // Don't let Bootstrap collapse handle this click
+            e.stopPropagation();
+            // Get the collapse instance and prevent hiding
+            const collapseInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu);
+            if (collapseInstance) {
+              // Temporarily disable the collapse
+              collapseInstance._isTransitioning = false;
+            }
+          }
+        }, true);
+        
+        // Override Bootstrap collapse hide method for this specific submenu
+        const collapseInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu) || new bootstrap.Collapse(complaintsManagementSubmenu, {toggle: false});
+        const originalHide = collapseInstance.hide;
+        collapseInstance.hide = function() {
+          if (preventHide) {
+            preventHide = false;
+            return;
+          }
+          return originalHide.call(this);
+        };
+        
+        // Ensure submenu starts closed on page load (unless on a related route)
+        const isRelatedRoute = @json(request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')));
+        if (!isRelatedRoute) {
+          if (complaintsManagementSubmenu.classList.contains('show')) {
+            complaintsManagementSubmenu.classList.remove('show');
+          }
         }
         
         // Initialize icons - ensure Complaints Management icon is rendered

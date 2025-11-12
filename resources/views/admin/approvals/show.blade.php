@@ -150,7 +150,7 @@
         <div class="d-flex align-items-start">
           <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">City</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Groups</div>
             <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->city }}</div>
           </div>
         </div>
@@ -162,7 +162,7 @@
         <div class="d-flex align-items-start">
           <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Sector</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Nodes</div>
             <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->sector }}</div>
           </div>
         </div>
