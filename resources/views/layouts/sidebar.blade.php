@@ -663,7 +663,7 @@
       const complaintsManagementToggle = document.getElementById('complaintsManagementToggle');
       const complaintsManagementSubmenu = document.getElementById('complaintsManagementSubmenu');
       
-      if (complaintsManagementToggle && complaintsManagementSubmenu && complaintsArrowBtn) {
+      if (complaintsManagementToggle && complaintsManagementSubmenu) {
         // Allow clicking anywhere on the toggle div to open/close submenu
         complaintsManagementToggle.addEventListener('click', function(e) {
           // Don't toggle if clicking on a submenu link (should be handled separately)

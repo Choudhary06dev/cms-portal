@@ -114,11 +114,9 @@
             <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important; border-radius: 0 0 12px 12px;">
                 <thead>
                     <tr>
-                        <th style="width: 40px; padding-left: 8px !important;">#</th>
-
-                        <th style="width: 130px;">	Registration Date/Time</th>
-                        <th style="width: 130px; text-align: center;">Completion Time</th>
                         <th style="width: 100px;">Complaint ID</th>
+                        <th style="width: 130px;">Registration Date/Time</th>
+                        <th style="width: 130px; text-align: center;">Completion Time</th>
                         <th style="width: 120px;">Complainant Name</th>
                         <th style="width: 150px;">Address</th>
                         <th style="width: 250px;">Complaint Nature & Type</th>
@@ -129,14 +127,13 @@
                 <tbody id="complaintsTableBody">
                     @forelse($complaints as $complaint)
                         <tr>
-                            <td>{{ ($complaints->currentPage() - 1) * $complaints->perPage() + $loop->iteration }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
-                            <td style="white-space: nowrap; text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '-' }}</td>
                             <td style="white-space: nowrap;">
                                 <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
                                     {{ (int)($complaint->complaint_id ?? $complaint->id) }}
                                 </a>
                             </td>
+                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap; text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '-' }}</td>
                             <td style="white-space: nowrap;">{{ $complaint->client->client_name ?? 'N/A' }}</td>
                             <td>{{ $complaint->client->address ?? 'N/A' }}</td>
                             <td>
@@ -173,7 +170,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-4">
+                            <td colspan="8" class="text-center py-4">
                                 <i data-feather="alert-circle" class="feather-lg mb-2"></i>
                                 <div>No complaints found</div>
                             </td>
@@ -562,7 +559,7 @@
             const paginationContainer = document.getElementById('complaintsPagination');
             
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
             }
 
             fetch(`{{ route('admin.complaints.index') }}?${params.toString()}`, {
@@ -598,7 +595,7 @@
             .catch(error => {
                 console.error('Error loading complaints:', error);
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
                 }
             });
         }

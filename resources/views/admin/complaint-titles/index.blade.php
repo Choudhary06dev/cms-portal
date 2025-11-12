@@ -34,28 +34,6 @@
   </div>
 @endif
 
-<!-- Filters -->
-<div class="card-glass mb-3" style="display: inline-block; width: fit-content;">
-  <form method="GET" action="{{ route('admin.complaint-titles.index') }}" class="d-flex flex-wrap align-items-end gap-2">
-    <div style="min-width: 200px; flex: 0 0 240px;">
-      <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Category</label>
-      <select name="category" class="form-select" onchange="this.form.submit()">
-        <option value="">All Categories</option>
-        @foreach($categories as $cat)
-          <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-        @endforeach
-      </select>
-    </div>
-    <div style="min-width: 240px; flex: 1 1 320px;">
-      <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Search</label>
-      <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search Types or description...">
-    </div>
-    <div class="d-grid" style="flex: 0 0 120px;">
-      <button class="btn btn-accent" type="submit" style="width: 100%;">Search</button>
-    </div>
-  </form>
-</div>
-
 <div class="card-glass mb-3">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add Complaint Type</h5>

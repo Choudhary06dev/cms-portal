@@ -111,13 +111,13 @@ class EmployeeController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
             'category' => $categoryRule,
-            'designation' => 'nullable|string|max:100',
+            'designation' => 'required|string|max:100',
             'phone' => 'nullable|string|max:20',
             // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
             'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'sector_id' => 'nullable|exists:sectors,id',
+            'city_id' => 'required|exists:cities,id',
+            'sector_id' => 'required|exists:sectors,id',
             'status' => 'nullable|in:active,inactive',
         ]);
 
@@ -326,12 +326,12 @@ class EmployeeController extends Controller
             'name' => 'required|string|max:150',
             'phone' => 'nullable|string|max:20',
             'category' => $categoryRule,
-            'designation' => 'nullable|string|max:100',
+            'designation' => 'required|string|max:100',
             // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
             'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'sector_id' => 'nullable|exists:sectors,id',
+            'city_id' => 'required|exists:cities,id',
+            'sector_id' => 'required|exists:sectors,id',
             'status' => 'required|in:active,inactive',
         ]);
 

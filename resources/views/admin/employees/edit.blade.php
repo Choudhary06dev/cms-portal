@@ -15,7 +15,7 @@
 
 <!-- EMPLOYEE FORM -->
 <div class="card-glass">
-  <form action="{{ route('admin.employees.update', $employee) }}" method="POST" autocomplete="off" novalidate>
+  <form action="{{ route('admin.employees.update', $employee) }}" method="POST" autocomplete="off" id="employeeForm" onsubmit="return validateEmployeeForm()">
     @csrf
     @method('PUT')
     
@@ -64,9 +64,9 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="designation" class="form-label text-white">Designation</label>
+          <label for="designation" class="form-label text-white">Designation <span class="text-danger">*</span></label>
           <select class="form-select @error('designation') is-invalid @enderror" 
-                  id="designation" name="designation" {{ old('category', $employee->category) ? '' : 'disabled' }}>
+                  id="designation" name="designation" {{ old('category', $employee->category) ? '' : 'disabled' }} required>
             <option value="">{{ old('category', $employee->category) ? 'Loading...' : 'Select Category First' }}</option>
           </select>
           @error('designation')
@@ -76,9 +76,9 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="city_id" class="form-label text-white">GE Groups</label>
+          <label for="city_id" class="form-label text-white">GE Groups <span class="text-danger">*</span></label>
           <select class="form-select @error('city_id') is-invalid @enderror" 
-                  id="city_id" name="city_id">
+                  id="city_id" name="city_id" required>
             <option value="">Select GE Groups</option>
             @if(isset($cities) && $cities->count() > 0)
               @foreach ($cities as $city)
@@ -93,9 +93,9 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="sector_id" class="form-label text-white">GE Nodes</label>
+          <label for="sector_id" class="form-label text-white">GE Nodes <span class="text-danger">*</span></label>
           <select class="form-select @error('sector_id') is-invalid @enderror" 
-                  id="sector_id" name="sector_id" disabled>
+                  id="sector_id" name="sector_id" disabled required>
             <option value="">Select GE Groups First</option>
           </select>
           @error('sector_id')
@@ -187,8 +187,11 @@
     
     // Load designations on page load if category is already selected
     if (currentCategory && categorySelect && designationSelect) {
+      console.log('Loading designations for category:', currentCategory);
+      
       // Enable dropdown immediately if category exists
       designationSelect.disabled = false;
+      designationSelect.required = true;
       
       // Show loading state
       designationSelect.innerHTML = '<option value="">Loading...</option>';
@@ -200,8 +203,16 @@
           'Accept': 'application/json',
         }
       })
-      .then(response => response.json())
+      .then(response => {
+        console.log('Designations response status:', response.status);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(data => {
+        console.log('Designations data received:', data);
+        
         // Start with empty select
         designationSelect.innerHTML = '<option value="">Select Designation</option>';
         
@@ -212,6 +223,7 @@
           currentOption.textContent = currentDesignation;
           currentOption.selected = true;
           designationSelect.appendChild(currentOption);
+          console.log('Added current designation:', currentDesignation);
         }
         
         // Then add all fetched designations
@@ -226,16 +238,24 @@
             option.textContent = designation.name;
             designationSelect.appendChild(option);
           });
+          designationSelect.disabled = false;
+          designationSelect.required = true;
+          console.log('Loaded', data.designations.length, 'designations');
+        } else {
+          console.log('No designations found in response');
         }
         
         // If no designations found and no current designation, show message
         if ((!data.designations || data.designations.length === 0) && !currentDesignation) {
           designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+          designationSelect.disabled = true;
+          designationSelect.required = false;
         }
         
         // Ensure current designation is still selected after adding all options
         if (currentDesignation) {
           designationSelect.value = currentDesignation;
+          console.log('Set designation value to:', currentDesignation);
         }
       })
       .catch(error => {
@@ -248,10 +268,17 @@
           currentOption.textContent = currentDesignation;
           currentOption.selected = true;
           designationSelect.appendChild(currentOption);
+          designationSelect.disabled = false;
+          designationSelect.required = true;
+          console.log('Error occurred, but showing current designation:', currentDesignation);
         } else {
           designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+          designationSelect.disabled = true;
+          designationSelect.required = false;
         }
       });
+    } else {
+      console.log('Not loading designations - currentCategory:', currentCategory, 'categorySelect:', categorySelect, 'designationSelect:', designationSelect);
     }
     
     // Handle category change to load designations
@@ -281,8 +308,11 @@
                 designationSelect.appendChild(option);
               });
               designationSelect.disabled = false;
+              designationSelect.required = true;
             } else {
               designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+              designationSelect.disabled = true;
+              designationSelect.required = false;
             }
           })
           .catch(error => {
@@ -291,6 +321,8 @@
           });
         } else {
           designationSelect.innerHTML = '<option value="">Select Category First</option>';
+          designationSelect.disabled = true;
+          designationSelect.required = false;
         }
       });
     }
@@ -316,19 +348,20 @@
           console.log('GE Nodes loaded on page load:', data);
           sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
           
-          if (data.sectors && data.sectors.length > 0) {
-            data.sectors.forEach(function(sector) {
-              const option = document.createElement('option');
-              option.value = sector.id;
-              option.textContent = sector.name;
-              if (sector.id == currentSector) {
-                option.selected = true;
-              }
-              sectorSelect.appendChild(option);
-            });
-            sectorSelect.disabled = false;
-            console.log('GE Nodes loaded on page load:', data.sectors.length);
-          }
+            if (data.sectors && data.sectors.length > 0) {
+              data.sectors.forEach(function(sector) {
+                const option = document.createElement('option');
+                option.value = sector.id;
+                option.textContent = sector.name;
+                if (sector.id == currentSector) {
+                  option.selected = true;
+                }
+                sectorSelect.appendChild(option);
+              });
+              sectorSelect.disabled = false;
+              sectorSelect.required = true;
+              console.log('GE Nodes loaded on page load:', data.sectors.length);
+            }
         })
         .catch(error => {
           console.error('Error fetching sectors:', error);
@@ -385,9 +418,12 @@
                 sectorSelect.appendChild(option);
               });
               sectorSelect.disabled = false;
+              sectorSelect.required = true;
               console.log('GE Nodes loaded successfully:', data.sectors.length);
             } else {
               sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
+              sectorSelect.disabled = true;
+              sectorSelect.required = false;
               console.log('No GE Nodes found for GE Groups ID:', actualCityId);
             }
           })
@@ -397,9 +433,51 @@
           });
         } else {
           sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
+          sectorSelect.disabled = true;
+          sectorSelect.required = false;
         }
       });
     }
+    
+    // Form validation before submit
+    window.validateEmployeeForm = function() {
+      const citySelect = document.getElementById('city_id');
+      const sectorSelect = document.getElementById('sector_id');
+      const designationSelect = document.getElementById('designation');
+      
+      // Enable sector select if it's disabled but has a value
+      if (sectorSelect && sectorSelect.disabled && sectorSelect.value) {
+        sectorSelect.disabled = false;
+      }
+      
+      // Enable designation select if it's disabled but has a value
+      if (designationSelect && designationSelect.disabled && designationSelect.value) {
+        designationSelect.disabled = false;
+      }
+      
+      // Check if city is selected
+      if (!citySelect || !citySelect.value) {
+        alert('Please select GE Groups');
+        citySelect.focus();
+        return false;
+      }
+      
+      // Check if sector is selected
+      if (!sectorSelect || !sectorSelect.value) {
+        alert('Please select GE Nodes');
+        sectorSelect.focus();
+        return false;
+      }
+      
+      // Check if designation is selected
+      if (!designationSelect || !designationSelect.value) {
+        alert('Please select Designation');
+        designationSelect.focus();
+        return false;
+      }
+      
+      return true;
+    };
   });
 </script>
 @endpush

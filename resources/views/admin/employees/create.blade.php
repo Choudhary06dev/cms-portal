@@ -16,7 +16,7 @@
 
 <!-- EMPLOYEE FORM -->
 <div class="card-glass">
-  <form action="{{ route('admin.employees.store') }}" method="POST" autocomplete="off" novalidate>
+  <form action="{{ route('admin.employees.store') }}" method="POST" autocomplete="off" id="employeeForm" onsubmit="return validateEmployeeForm()">
     @csrf
     
     <div class="row">
@@ -64,9 +64,9 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="designation" class="form-label text-white">Designation</label>
+          <label for="designation" class="form-label text-white">Designation <span class="text-danger">*</span></label>
           <select class="form-select @error('designation') is-invalid @enderror" 
-                  id="designation" name="designation" disabled>
+                  id="designation" name="designation" disabled required>
             <option value="">Select Category First</option>
           </select>
           @error('designation')
@@ -76,9 +76,9 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="city_id" class="form-label text-white">GE Groups</label>
+          <label for="city_id" class="form-label text-white">GE Groups <span class="text-danger">*</span></label>
           <select class="form-select @error('city_id') is-invalid @enderror" 
-                  id="city_id" name="city_id">
+                  id="city_id" name="city_id" required>
             <option value="">Select GE Groups</option>
             @if(isset($cities) && $cities->count() > 0)
               @foreach ($cities as $city)
@@ -93,9 +93,9 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="sector_id" class="form-label text-white">GE Nodes</label>
+          <label for="sector_id" class="form-label text-white">GE Nodes <span class="text-danger">*</span></label>
           <select class="form-select @error('sector_id') is-invalid @enderror" 
-                  id="sector_id" name="sector_id" disabled>
+                  id="sector_id" name="sector_id" disabled required>
             <option value="">Select GE Groups First</option>
           </select>
           @error('sector_id')
@@ -207,8 +207,11 @@
                 designationSelect.appendChild(option);
               });
               designationSelect.disabled = false;
+              designationSelect.required = true;
             } else {
               designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+              designationSelect.disabled = true;
+              designationSelect.required = false;
             }
           })
           .catch(error => {
@@ -217,6 +220,8 @@
           });
         } else {
           designationSelect.innerHTML = '<option value="">Select Category First</option>';
+          designationSelect.disabled = true;
+          designationSelect.required = false;
         }
       });
     }
@@ -270,9 +275,12 @@
                 sectorSelect.appendChild(option);
               });
               sectorSelect.disabled = false;
+              sectorSelect.required = true;
               console.log('GE Nodes loaded successfully:', data.sectors.length);
             } else {
               sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
+              sectorSelect.disabled = true;
+              sectorSelect.required = false;
               console.log('No GE Nodes found for GE Groups ID:', actualCityId);
             }
           })
@@ -282,9 +290,52 @@
           });
         } else {
           sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
+          sectorSelect.disabled = true;
+          sectorSelect.required = false;
         }
       });
     }
+    
+    // Form validation before submit
+    window.validateEmployeeForm = function() {
+      const citySelect = document.getElementById('city_id');
+      const sectorSelect = document.getElementById('sector_id');
+      const designationSelect = document.getElementById('designation');
+      
+      // Enable sector select if it's disabled but has a value
+      if (sectorSelect && sectorSelect.disabled && sectorSelect.value) {
+        sectorSelect.disabled = false;
+      }
+      
+      // Enable designation select if it's disabled but has a value
+      if (designationSelect && designationSelect.disabled && designationSelect.value) {
+        designationSelect.disabled = false;
+      }
+      
+      // Check if city is selected
+      if (!citySelect || !citySelect.value) {
+        alert('Please select GE Groups');
+        citySelect.focus();
+        return false;
+      }
+      
+      // Check if sector is selected
+      if (!sectorSelect || !sectorSelect.value) {
+        alert('Please select GE Nodes');
+        sectorSelect.focus();
+        return false;
+      }
+      
+      // Check if designation is selected
+      const designationSelect = document.getElementById('designation');
+      if (!designationSelect || !designationSelect.value) {
+        alert('Please select Designation');
+        designationSelect.focus();
+        return false;
+      }
+      
+      return true;
+    };
   });
 </script>
 @endpush
