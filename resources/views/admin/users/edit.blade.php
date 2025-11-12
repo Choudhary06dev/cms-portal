@@ -122,10 +122,10 @@
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="city_id" class="form-label text-white">City</label>
+            <label for="city_id" class="form-label text-white">GE Groups</label>
             <select class="form-select @error('city_id') is-invalid @enderror" 
                     id="city_id" name="city_id">
-              <option value="">Select City (if required)</option>
+              <option value="">Select GE Groups (if required)</option>
               @foreach($cities as $city)
                 <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id', $user->city_id) == $city->id ? 'selected' : '' }}>
                   {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
@@ -141,10 +141,10 @@
         
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="sector_id" class="form-label text-white">Sector</label>
+            <label for="sector_id" class="form-label text-white">GE Nodes</label>
             <select class="form-select @error('sector_id') is-invalid @enderror" 
                     id="sector_id">
-              <option value="">Select City first</option>
+              <option value="">Select GE Groups first</option>
               @foreach($sectors as $sector)
                 <option value="{{ $sector->id }}" {{ old('sector_id', $user->sector_id) == $sector->id ? 'selected' : '' }}>
                   {{ $sector->name }}
@@ -286,12 +286,12 @@
       if (roleText.includes('garrison engineer') || roleText.includes('garrison_engineer')) {
         sectorSelect.innerHTML = '<option value="">N/A (GE sees all sectors)</option>';
         sectorSelect.disabled = true;
-        SQLSTATE[HY000] [1049] Unknown database 'complaint_management' (Connection: mysql, SQL: select * from `sessions` where `id` = Q85bpOShOySQ8B2rMigCjfwkeEvqsefd5zAzQYgs limit 1)        syncSectorHidden(); // Clear hidden field
+        syncSectorHidden(); // Clear hidden field
         return;
       }
       
       if (!cityId) {
-        sectorSelect.innerHTML = '<option value="">Select City first</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Groups first</option>';
         sectorSelect.disabled = true;
         syncSectorHidden(); // Clear hidden field
         return;
@@ -342,7 +342,7 @@
           citySelect.disabled = true;
           sectorSelect.disabled = true;
           citySelect.value = '';
-          sectorSelect.innerHTML = '<option value="">Select City first</option>';
+          sectorSelect.innerHTML = '<option value="">Select GE Groups first</option>';
           sectorSelect.value = '';
           citySelect.required = false;
           sectorSelect.required = false;

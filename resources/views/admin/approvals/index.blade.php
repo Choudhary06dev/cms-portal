@@ -98,9 +98,9 @@
         <table class="table table-dark table-sm">
       <thead>
         <tr>
-           <th style="text-align: left;">Complaint ID</th>
-          <th>Registration Date/Time</th>
-          <th style="text-align: center;">Addressed Date/Time</th>
+          <th style="text-align: left; white-space: nowrap;">Cmp-id</th>
+          <th style="white-space: nowrap;">Registration Date/Time</th>
+          <th style="text-align: center; white-space: nowrap;">Addressed Date/Time</th>
           <th>Complainant Name</th>
           <th>Address</th>
           <th>Complaint Nature & Type</th>
@@ -173,7 +173,7 @@
               {{ (int)($complaint->complaint_id ?? $complaint->id) }}
             </a>
           </td>
-          <td>{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : 'N/A' }}</td>
+          <td>{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i') : 'N/A' }}</td>
           <td style="text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">
             @if($complaint->closed_at)
               @php
@@ -200,10 +200,10 @@
                     $closedAtUTC = \Carbon\Carbon::createFromTimestamp($timestamp, 'UTC');
                     // Now convert to Asia/Karachi
                     $closedAtKarachi = $closedAtUTC->setTimezone('Asia/Karachi');
-                    echo $closedAtKarachi->format('M d, Y H:i:s');
+                    echo $closedAtKarachi->format('M d, Y H:i');
                   } catch (\Exception $e) {
                     // Fallback: try direct conversion
-                    echo $closedAt->setTimezone('Asia/Karachi')->format('M d, Y H:i:s');
+                    echo $closedAt->setTimezone('Asia/Karachi')->format('M d, Y H:i');
                   }
                 }
               @endphp
@@ -587,6 +587,166 @@
 
 @push('styles')
 <style>
+  /* Compact table styling for approvals - smaller font to fit in one line and prevent horizontal scroll */
+  .table.table-dark.table-sm {
+    font-size: 0.7rem !important;
+  }
+  
+  .table.table-dark.table-sm thead {
+    display: table-header-group !important;
+  }
+  
+  .table.table-dark.table-sm thead tr {
+    display: table-row !important;
+    width: 100% !important;
+  }
+  
+  .table.table-dark.table-sm th {
+    font-size: 0.65rem !important;
+    padding: 0.4rem 0.4rem !important;
+    white-space: nowrap !important;
+    line-height: 1.1 !important;
+    display: table-cell !important;
+    vertical-align: middle !important;
+    word-break: keep-all !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    position: relative !important;
+  }
+  
+  /* Specific header text size reduction for date columns */
+  .table.table-dark.table-sm th:nth-child(2),
+  .table.table-dark.table-sm th:nth-child(3) {
+    font-size: 0.6rem !important;
+    padding: 0.35rem 0.3rem !important;
+  }
+  
+  .table.table-dark.table-sm td {
+    font-size: 0.7rem !important;
+    padding: 0.4rem 0.5rem !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Specific styling for date columns to ensure they fit */
+  .table.table-dark.table-sm th:nth-child(2),
+  .table.table-dark.table-sm th:nth-child(3),
+  .table.table-dark.table-sm td:nth-child(2),
+  .table.table-dark.table-sm td:nth-child(3) {
+    font-size: 0.65rem !important;
+  }
+  
+  /* Prevent horizontal scroll - make table fit within viewport */
+  .table-responsive {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Remove extra padding from card container */
+  .card-glass .table-responsive {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Make table more compact with specific column widths */
+  .table.table-dark.table-sm {
+    width: 100% !important;
+    table-layout: fixed !important;
+    margin-right: 0 !important;
+    border-collapse: collapse !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(1),
+  .table.table-dark.table-sm td:nth-child(1) {
+    width: 5% !important;
+    min-width: 60px !important;
+    max-width: 80px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(2),
+  .table.table-dark.table-sm td:nth-child(2) {
+    width: 10% !important;
+    min-width: 100px !important;
+    max-width: 130px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(3),
+  .table.table-dark.table-sm td:nth-child(3) {
+    width: 10% !important;
+    min-width: 100px !important;
+    max-width: 130px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(4),
+  .table.table-dark.table-sm td:nth-child(4) {
+    width: 9% !important;
+    max-width: 110px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(5),
+  .table.table-dark.table-sm td:nth-child(5) {
+    width: 9% !important;
+    max-width: 110px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(6),
+  .table.table-dark.table-sm td:nth-child(6) {
+    width: 14% !important;
+    max-width: 170px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(7),
+  .table.table-dark.table-sm td:nth-child(7) {
+    width: 7% !important;
+    max-width: 90px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(8),
+  .table.table-dark.table-sm td:nth-child(8) {
+    width: 11% !important;
+    max-width: 130px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(9),
+  .table.table-dark.table-sm td:nth-child(9) {
+    width: 11% !important;
+    max-width: 130px !important;
+  }
+  
+  .table.table-dark.table-sm th:nth-child(10),
+  .table.table-dark.table-sm td:nth-child(10) {
+    width: 7% !important;
+    max-width: 90px !important;
+    padding-right: 0.2rem !important;
+    padding-left: 0.2rem !important;
+    text-align: left !important;
+  }
+  
+  /* Text overflow handling */
+  .table.table-dark.table-sm td {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Actions|Feedback column - ensure buttons fit */
+  .table.table-dark.table-sm td:nth-child(10) {
+    white-space: normal !important;
+  }
+  
+  .table.table-dark.table-sm td:nth-child(10) .btn {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.65rem !important;
+    margin: 0 0.1rem !important;
+  }
+  
+  .table.table-dark.table-sm td:nth-child(10) .btn i {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
   body.modal-open-blur {
       overflow: hidden;
   }

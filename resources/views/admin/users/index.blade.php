@@ -62,8 +62,8 @@
           <th>Username</th>
           <th>Name</th>
           <th>Role</th>
-          <th>City</th>
-          <th>Sector</th>
+          <th>GE Groups</th>
+          <th>GE Nodes</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -96,7 +96,7 @@
               $roleName = strtolower($user->role->role_name ?? '');
             @endphp
             @if(in_array($roleName, ['director', 'admin']))
-              <span class="badge bg-info">All Cities</span>
+              <span class="badge bg-info">All GE Groups</span>
             @else
               {{ $user->city->name ?? 'N/A' }}
             @endif
@@ -106,9 +106,9 @@
               $roleName = strtolower($user->role->role_name ?? '');
             @endphp
             @if(in_array($roleName, ['director', 'admin']))
-              <span class="badge bg-info">All Sectors</span>
+              <span class="badge bg-info">All GE Nodes</span>
             @elseif($roleName === 'garrison_engineer')
-              <span class="badge bg-info">All Sectors</span>
+              <span class="badge bg-info">All GE Nodes</span>
             @else
               {{ $user->sector->name ?? 'N/A' }}
             @endif

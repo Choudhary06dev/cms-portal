@@ -58,8 +58,8 @@
           <th>Employee</th>
           <th>Category</th>
           <th>Designation</th>
-          <th>City</th>
-          <th>Sector</th>
+          <th>GE Groups</th>
+          <th>GE Nodes</th>
           <th>Phone</th>
           <th>Status</th>
           <th>Hire Date</th>
