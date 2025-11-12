@@ -22,7 +22,8 @@ trait LocationFilterTrait
 
         switch ($roleName) {
             case 'director':
-                // Director can see all complaints - no filter
+            case 'admin':
+                // Director and Admin can see all complaints - no filter
                 break;
 
             case 'garrison_engineer':
@@ -46,6 +47,17 @@ trait LocationFilterTrait
                     });
                 } else {
                     // If no sector assigned, show nothing
+                    $query->whereRaw('1 = 0');
+                }
+                break;
+            
+            default:
+                // For any other role, if they have city_id, filter by city
+                if ($user->city_id && $user->city) {
+                    $query->whereHas('client', function ($q) use ($user) {
+                        $q->where('city', $user->city->name);
+                    });
+                } else {
                     $query->whereRaw('1 = 0');
                 }
                 break;
@@ -106,7 +118,8 @@ trait LocationFilterTrait
 
         switch ($roleName) {
             case 'director':
-                // Director can see all employees - no filter
+            case 'admin':
+                // Director and Admin can see all employees - no filter
                 break;
 
             case 'garrison_engineer':
@@ -114,6 +127,7 @@ trait LocationFilterTrait
                 if ($user->city_id) {
                     $query->where('city_id', $user->city_id);
                 } else {
+                    // If no city assigned, show nothing
                     $query->whereRaw('1 = 0');
                 }
                 break;
@@ -124,6 +138,16 @@ trait LocationFilterTrait
                 if ($user->sector_id) {
                     $query->where('sector_id', $user->sector_id);
                 } else {
+                    // If no sector assigned, show nothing
+                    $query->whereRaw('1 = 0');
+                }
+                break;
+            
+            default:
+                // For any other role, if they have city_id, filter by city
+                if ($user->city_id) {
+                    $query->where('city_id', $user->city_id);
+                } else {
                     $query->whereRaw('1 = 0');
                 }
                 break;
@@ -133,7 +157,7 @@ trait LocationFilterTrait
     }
 
     /**
-     * Check if user can view all data (Director)
+     * Check if user can view all data (Director or Admin)
      */
     public function canViewAllData($user): bool
     {
@@ -141,7 +165,8 @@ trait LocationFilterTrait
             return false;
         }
 
-        return strtolower($user->role->role_name ?? '') === 'director';
+        $roleName = strtolower($user->role->role_name ?? '');
+        return $roleName === 'director' || $roleName === 'admin';
     }
 
     /**

@@ -44,23 +44,23 @@
       <p class="text-muted small mb-0">Period: {{ \Carbon\Carbon::parse($dateFrom)->format('d M Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('d M Y') }}</p>
     </div>
     
-    <div class="table-responsive">
-      <table class="table table-bordered table-dark" style="font-size: 0.875rem; width: 100%;">
+    <div class="table-responsive" style="overflow-x: hidden !important; width: 100% !important; max-width: 100% !important;">
+      <table class="table table-bordered table-dark" style="font-size: 0.65rem; width: 100%; table-layout: fixed;">
         <thead>
           <tr class="table-header-row">
-            <th rowspan="2" class="align-middle text-left" style="min-width: 200px; color: #000000 !important; font-weight: 700 !important; text-align: left !important;">Description</th>
+            <th rowspan="2" class="align-middle text-left" style="width: 12%; color: #000000 !important; font-weight: 700 !important; text-align: left !important; font-size: 0.65rem !important; padding: 0.3rem 0.2rem !important;">Description</th>
             @foreach($categories as $catKey => $catName)
-              <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important;">{{ $catName }}</th>
+              <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.6rem !important; white-space: nowrap !important; padding: 0.3rem 0.15rem !important; width: {{ 88 / (count($categories) * 2 + 2) }}% !important;">{{ $catName }}</th>
             @endforeach
-            <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Total</th>
+            <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.3rem 0.15rem !important; width: 6% !important;">Total</th>
           </tr>
           <tr class="table-header-row">
             @foreach($categories as $catKey => $catName)
-              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Qty (No's)</th>
-              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">%age</th>
+              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.6rem !important; padding: 0.25rem 0.1rem !important;">Qty</th>
+              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.6rem !important; padding: 0.25rem 0.1rem !important;">%</th>
             @endforeach
-            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Qty (No's)</th>
-            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">%age</th>
+            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.25rem 0.1rem !important;">Qty</th>
+            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.25rem 0.1rem !important;">%</th>
           </tr>
         </thead>
         <tbody>
@@ -81,15 +81,15 @@
           @endphp
           @foreach($reportData as $rowKey => $row)
           <tr class="{{ $rowKey === 'total' ? 'table-total-row' : '' }}">
-            <td class="fw-bold text-left" style="text-align: left !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
+            <td class="fw-bold text-left" style="text-align: left !important; font-size: 0.65rem !important; padding: 0.3rem 0.2rem !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
               {{ $statusDisplayNames[$rowKey] ?? $row['name'] }}
             </td>
             @foreach($categories as $catKey => $catName)
               @php
                 $cellData = $row['categories'][$catKey] ?? ['count' => 0, 'percentage' => 0];
               @endphp
-              <td class="text-center" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['count']) }}</td>
-              <td class="text-center" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['percentage'], 1) }}%</td>
+              <td class="text-center" style="font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['count']) }}</td>
+              <td class="text-center" style="font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['percentage'], 1) }}%</td>
             @endforeach
             @php
               // Calculate grand total: sum of all primary columns
@@ -128,8 +128,8 @@
               }
               $rowGrandPercent = $grandTotal > 0 ? ($rowGrandTotal / $grandTotal * 100) : 0;
             @endphp
-            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important;">{{ number_format($rowGrandTotal) }}</td>
-            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important;">{{ number_format($rowGrandPercent, 1) }}%</td>
+            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important;">{{ number_format($rowGrandTotal) }}</td>
+            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important;">{{ number_format($rowGrandPercent, 1) }}%</td>
           </tr>
           @endforeach
         </tbody>
@@ -192,9 +192,10 @@
     }
   }
   .table th, .table td {
-    padding: 0.5rem;
+    padding: 0.3rem 0.15rem !important;
     vertical-align: middle;
     text-align: center;
+    font-size: 0.65rem !important;
   }
   .table-dark {
     background-color: #1e293b;
@@ -209,13 +210,49 @@
     border-color: #334155;
   }
   .table-responsive {
-    overflow-x: auto;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+  }
+  
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+  
+  .content {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
   }
   
   /* Header styling - sirf text black, background original */
   .table-header-black {
     color: #000000 !important;
     font-weight: 700 !important;
+  }
+  
+  /* Make header text smaller to fit in one line */
+  .table-header-row th {
+    font-size: 0.6rem !important;
+    white-space: nowrap !important;
+    padding: 0.3rem 0.15rem !important;
+    line-height: 1.1 !important;
+    word-break: break-word !important;
+  }
+  
+  .table {
+    font-size: 0.65rem !important;
+  }
+  
+  .table th, .table td {
+    font-size: 0.65rem !important;
+    padding: 0.3rem 0.15rem !important;
   }
   
   /* Total row styling - sirf text black, background original */
