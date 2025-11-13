@@ -532,24 +532,28 @@
               <td>{{ $complaint->client->client_name }}</td>
               <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
               <td>
-                @if($complaint->status === 'resolved')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'in_progress')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'assigned')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'work_priced_performa')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #9333ea !important; color: #ffffff !important; border-color: #7e22ce !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'maint_priced_performa')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ea580c !important; color: #ffffff !important; border-color: #c2410c !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'un_authorized')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'pertains_to_ge_const_isld')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'product_na')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @php
+                  // Map 'new' status to 'assigned' for display
+                  $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
+                @endphp
+                @if($displayStatus === 'resolved')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'in_progress')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'assigned')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'work_priced_performa')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #9333ea !important; color: #ffffff !important; border-color: #7e22ce !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'maint_priced_performa')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ea580c !important; color: #ffffff !important; border-color: #c2410c !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'un_authorized')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'pertains_to_ge_const_isld')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'product_na')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @else
-                  <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @endif
               </td>
               <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>

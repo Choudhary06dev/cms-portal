@@ -257,6 +257,8 @@ class ApprovalController extends Controller
                 'assigned' => 'Assigned',
                 'in_progress' => 'In-Process',
                 'resolved' => 'Addressed',
+                'work_performa' => 'Work Performa',
+                'maint_performa' => 'Maintenance Performa',
                 'work_priced_performa' => 'Work Performa Priced',
                 'maint_priced_performa' => 'Maintenance Performa Priced',
                 'product_na' => 'Product N/A',
@@ -288,9 +290,9 @@ class ApprovalController extends Controller
                 'performa_maint_performa' => $performaTypes['performa_maint_performa'],
             ];
             
-            // Add remaining statuses (excluding already added ones)
+            // Add remaining statuses (excluding already added ones and work_performa/maint_performa from filter)
             foreach ($statusLabels as $key => $label) {
-                if (!in_array($key, ['assigned', 'in_progress', 'resolved'])) {
+                if (!in_array($key, ['assigned', 'in_progress', 'resolved', 'work_performa', 'maint_performa'])) {
                     $orderedStatusesForFilter[$key] = $label;
                 }
             }
@@ -714,8 +716,20 @@ class ApprovalController extends Controller
      */
     public function saveWithPerforma(Request $request, SpareApprovalPerforma $approval)
     {
-        $validator = Validator::make($request->all(), [
-            'performa_type' => 'required|in:work_performa,maint_performa',
+        // Allow null performa_type to clear it - normalize the value first
+        $performaType = $request->performa_type;
+        if ($performaType === null || $performaType === 'null' || $performaType === '' || $performaType === 'undefined') {
+            $performaType = null;
+        }
+        
+        // Build validation rules - if null, just nullable; otherwise check if it's in the allowed list
+        $performaTypeRules = 'nullable';
+        if ($performaType !== null) {
+            $performaTypeRules .= '|in:work_performa,maint_performa,product_na';
+        }
+        
+        $validator = Validator::make(array_merge($request->all(), ['performa_type' => $performaType]), [
+            'performa_type' => $performaTypeRules,
             'waiting_for_authority' => 'nullable|boolean',
             'remarks' => 'nullable|string',
         ]);
@@ -730,10 +744,17 @@ class ApprovalController extends Controller
 
         try {
             // Update approval with performa type and mark as waiting for authority
-            $updateData = [
-                'performa_type' => $request->performa_type,
-                'waiting_for_authority' => $request->has('waiting_for_authority') ? (bool)$request->waiting_for_authority : true,
-            ];
+            $updateData = [];
+            
+            // Use normalized performa_type value
+            $updateData['performa_type'] = $performaType;
+            
+            // Set waiting_for_authority - default to false if performa_type is null, otherwise true
+            if ($request->has('waiting_for_authority')) {
+                $updateData['waiting_for_authority'] = (bool)$request->waiting_for_authority;
+            } else {
+                $updateData['waiting_for_authority'] = $performaType ? true : false;
+            }
             
             if ($request->has('remarks')) {
                 $updateData['remarks'] = $request->remarks;
@@ -743,14 +764,40 @@ class ApprovalController extends Controller
             
             $approval->update($updateData);
 
-            // Update complaint status to in_progress if waiting for authority
-            if ($approval->complaint && $updateData['waiting_for_authority']) {
+            // Update complaint status based on performa type
+            // If performa type is set, update status to that performa type
+            // If performa type is null, don't change complaint status (status is managed separately)
+            if ($approval->complaint && $updateData['performa_type']) {
                 $complaint = $approval->complaint;
-                if ($complaint->status === 'assigned' || $complaint->status === 'new') {
-                    $complaint->status = 'in_progress';
+                $newStatus = null;
+                
+                // Determine status based on performa type
+                if ($updateData['performa_type'] === 'work_performa') {
+                    // Check if waiting for authority to determine if it's priced or regular
+                    if ($updateData['waiting_for_authority']) {
+                        $newStatus = 'work_priced_performa';
+                    } else {
+                        $newStatus = 'work_performa';
+                    }
+                } elseif ($updateData['performa_type'] === 'maint_performa') {
+                    // Check if waiting for authority to determine if it's priced or regular
+                    if ($updateData['waiting_for_authority']) {
+                        $newStatus = 'maint_priced_performa';
+                    } else {
+                        $newStatus = 'maint_performa';
+                    }
+                } elseif ($updateData['performa_type'] === 'product_na') {
+                    $newStatus = 'product_na';
+                }
+                
+                // Update complaint status if new status is determined
+                // Always update if status is not resolved/closed (allow updating performa statuses)
+                if ($newStatus && !in_array($complaint->status, ['resolved', 'closed'])) {
+                    $complaint->status = $newStatus;
                     $complaint->save();
                 }
             }
+            // If performa_type is null, don't change complaint status - it's managed by status dropdown
 
             return response()->json([
                 'success' => true,
@@ -791,6 +838,43 @@ class ApprovalController extends Controller
             $approval->update([
                 'performa_type' => $request->performa_type,
             ]);
+
+            // Update complaint status based on performa type
+            // If performa type is set, update status to that performa type
+            // If no performa type, keep status as in_progress
+            if ($approval->complaint) {
+                $complaint = $approval->complaint;
+                $newStatus = null;
+                
+                // Determine status based on performa type
+                if ($request->performa_type === 'work_performa') {
+                    // Check if waiting for authority to determine if it's priced or regular
+                    if ($approval->waiting_for_authority) {
+                        $newStatus = 'work_priced_performa';
+                    } else {
+                        $newStatus = 'work_performa';
+                    }
+                } elseif ($request->performa_type === 'maint_performa') {
+                    // Check if waiting for authority to determine if it's priced or regular
+                    if ($approval->waiting_for_authority) {
+                        $newStatus = 'maint_priced_performa';
+                    } else {
+                        $newStatus = 'maint_performa';
+                    }
+                } elseif ($request->performa_type === 'product_na') {
+                    $newStatus = 'product_na';
+                } else {
+                    // If no performa type, keep as in_progress
+                    $newStatus = 'in_progress';
+                }
+                
+                // Update complaint status if new status is determined
+                // Always update if status is not resolved/closed (allow updating performa statuses)
+                if ($newStatus && !in_array($complaint->status, ['resolved', 'closed'])) {
+                    $complaint->status = $newStatus;
+                    $complaint->save();
+                }
+            }
 
             return response()->json([
                 'success' => true,

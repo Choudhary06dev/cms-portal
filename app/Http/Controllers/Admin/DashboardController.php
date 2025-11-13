@@ -205,10 +205,21 @@ class DashboardController extends Controller
         // Clone query before selectRaw to use for performa type counts
         $performaCountQuery = clone $complaintsByStatusQuery;
         
-        $complaintsByStatus = $complaintsByStatusQuery->selectRaw('status, COUNT(*) as count')
+        // Get status counts - map 'new' status to 'assigned' (same as approvals page)
+        $statusCounts = $complaintsByStatusQuery->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
+        
+        // Map 'new' status to 'assigned' for display (same logic as approvals page)
+        $complaintsByStatus = [];
+        foreach ($statusCounts as $status => $count) {
+            $displayStatus = ($status === 'new') ? 'assigned' : $status;
+            if (!isset($complaintsByStatus[$displayStatus])) {
+                $complaintsByStatus[$displayStatus] = 0;
+            }
+            $complaintsByStatus[$displayStatus] += $count;
+        }
         
         // Add performa type complaints that are stored as in_progress with performa_type in approvals
         // Work Performa - count in_progress complaints with work_performa performa_type (excluding priced ones)
