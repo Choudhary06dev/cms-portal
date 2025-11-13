@@ -355,24 +355,26 @@
                 });
             }
             
-            // Form validation - check phone number before submit
-            const complaintForm = document.querySelector('form[action*="complaints"]');
-            if (complaintForm) {
-                complaintForm.addEventListener('submit', function(e) {
-                    const phoneValue = phoneInput ? phoneInput.value.trim() : '';
-                    if (phoneValue && phoneValue.length < 11) {
-                        e.preventDefault();
-                        alert('Phone number must be at least 11 digits.');
-                        if (phoneInput) phoneInput.focus();
-                        return false;
-                    }
-                });
-            }
-            
             const spareSelect = document.getElementById('spare_select');
             const quantityInput = document.getElementById('quantity_input');
             const stockWarning = document.getElementById('stock_warning');
             const categorySelect = document.getElementById('category');
+            
+            // Get form reference once (will be used for multiple validations)
+            const complaintForm = document.querySelector('form[action*="complaints"]');
+            
+            // Form validation - check phone number before submit
+            if (complaintForm && phoneInput) {
+                complaintForm.addEventListener('submit', function(e) {
+                    const phoneValue = phoneInput.value.trim();
+                    if (phoneValue && phoneValue.length < 11) {
+                        e.preventDefault();
+                        alert('Phone number must be at least 11 digits.');
+                        phoneInput.focus();
+                        return false;
+                    }
+                });
+            }
 
             // Stock validation and auto-adjustment (only if spare/quantity inputs exist)
             if (spareSelect && quantityInput) {
@@ -764,7 +766,7 @@
             }
 
             // Form submit handler: sync title_other to title when "Other" is selected
-            const complaintForm = document.querySelector('form[action*="complaints.store"]');
+            // Use the same form reference declared above
             if (complaintForm && titleSelect && titleOtherInput) {
                 complaintForm.addEventListener('submit', function(e) {
                     if (titleSelect.value === 'other' || titleOtherInput.style.display !== 'none') {
