@@ -184,8 +184,15 @@
     if (categorySelect && designationSelect) {
       categorySelect.addEventListener('change', function() {
         const category = this.value;
-        designationSelect.innerHTML = '<option value="">Loading...</option>';
-        designationSelect.disabled = true;
+        const designationSelectEl = document.getElementById('designation');
+        
+        if (!designationSelectEl) {
+          console.error('Designation select element not found');
+          return;
+        }
+        
+        designationSelectEl.innerHTML = '<option value="">Loading...</option>';
+        designationSelectEl.disabled = true;
         
         if (category) {
           fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(category)}`, {
@@ -193,35 +200,43 @@
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
               'Accept': 'application/json',
-            }
+            },
+            credentials: 'same-origin'
           })
-          .then(response => response.json())
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
           .then(data => {
-            designationSelect.innerHTML = '<option value="">Select Designation</option>';
+            designationSelectEl.innerHTML = '<option value="">Select Designation</option>';
             
             if (data.designations && data.designations.length > 0) {
               data.designations.forEach(function(designation) {
                 const option = document.createElement('option');
                 option.value = designation.name;
                 option.textContent = designation.name;
-                designationSelect.appendChild(option);
+                designationSelectEl.appendChild(option);
               });
-              designationSelect.disabled = false;
-              designationSelect.required = true;
+              designationSelectEl.disabled = false;
+              designationSelectEl.required = true;
             } else {
-              designationSelect.innerHTML = '<option value="">No Designation Available</option>';
-              designationSelect.disabled = true;
-              designationSelect.required = false;
+              designationSelectEl.innerHTML = '<option value="">No Designation Available</option>';
+              designationSelectEl.disabled = true;
+              designationSelectEl.required = false;
             }
           })
           .catch(error => {
             console.error('Error fetching designations:', error);
-            designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+            designationSelectEl.innerHTML = '<option value="">Error Loading Designations</option>';
+            designationSelectEl.disabled = true;
+            designationSelectEl.required = false;
           });
         } else {
-          designationSelect.innerHTML = '<option value="">Select Category First</option>';
-          designationSelect.disabled = true;
-          designationSelect.required = false;
+          designationSelectEl.innerHTML = '<option value="">Select Category First</option>';
+          designationSelectEl.disabled = true;
+          designationSelectEl.required = false;
         }
       });
     }
@@ -315,22 +330,21 @@
       // Check if city is selected
       if (!citySelect || !citySelect.value) {
         alert('Please select GE Groups');
-        citySelect.focus();
+        if (citySelect) citySelect.focus();
         return false;
       }
       
       // Check if sector is selected
       if (!sectorSelect || !sectorSelect.value) {
         alert('Please select GE Nodes');
-        sectorSelect.focus();
+        if (sectorSelect) sectorSelect.focus();
         return false;
       }
       
       // Check if designation is selected
-      const designationSelect = document.getElementById('designation');
       if (!designationSelect || !designationSelect.value) {
         alert('Please select Designation');
-        designationSelect.focus();
+        if (designationSelect) designationSelect.focus();
         return false;
       }
       
