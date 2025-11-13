@@ -49,6 +49,10 @@ class EmployeeController extends Controller
             });
         }
 
+        // Filter by category
+        if ($request->has('category') && $request->category) {
+            $query->where('category', $request->category);
+        }
 
         // Filter by status
         if ($request->has('status') && $request->status) {
@@ -57,7 +61,22 @@ class EmployeeController extends Controller
 
         $employees = $query->with(['city', 'sector'])->orderBy('id', 'desc')->paginate(10);
         
-        return view('admin.employees.index', compact('employees'));
+        // Get categories for filter dropdown from ComplaintCategory table
+        $categories = collect();
+        if (Schema::hasTable('complaint_categories')) {
+            $categories = ComplaintCategory::orderBy('name')->pluck('name');
+        } else {
+            // Fallback: Get from employees with location filtering
+            $categoriesQuery = Employee::select('category')
+                ->whereNotNull('category')
+                ->where('category', '!=', '');
+            $this->filterEmployeesByLocation($categoriesQuery, $user);
+            $categories = $categoriesQuery->distinct()
+                ->orderBy('category')
+                ->pluck('category');
+        }
+        
+        return view('admin.employees.index', compact('employees', 'categories'));
     }
 
     /**

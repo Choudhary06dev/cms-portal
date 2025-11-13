@@ -105,7 +105,7 @@
           <th>Address</th>
           <th>Complaint Nature & Type</th>
           <th>Phone No.</th>
-          <th>Authority No. Required</th>
+          <th>Performa Required</th>
           <th>Status</th>
           <th>Actions|Feedback</th>
         </tr>

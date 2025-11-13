@@ -217,7 +217,7 @@
                                                 data-city="{{ $employee->city_id }}"
                                                 data-sector="{{ $employee->sector_id }}"
                                                 {{ (string) old('assigned_employee_id') === (string) $employee->id ? 'selected' : '' }}>
-                                                {{ $employee->name }}</option>
+                                                {{ $employee->name }}@if($employee->designation) ({{ $employee->designation }})@endif</option>
                                         @endforeach
                                     @else
                                         <option value="" disabled>No employees available</option>

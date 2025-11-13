@@ -230,6 +230,8 @@ trait LocationFilterTrait
     public function filterSparesByLocation(Builder $query, $user): Builder
     {
         if (!$user || !$user->role) {
+            // If no user or role, show nothing for safety
+            $query->whereRaw('1 = 0');
             return $query;
         }
 
@@ -237,7 +239,8 @@ trait LocationFilterTrait
 
         switch ($roleName) {
             case 'director':
-                // Director can see all spares - no filter
+            case 'admin':
+                // Director and Admin can see all spares - no filter
                 break;
 
             case 'garrison_engineer':
@@ -257,6 +260,20 @@ trait LocationFilterTrait
                     $query->where('sector_id', $user->sector_id);
                 } else {
                     // If no sector assigned, show nothing
+                    $query->whereRaw('1 = 0');
+                }
+                break;
+            
+            default:
+                // For any other role, if they have sector_id, filter by sector
+                // Otherwise if they have city_id, filter by city
+                // Otherwise show nothing
+                if ($user->sector_id) {
+                    $query->where('sector_id', $user->sector_id);
+                } elseif ($user->city_id) {
+                    $query->where('city_id', $user->city_id);
+                } else {
+                    // If no location assigned, show nothing
                     $query->whereRaw('1 = 0');
                 }
                 break;

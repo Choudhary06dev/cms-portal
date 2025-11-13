@@ -84,10 +84,11 @@ class SpareController extends Controller
             ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
             : [];
         
-        // Get unique categories from spares table
-        $spareCategories = Spare::whereNotNull('category')
-            ->where('category', '!=', '')
-            ->distinct()
+        // Get unique categories from spares table (with location filtering)
+        $spareCategoriesQuery = Spare::whereNotNull('category')
+            ->where('category', '!=', '');
+        $this->filterSparesByLocation($spareCategoriesQuery, $user);
+        $spareCategories = $spareCategoriesQuery->distinct()
             ->orderBy('category')
             ->pluck('category')
             ->toArray();
@@ -871,7 +872,13 @@ class SpareController extends Controller
      */
     public function getCategoryStatistics()
     {
-        $stats = Spare::selectRaw('category, COUNT(*) as count, SUM(stock_quantity) as total_stock, SUM(stock_quantity * unit_price) as total_value')
+        $user = Auth::user();
+        $query = Spare::query();
+        
+        // Apply location-based filtering
+        $this->filterSparesByLocation($query, $user);
+        
+        $stats = $query->selectRaw('category, COUNT(*) as count, SUM(stock_quantity) as total_stock, SUM(stock_quantity * unit_price) as total_value')
             ->groupBy('category')
             ->get();
 
@@ -989,7 +996,11 @@ class SpareController extends Controller
      */
     public function export(Request $request)
     {
+        $user = Auth::user();
         $query = Spare::query();
+        
+        // Apply location-based filtering
+        $this->filterSparesByLocation($query, $user);
 
         // Apply same filters as index
         if ($request->has('search') && $request->search) {
@@ -1059,42 +1070,56 @@ class SpareController extends Controller
             $category = $request->get('category');
             $sectorName = $request->get('sector');
             $cityName = $request->get('city');
+            $user = Auth::user();
             
             $query = Spare::query();
             
-            // Apply location filtering based on sector
-            if ($sectorName) {
-                // Find sector by name (handle both string name and object)
-                $sectorNameStr = is_string($sectorName) ? $sectorName : (is_object($sectorName) ? ($sectorName->name ?? null) : null);
+            // First apply user-based location filtering (this is the primary filter)
+            $this->filterSparesByLocation($query, $user);
+            
+            // Only apply additional location filtering from request if user is Director/Admin
+            // For other roles, user-based filtering is already applied and should not be overridden
+            if ($user && $user->role) {
+                $roleName = strtolower($user->role->role_name ?? '');
                 
-                if ($sectorNameStr) {
-                    $sector = \App\Models\Sector::where('name', $sectorNameStr)->first();
-                    if ($sector && $sector->id) {
-                        $query->where('sector_id', $sector->id);
-                    } else {
-                        // If sector not found, try to find by ID if it's numeric
-                        if (is_numeric($sectorName)) {
-                            $query->where('sector_id', $sectorName);
+                // Only Director/Admin can override location filtering with request parameters
+                if (in_array($roleName, ['director', 'admin'])) {
+                    // Then apply additional location filtering based on request parameters (if provided)
+                    if ($sectorName) {
+                        // Find sector by name (handle both string name and object)
+                        $sectorNameStr = is_string($sectorName) ? $sectorName : (is_object($sectorName) ? ($sectorName->name ?? null) : null);
+                        
+                        if ($sectorNameStr) {
+                            $sector = \App\Models\Sector::where('name', $sectorNameStr)->first();
+                            if ($sector && $sector->id) {
+                                $query->where('sector_id', $sector->id);
+                            } else {
+                                // If sector not found, try to find by ID if it's numeric
+                                if (is_numeric($sectorName)) {
+                                    $query->where('sector_id', $sectorName);
+                                }
+                            }
                         }
-                        // If sector not found and not numeric, don't filter by sector (show all products for category)
+                    } elseif ($cityName) {
+                        // If only city is provided, filter by city_id
+                        // Handle both string name and object
+                        $cityNameStr = is_string($cityName) ? $cityName : (is_object($cityName) ? ($cityName->name ?? null) : null);
+                        
+                        if ($cityNameStr) {
+                            $city = \App\Models\City::where('name', $cityNameStr)->first();
+                            if ($city && $city->id) {
+                                $query->where('city_id', $city->id);
+                            } else {
+                                // If city not found, try to find by ID if it's numeric
+                                if (is_numeric($cityName)) {
+                                    $query->where('city_id', $cityName);
+                                }
+                            }
+                        }
                     }
                 }
-            } elseif ($cityName) {
-                // If only city is provided, filter by city_id
-                // Handle both string name and object
-                $cityNameStr = is_string($cityName) ? $cityName : (is_object($cityName) ? ($cityName->name ?? null) : null);
-                
-                if ($cityNameStr) {
-                    $city = \App\Models\City::where('name', $cityNameStr)->first();
-                    if ($city && $city->id) {
-                        $query->where('city_id', $city->id);
-                    } else {
-                        // If city not found, try to find by ID if it's numeric
-                        if (is_numeric($cityName)) {
-                            $query->where('city_id', $cityName);
-                        }
-                    }
-                }
+                // For other roles (complaint_center, department_staff, garrison_engineer), 
+                // user-based filtering is already applied and request parameters are ignored
             }
             
             // Apply category filter

@@ -27,8 +27,14 @@
     </div>
     <div class="col-auto">
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
-      <input type="text" class="form-control" name="category" placeholder="Category" 
-             value="{{ request('category') }}" oninput="handleEmployeesSearchInput()" style="font-size: 0.9rem; width: 140px;">
+      <select class="form-select" name="category" onchange="submitEmployeesFilters()" style="font-size: 0.9rem; width: 140px;">
+        <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
+        @if(isset($categories) && $categories->count() > 0)
+          @foreach($categories as $cat)
+            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+          @endforeach
+        @endif
+      </select>
     </div>
     <div class="col-auto">
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>

@@ -556,49 +556,112 @@ class ReportController extends Controller
                 if ($rowKey === 'assigned') {
                     $count = $catComplaints->where('status', 'assigned')->count();
                 } elseif ($rowKey === 'in_progress') {
-                    // Count complaints with in_progress status that do NOT have performa required
-                    // Exclude product_na, work_performa, maint_performa, work_priced_performa, maint_priced_performa
+                    // Count complaints with in_progress status that do NOT have any performa type
+                    // Exclude complaints that have work_performa, maint_performa, or product_na performa_type
                     $count = $catComplaints->filter(function($complaint) {
                         if ($complaint->status !== 'in_progress') {
                             return false;
                         }
-                        // Exclude if status is product_na (should be counted separately)
-                        if ($complaint->status === 'product_na') {
+                        // Exclude if status is product_na, work_performa, maint_performa, or priced performa (should be counted separately)
+                        if (in_array($complaint->status, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'])) {
                             return false;
                         }
-                        // Check if complaint has pending performa (work_performa or maint_performa)
+                        // Check if complaint has any performa type set (work_performa, maint_performa, or product_na) - exclude rejected
                         $hasWorkPerforma = $complaint->spareApprovals->contains(function($approval) {
-                            return $approval->performa_type === 'work_performa' && $approval->status === 'pending';
+                            return $approval->performa_type === 'work_performa' &&
+                                   $approval->status !== 'rejected';
                         });
                         $hasMaintPerforma = $complaint->spareApprovals->contains(function($approval) {
-                            return $approval->performa_type === 'maint_performa' && $approval->status === 'pending';
+                            return $approval->performa_type === 'maint_performa' &&
+                                   $approval->status !== 'rejected';
                         });
                         $hasProductNa = $complaint->spareApprovals->contains(function($approval) {
-                            return $approval->performa_type === 'product_na' && $approval->status === 'pending';
+                            return $approval->performa_type === 'product_na' &&
+                                   $approval->status !== 'rejected';
                         });
-                        // Exclude if has performa required
+                        // Exclude if has any performa type
                         return !$hasWorkPerforma && !$hasMaintPerforma && !$hasProductNa;
                     })->count();
                 } elseif ($rowKey === 'resolved') {
                     $count = $catComplaints->where('status', 'resolved')->count();
                 } elseif ($rowKey === 'work') {
-                    // Count complaints with work_performa status directly from table
-                    $count = $catComplaints->where('status', 'work_performa')->count();
-                } elseif ($rowKey === 'maintenance') {
-                    // Count complaints with maint_performa status directly from table
-                    $count = $catComplaints->where('status', 'maint_performa')->count();
-                } elseif ($rowKey === 'work_priced_performa') {
-                    // Count complaints with work_priced_performa status directly from table
-                    // Only count if status is work_priced_performa, exclude work_performa
-                    $count = $catComplaints->where('status', 'work_priced_performa')->count();
-                } elseif ($rowKey === 'maint_priced_performa') {
-                    // Count complaints with maint_priced_performa status directly from table
-                    // Only count if status is maint_priced_performa, exclude maint_performa
-                    $count = $catComplaints->where('status', 'maint_priced_performa')->count();
-                } elseif ($rowKey === 'product_na') {
-                    // Count complaints with product N/A status
+                    // Count complaints that have work_performa performa_type in spareApprovals
+                    // Exclude priced ones (waiting_for_authority = true or status = work_priced_performa)
                     $count = $catComplaints->filter(function($complaint) {
-                        return $complaint->status === 'product_na';
+                        // Exclude if status is work_priced_performa (should be in work_priced_performa row)
+                        if ($complaint->status === 'work_priced_performa') {
+                            return false;
+                        }
+                        // Check if status is work_performa (not priced)
+                        if ($complaint->status === 'work_performa') {
+                            return true;
+                        }
+                        // Or check if has work_performa performa_type without waiting_for_authority (exclude rejected)
+                        return $complaint->spareApprovals->contains(function($approval) {
+                            return $approval->performa_type === 'work_performa' && 
+                                   !$approval->waiting_for_authority &&
+                                   $approval->status !== 'rejected';
+                        });
+                    })->count();
+                } elseif ($rowKey === 'maintenance') {
+                    // Count complaints that have maint_performa performa_type in spareApprovals
+                    // Exclude priced ones (waiting_for_authority = true or status = maint_priced_performa)
+                    $count = $catComplaints->filter(function($complaint) {
+                        // Exclude if status is maint_priced_performa (should be in maint_priced_performa row)
+                        if ($complaint->status === 'maint_priced_performa') {
+                            return false;
+                        }
+                        // Check if status is maint_performa (not priced)
+                        if ($complaint->status === 'maint_performa') {
+                            return true;
+                        }
+                        // Or check if has maint_performa performa_type without waiting_for_authority (exclude rejected)
+                        return $complaint->spareApprovals->contains(function($approval) {
+                            return $approval->performa_type === 'maint_performa' && 
+                                   !$approval->waiting_for_authority &&
+                                   $approval->status !== 'rejected';
+                        });
+                    })->count();
+                } elseif ($rowKey === 'work_priced_performa') {
+                    // Count complaints that have work_priced_performa status OR work_performa performa_type with waiting_for_authority = true
+                    $count = $catComplaints->filter(function($complaint) {
+                        // Check if status is work_priced_performa
+                        if ($complaint->status === 'work_priced_performa') {
+                            return true;
+                        }
+                        // Or check if has work_performa performa_type with waiting_for_authority = true (exclude rejected)
+                        return $complaint->spareApprovals->contains(function($approval) {
+                            return $approval->performa_type === 'work_performa' && 
+                                   $approval->waiting_for_authority === true &&
+                                   $approval->status !== 'rejected';
+                        });
+                    })->count();
+                } elseif ($rowKey === 'maint_priced_performa') {
+                    // Count complaints that have maint_priced_performa status OR maint_performa performa_type with waiting_for_authority = true
+                    $count = $catComplaints->filter(function($complaint) {
+                        // Check if status is maint_priced_performa
+                        if ($complaint->status === 'maint_priced_performa') {
+                            return true;
+                        }
+                        // Or check if has maint_performa performa_type with waiting_for_authority = true (exclude rejected)
+                        return $complaint->spareApprovals->contains(function($approval) {
+                            return $approval->performa_type === 'maint_performa' && 
+                                   $approval->waiting_for_authority === true &&
+                                   $approval->status !== 'rejected';
+                        });
+                    })->count();
+                } elseif ($rowKey === 'product_na') {
+                    // Count complaints that have product_na status OR product_na performa_type in spareApprovals
+                    $count = $catComplaints->filter(function($complaint) {
+                        // Check if status is product_na
+                        if ($complaint->status === 'product_na') {
+                            return true;
+                        }
+                        // Or check if has product_na performa_type in approvals (exclude rejected)
+                        return $complaint->spareApprovals->contains(function($approval) {
+                            return $approval->performa_type === 'product_na' &&
+                                   $approval->status !== 'rejected';
+                        });
                     })->count();
                 } elseif ($rowKey === 'un_authorized') {
                     // Count complaints with un_authorized status

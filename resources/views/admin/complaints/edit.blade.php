@@ -176,7 +176,7 @@
                                 data-city="{{ $employee->city_id }}"
                                 data-sector="{{ $employee->sector_id }}"
                                 {{ (string)old('assigned_employee_id', $complaint->assigned_employee_id) === (string)$employee->id ? 'selected' : '' }}>
-                          {{ $employee->name }}
+                          {{ $employee->name }}@if($employee->designation) ({{ $employee->designation }})@endif
                         </option>
                       @endforeach
                     @else

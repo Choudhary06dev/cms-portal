@@ -58,7 +58,7 @@
                             <option value="" {{ request('assigned_employee_id') ? '' : 'selected' }}>All</option>
                             @foreach($employees as $employee)
                             <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
-                                {{ $employee->name }}
+                                {{ $employee->name }}@if($employee->designation) ({{ $employee->designation }})@endif
                             </option>
                             @endforeach
                         </select>
