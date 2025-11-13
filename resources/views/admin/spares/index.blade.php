@@ -76,7 +76,7 @@
       <tbody id="sparesTableBody">
         @forelse($spares as $spare)
         <tr>
-          <td class="text-muted" style="padding: 0.4rem 0.5rem;">{{ $loop->iteration }}</td>
+          <td class="text-muted" style="padding: 0.4rem 0.5rem;">{{ ($spares->currentPage() - 1) * $spares->perPage() + $loop->iteration }}</td>
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->product_code ?? 'N/A' }}</td>
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->brand_name ?? 'N/A' }}</td>
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->item_name }}</td>

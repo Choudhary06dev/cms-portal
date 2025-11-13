@@ -292,15 +292,16 @@
 @php
   $showGEFeedback = false;
   $user = auth()->user();
-  $userRoleName = strtolower($user->role->role_name ?? '');
-  $isDirector = in_array($userRoleName, ['director', 'admin']);
-  $isGE = (strpos($userRoleName, 'garrison') !== false && strpos($userRoleName, 'engineer') !== false) 
-          || strpos($userRoleName, 'ge') !== false;
+  
+  // Location filter logic:
+  // 1. If user's city_id AND sector_id are both null - show all data
+  // 2. If user's city_id is set but sector_id is null - show only their city's data
+  // 3. If user has sector_id - they shouldn't see GE Feedback Overview
   $canSeeAllData = (!$user->city_id && !$user->sector_id);
   $canSeeCityData = ($user->city_id && !$user->sector_id);
   
-  // Show section if user has permission and GE role exists
-  if (isset($geRole) && ($isDirector || $isGE || $canSeeAllData || $canSeeCityData)) {
+  // Show section based on location filter only
+  if ($canSeeAllData || $canSeeCityData) {
     $showGEFeedback = true;
   }
 @endphp
@@ -528,7 +529,7 @@
           <tbody>
             @forelse($recentComplaints ?? [] as $complaint)
             <tr>
-              <td><strong>#{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</strong></td>
+              <td><strong>{{ (int)$complaint->id }}</strong></td>
               <td>{{ $complaint->client->client_name }}</td>
               <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
               <td>
@@ -538,6 +539,8 @@
                   <span class="status-badge status-{{ $complaint->status }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @elseif($complaint->status === 'assigned')
                   <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($complaint->status === 'new')
+                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #3b82f6 !important; color: #ffffff !important; border-color: #2563eb !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @elseif($complaint->status === 'work_priced_performa')
                   <span class="status-badge status-{{ $complaint->status }}" style="background-color: #9333ea !important; color: #ffffff !important; border-color: #7e22ce !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @elseif($complaint->status === 'maint_priced_performa')
@@ -589,18 +592,21 @@
                   <th>Complaint ID</th>
                   <th>Complainant</th>
                   <th>Employee Assigned</th>
-                  <th>Status</th>
                   <th>Items</th>
                   <th>Registration Date/Time</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @foreach($pendingApprovals as $approval)
                 <tr>
-                  <td>{{ $approval->complaint ? str_pad($approval->complaint->id, 4, '0', STR_PAD_LEFT) : 'N/A' }}</td>
+                  <td>{{ $approval->complaint ? (int)$approval->complaint->id : 'N/A' }}</td>
                   <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
                   <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
+                 
+                  <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
+                  <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
                   <td>
                     @php
                       $statusColors = [
@@ -614,8 +620,6 @@
                       {{ $approval->getStatusDisplayAttribute() }}
                     </span>
                   </td>
-                  <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
-                  <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
                   <td>
                     <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-xs btn-outline-primary" style="padding: 0.15rem 0.4rem; font-size: 0.7rem; line-height: 1.2;">
                       <i data-feather="eye" class="me-1" style="width: 8px; height: 8px;"></i>View

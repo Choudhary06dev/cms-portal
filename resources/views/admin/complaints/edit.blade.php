@@ -476,7 +476,14 @@ document.addEventListener('DOMContentLoaded', function() {
         titleSelect.innerHTML = '<option value="">Select Complaint Type</option>';
 
         if (data && data.length > 0) {
-          data.forEach(title => {
+          // Sort titles in ascending order by title name (natural/numeric sorting)
+          const sortedData = data.sort((a, b) => {
+            const titleA = (a.title || '').toLowerCase();
+            const titleB = (b.title || '').toLowerCase();
+            return titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: 'base' });
+          });
+          
+          sortedData.forEach(title => {
             const option = document.createElement('option');
             option.value = title.title;
             option.textContent = title.title;

@@ -126,7 +126,7 @@
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
             <div>
-              <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.85rem; padding: 6px 12px;">
+              <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
                 {{ ucfirst($employee->status ?? 'inactive') }}
               </span>
               @if($employee->status === 'inactive' && $employee->updated_at)

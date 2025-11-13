@@ -97,7 +97,7 @@
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Stock Quantity</div>
             <div>
-              <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px;">
+              <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
                 {{ number_format($spare->stock_quantity ?? 0, 0) }}
               </span>
             </div>

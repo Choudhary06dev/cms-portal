@@ -295,6 +295,7 @@ class DashboardController extends Controller
         $this->applyFilters($complaintsByTypeQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
         $complaintsByType = $complaintsByTypeQuery->selectRaw('category, COUNT(*) as count')
             ->groupBy('category')
+            ->orderBy('category', 'asc') // Sort by category in ascending order
             ->pluck('count', 'category')
             ->toArray();
 
@@ -315,25 +316,20 @@ class DashboardController extends Controller
         // Get monthly trends with filters
         $monthlyTrends = $this->getMonthlyTrends($user, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
 
-        // Get GE progress for Director or current GE user
-        // GE Groups are stored in sectors table, not users table
+        // Get GE progress based on location filter only
+        // GE Groups are stored in cities table
         $geProgress = [];
-        $userRoleName = strtolower($user->role->role_name ?? '');
-        $isDirector = $this->canViewAllData($user);
-        $isGE = (strpos($userRoleName, 'garrison') !== false && strpos($userRoleName, 'engineer') !== false) 
-                || strpos($userRoleName, 'ge') !== false;
         
-        // Show GE Feedback Overview if:
-        // 1. User is Director (canViewAllData)
-        // 2. User is GE
-        // 3. OR user has city_id and sector_id both null (can see all data)
-        // 4. OR user has city_id but sector_id is null (can see their city's data)
+        // Location filter logic:
+        // 1. If user's city_id AND sector_id are both null - show all data
+        // 2. If user's city_id is set but sector_id is null - show only their city's data
+        // 3. If user has sector_id - they shouldn't see GE Feedback Overview
         $canSeeAllData = (!$user->city_id && !$user->sector_id);
         $canSeeCityData = ($user->city_id && !$user->sector_id);
         
-        // Check if user has permission to see GE Feedback Overview
+        // Check if user has permission to see GE Feedback Overview based on location filter
         // Always initialize geProgress array even if empty, so view can check permissions
-        if ($isDirector || $isGE || $canSeeAllData || $canSeeCityData) {
+        if ($canSeeAllData || $canSeeCityData) {
             // Load GE Groups from cities table (cities with names containing 'GE' or 'AGE')
             // Check if cities table exists
             if (Schema::hasTable('cities')) {
