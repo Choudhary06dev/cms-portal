@@ -78,8 +78,9 @@
         <thead>
           <tr>
             <th style="width:70px">#</th>
+                        <th>Types</th>
+
             <th>Category</th>
-            <th>Types</th>
             <th>Description</th>
             <th style="width:180px">Actions</th>
           </tr>
@@ -88,10 +89,11 @@
         @forelse($complaintTitles as $title)
           <tr>
             <td>{{ $title->id }}</td>
+                        <td><strong>{{ $title->title }}</strong></td>
+
             <td>
               {{ ucfirst($title->category) }}
             </td>
-            <td><strong>{{ $title->title }}</strong></td>
             <td>{{ $title->description ? Str::limit($title->description, 80) : '-' }}</td>
             <td>
               <div class="btn-group" role="group">

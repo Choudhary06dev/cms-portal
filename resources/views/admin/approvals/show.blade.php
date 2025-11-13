@@ -447,8 +447,8 @@
                     </span>
                   @endif
                 </td>
-                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
-                  <span class="badge bg-{{ ((int)$availableQty <= 0) ? 'danger' : 'success' }}" style="padding: 6px 12px; font-weight: 600;">
+                <td style="color: #ffffff; padding: 12px; border: none; text-align: center;">
+                  <span class="badge bg-{{ ((int)$availableQty <= 0) ? 'danger' : 'success' }}" style="padding: 6px 12px; font-weight: 600; color: #ffffff !important;">
                     {{ number_format((int)$availableQty, 0) }}
                   </span>
                 </td>
