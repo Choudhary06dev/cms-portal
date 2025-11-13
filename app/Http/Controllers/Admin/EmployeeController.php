@@ -59,7 +59,7 @@ class EmployeeController extends Controller
             $query->where('status', $request->status);
         }
 
-        $employees = $query->with(['city', 'sector'])->orderBy('id', 'desc')->paginate(10);
+        $employees = $query->with(['city', 'sector'])->orderBy('id', 'asc')->paginate(10);
         
         // Get categories for filter dropdown from ComplaintCategory table
         $categories = collect();
@@ -131,7 +131,7 @@ class EmployeeController extends Controller
             'name' => 'required|string|max:150',
             'category' => $categoryRule,
             'designation' => 'required|string|max:100',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|min:11|max:20',
             // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
             'address' => 'nullable|string|max:500',
@@ -343,7 +343,7 @@ class EmployeeController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|min:11|max:20',
             'category' => $categoryRule,
             'designation' => 'required|string|max:100',
             // 'emp_id' removed

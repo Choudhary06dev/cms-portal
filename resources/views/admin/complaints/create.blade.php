@@ -355,6 +355,20 @@
                 });
             }
             
+            // Form validation - check phone number before submit
+            const complaintForm = document.querySelector('form[action*="complaints"]');
+            if (complaintForm) {
+                complaintForm.addEventListener('submit', function(e) {
+                    const phoneValue = phoneInput ? phoneInput.value.trim() : '';
+                    if (phoneValue && phoneValue.length < 11) {
+                        e.preventDefault();
+                        alert('Phone number must be at least 11 digits.');
+                        if (phoneInput) phoneInput.focus();
+                        return false;
+                    }
+                });
+            }
+            
             const spareSelect = document.getElementById('spare_select');
             const quantityInput = document.getElementById('quantity_input');
             const stockWarning = document.getElementById('stock_warning');

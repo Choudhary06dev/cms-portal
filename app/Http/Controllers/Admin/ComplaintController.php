@@ -270,7 +270,7 @@ class ComplaintController extends Controller
             'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
             'email' => 'nullable|string|max:150',
-            'phone' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|min:11|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -531,7 +531,7 @@ class ComplaintController extends Controller
             'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
             'email' => 'nullable|string|max:150',
-            'phone' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|min:11|max:50',
         ]);
 
         if ($validator->fails()) {
