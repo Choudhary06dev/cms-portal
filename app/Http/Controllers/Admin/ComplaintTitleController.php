@@ -33,7 +33,10 @@ class ComplaintTitleController extends Controller
             });
         }
 
-        $complaintTitles = $query->orderBy('category')->orderBy('title')->paginate(20);
+        // Clear any existing orders and set explicit ascending order by ID
+        $complaintTitles = $query->reorder()
+            ->orderBy('id', 'asc')
+            ->paginate(20);
 
         // Get categories for filter dropdown
         $categories = Schema::hasTable('complaint_categories')

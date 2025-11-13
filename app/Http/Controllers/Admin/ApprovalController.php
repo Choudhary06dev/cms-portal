@@ -1282,7 +1282,9 @@ class ApprovalController extends Controller
         ];
         
         if ($request->status === 'resolved' && !$complaint->closed_at) {
-            $updateData['closed_at'] = now();
+            // Get current time in Asia/Karachi timezone and convert to UTC for database storage
+            $nowKarachi = \Carbon\Carbon::now('Asia/Karachi');
+            $updateData['closed_at'] = $nowKarachi->copy()->utc();
         } elseif ($request->status !== 'resolved') {
             // If status is changed from addressed to something else, clear closed_at
             $updateData['closed_at'] = null;
@@ -1377,6 +1379,13 @@ class ApprovalController extends Controller
             $updatedStatus = DB::table('complaints')->where('id', $complaint->id)->value('status');
             $updatedClosedAt = DB::table('complaints')->where('id', $complaint->id)->value('closed_at');
             
+            // Format closed_at in Asia/Karachi timezone for display
+            $formattedClosedAt = null;
+            if ($updatedClosedAt) {
+                $closedAtCarbon = \Carbon\Carbon::parse($updatedClosedAt)->setTimezone('Asia/Karachi');
+                $formattedClosedAt = $closedAtCarbon->format('d-m-Y H:i:s');
+            }
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Complaint status updated successfully.',
@@ -1384,7 +1393,7 @@ class ApprovalController extends Controller
                     'id' => $complaint->id,
                     'status' => $updatedStatus,
                     'old_status' => $oldStatus,
-                    'closed_at' => $updatedClosedAt ? \Carbon\Carbon::parse($updatedClosedAt)->format('d-m-Y H:i:s') : null,
+                    'closed_at' => $formattedClosedAt,
                 ]
             ]);
         }
