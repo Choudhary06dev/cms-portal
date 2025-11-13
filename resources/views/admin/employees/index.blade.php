@@ -311,6 +311,7 @@
 
     const tbody = document.getElementById('employeesTableBody');
     const paginationContainer = document.getElementById('employeesPagination');
+    const footerContainer = document.getElementById('employeesTableFooter');
     
     if (tbody) {
       tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
@@ -331,6 +332,7 @@
       
       const newTbody = doc.querySelector('#employeesTableBody');
       const newPagination = doc.querySelector('#employeesPagination');
+      const newFooter = doc.querySelector('#employeesTableFooter');
       
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
@@ -341,6 +343,11 @@
         paginationContainer.innerHTML = newPagination.innerHTML;
         // Re-initialize feather icons after pagination update
         feather.replace();
+      }
+      
+      // Update total records footer with filtered count
+      if (newFooter && footerContainer) {
+        footerContainer.innerHTML = newFooter.innerHTML;
       }
 
       const newUrl = `{{ route('admin.employees.index') }}?${params.toString()}`;

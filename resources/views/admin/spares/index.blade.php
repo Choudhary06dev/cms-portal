@@ -444,6 +444,7 @@
 
     const tbody = document.getElementById('sparesTableBody');
     const paginationContainer = document.getElementById('sparesPagination');
+    const footerContainer = document.getElementById('sparesTableFooter');
     
     if (tbody) {
       tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
@@ -464,6 +465,7 @@
       
       const newTbody = doc.querySelector('#sparesTableBody');
       const newPagination = doc.querySelector('#sparesPagination');
+      const newFooter = doc.querySelector('#sparesTableFooter');
       
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
@@ -474,6 +476,11 @@
         paginationContainer.innerHTML = newPagination.innerHTML;
         // Re-initialize feather icons after pagination update
         feather.replace();
+      }
+      
+      // Update total records footer with filtered count
+      if (newFooter && footerContainer) {
+        footerContainer.innerHTML = newFooter.innerHTML;
       }
 
       const newUrl = `{{ route('admin.spares.index') }}?${params.toString()}`;
