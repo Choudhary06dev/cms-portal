@@ -175,6 +175,20 @@
       });
     }
     
+    // Form validation - check phone number before submit
+    const employeeForm = document.getElementById('employeeForm');
+    if (employeeForm) {
+      employeeForm.addEventListener('submit', function(e) {
+        const phoneValue = phoneInput ? phoneInput.value.trim() : '';
+        if (phoneValue && phoneValue.length < 11) {
+          e.preventDefault();
+          alert('Phone number must be at least 11 digits.');
+          if (phoneInput) phoneInput.focus();
+          return false;
+        }
+      });
+    }
+    
     const categorySelect = document.getElementById('category');
     const designationSelect = document.getElementById('designation');
     const citySelect = document.getElementById('city_id');
