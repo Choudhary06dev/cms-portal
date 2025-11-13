@@ -113,7 +113,7 @@
                                 <label for="address" class="form-label text-white">Address</label>
                                 <input type="text" class="form-control @error('address') is-invalid @enderror"
                                     id="address" name="address" value="{{ old('address') }}"
-                                    placeholder="e.g., 00/0-ST-0-B-0">
+                                    placeholder="e.g., 00-ST0-B0">
                                 @error('address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
