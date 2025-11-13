@@ -98,7 +98,7 @@ class Complaint extends Model
      */
     public function feedback(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(ComplaintFeedback::class, 'complaint_id', 'id');
+        return $this->hasOne(ComplaintFeedback::class, 'complaint_id', 'id')->withTrashed();
     }
 
     /**

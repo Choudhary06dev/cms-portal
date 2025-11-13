@@ -316,6 +316,7 @@ class DashboardController extends Controller
         $monthlyTrends = $this->getMonthlyTrends($user, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
 
         // Get GE progress for Director or current GE user
+        // GE Groups are stored in sectors table, not users table
         $geProgress = [];
         $userRoleName = strtolower($user->role->role_name ?? '');
         $isDirector = $this->canViewAllData($user);
@@ -326,90 +327,103 @@ class DashboardController extends Controller
         // 1. User is Director (canViewAllData)
         // 2. User is GE
         // 3. OR user has city_id and sector_id both null (can see all data)
+        // 4. OR user has city_id but sector_id is null (can see their city's data)
         $canSeeAllData = (!$user->city_id && !$user->sector_id);
+        $canSeeCityData = ($user->city_id && !$user->sector_id);
         
-        // Check if GE role exists and user has permission to see GE Feedback Overview
+        // Check if user has permission to see GE Feedback Overview
         // Always initialize geProgress array even if empty, so view can check permissions
-        if ($geRole && ($isDirector || $isGE || $canSeeAllData)) {
-            // If Director or user can see all data (city_id and sector_id both null), show all active GEs or filtered GE
-            // If GE, show only their own progress (if they are active)
-            if ($isDirector || $canSeeAllData) {
-                $geUsersQuery = User::where('role_id', $geRole->id)
-                    ->where('status', 'active')
-                    ->whereNotNull('city_id')
-                    ->with('city');
-                
-                // Apply GE filter if city_id is selected in dashboard filter
-                if ($cityId) {
-                    $geUsersQuery->where('city_id', $cityId);
-                }
-                
-                $geUsers = $geUsersQuery->orderBy('name')->get();
-            } else {
-                // GE user - show only their own progress if they are active
-                if ($user->status === 'active' && $user->city_id) {
-                    // Ensure city relationship is loaded
-                    if (!$user->relationLoaded('city')) {
-                        $user->load('city');
-                    }
-                    $geUsers = collect([$user]);
-                } else {
-                    $geUsers = collect();
-                }
+        if ($isDirector || $isGE || $canSeeAllData || $canSeeCityData) {
+            // Load GE Groups from cities table (cities with names containing 'GE' or 'AGE')
+            // Check if cities table exists
+            if (Schema::hasTable('cities')) {
+                // Load GE Groups from cities table (cities with names containing 'GE' or 'AGE')
+                $geGroupsQuery = City::where(function($q) {
+                        $q->where('name', 'LIKE', '%GE%')
+                          ->orWhere('name', 'LIKE', '%AGE%')
+                          ->orWhere('name', 'LIKE', '%ge%')
+                          ->orWhere('name', 'LIKE', '%age%');
+                    })
+                    ->where('status', 'active') // Only active cities
+                    ->orderBy('name');
+            
+            // Apply location filtering based on logged-in user's city_id and sector_id
+            // If user's city_id AND sector_id are both null, show all GE Groups (no filter)
+            // If user's sector_id is null but city_id has value, show only that GE Group
+            if (!$user->city_id && !$user->sector_id) {
+                // User has no city_id and no sector_id - show all GE Groups (no filter)
+            } elseif ($user->city_id && !$user->sector_id) {
+                // User has city_id but no sector_id - show only that GE Group
+                $geGroupsQuery->where('id', $user->city_id);
             }
             
-            foreach ($geUsers as $geUser) {
-                // Get total complaints for this GE's city with filters applied
-                $totalComplaintsQuery = Complaint::whereHas('client', function($q) use ($geUser) {
-                    if ($geUser->city_id && $geUser->city) {
-                        $q->where('city', $geUser->city->name);
-                    }
+            // Apply GE filter if city_id is selected in dashboard filter (priority)
+            // Dashboard filter uses city_id for GE Groups
+            if ($cityId) {
+                $geGroupsQuery->where('id', $cityId);
+            }
+            
+            $geGroups = $geGroupsQuery->get();
+            
+            foreach ($geGroups as $geGroup) {
+                // Get total complaints for this GE Group (city) with filters applied
+                // Filter by complaint's city_id
+                $totalComplaintsQuery = Complaint::query();
+                $totalComplaintsQuery->where(function($q) use ($geGroup) {
+                    // First try to match by complaint's city_id
+                    $q->where('city_id', $geGroup->id)
+                      // Or match by client's city name
+                      ->orWhereHas('client', function($clientQ) use ($geGroup) {
+                          $clientQ->where('city', $geGroup->name);
+                      });
                 });
                 
                 // Apply location filtering based on logged-in user's city_id and sector_id
-                // If user's city_id and sector_id are null, show all data (no filter)
-                // If user's sector_id is null (but city_id is set), show only their city's data
-                if ($user->city_id && !$user->sector_id) {
+                // If user's city_id AND sector_id are both null, show all data (no filter)
+                // If user's sector_id is null but city_id has value, show only that city's data
+                if (!$user->city_id && !$user->sector_id) {
+                    // User has no city_id and no sector_id - show all data (no filter)
+                } elseif ($user->city_id && !$user->sector_id) {
                     // User has city_id but no sector_id - show only their city's data
-                    if ($user->city) {
-                        $totalComplaintsQuery->whereHas('client', function($q) use ($user) {
-                            $q->where('city', $user->city->name);
-                        });
-                    }
+                    $totalComplaintsQuery->where('city_id', $user->city_id);
                 }
-                // If user's city_id and sector_id are both null, no filter is applied (show all data)
+                // If user has sector_id, they shouldn't see GE Feedback Overview (handled by canSeeAllData check)
                 
                 // Apply filters (sector, category, complaint status, date range)
-                // Note: Don't apply city_id filter again as we're already filtering by GE's city
+                // Note: Don't apply city_id filter again as we're already filtering by GE Group's city_id
                 $this->applyFilters($totalComplaintsQuery, null, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
                 $totalComplaints = $totalComplaintsQuery->count();
                 
-                // Get resolved complaints for this GE's city with feedback and filters
+                // Get resolved complaints for this GE Group (city) with feedback and filters
+                // Include both 'resolved' and 'closed' status complaints
                 // Feedback relationship automatically excludes soft deleted records
                 // When feedback is updated, the existing record is updated (not deleted)
-                $resolvedComplaintsQuery = Complaint::whereHas('client', function($q) use ($geUser) {
-                    if ($geUser->city_id && $geUser->city) {
-                        $q->where('city', $geUser->city->name);
-                    }
-                })->where('status', 'resolved')
-                  ->with('feedback'); // Load feedback relationship (excludes soft deleted by default)
+                $resolvedComplaintsQuery = Complaint::query();
+                $resolvedComplaintsQuery->where(function($q) use ($geGroup) {
+                    // First try to match by complaint's city_id
+                    $q->where('city_id', $geGroup->id)
+                      // Or match by client's city name
+                      ->orWhereHas('client', function($clientQ) use ($geGroup) {
+                          $clientQ->where('city', $geGroup->name);
+                      });
+                })
+                  ->whereIn('status', ['resolved', 'closed'])
+                  ->with('feedback'); // Load feedback relationship
                 
                 // Apply location filtering based on logged-in user's city_id and sector_id
-                // If user's city_id and sector_id are null, show all data (no filter)
-                // If user's sector_id is null (but city_id is set), show only their city's data
-                if ($user->city_id && !$user->sector_id) {
+                // If user's city_id AND sector_id are both null, show all data (no filter)
+                // If user's sector_id is null but city_id has value, show only that city's data
+                if (!$user->city_id && !$user->sector_id) {
+                    // User has no city_id and no sector_id - show all data (no filter)
+                } elseif ($user->city_id && !$user->sector_id) {
                     // User has city_id but no sector_id - show only their city's data
-                    if ($user->city) {
-                        $resolvedComplaintsQuery->whereHas('client', function($q) use ($user) {
-                            $q->where('city', $user->city->name);
-                        });
-                    }
+                    $resolvedComplaintsQuery->where('city_id', $user->city_id);
                 }
-                // If user's city_id and sector_id are both null, no filter is applied (show all data)
+                // If user has sector_id, they shouldn't see GE Feedback Overview (handled by canSeeAllData check)
                 
                 // Apply filters (sector, category, date range) - but NOT complaint status
                 // because we always need resolved status for feedback calculation
-                // Note: Don't apply city_id filter again as we're already filtering by GE's city
+                // Note: Don't apply city_id filter again as we're already filtering by GE Group's city_id
                 $this->applyFilters($resolvedComplaintsQuery, null, $sectorId, $category, $approvalStatus, null, $dateRange);
                 
                 $resolvedComplaints = $resolvedComplaintsQuery->get();
@@ -445,14 +459,18 @@ class DashboardController extends Controller
                     : 0;
                 
                 $geProgress[] = [
-                    'ge' => $geUser,
-                    'city' => $geUser->city ? $geUser->city->name : 'N/A',
+                    'ge' => $geGroup, // Store city object (GE Group)
+                    'ge_name' => $geGroup->name, // GE Group name
+                    'city' => $geGroup->name, // GE Group name (same as city name)
                     'total_complaints' => $totalComplaints,
                     'resolved_complaints' => $resolvedComplaints->count(),
                     'resolved_with_good_feedback' => $resolvedWithGoodFeedback,
                     'resolved_with_bad_feedback' => $resolvedWithBadFeedback,
                     'progress_percentage' => $progressPercentage,
                 ];
+            }
+            } else {
+                // Cities table doesn't exist, geProgress will remain empty
             }
         }
 

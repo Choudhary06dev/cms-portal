@@ -297,9 +297,10 @@
   $isGE = (strpos($userRoleName, 'garrison') !== false && strpos($userRoleName, 'engineer') !== false) 
           || strpos($userRoleName, 'ge') !== false;
   $canSeeAllData = (!$user->city_id && !$user->sector_id);
+  $canSeeCityData = ($user->city_id && !$user->sector_id);
   
   // Show section if user has permission and GE role exists
-  if (isset($geRole) && ($isDirector || $isGE || $canSeeAllData)) {
+  if (isset($geRole) && ($isDirector || $isGE || $canSeeAllData || $canSeeCityData)) {
     $showGEFeedback = true;
   }
 @endphp
@@ -357,7 +358,7 @@
           <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
                 <p class="mb-0 text-white" style="font-size: 0.8rem; opacity: 0.95; color: #ffffff !important;">
                   <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
                   <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
@@ -435,7 +436,7 @@
           <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
                 <p class="mb-0 text-white" style="font-size: 0.8rem; opacity: 0.95; color: #ffffff !important;">
                   <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
                   <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
