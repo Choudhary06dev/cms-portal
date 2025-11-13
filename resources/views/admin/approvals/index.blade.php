@@ -100,7 +100,7 @@
         <tr>
           <th style="text-align: left; white-space: nowrap;">Cmp-id</th>
           <th style="white-space: nowrap;">Registration Date/Time</th>
-          <th style="text-align: center; white-space: nowrap;">Addressed Date/Time</th>
+          <th style="text-align: left; white-space: nowrap;">Addressed Date/Time</th>
           <th>Complainant Name</th>
           <th>Address</th>
           <th>Complaint Nature & Type</th>
@@ -174,7 +174,7 @@
             </a>
           </td>
           <td>{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i') : 'N/A' }}</td>
-          <td style="text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">
+          <td style="text-align: left;">
             @if($complaint->closed_at)
               @php
                 // Get closed_at - Laravel casts it to Carbon automatically
@@ -192,19 +192,11 @@
                 
                 if ($closedAt instanceof \Carbon\Carbon) {
                   // Laravel stores timestamps in UTC in database
-                  // When retrieved, Carbon instance might be in app timezone or UTC
-                  // Force it to UTC first, then convert to Asia/Karachi
-                  try {
-                    // Create a new Carbon instance from the timestamp, assuming UTC
-                    $timestamp = $closedAt->timestamp;
-                    $closedAtUTC = \Carbon\Carbon::createFromTimestamp($timestamp, 'UTC');
-                    // Now convert to Asia/Karachi
-                    $closedAtKarachi = $closedAtUTC->setTimezone('Asia/Karachi');
-                    echo $closedAtKarachi->format('M d, Y H:i');
-                  } catch (\Exception $e) {
-                    // Fallback: try direct conversion
-                    echo $closedAt->setTimezone('Asia/Karachi')->format('M d, Y H:i');
-                  }
+                  // Ensure we're converting from UTC to Asia/Karachi
+                  // Set timezone to UTC first if not already, then convert to Asia/Karachi
+                  $closedAtUTC = $closedAt->utc();
+                  $closedAtKarachi = $closedAtUTC->setTimezone('Asia/Karachi');
+                  echo $closedAtKarachi->format('M d, Y H:i');
                 }
               @endphp
             @else
