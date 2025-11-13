@@ -2501,10 +2501,8 @@
           if (performaType) performaType.value = '';
           if (authorityNumber) authorityNumber.value = '';
         } else {
-          // Default to Work Performa when enabling
-          if (performaType && (!performaType.value || performaType.value === '')) {
-            performaType.value = 'work_performa';
-          }
+          // Don't auto-select performa type - staff must manually select it
+          // Keep performa type empty until staff selects it
         }
         
         // Update submit button state
@@ -3061,34 +3059,9 @@
           // Setup event listeners for manual form
           setupManualFormListeners();
           
-          // Restore performa selections if approval has performa_type
-          if (data.approval && data.approval.performa_type) {
-            const authorityYes = document.getElementById('authorityYes');
-            const authorityNo = document.getElementById('authorityNo');
-            const performaType = document.getElementById('performaType');
-            const performaTypeCol = document.getElementById('performaTypeCol');
-            const authorityNoCol = document.getElementById('authorityNoCol');
-            
-            if (authorityYes && performaType) {
-              // Select "Yes" radio button
-              authorityYes.checked = true;
-              authorityNo.checked = false;
-              
-              // Show performa type and authority no. columns
-              if (performaTypeCol) performaTypeCol.classList.remove('d-none');
-              if (authorityNoCol) authorityNoCol.classList.remove('d-none');
-              
-              // Set performa type value
-              performaType.value = data.approval.performa_type;
-              
-              // Trigger change event to update form state
-              if (authorityYes) {
-                authorityYes.dispatchEvent(new Event('change'));
-              }
-              
-              console.log('Restored performa type:', data.approval.performa_type);
-            }
-          }
+          // Don't auto-restore performa type - staff must manually select it
+          // Performa type field will remain empty until staff selects it
+          // This ensures performa type is not automatically set based on priority or any other field
           
           // Don't populate form if stock has already been issued
           if (hasIssuedStock) {
