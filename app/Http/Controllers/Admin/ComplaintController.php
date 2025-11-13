@@ -349,7 +349,7 @@ class ComplaintController extends Controller
                 'priority' => $request->priority,
                 'description' => $request->description,
                 'assigned_employee_id' => $request->assigned_employee_id ?: null,
-                'status' => 'new', // Default to 'new' - status will be managed in approvals view
+                'status' => 'assigned', // Default to 'assigned' - no performa type selected initially
             ]);
 
         // Handle file attachments

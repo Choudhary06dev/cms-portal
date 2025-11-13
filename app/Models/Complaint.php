@@ -370,6 +370,8 @@ class Complaint extends Model
                             'complaint_id' => $complaint->id,
                             'requested_by' => $requestedByEmployee->id,
                             'status' => 'pending',
+                            'performa_type' => null, // No performa type selected initially
+                            'waiting_for_authority' => false, // Not waiting for authority initially
                             'remarks' => 'Auto-created for new complaint',
                         ]);
                     }
