@@ -111,21 +111,23 @@
                                             style="color: #ffffff !important;">{{ ucfirst($designation->status) }}</span>
                                     </td>
                                     <td>
-                                        <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-sm btn-outline-light"
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-sm"
                                                 data-bs-toggle="modal" data-bs-target="#editDesignationModal"
                                                 data-id="{{ $designation->id }}"
                                                 data-category="{{ $designation->category }}"
                                                 data-name="{{ $designation->name }}"
-                                                data-status="{{ $designation->status }}">
-                                                Edit
+                                                data-status="{{ $designation->status }}" title="Edit" style="padding: 3px 8px;">
+                                                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                                             </button>
                                             <form action="{{ route('admin.designation.destroy', $designation) }}"
                                                 method="POST" class="designation-delete-form"
-                                                onsubmit="return confirm('Delete this designation?')">
+                                                onsubmit="return confirm('Delete this designation?')" style="display: inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                                                <button class="btn btn-outline-danger btn-sm" type="submit" title="Delete" style="padding: 3px 8px;">
+                                                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                                                </button>
                                             </form>
                                         </div>
                                     </td>

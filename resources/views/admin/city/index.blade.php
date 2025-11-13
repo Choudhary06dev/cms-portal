@@ -95,15 +95,17 @@
               <span class="badge {{ $city->status==='active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">{{ ucfirst($city->status) }}</span>
             </td>
             <td>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editCityModal" 
-                        data-id="{{ $city->id }}" data-name="{{ $city->name }}" data-status="{{ $city->status }}">
-                  Edit
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editCityModal" 
+                        data-id="{{ $city->id }}" data-name="{{ $city->name }}" data-status="{{ $city->status }}" title="Edit" style="padding: 3px 8px;">
+                  <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
-                <form action="{{ route('admin.city.destroy', $city) }}" method="POST" class="city-delete-form" onsubmit="return confirm('Delete this city?')">
+                <form action="{{ route('admin.city.destroy', $city) }}" method="POST" class="city-delete-form" onsubmit="return confirm('Delete this city?')" style="display: inline;">
                   @csrf
                   @method('DELETE')
-                  <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                  <button class="btn btn-outline-danger btn-sm" type="submit" title="Delete" style="padding: 3px 8px;">
+                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                  </button>
                 </form>
               </div>
             </td>
