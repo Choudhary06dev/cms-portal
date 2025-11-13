@@ -145,18 +145,20 @@
                                             style="color: #ffffff !important;">{{ ucfirst($sector->status) }}</span>
                                     </td>
                                     <td>
-                                        <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-sm btn-outline-light"
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-sm"
                                                 data-bs-toggle="modal" data-bs-target="#editSectorModal"
                                                 data-id="{{ $sector->id }}" data-city-id="{{ $sector->city_id }}"
-                                                data-name="{{ $sector->name }}" data-status="{{ $sector->status }}">
-                                                Edit
+                                                data-name="{{ $sector->name }}" data-status="{{ $sector->status }}" title="Edit" style="padding: 3px 8px;">
+                                                <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                                             </button>
                                             <form action="{{ route('admin.sector.destroy', $sector) }}" method="POST"
-                                                class="sector-delete-form" onsubmit="return confirm('Delete this sector?')">
+                                                class="sector-delete-form" onsubmit="return confirm('Delete this sector?')" style="display: inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                                                <button class="btn btn-outline-danger btn-sm" type="submit" title="Delete" style="padding: 3px 8px;">
+                                                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                                                </button>
                                             </form>
                                         </div>
                                     </td>

@@ -53,7 +53,7 @@
       </div>
       <div style="min-width: 280px; flex: 1 1 400px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Types <span class="text-danger">*</span></label>
-        <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror" placeholder="Complaint title" required>
+        <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror" placeholder="Complaint Type" required>
         @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 260px; flex: 1 1 380px;">
@@ -95,14 +95,14 @@
             <td>{{ $title->description ? Str::limit($title->description, 80) : '-' }}</td>
             <td>
               <div class="btn-group" role="group">
-                <button class="btn btn-outline-info btn-sm" onclick="editTitle({{ $title->id }}, '{{ $title->category }}', '{{ addslashes($title->title) }}', '{{ addslashes($title->description ?? '') }}')" title="Edit">
-                  <i data-feather="edit"></i>
+                <button class="btn btn-outline-primary btn-sm" onclick="editTitle({{ $title->id }}, '{{ $title->category }}', '{{ addslashes($title->title) }}', '{{ addslashes($title->description ?? '') }}')" title="Edit" style="padding: 3px 8px;">
+                  <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
                 <form action="{{ route('admin.complaint-titles.destroy', $title) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this complaint title?');">
                   @csrf
                   @method('DELETE')
-                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
-                    <i data-feather="trash-2"></i>
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete" style="padding: 3px 8px;">
+                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
                   </button>
                 </form>
               </div>
@@ -165,8 +165,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-accent">Update</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-accent">Save Changes</button>
         </div>
       </form>
     </div>

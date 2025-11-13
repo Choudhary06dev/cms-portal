@@ -91,15 +91,17 @@
             <td>{{ $cat->name }}</td>
             <td>{{ $cat->description ? Str::limit($cat->description, 80) : '-' }}</td>
             <td>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editCategoryModal" 
-                        data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" data-description="{{ $cat->description }}">
-                  Edit
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editCategoryModal" 
+                        data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" data-description="{{ $cat->description }}" title="Edit" style="padding: 3px 8px;">
+                  <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
-                <form action="{{ route('admin.category.destroy', $cat) }}" method="POST" class="category-delete-form" onsubmit="return confirm('Delete this category?')">
+                <form action="{{ route('admin.category.destroy', $cat) }}" method="POST" class="category-delete-form" onsubmit="return confirm('Delete this category?')" style="display: inline;">
                   @csrf
                   @method('DELETE')
-                  <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                  <button class="btn btn-outline-danger btn-sm" type="submit" title="Delete" style="padding: 3px 8px;">
+                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                  </button>
                 </form>
               </div>
             </td>
