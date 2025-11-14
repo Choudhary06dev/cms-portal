@@ -10,7 +10,7 @@
       <h2 class="text-white mb-2">Employees Management</h2>
       <p class="text-light">Manage employee information and records</p>
     </div>
-    <a href="{{ route('admin.employees.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.employees.create') }}" class="btn btn-outline-secondary">
       <i data-feather="user-plus" class="me-2"></i>Add New Employee
     </a>
   </div>
@@ -245,6 +245,27 @@
     background-color: rgba(255, 255, 255, 0.3);
   }
   
+  /* Table column borders - vertical lines between columns (same as complaints modal) */
+  .table-dark th,
+        .table-dark td {
+            border-right: 1px solid rgba(201, 160, 160, 0.3);
+            border-left: none;
+        }
+  
+  #viewEmployeeModal .table-dark th:first-child,
+  #viewEmployeeModal .table-dark td:first-child,
+  #viewEmployeeModal .table th:first-child,
+  #viewEmployeeModal .table td:first-child {
+    border-left: none !important;
+  }
+  
+  #viewEmployeeModal .table-dark th:last-child,
+  #viewEmployeeModal .table-dark td:last-child,
+  #viewEmployeeModal .table th:last-child,
+  #viewEmployeeModal .table td:last-child {
+    border-right: none !important;
+  }
+  
   #viewEmployeeModal .modal-footer .btn {
     min-width: 100px;
     font-weight: 500;
@@ -468,9 +489,73 @@
       // If we found content, use it
       if (employeeContent) {
         modalBody.innerHTML = employeeContent;
+        // Function to apply table column borders
+        const applyTableBorders = () => {
+          const modalTables = modalBody.querySelectorAll('table');
+          modalTables.forEach((table) => {
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            
+            ths.forEach((th) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            tds.forEach((td) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('viewEmployeeModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         // Fallback: try to get all card-glass elements, but avoid duplicates

@@ -389,21 +389,32 @@
         </h5>
       </div>
       <div class="card-body">
+        <style>
+          /* Force table column borders */
+          .card-body .table th:not(:last-child),
+          .card-body .table td:not(:last-child) {
+            border-right: 1px solid rgba(201, 160, 160, 0.3) !important;
+          }
+          .card-body .table th:last-child,
+          .card-body .table td:last-child {
+            border-right: none !important;
+          }
+        </style>
         <div class="table-responsive">
-          <table class="table" style="margin-bottom: 0;">
+          <table class="table table-dark" style="margin-bottom: 0;">
             <thead>
               <tr style="background-color: rgba(59, 130, 246, 0.2); border-bottom: 2px solid rgba(59, 130, 246, 0.5);">
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none;">#</th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none;">Item Name</th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">Quantity Requested</th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important;">#</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important;">Item Name</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">Quantity Requested</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">
                   @if($approval->status === 'pending' && ($approval->items && $approval->items->count() > 0))
                     Quantity Approved (Editable)
                   @else
                     Quantity Approved
                   @endif
                 </th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">Available Stock</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; text-align: center; border-right: none !important;">Available Stock</th>
               </tr>
             </thead>
             <tbody>
@@ -417,15 +428,15 @@
                 $requestedQty = $item->quantity_requested ?? $item->requested_quantity ?? $item->qty ?? $item->quantity ?? 0;
                 $approvedQty = $item->quantity_approved ?? $item->approved_quantity ?? null;
               @endphp
-              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                <td style="color: #e2e8f0; padding: 12px; border: none; font-weight: 500;">{{ $index + 1 }}</td>
-                <td style="color: #ffffff; padding: 12px; border: none; font-weight: 500;">{{ $itemName }}</td>
-                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.25);">
+                <td style="color: #e2e8f0; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; font-weight: 500;">{{ $index + 1 }}</td>
+                <td style="color: #ffffff; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; font-weight: 500;">{{ $itemName }}</td>
+                <td style="color: #e2e8f0; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">
                   <span class="badge" style="background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 6px 12px; font-weight: 600;">
                     {{ number_format((int)$requestedQty, 0) }}
                   </span>
                 </td>
-                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
+                <td style="color: #e2e8f0; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">
                   @if($approval->status === 'pending' && ($approval->items && $approval->items->count() > 0))
                     @php
                       $maxQty = min((int)$requestedQty, (int)$availableQty);
@@ -447,7 +458,7 @@
                     </span>
                   @endif
                 </td>
-                <td style="color: #ffffff; padding: 12px; border: none; text-align: center;">
+                <td style="color: #ffffff; padding: 12px; text-align: center; border-right: none !important;">
                   <span class="badge bg-{{ ((int)$availableQty <= 0) ? 'danger' : 'success' }}" style="padding: 6px 12px; font-weight: 600; color: #ffffff !important;">
                     {{ number_format((int)$availableQty, 0) }}
                   </span>

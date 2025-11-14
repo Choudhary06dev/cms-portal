@@ -67,7 +67,7 @@ class RoleController extends Controller
             'description' => $request->description,
         ]);
 
-        // Add permissions
+        // Add permissions - only add what is explicitly selected
         if ($request->has('permissions') && is_array($request->permissions)) {
             foreach ($request->permissions as $module) {
                 $role->rolePermissions()->create([
@@ -128,7 +128,7 @@ class RoleController extends Controller
                 'description' => $request->description,
             ]);
 
-            // Update permissions
+            // Update permissions - only add what is explicitly selected
             $role->rolePermissions()->delete();
             
             if ($request->has('permissions') && is_array($request->permissions)) {

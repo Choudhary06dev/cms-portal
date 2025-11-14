@@ -36,7 +36,7 @@
 
 <div class="card-glass mb-3">
   <div class="card-header">
-    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add Category</h5>
+    <h5 class="text-white"><i data-feather="plus" class="me-2"></i>Add Category</h5>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ route('admin.category.store') }}" class="d-flex flex-wrap align-items-end gap-2">
@@ -52,7 +52,7 @@
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div class="d-grid" style="flex: 0 0 140px;">
-        <button class="btn btn-accent" type="submit" style="width: 100%;">Add</button>
+        <button class="btn btn-outline-secondary" type="submit" style="width: 100%;"> <i data-feather="plus" class="me-2"></i> Add</button>
       </div>
     </form>
   </div>

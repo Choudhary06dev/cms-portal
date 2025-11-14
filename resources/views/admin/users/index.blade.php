@@ -10,7 +10,7 @@
       <h2 class="text-white mb-2">User Management</h2>
       <p class="text-light">Manage system users and their access</p>
     </div>
-    <a href="{{ route('admin.users.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.users.create') }}" class="btn btn-outline-secondary">
       <i data-feather="user-plus" class="me-2"></i>Add New User
     </a>
   </div>
@@ -245,6 +245,27 @@
   #userModal .btn-close:hover {
       background-color: rgba(255, 255, 255, 0.3);
   }
+  
+  /* Table column borders - vertical lines between columns (same as complaints modal) */
+  .table-dark th,
+        .table-dark td {
+            border-right: 1px solid rgba(201, 160, 160, 0.3);
+            border-left: none;
+        }
+  
+  #userModal .table-dark th:first-child,
+  #userModal .table-dark td:first-child,
+  #userModal .table th:first-child,
+  #userModal .table td:first-child {
+    border-left: none !important;
+  }
+  
+  #userModal .table-dark th:last-child,
+  #userModal .table-dark td:last-child,
+  #userModal .table th:last-child,
+  #userModal .table td:last-child {
+    border-right: none !important;
+  }
 </style>
 @endpush
 
@@ -415,9 +436,75 @@
       
       if (userContent) {
         modalBody.innerHTML = userContent;
+        // Function to apply table column borders
+        const applyTableBorders = () => {
+          const modalTables = modalBody.querySelectorAll('table');
+          modalTables.forEach((table) => {
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            
+            ths.forEach((th) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            tds.forEach((td) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          // Apply again after delays to catch any late-loading content
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('userModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            // Also apply immediately if modal is already shown
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         console.error('Could not find user content in response');

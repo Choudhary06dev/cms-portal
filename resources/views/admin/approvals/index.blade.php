@@ -209,7 +209,7 @@
                   if (is_string($closedAt)) {
                     $closedAt = \Carbon\Carbon::parse($closedAt);
                   } else {
-                    echo '-';
+                    echo '<span style="display: block; text-align: center;">-</span>';
                     $closedAt = null;
                   }
                 }
@@ -224,7 +224,7 @@
                 }
               @endphp
             @else
-              -
+              <span style="display: block; text-align: center;">-</span>
             @endif
           </td>
           <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
@@ -1237,6 +1237,35 @@
     outline: none;
   }
   
+  /* Table column borders - vertical lines between columns (same as complaints modal) */
+  .table-dark th,
+        .table-dark td {
+            border-right: 1px solid rgba(201, 160, 160, 0.3);
+            border-left: none;
+        }
+  
+  #approvalModal .table-dark th:first-child,
+  #approvalModal .table-dark td:first-child,
+  .modal .table-dark th:first-child,
+  .modal .table-dark td:first-child,
+  #approvalModal .table th:first-child,
+  #approvalModal .table td:first-child,
+  .modal .table th:first-child,
+  .modal .table td:first-child {
+    border-left: none !important;
+  }
+  
+  #approvalModal .table-dark th:last-child,
+  #approvalModal .table-dark td:last-child,
+  .modal .table-dark th:last-child,
+  .modal .table-dark td:last-child,
+  #approvalModal .table th:last-child,
+  #approvalModal .table td:last-child,
+  .modal .table th:last-child,
+  .modal .table td:last-child {
+    border-right: none !important;
+  }
+  
 </style>
 @endpush
 
@@ -1669,9 +1698,88 @@
       
       if (approvalContent) {
         modalBody.innerHTML = approvalContent;
+        // Function to apply table column borders - VERY AGGRESSIVE
+        const applyTableBorders = () => {
+          // Find all tables in modal body
+          const modalTables = modalBody.querySelectorAll('table');
+          console.log('🔍 Found tables:', modalTables.length);
+          
+          modalTables.forEach((table, tableIndex) => {
+            console.log(`📊 Processing table ${tableIndex + 1}`);
+            
+            // Get all th and td elements
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            console.log(`   Found ${ths.length} headers and ${tds.length} cells`);
+            
+            // Apply borders to headers
+            ths.forEach((th, thIndex) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              // Force border with multiple methods
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            // Apply borders to cells
+            tds.forEach((td, tdIndex) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              // Force border with multiple methods
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+          
+          console.log('✅ Borders applied to', modalTables.length, 'tables');
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          // Apply again after delays to catch any late-loading content
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('approvalModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            // Also apply immediately if modal is already shown
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         console.error('Could not find approval content in response');
@@ -3996,7 +4104,16 @@
         
         if (updated && updated.closed_at && newStatus === 'resolved') {
           const addressedDateCell = row?.querySelector('td:nth-child(3)');
-          if (addressedDateCell) addressedDateCell.textContent = updated.closed_at;
+          if (addressedDateCell) {
+            addressedDateCell.textContent = updated.closed_at;
+            addressedDateCell.style.textAlign = 'left';
+          }
+        } else if (newStatus === 'resolved' && (!updated || !updated.closed_at)) {
+          // If status is resolved but no closed_at, show centered "-"
+          const addressedDateCell = row?.querySelector('td:nth-child(3)');
+          if (addressedDateCell) {
+            addressedDateCell.innerHTML = '<span style="display: block; text-align: center;">-</span>';
+          }
           const statusCell = select.closest('td');
           // Remove arrow and circle if they exist
           const arrow = statusCell?.querySelector('i[data-feather="chevron-down"]');

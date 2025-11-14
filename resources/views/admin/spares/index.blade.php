@@ -10,7 +10,7 @@
       <h2 class=" mb-2">Product Management</h2>
       <p class="text-light">Manage inventory and Product</p>
     </div>
-    <a href="{{ route('admin.spares.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.spares.create') }}" class="btn btn-outline-secondary">
       <i class="fas fa-plus me-2"></i>Add Product
     </a>
   </div>
@@ -232,8 +232,30 @@
   }
   
   #spareModal .btn-close:hover {
-      background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.3);
   }
+  
+  /* Table column borders - vertical lines between columns (same as complaints modal) */
+  .table-dark th,
+        .table-dark td {
+            border-right: 1px solid rgba(201, 160, 160, 0.3);
+            border-left: none;
+        }
+  
+  #spareModal .table-dark th:first-child,
+  #spareModal .table-dark td:first-child,
+  #spareModal .table th:first-child,
+  #spareModal .table td:first-child {
+    border-left: none !important;
+  }
+  
+  #spareModal .table-dark th:last-child,
+  #spareModal .table-dark td:last-child,
+  #spareModal .table th:last-child,
+  #spareModal .table td:last-child {
+    border-right: none !important;
+  }
+  
   .category-badge {
     padding: 4px 8px;
     border-radius: 12px;
@@ -677,9 +699,73 @@
       
       if (spareContent) {
         modalBody.innerHTML = spareContent;
+        // Function to apply table column borders
+        const applyTableBorders = () => {
+          const modalTables = modalBody.querySelectorAll('table');
+          modalTables.forEach((table) => {
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            
+            ths.forEach((th) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            tds.forEach((td) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('spareModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         console.error('Could not find spare content in response');

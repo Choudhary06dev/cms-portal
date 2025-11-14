@@ -279,7 +279,7 @@
           <i data-feather="message-circle" class="me-2"></i>Complainant Feedback
         </h5>
         @if(!$complaint->feedback)
-          <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-primary btn-sm" title="Add Feedback" style="padding: 3px 8px;">
+          <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-outline-secondary btn-sm" title="Add Feedback" style="padding: 3px 8px;">
             <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
           </a>
         @else
