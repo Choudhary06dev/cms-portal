@@ -1,16 +1,16 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-  <div class="container">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: #001f3f !important; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+  <div class="container-fluid px-4">
     <!-- Logo & Brand -->
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
       <div class="logo-wrapper me-2">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="32" height="32" rx="6" fill="#0d6efd"/>
-          <path d="M8 12C8 10.3431 9.34315 9 11 9H15C16.6569 9 18 10.3431 18 12V20C18 21.6569 16.6569 23 15 23H11C9.34315 23 8 21.6569 8 20V12Z" fill="white"/>
-          <path d="M19 12C19 10.3431 20.3431 9 22 9H22C23.6569 9 25 10.3431 25 12V14C25 15.6569 23.6569 17 22 17H19V12Z" fill="white"/>
-          <circle cx="21.5" cy="20.5" r="2.5" fill="white"/>
+        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" fill="white" stroke="#003366" stroke-width="3"/>
+          <path d="M50 20 L60 40 L80 45 L65 60 L68 80 L50 70 L32 80 L35 60 L20 45 L40 40 Z" fill="#003366"/>
+          <circle cx="50" cy="50" r="15" fill="#ffd700"/>
+          <text x="50" y="85" text-anchor="middle" font-size="10" fill="#003366" font-weight="bold">PAKISTAN</text>
         </svg>
       </div>
-      <span class="fw-bold fs-4">CMS Platform</span>
+      <span class="fw-bold fs-5 text-white ms-2">NAVY</span>
     </a>
 
     <!-- Mobile Toggle -->
@@ -20,72 +20,36 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <!-- Main Navigation -->
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link px-3 {{ request()->routeIs('frontend.home') ? 'active' : '' }}" href="{{ route('frontend.home') }}">
-            <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
-              <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
-            </svg>
-            Home
+          <a class="nav-link px-3 text-white {{ request()->routeIs('frontend.home') ? 'active' : '' }}" href="{{ route('frontend.home') }}" style="font-weight: 500;">
+            HOME
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-3 text-white {{ request()->routeIs('frontend.about') ? 'active' : '' }}" href="{{ route('frontend.about') }}" style="font-weight: 500;">
+            ABOUT US
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-3 text-white {{ request()->routeIs('frontend.contact') ? 'active' : '' }}" href="{{ route('frontend.contact') }}" style="font-weight: 500;">
+            CONTACT
           </a>
         </li>
         @if(Auth::guard('frontend')->check())
         <li class="nav-item">
-          <a class="nav-link px-3 {{ request()->routeIs('frontend.dashboard') ? 'active' : '' }}" href="{{ route('frontend.dashboard') }}">
-            <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
-              <path d="M3 13h2V7H3v6zm4 0h2V3H7v10zm4 0h2V9h-2v4z"/>
-            </svg>
-            Dashboard
+          <a class="nav-link px-3 text-white {{ request()->routeIs('frontend.dashboard') ? 'active' : '' }}" href="{{ route('frontend.dashboard') }}" style="font-weight: 500;">
+            DASHBOARD
           </a>
         </li>
         @endif
-        <li class="nav-item">
-          <a class="nav-link px-3 {{ request()->routeIs('frontend.about') ? 'active' : '' }}" href="{{ route('frontend.about') }}">
-            <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
-              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-              <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-            </svg>
-            About Us
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link px-3 {{ request()->routeIs('frontend.features') ? 'active' : '' }}" href="{{ route('frontend.features') }}">
-            <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
-              <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.32-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.63.283.95l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-            </svg>
-            Features
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link px-3 {{ request()->routeIs('frontend.contact') ? 'active' : '' }}" href="{{ route('frontend.contact') }}">
-            <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
-              <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
-            </svg>
-            Contact
-          </a>
-        </li>
       </ul>
 
       <!-- Auth Navigation -->
-      <ul class="navbar-nav">
-        @if(!Auth::guard('frontend')->check())
-          <li class="nav-item">
-            <a class="nav-link px-3 {{ request()->routeIs('frontend.login') ? 'active' : '' }}" href="{{ route('frontend.login') }}">
-              <svg width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0v-2z"/>
-                <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-              </svg>
-              Login
-            </a>
-          </li>
-          <li class="nav-item ms-2">
-            <a class="btn btn-primary px-4 {{ request()->routeIs('frontend.register') ? 'active' : '' }}" href="{{ route('frontend.register') }}">
-              Register
-            </a>
-          </li>
-        @else
+      <ul class="navbar-nav ms-3">
+        @if(Auth::guard('frontend')->check())
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle d-flex align-items-center px-3" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle d-flex align-items-center px-3 text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-weight: 500;">
               <div class="user-avatar me-2">
                 <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                   <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
@@ -142,8 +106,10 @@
     right: 0;
     z-index: 1030;
     margin: 0 !important;
+    padding: 0.75rem 0;
+    background: #001f3f !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
-  /* Content spacing handled in layout main container, not body */
   
   .navbar-brand {
     transition: transform 0.3s ease;
@@ -173,7 +139,7 @@
     height: 2px;
     bottom: 0;
     left: 50%;
-    background-color: #0d6efd;
+    background-color: #ffd700;
     transition: all 0.3s ease;
     transform: translateX(-50%);
   }
@@ -184,16 +150,17 @@
   }
   
   .nav-link.active {
-    color: #0d6efd !important;
+    color: #ffd700 !important;
+  }
+  
+  .nav-link:hover {
+    color: #ffd700 !important;
   }
   
   .dropdown-menu {
     margin-top: 0.5rem;
     animation: fadeIn 0.3s ease;
   }
-
-  /* Hide collapsed container when not expanded to avoid empty box */
-  .navbar .collapse.navbar-collapse { margin: 0; padding: 0; }
   
   @keyframes fadeIn {
     from {
@@ -221,20 +188,25 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #003366 0%, #0066cc 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
   }
   
-  .btn-primary {
-    transition: all 0.3s ease;
+  .btn-light {
+    background: white;
+    color: #001f3f;
+    border: none;
+    font-weight: 600;
   }
   
-  .btn-primary:hover {
+  .btn-light:hover {
+    background: #f8f9fa;
+    color: #001f3f;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
   @media (max-width: 991px) {

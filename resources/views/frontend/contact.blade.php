@@ -5,14 +5,18 @@
 @section('content')
     <style>
         :root {
-            --blue: #0d6efd;
-            --blue2: #3b82f6;
+            --navy-primary: #003366;
+            --navy-dark: #001f3f;
+            --navy-light: #004d99;
+            --navy-accent: #0066cc;
+            --blue: var(--navy-primary);
+            --blue2: var(--navy-light);
             --dark: #1a1a1a;
         }
 
         /* Hero Section */
         .contact-hero {
-            background: linear-gradient(135deg, var(--blue) 0%, #0a58ca 50%, var(--blue2) 100%);
+            background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-primary) 50%, var(--navy-light) 100%);
             color: #fff;
             padding: 100px 20px;
             border-radius: 0;
