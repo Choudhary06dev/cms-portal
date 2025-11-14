@@ -7,12 +7,12 @@
   body {
     margin: 0;
     font-family: 'Inter', Arial, sans-serif;
-    background: url('{{ asset("images/navy-background.jpg") }}') no-repeat center center/cover;
+    background: url('https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg') no-repeat center center/cover;
     background-attachment: fixed;
     position: relative;
-    min-height: 100vh;
+    min-height: 80vh;
   }
-
+  
   /* Overlay for people saluting flag */
   body::before {
     content: '';
@@ -21,12 +21,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=1920&q=80') no-repeat center left/cover;
+    background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAgd66m-skOO1rxIMOQv3bmjsuWKbZReg92AnJJmIjx9pMU5IQQ3qKRxR4-JaynxF0bQQ&usqp=CAU') no-repeat center left/cover;
     opacity: 0.3;
     z-index: 0;
     pointer-events: none;
   }
-
+  
   /* Dark overlay for better readability */
   body::after {
     content: '';
@@ -39,7 +39,7 @@
     z-index: 1;
     pointer-events: none;
   }
-
+  
   /* Hide default navbar and footer */
   .nav-spacer {
     display: none !important;
@@ -55,14 +55,14 @@
     margin: 0 !important;
     position: relative;
     z-index: 2;
-    min-height: 100vh;
+    min-height: 80vh;
   }
 
   /* Custom navbar for home page */
   .home-navbar {
     text-align: center;
-    padding: 20px;
-    font-size: 18px;
+    padding: 12px 20px;
+    font-size: 16px;
     color: #fff;
     letter-spacing: 2px;
     position: relative;
@@ -84,22 +84,23 @@
 
   .container {
     width: 90%;
-    max-width: 1200px;
-    margin: 40px auto;
+    max-width: 1100px;
+    margin: 15px auto;
+    margin-top: 40px;
     display: flex;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(2px);
-    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     position: relative;
     z-index: 10;
   }
 
   .left-section {
-    flex: 2;
-    min-height: 550px;
-    background: url('https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=1920&q=80') no-repeat center center/cover;
+    flex: 1.3;
+    min-height: 420px;
+    background: url('https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg') no-repeat center center/cover;
     position: relative;
     display: flex;
     align-items: center;
@@ -141,29 +142,30 @@
   }
 
   .right-section {
-    flex: 1;
+    flex: 0.7;
     background: #fff;
-    padding: 50px;
+    padding: 40px 35px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   }
 
   .logo {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
 
   .logo img {
-    width: 140px;
+    width: 120px;
     height: auto;
     display: block;
     margin: 0 auto;
   }
 
   .logo svg {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     display: block;
     margin: 0 auto;
   }
@@ -171,26 +173,35 @@
   .heading {
     text-align: center;
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 700;
     margin-top: 15px;
+    margin-bottom: 5px;
     color: #003366;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    line-height: 1.4;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 30px;
+    font-weight: 400;
   }
 
   .form {
-    margin-top: 30px;
+    margin-top: 20px;
   }
 
   .form-group {
-    margin-top: 25px;
+    margin-top: 15px;
   }
 
   .form-group label {
     display: block;
     font-weight: 600;
-    color: #334155;
+    color: #1e293b;
     margin-bottom: 8px;
     font-size: 14px;
   }
@@ -199,21 +210,24 @@
   input[type="password"],
   input[type="text"] {
     width: 100%;
-    padding: 12px;
-    margin-top: 8px;
+    padding: 12px 14px;
+    margin-top: 6px;
     border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 16px;
+    border: 2px solid #3b82f6;
+    background-color: #eff6ff;
+    font-size: 15px;
     box-sizing: border-box;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
+    color: #1e293b;
   }
 
   input[type="email"]:focus,
   input[type="password"]:focus,
   input[type="text"]:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: #2563eb;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   }
 
   .remember {
@@ -221,7 +235,7 @@
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .remember label {
@@ -240,31 +254,35 @@
   }
 
   .remember a {
-    color: #007bff;
+    color: #2563eb;
     text-decoration: none;
+    font-weight: 500;
   }
 
   .remember a:hover {
+    color: #1d4ed8;
     text-decoration: underline;
   }
 
   .sign-btn {
     width: 100%;
-    margin-top: 30px;
+    margin-top: 25px;
     padding: 12px;
-    background: #007bff;
+    background: #2563eb;
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
   }
 
   .sign-btn:hover {
-    background: #0056b3;
+    background: #1d4ed8;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
   }
 
   .sign-btn:active {
@@ -348,20 +366,20 @@
     <a href="{{ route('frontend.home') }}">HOME</a>
     <a href="{{ route('frontend.about') }}">ABOUT US</a>
     <a href="{{ route('frontend.contact') }}">CONTACT</a>
-</div>
+  </div>
 
-<div class="container">
+  <div class="container">                                                                                                            
     <div class="left-section">
         <div class="image-slider">
-            <img src="{{ asset('images/navy-img1.jpg') }}" alt="img1" onerror="this.src='https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80'" />
-            <img src="{{ asset('images/navy-img2.jpg') }}" alt="img2" onerror="this.src='https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80'" />
-            <img src="{{ asset('images/navy-img3.jpg') }}" alt="img3" onerror="this.src='https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80'" />
+            <img src="https://i.ytimg.com/vi/LAhXlh5XfmE/hqdefault.jpg" alt="Navy Image 1" />
+            <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" />
+            <img src="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" alt="Navy Image 3" />
         </div>
     </div>
 
     <div class="right-section">
         <div class="logo">
-            <img src="{{ asset('images/navy-logo.png') }}" alt="Navy Logo" onerror="this.outerHTML='<div class=\'logo\'><svg width=\'140\' height=\'140\' viewBox=\'0 0 100 100\' fill=\'none\' xmlns=\'http://www.w3.org/2000/svg\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'white\' stroke=\'#003366\' stroke-width=\'2\'/><path d=\'M50 20 L60 40 L80 45 L65 60 L68 80 L50 70 L32 80 L35 60 L20 45 L40 40 Z\' fill=\'#003366\'/><circle cx=\'50\' cy=\'50\' r=\'15\' fill=\'#ffd700\'/><text x=\'50\' y=\'85\' text-anchor=\'middle\' font-size=\'8\' fill=\'#003366\' font-weight=\'bold\'>PAKISTAN</text></svg></div>';">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Pakistan_Navy_emblem.svg/200px-Pakistan_Navy_emblem.svg.png" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
         <div class="heading">NAVY COMPLAINT MANAGEMENT SYSTEM</div>
         <p class="subtitle">Nice to see you again</p>
@@ -371,34 +389,34 @@
             @if ($errors->any())
                 <div style="padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background: #fee; color: #c33; border: 1px solid #fcc; font-size: 14px;">
                     {{ $errors->first() }}
-                </div>
+          </div>
             @endif
 
             <div class="form-group">
                 <label>Login</label>
                 <input type="text" name="username" placeholder="Email or phone number" value="{{ old('username') }}" required autofocus />
-            </div>
-
+        </div>
+        
             <div class="form-group">
                 <label>Password</label>
                 <div style="position: relative;">
                     <input type="password" name="password" id="password" placeholder="Enter password" required style="padding-right: 40px;" />
                     <i data-feather="eye" id="togglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; width: 18px; height: 18px; color: #6c757d;"></i>
-                </div>
-            </div>
-
+          </div>
+        </div>
+        
             <div class="remember">
                 <label>
                     <input type="checkbox" name="remember" id="remember" />
                     Remember me
                 </label>
                 <a href="#">Forgot password?</a>
-            </div>
-
+      </div>
+      
             <button type="submit" class="sign-btn">Sign In</button>
         </form>
     </div>
-</div>
+  </div>
 
 <footer class="home-footer">
     © 2025 Navy All Rights Reserved
