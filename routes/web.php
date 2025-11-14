@@ -175,7 +175,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('sector', AdminSectorController::class)
         ->only(['index','store','update','destroy'])
-        ->middleware(['permission:employees.view']);
+        ->middleware(['permission:sector.view']);
     Route::get('sectors-by-city', [AdminSectorController::class, 'getSectorsByCity'])->name('sectors.by-city');
 
     // ===============================
@@ -183,7 +183,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('city', AdminCityController::class)
         ->only(['index','store','update','destroy'])
-        ->middleware(['permission:employees.view']);
+        ->middleware(['permission:city.view']);
 
 
     // ===============================
@@ -191,7 +191,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('designation', AdminDesignationController::class)
         ->only(['index','store','update','destroy'])
-        ->middleware(['permission:employees.view']);
+        ->middleware(['permission:designation.view']);
 
     // ===============================
     // ⚙️ Spares, Approvals, SLA, Reports, Settings, Help

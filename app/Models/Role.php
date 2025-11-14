@@ -137,11 +137,29 @@ class Role extends Model
             }
         }
 
-        // If checking for parent module, check if any sublink is granted
+        // If checking for parent module, check if parent is explicitly selected
+        // BUT only grant parent access if NO individual sublinks exist (meaning parent was explicitly selected)
+        // If individual sublinks exist, don't grant parent access (parent was not explicitly selected)
         foreach ($sublinkToParent as $sublink => $parent) {
-            if ($module === $parent && in_array($sublink, $permissions)) {
-                // If any sublink is granted, parent module access is granted
-                return true;
+            if ($module === $parent) {
+                // Check if any individual sublink exists (excluding the parent module itself)
+                $hasIndividualSublinks = false;
+                foreach ($sublinkToParent as $sublinkCheck => $parentCheck) {
+                    if ($parentCheck === $parent && $sublinkCheck !== $parent && in_array($sublinkCheck, $permissions)) {
+                        $hasIndividualSublinks = true;
+                        break;
+                    }
+                }
+                
+                // If individual sublinks exist, parent was not explicitly selected, don't grant access
+                if ($hasIndividualSublinks) {
+                    return false;
+                }
+                
+                // If no individual sublinks exist and parent is in permissions, grant access
+                if (in_array($module, $permissions)) {
+                    return true;
+                }
             }
         }
 
