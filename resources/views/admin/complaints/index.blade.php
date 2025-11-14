@@ -114,7 +114,7 @@
             <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important; border-radius: 0 0 12px 12px;">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Cmp-id</th>
+                        <th style="width: 100px;">CMP-ID</th>
                         <th style="width: 130px;">Registration Date/Time</th>
                         <th style="width: 130px; text-align: left;">Completion Time</th>
                         <th style="width: 120px;">Complainant Name</th>

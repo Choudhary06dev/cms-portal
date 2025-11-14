@@ -168,13 +168,15 @@
   }
 
   .chart-large {
-    background: linear-gradient(180deg, #12b05f, #0ea04a);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 12px;
     padding: 20px;
     color: #fff;
     min-height: 320px;
     display: flex;
     flex-direction: column;
+    max-width: 85%;
+    margin: 0 auto;
   }
 
   .chart-header {
@@ -781,31 +783,72 @@
             <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none" style="overflow:visible">
               <defs>
                 <linearGradient id="lineGradient" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3" />
-                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                  <stop offset="0%" stop-color="#ffd166" stop-opacity="0.4" />
+                  <stop offset="50%" stop-color="#ffd166" stop-opacity="0.2" />
+                  <stop offset="100%" stop-color="#ffd166" stop-opacity="0" />
                 </linearGradient>
+                <linearGradient id="greenLineGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#22c55e" stop-opacity="0.25" />
+                  <stop offset="50%" stop-color="#22c55e" stop-opacity="0.15" />
+                  <stop offset="100%" stop-color="#22c55e" stop-opacity="0" />
+                </linearGradient>
+                <filter id="glowWhite">
+                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                <filter id="glowGreen">
+                  <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
               </defs>
-              <!-- Area fill with smooth curve -->
+              
+              <!-- Comparison line (lighter green) - smoother curve -->
+              <path d="M0,170 C16,155 25,145 33,135 C50,120 58,110 66,145 C75,125 87,110 100,95 C115,80 124,70 133,75 C142,70 154,65 166,55 C178,50 189,47 200,45 C211,43 222,41 233,40 C244,41 255,45 266,50 C277,55 288,60 300,65 C311,70 322,77 333,85 C344,93 355,99 366,105 C377,110 388,113 400,115" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowGreen)" />
+              
+              <!-- Area fill for comparison line -->
+              <path d="M0,170 C16,155 25,145 33,135 C50,120 58,110 66,145 C75,125 87,110 100,95 C115,80 124,70 133,75 C142,70 154,65 166,55 C178,50 189,47 200,45 C211,43 222,41 233,40 C244,41 255,45 266,50 C277,55 288,60 300,65 C311,70 322,77 333,85 C344,93 355,99 366,105 C377,110 388,113 400,115 L400,200 L0,200 Z" fill="url(#greenLineGradient)" />
+              
+              <!-- Main line (prominent) - enhanced with yellow/gold color -->
+              <path d="M0,180 C16,160 25,150 33,140 C50,125 58,115 66,150 C75,130 87,115 100,100 C115,85 124,75 133,80 C142,75 154,70 166,60 C178,55 189,52 200,50 C211,48 222,46 233,45 C244,46 255,50 266,55 C277,60 288,65 300,70 C311,75 322,82 333,90 C344,98 355,104 366,110 C377,115 388,118 400,120" fill="none" stroke="#ffd166" stroke-width="3" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowWhite)" />
+              
+              <!-- Area fill for main line - enhanced -->
               <path d="M0,180 C16,160 25,150 33,140 C50,125 58,115 66,150 C75,130 87,115 100,100 C115,85 124,75 133,80 C142,75 154,70 166,60 C178,55 189,52 200,50 C211,48 222,46 233,45 C244,46 255,50 266,55 C277,60 288,65 300,70 C311,75 322,82 333,90 C344,98 355,104 366,110 C377,115 388,118 400,120 L400,200 L0,200 Z" fill="url(#lineGradient)" />
-              <!-- Smooth curved line -->
-              <path d="M0,180 C16,160 25,150 33,140 C50,125 58,115 66,150 C75,130 87,115 100,100 C115,85 124,75 133,80 C142,75 154,70 166,60 C178,55 189,52 200,50 C211,48 222,46 233,45 C244,46 255,50 266,55 C277,60 288,65 300,70 C311,75 322,82 333,90 C344,98 355,104 366,110 C377,115 388,118 400,120" fill="none" stroke="#fff" stroke-width="2.5" stroke-opacity="0.95" stroke-linecap="round" stroke-linejoin="round" />
-              <!-- Data points -->
-              <circle cx="33" cy="140" r="3.5" fill="#fff" />
-              <circle cx="66" cy="150" r="3.5" fill="#fff" />
-              <circle cx="100" cy="100" r="3.5" fill="#fff" />
-              <circle cx="133" cy="80" r="3.5" fill="#fff" />
-              <circle cx="166" cy="60" r="3.5" fill="#fff" />
-              <circle cx="200" cy="50" r="3.5" fill="#fff" />
+              
+              <!-- Data points on comparison line (smaller, subtle) -->
+              <circle cx="233" cy="40" r="2.5" fill="#22c55e" opacity="0.6" />
+              <circle cx="200" cy="45" r="2.5" fill="#22c55e" opacity="0.6" />
+              <circle cx="100" cy="95" r="2.5" fill="#22c55e" opacity="0.6" />
+              
+              <!-- Data points on main line (enhanced) -->
+              <circle cx="33" cy="140" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="66" cy="150" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="100" cy="100" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="133" cy="80" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="166" cy="60" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="200" cy="50" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              
+              <!-- July point - highlighted -->
+              <circle cx="233" cy="45" r="6" fill="#ffd166" opacity="0.3" filter="url(#glowWhite)" />
+              <circle cx="233" cy="45" r="5" fill="#ffd166" stroke="#fff" stroke-width="2.5" filter="url(#glowWhite)" />
               <circle cx="233" cy="45" r="3.5" fill="#fff" />
-              <circle cx="266" cy="55" r="3.5" fill="#fff" />
-              <circle cx="300" cy="70" r="3.5" fill="#fff" />
-              <circle cx="333" cy="90" r="3.5" fill="#fff" />
-              <circle cx="366" cy="110" r="3.5" fill="#fff" />
-              <circle cx="400" cy="120" r="3.5" fill="#fff" />
-              <!-- Tooltip for July -->
+              
+              <circle cx="266" cy="55" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="300" cy="70" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="333" cy="90" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="366" cy="110" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="400" cy="120" r="4" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              
+              <!-- Enhanced tooltip for July -->
               <g transform="translate(233, 45)">
-                <rect x="-35" y="-28" width="70" height="22" fill="rgba(0,0,0,0.8)" rx="4" />
-                <text x="0" y="-8" fill="#fff" font-size="10" text-anchor="middle" font-weight="500">1,105 July 2020</text>
+                <rect x="-42" y="-32" width="84" height="26" fill="rgba(0,0,0,0.9)" rx="6" stroke="#ffd166" stroke-width="1" />
+                <text x="0" y="-12" fill="#ffd166" font-size="11" text-anchor="middle" font-weight="700">1,105</text>
+                <text x="0" y="-2" fill="#fff" font-size="9" text-anchor="middle" font-weight="500">July 2020</text>
               </g>
             </svg>
           </div>
