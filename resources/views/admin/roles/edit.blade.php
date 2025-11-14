@@ -118,14 +118,14 @@
                       <div class="form-check mb-2">
                         <input class="form-check-input sublink-checkbox" type="checkbox" 
                                id="{{ $moduleKey }}_{{ $sublinkKey }}" 
-                               name="permissions[]"
+                           name="permissions[]"
                                value="{{ $sublinkKey }}"
                                data-parent="{{ $moduleKey }}"
                                {{ $hasSublinkPermission ? 'checked' : '' }}>
                         <label class="form-check-label text-white-50 small d-flex align-items-center" for="{{ $moduleKey }}_{{ $sublinkKey }}" style="cursor: pointer;">
                           <span style="margin-left: 8px;">└─</span>
                           {{ $sublinkLabel }}
-                        </label>
+                    </label>
                       </div>
                       @endforeach
                     </div>

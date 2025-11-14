@@ -232,7 +232,7 @@
   }
   
   #spareModal .btn-close:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+      background-color: rgba(255, 255, 255, 0.3);
   }
   
   /* Table column borders - vertical lines between columns (same as complaints modal) */
