@@ -136,22 +136,52 @@
           $catDisplay = $categoryDisplay[strtolower($category)] ?? $category;
           $displayText = $catDisplay . ' - ' . $designation;
           
-          // Convert 'new' status to 'assigned' for display
+          // Logic: If performa_type is set, use it as status, otherwise use complaint status
           $rawStatus = $complaint->status ?? 'new';
-          $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
+          
+          // Check if approval has performa_type set (same logic as product_na)
+          $hasPerformaType = isset($approval->performa_type) && $approval->performa_type;
+          $performaTypeValue = $hasPerformaType ? $approval->performa_type : null;
+          
+          // For status column display: if performa_type is set or status is a performa type, show "In-Process" (like product_na)
+          // Exception: If status is resolved, always use resolved (don't override)
+          // Otherwise use complaint status
+          if ($rawStatus === 'resolved' || $rawStatus === 'closed') {
+            // Always preserve resolved/closed status - don't override with performa type
+            $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
+          } elseif ($hasPerformaType && in_array($performaTypeValue, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'])) {
+            // For all performa types, use in_progress for display (like product_na)
+            $complaintStatus = 'in_progress';
+          } elseif (in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
+            // If complaint status is a performa type, show "In-Process" in status column
+            $complaintStatus = 'in_progress';
+          } else {
+            $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
+          }
+          
           $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
                           ($complaintStatus == 'resolved' ? 'Addressed' : 
                           ucfirst(str_replace('_', ' ', $complaintStatus)));
           
           // Status colors mapping
-          $statusColors = [
-            'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
-            'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Darker Green
+          // Performa column colors (original colors for badges)
+          $performaColors = [
             'work_performa' => ['bg' => '#60a5fa', 'text' => '#ffffff', 'border' => '#3b82f6'], // Light Blue
             'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'], // Dark Yellow
             'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
             'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
             'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'], // Black
+          ];
+          
+          // Status column colors (red for performa types in status column, like product_na)
+          $statusColors = [
+            'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
+            'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Darker Green
+            'work_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
+            'maint_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
+            'work_priced_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
+            'maint_priced_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
+            'product_na' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
             'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'], // Pink
             'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'], // Aqua/Cyan
             'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
@@ -161,15 +191,9 @@
           $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
         @endphp
         <tr style="position: relative;">
-          @php
-            $waitingRaw = $approval->waiting_for_authority ?? false;
-            $showDot = ($waitingRaw === true || $waitingRaw === 1 || $waitingRaw === '1' || $waitingRaw === 'true');
-          @endphp
+          {{-- waiting_for_authority removed - no blinking dot needed --}}
           <td style="text-align: left !important; direction: ltr !important; justify-content: flex-start !important; align-items: flex-start !important;">
-            @if($showDot)
-            <span class="blinking-dot" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background-color: #ffffff; border-radius: 50%; animation: blink 1s infinite; z-index: 1;"></span>
-            @endif
-            <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6; {{ $showDot ? 'padding-left: 20px;' : '' }} text-align: left !important; display: inline-block !important; direction: ltr !important; float: none !important; margin: 0 !important; width: auto !important;">
+            <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6; text-align: left !important; display: inline-block !important; direction: ltr !important; float: none !important; margin: 0 !important; width: auto !important;">
               {{ (int)($complaint->complaint_id ?? $complaint->id) }}
             </a>
           </td>
@@ -213,20 +237,30 @@
             @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
               <span style="color: white !important;">-</span>
             @else
-              @if(isset($approval->performa_type) && $approval->performa_type)
-                @php
+              @php
+                // Check if we should show performa badge - either from approval performa_type or complaint status
+                $performaTypeToShow = null;
+                if (isset($approval->performa_type) && $approval->performa_type) {
+                  $performaTypeToShow = $approval->performa_type;
+                } elseif (in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
+                  // If complaint status is a performa type, show badge even if performa_type not set
+                  $performaTypeToShow = $rawStatus;
+                }
+                
+                if ($performaTypeToShow) {
                   // Handle special cases for performa type labels
-                  if ($approval->performa_type === 'maint_performa') {
+                  if ($performaTypeToShow === 'maint_performa') {
                     $performaTypeLabel = 'Maintenance Performa';
-                  } elseif ($approval->performa_type === 'product_na') {
+                  } elseif ($performaTypeToShow === 'product_na') {
                     $performaTypeLabel = 'Product N/A';
                   } else {
-                    $performaTypeLabel = ucwords(str_replace('_', ' ', $approval->performa_type));
+                    $performaTypeLabel = ucwords(str_replace('_', ' ', $performaTypeToShow));
                   }
-                  // Always use performa type color when performa type is selected
-                  // Color should change as soon as performa type is selected, regardless of waiting_for_authority
-                  $badgeColor = $statusColors[$approval->performa_type]['bg'] ?? $statusColors['work_performa']['bg'];
-                @endphp
+                  // Use performa column colors (original colors) for performa badge
+                  $badgeColor = $performaColors[$performaTypeToShow]['bg'] ?? $performaColors['work_performa']['bg'];
+                }
+              @endphp
+              @if($performaTypeToShow)
                 <span class="badge rounded-pill performa-badge" style="padding: 6px 10px; font-weight:600; color: white !important; background-color: {{ $badgeColor }} !important;">
                   {{ $performaTypeLabel }}
                 </span>
@@ -249,23 +283,41 @@
               <div class="status-chip" style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }}; width: 140px; height: 28px; justify-content: center;">
                 <span style="font-size: 11px; font-weight: 700; color: white !important;">Addressed</span>
               </div>
-            @elseif($complaintStatus == 'in_progress' || (isset($approval->performa_type) && $approval->performa_type == 'product_na' && $complaintStatus != 'resolved'))
+            @elseif($complaintStatus == 'in_progress' || ($hasPerformaType && in_array($performaTypeValue, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa']) && $complaintStatus != 'resolved') || in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na']))
               @php
-                $waitingRawStatus = $approval->waiting_for_authority ?? false;
-                $showDotStatus = ($waitingRawStatus === true || $waitingRawStatus === 1 || $waitingRawStatus === '1' || $waitingRawStatus === 'true');
-                // If performa_type is product_na, show in_progress as selected in dropdown
-                $displayStatusForSelect = (isset($approval->performa_type) && $approval->performa_type == 'product_na') ? 'in_progress' : $complaintStatus;
+                // waiting_for_authority removed - no dot needed
+                // For all performa types (including priced ones), show "In-Process" in status column with red color
+                // But keep the actual status value selected in dropdown for persistence
+                if (in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
+                  // Show "In-Process" in dropdown for all performa types (like work_performa)
+                  // Actual value is preserved in data-actual-status attribute
+                  $displayStatusForSelect = 'in_progress'; // Show "In-Process" in dropdown
+                  $statusColorKey = 'in_progress'; // Always use red color for performa types in status column
+                  $currentStatusColorForSelect = $statusColors['in_progress'];
+                } elseif ($hasPerformaType && in_array($performaTypeValue, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'])) {
+                  // For performa types from approval, show "In-Process" in status column
+                  // If performa_type matches rawStatus, use rawStatus, otherwise use in_progress
+                  if ($performaTypeValue === $rawStatus) {
+                    $displayStatusForSelect = $rawStatus;
+                  } else {
+                    $displayStatusForSelect = 'in_progress';
+                  }
+                  $statusColorKey = 'in_progress'; // Always use red color for performa types in status column
+                  $currentStatusColorForSelect = $statusColors['in_progress'];
+                } else {
+                  $displayStatusForSelect = $complaintStatus; // Use complaint status
+                  $statusColorKey = 'in_progress';
+                  $currentStatusColorForSelect = $statusColors['in_progress'];
+                }
               @endphp
-              <div class="status-chip" style="background-color: {{ $statusColors['in_progress']['bg'] }}; color: {{ $statusColors['in_progress']['text'] }}; border-color: {{ $statusColors['in_progress']['border'] }}; position: relative; overflow: hidden; {{ $showDotStatus ? 'padding-left: 18px;' : '' }}">
-                @if($showDotStatus)
-                <span class="blinking-dot" style="position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background-color: #ffffff; border-radius: 50%; z-index: 10; animation: blink 1s infinite;"></span>
-                @endif
-                <span class="status-indicator" style="background-color: {{ $statusColors['in_progress']['bg'] }}; border-color: {{ $statusColors['in_progress']['border'] }};"></span>
+              <div class="status-chip" style="background-color: {{ $currentStatusColorForSelect['bg'] }}; color: {{ $currentStatusColorForSelect['text'] }}; border-color: {{ $currentStatusColorForSelect['border'] }}; position: relative; overflow: hidden;">
+                {{-- waiting_for_authority removed - no blinking dot needed --}}
+                {{-- status-indicator removed for performa types to avoid extra red line --}}
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
                       data-actual-status="{{ $rawStatus }}"
-                      data-status-color="in_progress"
-                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center; background-color: {{ $statusColors['in_progress']['bg'] }} !important; color: {{ $statusColors['in_progress']['text'] }} !important; border-color: {{ $statusColors['in_progress']['border'] }} !important;">
+                      data-status-color="{{ $statusColorKey }}"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 28px; text-align: center; text-align-last: center; background-color: {{ $currentStatusColorForSelect['bg'] }} !important; color: {{ $currentStatusColorForSelect['text'] }} !important; border-color: {{ $currentStatusColorForSelect['border'] }} !important;">
                 @if(isset($statuses) && $statuses->count() > 0)
                   @foreach($statuses as $statusValue => $statusLabel)
                     <option value="{{ $statusValue }}" {{ $displayStatusForSelect == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
@@ -285,7 +337,7 @@
               </select>
               <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
-            @elseif($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false))
+            @elseif(($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false)) && !$hasPerformaType)
               <div class="status-chip" style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }};">
                 <span class="status-indicator" style="background-color: {{ $statusColors['work_performa']['bg'] }}; border-color: {{ $statusColors['work_performa']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
@@ -309,7 +361,7 @@
                 @endif
               </select>
               </div>
-            @elseif($complaintStatus == 'maint_performa' || (isset($performaBadge) && (strpos($performaBadge ?? '', 'Maint') !== false || strpos($performaBadge ?? '', 'Maintenance') !== false)))
+            @elseif(($complaintStatus == 'maint_performa' || (isset($performaBadge) && (strpos($performaBadge ?? '', 'Maint') !== false || strpos($performaBadge ?? '', 'Maintenance') !== false))) && !$hasPerformaType && !in_array($performaTypeValue, ['work_priced_performa', 'maint_priced_performa']))
               <div class="status-chip" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};">
                 <span class="status-indicator" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
@@ -2942,7 +2994,6 @@
               },
               body: JSON.stringify({
                 performa_type: perfVal,
-                waiting_for_authority: false,
                 remarks: `Stock issued with authority number: ${authNo}`
               }),
               credentials: 'same-origin'
@@ -2966,7 +3017,7 @@
                     const badge = approvalRow.querySelector('.performa-badge');
                     if (badge) {
                       const performaType = data.approval?.performa_type || perfVal;
-                      const isWaiting = data.approval?.waiting_for_authority ?? false;
+                      // waiting_for_authority removed - no need to check
                       
                       // Update badge text and color
                       let typeLabel = '';
@@ -2980,15 +3031,15 @@
                       
                       badge.textContent = typeLabel;
                       
-                      // Set color based on waiting status
-                      if (isWaiting) {
-                        badge.style.backgroundColor = '#dc2626'; // Red
-                      } else {
-                        // Use performa type color
-                        const color = performaType === 'work_performa' ? '#60a5fa' : 
-                                     performaType === 'maint_performa' ? '#eab308' : '#60a5fa';
-                        badge.style.backgroundColor = color;
-                      }
+                      // Use performa column colors (original colors) for badge
+                      const performaColors = {
+                        'work_performa': '#60a5fa', // Light Blue
+                        'maint_performa': '#eab308', // Dark Yellow
+                        'work_priced_performa': '#9333ea', // Purple
+                        'maint_priced_performa': '#ea580c', // Dark Orange
+                        'product_na': '#000000' // Black
+                      };
+                      badge.style.backgroundColor = performaColors[performaType] || performaColors['work_performa'];
                       badge.style.display = 'inline-block';
                       badge.style.color = '#ffffff';
                       badge.style.setProperty('color', '#ffffff', 'important');
@@ -3474,11 +3525,11 @@
   const statusColors = {
     'in_progress': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Darker Red
     'resolved': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Darker Green
-    'work_performa': { bg: '#60a5fa', text: '#ffffff', border: '#3b82f6' }, // Light Blue
-    'maint_performa': { bg: '#eab308', text: '#ffffff', border: '#ca8a04' }, // Dark Yellow
-    'work_priced_performa': { bg: '#9333ea', text: '#ffffff', border: '#7e22ce' }, // Purple
-    'maint_priced_performa': { bg: '#ea580c', text: '#ffffff', border: '#c2410c' }, // Dark Orange
-    'product_na': { bg: '#000000', text: '#ffffff', border: '#1a1a1a' }, // Black
+    'work_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
+    'maint_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
+    'work_priced_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
+    'maint_priced_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
+    'product_na': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red
     'un_authorized': { bg: '#ec4899', text: '#ffffff', border: '#db2777' }, // Pink
     'pertains_to_ge_const_isld': { bg: '#06b6d4', text: '#ffffff', border: '#0891b2' }, // Aqua/Cyan
     'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
@@ -3487,9 +3538,10 @@
   // Function to update status select box colors
   function updateStatusSelectColor(select, status) {
     const normalizedStatus = status === 'in-process' || status === 'in process' ? 'in_progress' : status;
-    // If status is in_progress, always use red color, don't default to gray
-    // Only default to gray (assigned) if status is explicitly something else that doesn't exist
-    const color = statusColors[normalizedStatus] || (normalizedStatus === 'in_progress' ? statusColors['in_progress'] : statusColors['assigned']);
+    // If status is in_progress or any performa type, always use red color
+    const performaTypes = ['in_progress', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'];
+    // If status is a performa type, use red color; otherwise use the status color or default to assigned
+    const color = performaTypes.includes(normalizedStatus) ? statusColors['in_progress'] : (statusColors[normalizedStatus] || statusColors['assigned']);
     select.style.backgroundColor = color.bg;
     select.style.color = '#ffffff';
     select.style.setProperty('color', '#ffffff', 'important');
@@ -3539,19 +3591,28 @@
       // Handle work_performa and maint_performa - update badge and save to approval
       if (newStatus === 'work_performa' || newStatus === 'maint_performa') {
         if (performaBadge) {
+          // Performa column colors (original colors for badges)
+          const performaColors = {
+            'work_performa': '#60a5fa', // Light Blue
+            'maint_performa': '#eab308', // Dark Yellow
+            'work_priced_performa': '#9333ea', // Purple
+            'maint_priced_performa': '#ea580c', // Dark Orange
+            'product_na': '#000000' // Black
+          };
+          
           if (newStatus === 'work_performa') {
             performaBadge.textContent = 'Work Performa';
-            performaBadge.style.backgroundColor = '#60a5fa';
+            performaBadge.style.backgroundColor = performaColors['work_performa'];
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
-            // Update select box color to light blue
+            // Update select box color to red (for status column)
             updateStatusSelectColor(select, 'work_performa');
-          } else {
+          } else if (newStatus === 'maint_performa') {
             performaBadge.textContent = 'Maintenance Performa';
-            performaBadge.style.backgroundColor = '#eab308';
+            performaBadge.style.backgroundColor = performaColors['maint_performa'];
             performaBadge.style.color = '#ffffff';
             performaBadge.style.setProperty('color', '#ffffff', 'important');
-            // Update select box color to dark yellow
+            // Update select box color to red (for status column)
             updateStatusSelectColor(select, 'maint_performa');
           }
           performaBadge.style.display = 'inline-block';
@@ -3655,6 +3716,51 @@
             // newStatus remains 'product_na' - don't change it
           }
         }
+        
+        // Save performa_type to approval if status is work_priced_performa or maint_priced_performa
+        if (newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa') {
+          const row = select.closest('tr');
+          let approvalId = null;
+          if (row) {
+            const addStockBtn = row.querySelector('button[data-approval-id]');
+            if (addStockBtn) {
+              approvalId = addStockBtn.getAttribute('data-approval-id');
+            }
+          }
+          
+          // Save performa_type to approval if approvalId exists
+          if (approvalId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken) {
+              fetch(`/admin/approvals/${approvalId}/save-performa`, {
+                method: 'POST',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                  performa_type: newStatus,
+                  remarks: `Performa type selected: ${newStatus}`
+                }),
+                credentials: 'same-origin'
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  console.log('Performa type saved:', newStatus);
+                } else {
+                  console.error('Failed to save performa type:', data.message);
+                }
+              })
+              .catch(error => {
+                console.error('Error saving performa type:', error);
+              });
+            }
+          }
+        }
+        
         // Persist selection locally - use originalStatus before it was changed
         if (complaintId) {
           const key = `performaRequired:${complaintId}`;
@@ -4001,7 +4107,6 @@
                     },
                     body: JSON.stringify({
                       performa_type: null,
-                      waiting_for_authority: false,
                       remarks: `Performa type cleared - status changed to ${newStatus}`
                     }),
                     credentials: 'same-origin'
@@ -4048,7 +4153,6 @@
                     },
                     body: JSON.stringify({
                       performa_type: null,
-                      waiting_for_authority: false,
                       remarks: `Performa type cleared - status changed to ${newStatus}`
                     }),
                     credentials: 'same-origin'
@@ -4092,7 +4196,6 @@
                     },
                     body: JSON.stringify({
                       performa_type: null,
-                      waiting_for_authority: false,
                       remarks: `Performa type cleared - status changed to ${newStatus}`
                     }),
                     credentials: 'same-origin'
@@ -4156,12 +4259,13 @@
             select.value = 'pertains_to_ge_const_isld';
             updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
           } else if (specialOptionType) {
-            // Restore dropdown value - keep actual status for priced performas, but use in_progress for product_na
-            // For priced performas, keep the actual status value
-            // For product_na, use in_progress (like work_performa and maint_performa)
+            // Restore dropdown value - show "In-Process" for all performa types (including priced ones)
+            // Actual value is preserved in data-actual-status and will be used on next reload
             if (specialOptionType === 'work_priced_performa' || specialOptionType === 'maint_priced_performa') {
-              select.value = specialOptionType;
-              updateStatusSelectColor(select, specialOptionType);
+              // Show "In-Process" in dropdown but keep actual value in data-actual-status
+              select.value = 'in_progress';
+              select.setAttribute('data-actual-status', specialOptionType); // Preserve actual value
+              updateStatusSelectColor(select, 'in_progress');
             } else if (specialOptionType === 'product_na') {
               select.value = 'in_progress';
               updateStatusSelectColor(select, 'in_progress');
@@ -4292,16 +4396,21 @@
       const complaintId = sel.getAttribute('data-complaint-id');
       const statusColor = sel.getAttribute('data-status-color');
       
-      if (complaintId) {
+      // Check data-actual-status to see if it's a priced performa - show "In-Process" in dropdown
+      const actualStatus = sel.getAttribute('data-actual-status');
+      if (actualStatus === 'work_priced_performa' || actualStatus === 'maint_priced_performa') {
+        // Show "In-Process" in dropdown but actual value is preserved in data-actual-status
+        sel.value = 'in_progress';
+      } else if (complaintId) {
         let saved;
         try { saved = localStorage.getItem(`performaRequired:${complaintId}`); } catch (err) { saved = null; }
         // Set dropdown value based on saved option
         if (saved === 'work' || saved === 'maint' || saved === 'priced') {
           // For regular performas, use in_progress; for priced, check actual status from server
           if (saved === 'work_priced') {
-            sel.value = 'work_priced_performa';
+            sel.value = 'in_progress'; // Show "In-Process" for display
           } else if (saved === 'maint_priced') {
-            sel.value = 'maint_priced_performa';
+            sel.value = 'in_progress'; // Show "In-Process" for display
           } else {
             sel.value = 'in_progress';
           }
@@ -4311,9 +4420,10 @@
         }
       }
       
-      // CRITICAL: If data-status-color is "in_progress", ALWAYS force red color immediately
-      if (statusColor && statusColor === 'in_progress') {
-        // Force in_progress color (red) immediately with !important
+      // CRITICAL: If data-status-color is "in_progress" or any performa type, ALWAYS force red color immediately
+      const performaTypes = ['in_progress', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'];
+      if (statusColor && performaTypes.includes(statusColor)) {
+        // Force red color immediately with !important for all performa types
         const redColor = statusColors['in_progress'];
         sel.style.setProperty('background-color', redColor.bg, 'important');
         sel.style.setProperty('color', redColor.text, 'important');
@@ -4325,7 +4435,14 @@
         updateStatusSelectColor(sel, statusColor);
       } else {
         const currentValue = sel.value;
-        if (currentValue && statusColors[currentValue]) {
+        // Check if current value is a performa type - use red color
+        if (performaTypes.includes(currentValue)) {
+          const redColor = statusColors['in_progress'];
+          sel.style.setProperty('background-color', redColor.bg, 'important');
+          sel.style.setProperty('color', redColor.text, 'important');
+          sel.style.setProperty('border-color', redColor.border, 'important');
+          updateStatusSelectColor(sel, 'in_progress');
+        } else if (currentValue && statusColors[currentValue]) {
           updateStatusSelectColor(sel, currentValue);
         } else {
           // Default to in_progress (red) not gray

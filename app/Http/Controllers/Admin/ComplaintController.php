@@ -73,89 +73,11 @@ class ComplaintController extends Controller
             $statusValue = $request->status;
             
             // Handle work_priced_performa and maint_priced_performa filters
-            // These might be stored as in_progress with pending approvals that have waiting_for_authority flag
+            // waiting_for_authority removed - only check direct status match
             if ($statusValue === 'work_priced_performa') {
-                // Match report logic exactly: work_priced_performa = status OR (in_progress with waiting_for_authority = true AND performa_type = work_performa)
-                // We need to EXCLUDE simple work performa (those with performa_type = work_performa but waiting_for_authority != true)
-                $query->where(function($q) {
-                    // Check for direct status match
-                    $q->where('status', 'work_priced_performa')
-                      // OR check for in_progress with pending approvals that have waiting_for_authority = true AND performa_type = work_performa
-                      ->orWhere(function($subQ) {
-                          $subQ->where('status', 'in_progress')
-                               ->whereHas('spareApprovals', function($approvalQ) {
-                                   $approvalQ->where('status', 'pending')
-                                             ->where('waiting_for_authority', true)
-                                             ->where('performa_type', 'work_performa');
-                               });
-                      });
-                })
-                // EXCLUDE regular work_performa and maint_performa statuses (direct status) - these are simple performas
-                ->where('status', '!=', 'work_performa')
-                ->where('status', '!=', 'maint_performa')
-                // EXCLUDE: in_progress complaints that have simple work performa (performa_type = work_performa but waiting_for_authority != true)
-                // AND don't have priced work performa (waiting_for_authority = true)
-                // We need to exclude complaints that have simple work performa but don't have priced work performa
-                ->where(function($q) {
-                    // Exclude if it has simple work performa (without waiting_for_authority) AND doesn't have priced work performa (with waiting_for_authority = true)
-                    // This means: exclude if (has simple work performa) AND (doesn't have priced work performa)
-                    $q->whereRaw('NOT EXISTS (
-                        SELECT 1 FROM spare_approval_performa sap1
-                        WHERE sap1.complaint_id = complaints.id
-                        AND sap1.status = "pending"
-                        AND sap1.performa_type = "work_performa"
-                        AND (sap1.waiting_for_authority = 0 OR sap1.waiting_for_authority IS NULL)
-                        AND sap1.deleted_at IS NULL
-                        AND NOT EXISTS (
-                            SELECT 1 FROM spare_approval_performa sap2
-                            WHERE sap2.complaint_id = complaints.id
-                            AND sap2.status = "pending"
-                            AND sap2.performa_type = "work_performa"
-                            AND sap2.waiting_for_authority = 1
-                            AND sap2.deleted_at IS NULL
-                        )
-                    )');
-                });
+                $query->where('status', 'work_priced_performa');
             } elseif ($statusValue === 'maint_priced_performa') {
-                // Match report logic exactly: maint_priced_performa = status OR (in_progress with waiting_for_authority = true AND performa_type = maint_performa)
-                // We need to EXCLUDE simple maint performa (those with performa_type = maint_performa but waiting_for_authority != true)
-                $query->where(function($q) {
-                    // Check for direct status match
-                    $q->where('status', 'maint_priced_performa')
-                      // OR check for in_progress with pending approvals that have waiting_for_authority = true AND performa_type = maint_performa
-                      ->orWhere(function($subQ) {
-                          $subQ->where('status', 'in_progress')
-                               ->whereHas('spareApprovals', function($approvalQ) {
-                                   $approvalQ->where('status', 'pending')
-                                             ->where('waiting_for_authority', true)
-                                             ->where('performa_type', 'maint_performa');
-                               });
-                      });
-                })
-                // EXCLUDE regular work_performa and maint_performa statuses (direct status) - these are simple performas
-                ->where('status', '!=', 'work_performa')
-                ->where('status', '!=', 'maint_performa')
-                // EXCLUDE: in_progress complaints that have simple maint performa (performa_type = maint_performa but waiting_for_authority != true)
-                // AND don't have priced maint performa (waiting_for_authority = true)
-                ->where(function($q) {
-                    // Exclude if it has simple maint performa (without waiting_for_authority) AND doesn't have priced maint performa (with waiting_for_authority = true)
-                    $q->whereRaw('NOT EXISTS (
-                        SELECT 1 FROM spare_approval_performa sap1
-                        WHERE sap1.complaint_id = complaints.id
-                        AND sap1.status = "pending"
-                        AND sap1.performa_type = "maint_performa"
-                        AND (sap1.waiting_for_authority = 0 OR sap1.waiting_for_authority IS NULL)
-                        AND sap1.deleted_at IS NULL
-                        AND NOT EXISTS (
-                            SELECT 1 FROM spare_approval_performa sap2
-                            WHERE sap2.complaint_id = complaints.id
-                            AND sap2.status = "pending"
-                            AND sap2.performa_type = "maint_performa"
-                            AND sap2.waiting_for_authority = 1
-                            AND sap2.deleted_at IS NULL
-                        )
-                    )');
-                });
+                $query->where('status', 'maint_priced_performa');
             } else {
                 // For other statuses, use direct filter
                 $query->where('status', $statusValue);
