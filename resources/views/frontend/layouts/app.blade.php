@@ -20,6 +20,7 @@
     .nav-spacer{height:42px}
     @media (max-width: 991.98px){ .nav-spacer{height:80px} }
     </style>
+  @stack('styles')
 </head>
 <body>
   @include('frontend.layouts.navbar')
@@ -39,6 +40,7 @@
       feather.replace();
     }
   </script>
+  @stack('scripts')
 </body>
 </html>
 
