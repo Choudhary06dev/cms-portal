@@ -9,22 +9,23 @@
   body {
     background: linear-gradient(180deg, #0e1a4b 0%, #08123a 55%) !important;
     color: #fff !important;
-    padding: 30px !important;
+    padding: 60px !important;
     min-height: 100vh !important;
   }
 
   main {
     background: transparent !important;
     padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .dashboard-container {
-    max-width: 900px;
-    margin: 0 auto;
-    margin-top: 30px;
-    padding-top: 20px;
-    padding-left: 20px;
-    padding-right: 20px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    margin-top: 0;
+    padding: 1.5rem;
   }
 
   /* Top header */
