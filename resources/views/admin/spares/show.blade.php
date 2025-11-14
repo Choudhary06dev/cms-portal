@@ -194,7 +194,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Add Stock</button>
+          <button type="submit" class="btn btn-outline-secondary"><i data-feather="plus" class="me-2"></i>Add Stock</button>
         </div>
       </form>
     </div>

@@ -10,9 +10,7 @@
       <h2 class="text-white mb-2">Create SLA Rule</h2>
       <p class="text-light">Add a new SLA rule to the system</p>
     </div>
-    <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to SLA Rules
-    </a>
+    
   </div>
 </div>
 
@@ -138,7 +136,7 @@
 
             <div class="d-flex justify-content-end gap-2">
               <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">Cancel</a>
-              <button type="submit" class="btn btn-accent">Create SLA Rule</button>
+              <button type="submit" class="btn btn-outline-secondary"><i data-feather="plus" class="me-2"></i>Create SLA Rule</button>
             </div>
           </form>
         </div>

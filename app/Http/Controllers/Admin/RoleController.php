@@ -69,7 +69,31 @@ class RoleController extends Controller
 
         // Add permissions
         if ($request->has('permissions') && is_array($request->permissions)) {
+            // Map sublinks to parent modules
+            $sublinkToParent = [
+                'category' => 'complaints',
+                'complaint-titles' => 'complaints',
+                'complaints' => 'complaints',
+                'approvals' => 'complaints',
+                'designation' => 'employees',
+                'city' => 'employees',
+                'sector' => 'employees',
+            ];
+            
+            $permissionsToAdd = [];
+            
             foreach ($request->permissions as $module) {
+                // Add the module itself
+                $permissionsToAdd[$module] = true;
+                
+                // If it's a sublink, also add parent module
+                if (isset($sublinkToParent[$module])) {
+                    $permissionsToAdd[$sublinkToParent[$module]] = true;
+                }
+            }
+            
+            // Add all unique permissions
+            foreach (array_keys($permissionsToAdd) as $module) {
                 $role->rolePermissions()->create([
                     'module_name' => $module,
                 ]);
@@ -132,7 +156,31 @@ class RoleController extends Controller
             $role->rolePermissions()->delete();
             
             if ($request->has('permissions') && is_array($request->permissions)) {
+                // Map sublinks to parent modules
+                $sublinkToParent = [
+                    'category' => 'complaints',
+                    'complaint-titles' => 'complaints',
+                    'complaints' => 'complaints',
+                    'approvals' => 'complaints',
+                    'designation' => 'employees',
+                    'city' => 'employees',
+                    'sector' => 'employees',
+                ];
+                
+                $permissionsToAdd = [];
+                
                 foreach ($request->permissions as $module) {
+                    // Add the module itself
+                    $permissionsToAdd[$module] = true;
+                    
+                    // If it's a sublink, also add parent module
+                    if (isset($sublinkToParent[$module])) {
+                        $permissionsToAdd[$sublinkToParent[$module]] = true;
+                    }
+                }
+                
+                // Add all unique permissions
+                foreach (array_keys($permissionsToAdd) as $module) {
                     $role->rolePermissions()->create([
                         'module_name' => $module,
                     ]);

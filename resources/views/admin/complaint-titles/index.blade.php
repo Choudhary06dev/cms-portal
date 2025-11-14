@@ -62,7 +62,7 @@
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div class="d-grid" style="flex: 0 0 140px;">
-        <button class="btn btn-accent" type="submit" style="width: 100%;">Add</button>
+        <button class="btn btn-outline-secondary" type="submit" style="width: 100%;"> <i data-feather="plus" class="me-2"></i> Add</button>
       </div>
     </form>
   </div>

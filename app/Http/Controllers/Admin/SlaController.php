@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\SlaRule;
 use App\Models\User;
 use App\Models\Complaint;
+use App\Models\ComplaintCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Schema;
 
 class SlaController extends Controller
 {
@@ -58,8 +60,10 @@ class SlaController extends Controller
     public function create()
     {
         $users = User::where('status', 'active')->get();
-        // Use dynamic categories instead of hardcoded complaint types
-        $complaintTypes = Complaint::getCategories();
+        // Fetch categories from database (ComplaintCategory table)
+        $complaintTypes = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name', 'name')->toArray()
+            : [];
 
         return view('admin.sla.create', compact('users', 'complaintTypes'));
     }
@@ -69,9 +73,18 @@ class SlaController extends Controller
      */
     public function store(Request $request)
     {
-        $allowedCategories = implode(',', array_keys(Complaint::getCategories()));
+        // Get categories from database
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
+            : [];
+        
+        $categoryRule = 'required|string';
+        if (!empty($categories)) {
+            $categoryRule .= '|in:' . implode(',', $categories);
+        }
+        
         $validator = Validator::make($request->all(), [
-            'complaint_type' => "required|in:{$allowedCategories}",
+            'complaint_type' => $categoryRule,
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
@@ -115,8 +128,10 @@ class SlaController extends Controller
     public function edit(SlaRule $sla)
     {
         $users = User::where('status', 'active')->get();
-        // Use dynamic categories instead of hardcoded complaint types
-        $complaintTypes = Complaint::getCategories();
+        // Fetch categories from database (ComplaintCategory table)
+        $complaintTypes = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name', 'name')->toArray()
+            : [];
 
         return view('admin.sla.edit', compact('sla', 'users', 'complaintTypes'));
     }
@@ -126,9 +141,18 @@ class SlaController extends Controller
      */
     public function update(Request $request, SlaRule $sla)
     {
-        $allowedCategories = implode(',', array_keys(Complaint::getCategories()));
+        // Get categories from database
+        $categories = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
+            : [];
+        
+        $categoryRule = 'required|string';
+        if (!empty($categories)) {
+            $categoryRule .= '|in:' . implode(',', $categories);
+        }
+        
         $validator = Validator::make($request->all(), [
-            'complaint_type' => "required|in:{$allowedCategories}",
+            'complaint_type' => $categoryRule,
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
@@ -252,7 +276,10 @@ class SlaController extends Controller
         $period = $request->get('period', '30'); // days
 
         $performance = [];
-        $complaintTypes = Complaint::getCategories();
+        // Fetch categories from database
+        $complaintTypes = Schema::hasTable('complaint_categories')
+            ? ComplaintCategory::orderBy('name')->pluck('name', 'name')->toArray()
+            : [];
 
         foreach ($complaintTypes as $type => $label) {
             $total = Complaint::where('category', $type)

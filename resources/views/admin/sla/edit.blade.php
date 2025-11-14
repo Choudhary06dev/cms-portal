@@ -10,9 +10,7 @@
       <h2 class="text-white mb-2">Edit SLA Rule</h2>
       <p class="text-light">Update SLA rule: {{ $sla->complaint_type }}</p>
     </div>
-    <a href="{{ route('admin.sla.show', $sla) }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to SLA Rule
-    </a>
+   
   </div>
 </div>
 
@@ -139,7 +137,7 @@
 
             <div class="d-flex justify-content-end gap-2">
               <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">Cancel</a>
-              <button type="submit" class="btn btn-accent">Update SLA Rule</button>
+              <button type="submit" class="btn btn-outline-secondary"><i data-feather="save" class="me-2"></i>Update SLA Rule</button>
             </div>
           </form>
         </div>

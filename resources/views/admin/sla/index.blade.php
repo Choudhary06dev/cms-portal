@@ -10,7 +10,7 @@
       <h2 class="text-white mb-2" >SLA Rules Management</h2>
       <p class="text-light" >Manage Service Level Agreement rules and compliance</p>
       </div>
-    <a href="{{ route('admin.sla.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.sla.create') }}" class="btn btn-outline-secondary">
       <i data-feather="plus" class="me-2"></i>Add SLA Rule
         </a>
       </div>
@@ -79,7 +79,7 @@
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
           <td >{{ $rule->notifyTo->name ?? 'N/A' }}</td>
           <td>
-            <span class="status-badge status-{{ $rule->status ?? 'active' }}" style="color: #ffffff !important;">
+            <span class="status-badge status-{{ $rule->status ?? 'active' }}">
               {{ ucfirst($rule->status ?? 'active') }}
                 </span>
               </td>
@@ -136,8 +136,8 @@
   .priority-emergency { background: rgba(220, 38, 38, 0.3); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.5); }
   
   .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-  .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-  .status-inactive { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+  .status-active { background-color: #22c55e !important; color: #ffffff !important; }
+  .status-inactive { background-color: #ef4444 !important; color: #ffffff !important; }
 </style>
 @endpush
 

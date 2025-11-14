@@ -10,7 +10,7 @@
                 <h2 class="text-white mb-2">Complaints Management</h2>
                 <p class="text-light">Track and manage customer complaints</p>
             </div>
-            <a href="{{ route('admin.complaints.create') }}" class="btn btn-accent">
+            <a href="{{ route('admin.complaints.create') }}" class="btn btn-outline-secondary">
                 <i data-feather="plus" class="me-2"></i>Add Complaint
             </a>
         </div>
@@ -114,12 +114,13 @@
             <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important; border-radius: 0 0 12px 12px;">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Complaint ID</th>
+                        <th style="width: 100px;">Cmp-id</th>
                         <th style="width: 130px;">Registration Date/Time</th>
-                        <th style="width: 130px; text-align: center;">Completion Time</th>
+                        <th style="width: 130px; text-align: left;">Completion Time</th>
                         <th style="width: 120px;">Complainant Name</th>
                         <th style="width: 150px;">Address</th>
                         <th style="width: 250px;">Complaint Nature & Type</th>
+                        <th style="width: 100px;">Priority</th>
                         <th style="width: 100px;">Phone No.</th>
                         <th style="width: 80px;">Actions</th>
                     </tr>
@@ -156,6 +157,23 @@
                                 @endphp
                                 <div class="text-white" style="font-weight: normal;">{{ $displayText }}</div>
                             </td>
+                            <td>
+                                @php
+                                    $priority = $complaint->priority ?? 'medium';
+                                    $priorityColors = [
+                                        'low' => ['bg' => 'rgba(34, 197, 94, 0.2)', 'text' => '#22c55e'],
+                                        'medium' => ['bg' => 'rgba(245, 158, 11, 0.2)', 'text' => '#f59e0b'],
+                                        'high' => ['bg' => 'rgba(239, 68, 68, 0.2)', 'text' => '#ef4444'],
+                                        'urgent' => ['bg' => 'rgba(139, 92, 246, 0.2)', 'text' => '#8b5cf6'],
+                                        'emergency' => ['bg' => 'rgba(220, 38, 38, 0.3)', 'text' => '#dc2626'],
+                                    ];
+                                    $priorityColor = $priorityColors[$priority] ?? $priorityColors['medium'];
+                                    $priorityDisplay = ucfirst($priority);
+                                @endphp
+                                <span class="badge" style="background-color: {{ $priorityColor['bg'] }}; color: {{ $priorityColor['text'] }}; padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 12px;">
+                                    {{ $priorityDisplay }}
+                                </span>
+                            </td>
                             <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
                             <td>
                                 <div class="btn-group" role="group">
@@ -170,7 +188,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4">
+                            <td colspan="9" class="text-center py-4">
                                 <i data-feather="alert-circle" class="feather-lg mb-2"></i>
                                 <div>No complaints found</div>
                             </td>
@@ -289,13 +307,13 @@
             word-wrap: break-word;
             line-height: 1.3;
         }
-        /* Completion Time column - center align header */
+        /* Completion Time column - left align header */
         .table-compact th:nth-child(3) {
-            text-align: center;
+            text-align: left;
         }
-        /* Completion Time cells - default to center, but inline style will override for dates */
+        /* Completion Time cells - default to left, but inline style will override for dates */
         .table-compact td:nth-child(3) {
-            text-align: center;
+            text-align: left;
         }
         .category-badge {
             padding: 4px 8px;
@@ -388,7 +406,7 @@
         /* Table column borders - vertical lines between columns */
         .table-dark th,
         .table-dark td {
-            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            border-right: 1px solid rgba(201, 160, 160, 0.3);
             border-left: none;
         }
         
@@ -466,6 +484,17 @@
         
         #complaintModal .btn-close:hover {
             background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Modal table column borders - apply to all tables in modals */
+        .modal .table th:not(:last-child),
+        .modal .table td:not(:last-child) {
+            border-right: 1px solid rgba(201, 160, 160, 0.3) !important;
+        }
+        
+        .modal .table th:last-child,
+        .modal .table td:last-child {
+            border-right: none !important;
         }
     </style>
 @endpush
@@ -560,7 +589,7 @@
             const footerContainer = document.getElementById('complaintsTableFooter');
             
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
             }
 
             fetch(`{{ route('admin.complaints.index') }}?${params.toString()}`, {
@@ -602,7 +631,7 @@
             .catch(error => {
                 console.error('Error loading complaints:', error);
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data. Please refresh the page.</td></tr>';
                 }
             });
         }
@@ -854,9 +883,44 @@
                     complaintContent = tempDiv.innerHTML;
                     
                     modalBody.innerHTML = complaintContent;
+                    // Function to apply table column borders
+                    const applyTableBorders = () => {
+                        const modalTables = modalBody.querySelectorAll('.table');
+                        modalTables.forEach(table => {
+                            const ths = table.querySelectorAll('thead th, tbody th');
+                            const tds = table.querySelectorAll('tbody td');
+                            ths.forEach((th) => {
+                                const row = th.parentElement;
+                                const cellsInRow = row.querySelectorAll('th');
+                                const cellIndex = Array.from(cellsInRow).indexOf(th);
+                                if (cellIndex < cellsInRow.length - 1) {
+                                    th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+                                } else {
+                                    th.style.setProperty('border-right', 'none', 'important');
+                                }
+                            });
+                            tds.forEach((td) => {
+                                const row = td.parentElement;
+                                const cellsInRow = row.querySelectorAll('td');
+                                const cellIndex = Array.from(cellsInRow).indexOf(td);
+                                if (cellIndex < cellsInRow.length - 1) {
+                                    td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+                                } else {
+                                    td.style.setProperty('border-right', 'none', 'important');
+                                }
+                            });
+                        });
+                    };
+                    
                     // Replace feather icons after content is loaded
                     setTimeout(() => {
                         feather.replace();
+                        applyTableBorders();
+                        // Apply multiple times with delays to ensure it works
+                        setTimeout(applyTableBorders, 100);
+                        setTimeout(applyTableBorders, 200);
+                        setTimeout(applyTableBorders, 500);
+                        setTimeout(applyTableBorders, 1000);
                         // Double-check and remove any share-modal.js scripts that might have been added
                         const shareModalScripts = document.querySelectorAll('script[src*="share-modal"]');
                         shareModalScripts.forEach(script => {
@@ -866,7 +930,23 @@
                                 // Ignore errors
                             }
                         });
-                    }, 100);
+                    }, 50);
+                    
+                    // Watch for new tables being added
+                    const observer = new MutationObserver(() => {
+                        setTimeout(applyTableBorders, 50);
+                    });
+                    observer.observe(modalBody, { childList: true, subtree: true });
+                    
+                    // Stop observing after 10 seconds
+                    setTimeout(() => observer.disconnect(), 10000);
+                    
+                    // Also apply when modal is fully shown
+                    modalElement.addEventListener('shown.bs.modal', function() {
+                        setTimeout(applyTableBorders, 100);
+                        setTimeout(applyTableBorders, 300);
+                        setTimeout(applyTableBorders, 600);
+                    }, { once: true });
                 } else {
                     console.error('Could not find complaint content in response');
                     console.log('Content section:', contentSection);

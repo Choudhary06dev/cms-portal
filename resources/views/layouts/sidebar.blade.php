@@ -398,7 +398,7 @@
         </button>
       </div>
       <div class="collapse {{ request()->routeIs('admin.designation.*') ? 'show' : '' }}" id="employeesSubmenu">
-        @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
+        @if($user && ($user->hasPermission('designation') || $userRole === 'director' || $userRole === 'admin'))
         <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="award" class="me-2"></i> Designations
         </a>
@@ -416,10 +416,12 @@
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
       </div>
       <div class="collapse {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'show' : '' }}" id="complaintsManagementSubmenu">
-        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin'))
+        @if($user && ($user->hasPermission('category') || $userRole === 'director' || $userRole === 'admin'))
         <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="tag" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Cat
         </a>
+        @endif
+        @if($user && ($user->hasPermission('complaint-titles') || $userRole === 'director' || $userRole === 'admin'))
         <a href="{{ route('admin.complaint-titles.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Types
         </a>
