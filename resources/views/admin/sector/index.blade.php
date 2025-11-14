@@ -83,37 +83,6 @@
                 </form>
             </div>
             @push('styles')
-                <style>
-                    .container-narrow {
-                        max-width: 960px;
-                        margin: 0 auto;
-                    }
-
-                    .table.compact-table th,
-                    .table.compact-table td {
-                        padding: .55rem .75rem;
-                        font-size: .95rem;
-                    }
-
-                    .card-glass {
-                        padding: 16px;
-                    }
-
-                    .form-control,
-                    .form-select {
-                        padding: .48rem .7rem;
-                        font-size: .96rem;
-                    }
-
-                    .btn.btn-sm {
-                        padding: .32rem .6rem;
-                        font-size: .85rem;
-                    }
-
-                    .card-title {
-                        font-size: 1.05rem;
-                    }
-                </style>
             @endpush
 
         </div>
