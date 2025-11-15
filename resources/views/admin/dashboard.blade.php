@@ -143,7 +143,7 @@
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['pending_complaints'] ?? 0 }}</div>
-          <div class="stat-label">In Process</div>
+          <div class="stat-label">In Progress</div>
         </div>
         <div class="stat-icon">
           <i data-feather="clock" class="feather-lg"></i>
@@ -538,9 +538,9 @@
                   $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
                 @endphp
                 @if($displayStatus === 'resolved')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">Addressed</span>
                 @elseif($displayStatus === 'in_progress')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">In Progress</span>
                 @elseif($displayStatus === 'assigned')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @elseif($displayStatus === 'work_performa')
@@ -586,7 +586,7 @@
               @if($approvalStatus)
                 {{ ucfirst($approvalStatus) }} Approvals
               @else
-                In Process Complaints
+                In Progress Complaints
               @endif
             </h5>
             <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-warning btn-sm">View All</a>
@@ -770,10 +770,10 @@
       } elseif ($status === 'pertains_to_ge_const_isld') {
         return 'Pertains to GE(N) Const Isld';
       } elseif ($status === 'in_progress') {
-        return 'In Process';
+        return 'In Progress';
       }
       return $label;
-    }, $statusKeys) : ['New', 'Assigned', 'In Process', 'Addressed'];
+    }, $statusKeys) : ['New', 'Assigned', 'In Progress', 'Addressed'];
     
     // Map colors based on status keys - ensure same order as data
     $statusColors = isset($complaintsByStatus) ? array_map(function($status) use ($statusColorMap) {

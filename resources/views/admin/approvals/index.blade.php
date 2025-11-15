@@ -143,7 +143,7 @@
           $hasPerformaType = isset($approval->performa_type) && $approval->performa_type;
           $performaTypeValue = $hasPerformaType ? $approval->performa_type : null;
           
-          // For status column display: if performa_type is set or status is a performa type, show "In-Process" (like product_na)
+          // For status column display: if performa_type is set or status is a performa type, show "In Progress" (like product_na)
           // Exception: If status is resolved, always use resolved (don't override)
           // Otherwise use complaint status
           if ($rawStatus === 'resolved' || $rawStatus === 'closed') {
@@ -153,13 +153,13 @@
             // For all performa types, use in_progress for display (like product_na)
             $complaintStatus = 'in_progress';
           } elseif (in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
-            // If complaint status is a performa type, show "In-Process" in status column
+            // If complaint status is a performa type, show "In Progress" in status column
             $complaintStatus = 'in_progress';
           } else {
             $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
           }
           
-          $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
+          $statusDisplay = $complaintStatus == 'in_progress' ? 'In Progress' : 
                           ($complaintStatus == 'resolved' ? 'Addressed' : 
                           ucfirst(str_replace('_', ' ', $complaintStatus)));
           
@@ -233,7 +233,7 @@
             <div class="text-white">{{ $displayText }}</div>
           </td>
           <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
-          <td style="color: white !important; position: relative;">
+          <td style="color: white !important; position: relative; text-align: center; vertical-align: middle;">
             @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
               <span style="color: white !important;">-</span>
             @else
@@ -261,11 +261,11 @@
                 }
               @endphp
               @if($performaTypeToShow)
-                <span class="badge rounded-pill performa-badge" style="padding: 6px 10px; font-weight:600; color: white !important; background-color: {{ $badgeColor }} !important;">
+                <span class="badge performa-badge" style="padding: 6px 10px; font-weight:600; color: white !important; background-color: {{ $badgeColor }} !important; border-radius: 6px;">
                   {{ $performaTypeLabel }}
                 </span>
               @else
-                <span class="badge rounded-pill performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important;"></span>
+                <span class="badge performa-badge" style="display:none; padding: 6px 10px; font-weight:600; color: white !important; border-radius: 6px;"></span>
               @endif
             @endif
           </td>
@@ -286,16 +286,16 @@
             @elseif($complaintStatus == 'in_progress' || ($hasPerformaType && in_array($performaTypeValue, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa']) && $complaintStatus != 'resolved') || in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na']))
               @php
                 // waiting_for_authority removed - no dot needed
-                // For all performa types (including priced ones), show "In-Process" in status column with red color
+                // For all performa types (including priced ones), show "In Progress" in status column with red color
                 // But keep the actual status value selected in dropdown for persistence
                 if (in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
-                  // Show "In-Process" in dropdown for all performa types (like work_performa)
+                  // Show "In Progress" in dropdown for all performa types (like work_performa)
                   // Actual value is preserved in data-actual-status attribute
-                  $displayStatusForSelect = 'in_progress'; // Show "In-Process" in dropdown
+                  $displayStatusForSelect = 'in_progress'; // Show "In Progress" in dropdown
                   $statusColorKey = 'in_progress'; // Always use red color for performa types in status column
                   $currentStatusColorForSelect = $statusColors['in_progress'];
                 } elseif ($hasPerformaType && in_array($performaTypeValue, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'])) {
-                  // For performa types from approval, show "In-Process" in status column
+                  // For performa types from approval, show "In Progress" in status column
                   // If performa_type matches rawStatus, use rawStatus, otherwise use in_progress
                   if ($performaTypeValue === $rawStatus) {
                     $displayStatusForSelect = $rawStatus;
@@ -324,7 +324,7 @@
                   @endforeach
                 @else
                   <option value="assigned" {{ $displayStatusForSelect == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                  <option value="in_progress" {{ $displayStatusForSelect == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="in_progress" {{ $displayStatusForSelect == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                   <option value="resolved" {{ $displayStatusForSelect == 'resolved' ? 'selected' : '' }}>Addressed</option>
                   <option value="work_performa" {{ $displayStatusForSelect == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
                   <option value="maint_performa" {{ $displayStatusForSelect == 'maint_performa' ? 'selected' : '' }}>Maintenance Performa</option>
@@ -351,7 +351,7 @@
                   @endforeach
                 @else
                   <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                   <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                   <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                   <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
@@ -375,7 +375,7 @@
                   @endforeach
                 @else
                   <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                   <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                   <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                   <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
@@ -399,7 +399,7 @@
                   @endforeach
                 @else
                   <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                   <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                   <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                   <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
@@ -423,7 +423,7 @@
                   @endforeach
                 @else
                   <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                   <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                   <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                   <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
@@ -447,7 +447,7 @@
                   @endforeach
                 @else
                   <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In-Process</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                   <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                   <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
                   <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
@@ -954,6 +954,7 @@
   /* Performa badge - ensure white text for all badges including Product N/A (only badges, not heading) */
   .table td .performa-badge {
     color: white !important;
+    border-radius: 6px !important;
   }
   
   /* Table text styling for all themes */
@@ -1020,10 +1021,13 @@
   /* Performa Required column - white text (only values, not heading) */
   .table td:nth-child(9) {
     color: white !important;
+    text-align: center !important;
+    vertical-align: middle !important;
   }
   
   .table td:nth-child(9) .performa-badge {
     color: white !important;
+    border-radius: 6px !important;
   }
   
   /* Compact status select box */
@@ -3961,7 +3965,7 @@
       }
 
       const oldStatus = select.dataset.oldStatus || select.value;
-      const labelMap = { in_progress: 'In-Process', resolved: 'Addressed', assigned: 'Assigned', new: 'New', closed: 'Closed' };
+      const labelMap = { in_progress: 'In Progress', resolved: 'Addressed', assigned: 'Assigned', new: 'New', closed: 'Closed' };
       const confirmMsg = `Are you sure you want to change status to "${labelMap[newStatus] || newStatus}"?`;
       if (!skipConfirm) {
         if (!confirm(confirmMsg)) {
@@ -4376,10 +4380,10 @@
             select.value = 'pertains_to_ge_const_isld';
             updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
           } else if (specialOptionType) {
-            // Restore dropdown value - show "In-Process" for all performa types (including priced ones)
+            // Restore dropdown value - show "In Progress" for all performa types (including priced ones)
             // Actual value is preserved in data-actual-status and will be used on next reload
             if (specialOptionType === 'work_priced_performa' || specialOptionType === 'maint_priced_performa') {
-              // Show "In-Process" in dropdown but keep actual value in data-actual-status
+              // Show "In Progress" in dropdown but keep actual value in data-actual-status
               select.value = 'in_progress';
               select.setAttribute('data-actual-status', specialOptionType); // Preserve actual value
               updateStatusSelectColor(select, 'in_progress');
@@ -4513,10 +4517,10 @@
       const complaintId = sel.getAttribute('data-complaint-id');
       const statusColor = sel.getAttribute('data-status-color');
       
-      // Check data-actual-status to see if it's a priced performa - show "In-Process" in dropdown
+      // Check data-actual-status to see if it's a priced performa - show "In Progress" in dropdown
       const actualStatus = sel.getAttribute('data-actual-status');
       if (actualStatus === 'work_priced_performa' || actualStatus === 'maint_priced_performa') {
-        // Show "In-Process" in dropdown but actual value is preserved in data-actual-status
+        // Show "In Progress" in dropdown but actual value is preserved in data-actual-status
         sel.value = 'in_progress';
       } else if (complaintId) {
         let saved;
@@ -4525,9 +4529,9 @@
         if (saved === 'work' || saved === 'maint' || saved === 'priced') {
           // For regular performas, use in_progress; for priced, check actual status from server
           if (saved === 'work_priced') {
-            sel.value = 'in_progress'; // Show "In-Process" for display
+            sel.value = 'in_progress'; // Show "In Progress" for display
           } else if (saved === 'maint_priced') {
-            sel.value = 'in_progress'; // Show "In-Process" for display
+            sel.value = 'in_progress'; // Show "In Progress" for display
           } else {
             sel.value = 'in_progress';
           }

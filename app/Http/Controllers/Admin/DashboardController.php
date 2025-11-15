@@ -152,14 +152,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        // Get approvals with location filtering and filters (all statuses, not just pending)
+        // Get approvals with location filtering and filters
         $pendingApprovalsQuery = SpareApprovalPerforma::with(['complaint.client', 'complaint.assignedEmployee', 'requestedBy', 'items.spare']);
         
-        // Apply approval status filter directly on approvals (if specified, otherwise show all)
+        // Apply approval status filter directly on approvals (if specified, otherwise show only pending)
         if ($approvalStatus) {
             $pendingApprovalsQuery->where('status', $approvalStatus);
+        } else {
+            // If no approval status filter, show only pending approvals for "In Progress Complaints" section
+            $pendingApprovalsQuery->where('status', 'pending');
         }
-        // If no approval status filter, show all approvals (pending, approved, rejected)
         
         // Apply location filter through complaint relationship
         if (!$this->canViewAllData($user)) {

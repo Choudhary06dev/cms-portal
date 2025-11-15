@@ -68,7 +68,7 @@ class SpareApprovalPerforma extends Model
     public static function getStatuses(): array
     {
         return [
-            'pending' => 'In Process',
+            'pending' => 'In Progress',
             'approved' => 'Approved',
             'rejected' => 'Rejected',
         ];
