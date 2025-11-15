@@ -10,7 +10,7 @@
           <text x="50" y="85" text-anchor="middle" font-size="10" fill="#003366" font-weight="bold">PAKISTAN</text>
         </svg>
       </div>
-      <span class="fw-bold fs-5 text-white ms-2">NAVY</span>
+      <span class="fw-bold fs-5 text-white ms-2">MES</span>
     </a>
 
     <!-- Mobile Toggle -->
