@@ -374,55 +374,91 @@ function applyThemeToTableHeaders() {
                         document.body.classList.contains('theme-dark') || 
                         document.body.classList.contains('theme-night');
     
-    if (isDarkTheme) {
-        // Get all table headers with inline black color
-        const headers = document.querySelectorAll('.table-header-row th, .table-dark thead th');
-        headers.forEach(th => {
-            const currentStyle = th.getAttribute('style') || '';
+    // Get all table headers
+    const headers = document.querySelectorAll('.table-header-row th, .table-dark thead th');
+    headers.forEach(th => {
+        const currentStyle = th.getAttribute('style') || '';
+        if (isDarkTheme) {
             // Replace black color with white for dark theme
             if (currentStyle.includes('color: #000000')) {
                 th.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
             } else if (!currentStyle.includes('color:')) {
                 th.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            } else if (currentStyle.includes('color: #ffffff')) {
+                // Already white, keep it
             }
-        });
-        
-        // Get all total row cells with inline black color
-        const totalCells = document.querySelectorAll('.table-total-row td, .table-dark tbody tr.table-total-row td');
-        totalCells.forEach(td => {
-            const currentStyle = td.getAttribute('style') || '';
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
+    
+    // Get all total row cells
+    const totalCells = document.querySelectorAll('.table-total-row td, .table-dark tbody tr.table-total-row td');
+    totalCells.forEach(td => {
+        const currentStyle = td.getAttribute('style') || '';
+        if (isDarkTheme) {
             // Replace black color with white for dark theme
             if (currentStyle.includes('color: #000000')) {
                 td.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
             } else if (!currentStyle.includes('color:')) {
                 td.setAttribute('style', currentStyle + ' color: #ffffff !important;');
             }
-        });
-        
-        // Get Total column headers (last 2 columns - Qty and %)
-        const totalColumnHeaders = document.querySelectorAll('.table-dark thead th:last-child, .table-dark thead th:nth-last-child(2)');
-        totalColumnHeaders.forEach(th => {
-            const currentStyle = th.getAttribute('style') || '';
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
+    
+    // Get Total column headers (last 2 columns - Qty and %)
+    const totalColumnHeaders = document.querySelectorAll('.table-dark thead th:last-child, .table-dark thead th:nth-last-child(2)');
+    totalColumnHeaders.forEach(th => {
+        const currentStyle = th.getAttribute('style') || '';
+        if (isDarkTheme) {
             // Replace black color with white for dark theme
             if (currentStyle.includes('color: #000000')) {
                 th.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
             } else if (!currentStyle.includes('color:')) {
                 th.setAttribute('style', currentStyle + ' color: #ffffff !important;');
             }
-        });
-        
-        // Get all cells in the Total column (last 2 columns)
-        const totalColumnCells = document.querySelectorAll('.table-dark tbody td:last-child, .table-dark tbody td:nth-last-child(2)');
-        totalColumnCells.forEach(td => {
-            const currentStyle = td.getAttribute('style') || '';
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
+    
+    // Get all cells in the Total column (last 2 columns)
+    const totalColumnCells = document.querySelectorAll('.table-dark tbody td:last-child, .table-dark tbody td:nth-last-child(2)');
+    totalColumnCells.forEach(td => {
+        const currentStyle = td.getAttribute('style') || '';
+        if (isDarkTheme) {
             // Replace black color with white for dark theme
             if (currentStyle.includes('color: #000000')) {
                 td.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
             } else if (!currentStyle.includes('color:')) {
                 td.setAttribute('style', currentStyle + ' color: #ffffff !important;');
             }
-        });
-    }
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
 }
 
 function submitComplaintsReportFilters() {
