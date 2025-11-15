@@ -279,6 +279,77 @@
     background-color: #334155;
   }
   
+  /* Dark and Night theme support - make text white */
+  html.theme-dark .table-header-row th,
+  html.theme-night .table-header-row th,
+  body.theme-dark .table-header-row th,
+  body.theme-night .table-header-row th,
+  html.theme-dark .table-dark .table-header-row th,
+  html.theme-night .table-dark .table-header-row th,
+  body.theme-dark .table-dark .table-header-row th,
+  body.theme-night .table-dark .table-header-row th {
+    color: #ffffff !important;
+    background-color: #0f172a !important;
+  }
+
+  html.theme-dark .table-dark thead th,
+  html.theme-night .table-dark thead th,
+  body.theme-dark .table-dark thead th,
+  body.theme-night .table-dark thead th,
+  html.theme-dark table.table-dark thead th,
+  html.theme-night table.table-dark thead th,
+  body.theme-dark table.table-dark thead th,
+  body.theme-night table.table-dark thead th {
+    color: #ffffff !important;
+    background-color: #0f172a !important;
+  }
+
+  html.theme-dark .table-dark td,
+  html.theme-night .table-dark td,
+  body.theme-dark .table-dark td,
+  body.theme-night .table-dark td {
+    color: #ffffff !important;
+  }
+
+  html.theme-dark .table-total-row td,
+  html.theme-night .table-total-row td,
+  body.theme-dark .table-total-row td,
+  body.theme-night .table-total-row td {
+    color: #ffffff !important;
+    background-color: #1e293b !important;
+  }
+
+  html.theme-dark .table-dark tbody tr:not(.table-total-row) td,
+  html.theme-night .table-dark tbody tr:not(.table-total-row) td,
+  body.theme-dark .table-dark tbody tr:not(.table-total-row) td,
+  body.theme-night .table-dark tbody tr:not(.table-total-row) td {
+    color: #ffffff !important;
+  }
+
+  /* Total column (last 2 columns) - make text white in dark/night theme */
+  html.theme-dark .table-dark thead th:last-child,
+  html.theme-dark .table-dark thead th:nth-last-child(2),
+  html.theme-night .table-dark thead th:last-child,
+  html.theme-night .table-dark thead th:nth-last-child(2),
+  body.theme-dark .table-dark thead th:last-child,
+  body.theme-dark .table-dark thead th:nth-last-child(2),
+  body.theme-night .table-dark thead th:last-child,
+  body.theme-night .table-dark thead th:nth-last-child(2) {
+    color: #ffffff !important;
+    background-color: #0f172a !important;
+  }
+
+  html.theme-dark .table-dark tbody td:last-child,
+  html.theme-dark .table-dark tbody td:nth-last-child(2),
+  html.theme-night .table-dark tbody td:last-child,
+  html.theme-night .table-dark tbody td:nth-last-child(2),
+  body.theme-dark .table-dark tbody td:last-child,
+  body.theme-dark .table-dark tbody td:nth-last-child(2),
+  body.theme-night .table-dark tbody td:last-child,
+  body.theme-night .table-dark tbody td:nth-last-child(2) {
+    color: #ffffff !important;
+  }
+
   /* Print styling */
   @media print {
     .table-header-black {
@@ -295,6 +366,64 @@
 @push('scripts')
 <script>
 let complaintsReportDebounceTimer;
+
+// Function to apply dark/night theme styles to table headers and total row
+function applyThemeToTableHeaders() {
+    const isDarkTheme = document.documentElement.classList.contains('theme-dark') || 
+                        document.documentElement.classList.contains('theme-night') ||
+                        document.body.classList.contains('theme-dark') || 
+                        document.body.classList.contains('theme-night');
+    
+    if (isDarkTheme) {
+        // Get all table headers with inline black color
+        const headers = document.querySelectorAll('.table-header-row th, .table-dark thead th');
+        headers.forEach(th => {
+            const currentStyle = th.getAttribute('style') || '';
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                th.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            }
+        });
+        
+        // Get all total row cells with inline black color
+        const totalCells = document.querySelectorAll('.table-total-row td, .table-dark tbody tr.table-total-row td');
+        totalCells.forEach(td => {
+            const currentStyle = td.getAttribute('style') || '';
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                td.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            }
+        });
+        
+        // Get Total column headers (last 2 columns - Qty and %)
+        const totalColumnHeaders = document.querySelectorAll('.table-dark thead th:last-child, .table-dark thead th:nth-last-child(2)');
+        totalColumnHeaders.forEach(th => {
+            const currentStyle = th.getAttribute('style') || '';
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                th.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            }
+        });
+        
+        // Get all cells in the Total column (last 2 columns)
+        const totalColumnCells = document.querySelectorAll('.table-dark tbody td:last-child, .table-dark tbody td:nth-last-child(2)');
+        totalColumnCells.forEach(td => {
+            const currentStyle = td.getAttribute('style') || '';
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                td.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            }
+        });
+    }
+}
 
 function submitComplaintsReportFilters() {
     clearTimeout(complaintsReportDebounceTimer);
@@ -338,6 +467,9 @@ function loadComplaintsReport() {
             content.innerHTML = newContent.innerHTML;
         }
         
+        // Apply theme styles after content loads
+        applyThemeToTableHeaders();
+        
         // Re-initialize feather icons
         if (typeof feather !== 'undefined') {
             feather.replace();
@@ -350,6 +482,34 @@ function loadComplaintsReport() {
         }
     });
 }
+
+// Apply theme styles on page load
+document.addEventListener('DOMContentLoaded', function() {
+    applyThemeToTableHeaders();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                applyThemeToTableHeaders();
+            }
+        });
+    });
+    
+    if (document.documentElement) {
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    }
+    
+    if (document.body) {
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    }
+});
 </script>
 @endpush
 
