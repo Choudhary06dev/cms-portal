@@ -53,6 +53,7 @@
   main {
     padding: 0 !important;
     margin: 0 !important;
+    padding-top: 25px !important;
     position: relative;
     z-index: 2;
     min-height: 80vh;
@@ -61,13 +62,14 @@
   /* Custom navbar for home page */
   .home-navbar {
     text-align: center;
-    padding: 12px 20px;
+    padding: 30px 30px;
     font-size: 16px;
     color: #fff;
     letter-spacing: 2px;
     position: relative;
     z-index: 10;
     width: 100%;
+    margin-bottom: 40px;
   }
 
   .home-navbar a {
@@ -86,7 +88,8 @@
     width: 90%;
     max-width: 1100px;
     margin: 15px auto;
-    margin-top: 40px;
+    margin-top: 80px;
+    padding-top: 20px;
     display: flex;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -362,11 +365,7 @@
 @endpush
 
 @section('content')
-<div class="home-navbar">
-    <a href="{{ route('frontend.home') }}">HOME</a>
-    <a href="{{ route('frontend.about') }}">ABOUT US</a>
-    <a href="{{ route('frontend.contact') }}">CONTACT</a>
-  </div>
+
 
   <div class="container">                                                                                                            
     <div class="left-section">
@@ -419,7 +418,7 @@
   </div>
 
 <footer class="home-footer">
-    © 2025 Navy All Rights Reserved
+    © 2025 MES All Rights Reserved
 </footer>
 
 @push('scripts')

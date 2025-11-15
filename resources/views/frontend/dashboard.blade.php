@@ -873,7 +873,7 @@
               <circle cx="300" cy="70" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
               <circle cx="333" cy="85" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
               <circle cx="366" cy="100" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="400" cy="110" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+              <circle cx="400" cy="110" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" /> 
             </svg>
           </div>
         </div>
