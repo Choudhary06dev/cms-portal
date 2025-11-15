@@ -161,24 +161,6 @@
 @endsection
 
 @push('styles')
-<style>
-  .info-item {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  
-  .info-item:last-child {
-    border-bottom: none;
-  }
-  
-  .card-glass {
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .card-glass:hover {
-    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
-  }
-</style>
 @endpush
 
 @push('scripts')

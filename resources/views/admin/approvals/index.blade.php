@@ -98,7 +98,7 @@
         <table class="table table-dark table-sm">
       <thead>
         <tr>
-          <th style="text-align: left; white-space: nowrap;">Cmp-id</th>
+          <th style="text-align: left; white-space: nowrap;">CMP-ID</th>
           <th style="white-space: nowrap;">Registration Date/Time</th>
           <th style="text-align: left; white-space: nowrap;">Addressed Date/Time</th>
           <th>Complainant Name</th>
