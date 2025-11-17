@@ -292,17 +292,17 @@ table tbody tr:nth-child(even) td,
 
 .priority-high { 
   background: rgba(239, 68, 68, 0.2); 
-  color: #ef4444; 
+  color: #ffffff !important; 
 }
 
 .priority-medium { 
   background: rgba(245, 158, 11, 0.2); 
-  color: #f59e0b; 
+  color: #ffffff !important; 
 }
 
 .priority-low { 
   background: rgba(34, 197, 94, 0.2); 
-  color: #22c55e; 
+  color: #ffffff !important; 
 }
 
 .section-title { 
@@ -518,7 +518,7 @@ table tbody tr:nth-child(even) td,
 /* Priority badges */
 .priority-urgent {
   background: rgba(139, 92, 246, 0.2);
-  color: #8b5cf6;
+  color: #ffffff !important;
 }
 
 /* Modal blur effect */
@@ -799,7 +799,7 @@ body.modal-open-blur .modal-backdrop,
 /* Priority emergency - specific to SLA */
 .priority-emergency {
   background: rgba(220, 38, 38, 0.3);
-  color: #dc2626;
+  color: #ffffff !important;
   border: 1px solid rgba(220, 38, 38, 0.5);
 }
 

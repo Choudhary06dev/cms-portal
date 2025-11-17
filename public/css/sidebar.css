@@ -1270,9 +1270,9 @@ body {
 .status-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
 
 .priority-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-.priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-.priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-.priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.priority-high { background: rgba(239, 68, 68, 0.2); color: #ffffff !important; }
+.priority-medium { background: rgba(245, 158, 11, 0.2); color: #ffffff !important; }
+.priority-low { background: rgba(34, 197, 94, 0.2); color: #ffffff !important; }
 
 .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; }
 /* Global page header spacing adjustments */

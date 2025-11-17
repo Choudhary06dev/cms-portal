@@ -16,14 +16,30 @@
 @php
   $rawStatus = $complaint->status ?? 'new';
   $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
-  $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
-                  ($complaintStatus == 'resolved' ? 'Addressed' : 
-                  ucfirst(str_replace('_', ' ', $complaintStatus)));
+  $statusLabels = [
+    'assigned' => 'Assigned',
+    'in_progress' => 'In Progress',
+    'resolved' => 'Addressed',
+    'closed' => 'Closed',
+    'work_performa' => 'Work Performa',
+    'maint_performa' => 'Maintenance Performa',
+    'work_priced_performa' => 'Work Priced',
+    'maint_priced_performa' => 'Maintenance Priced',
+    'product_na' => 'Product N/A',
+    'un_authorized' => 'Un-Authorized',
+    'pertains_to_ge_const_isld' => 'GE Const Isld',
+  ];
+  $statusDisplay = $statusLabels[$complaintStatus] ?? ucfirst(str_replace('_', ' ', $complaintStatus));
   $statusColors = [
     'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'],
     'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'],
-    'work_performa' => ['bg' => '#0ea5e9', 'text' => '#ffffff', 'border' => '#0284c7'],
-    'maint_performa' => ['bg' => '#fef08a', 'text' => '#ffffff', 'border' => '#eab308'],
+    'work_performa' => ['bg' => '#60a5fa', 'text' => '#ffffff', 'border' => '#3b82f6'],
+    'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'],
+    'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'],
+    'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'],
+    'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'],
+    'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'],
+    'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'],
     'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'],
   ];
   $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
@@ -188,7 +204,7 @@
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Priority</div>
             <div>
-              <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px;">
+              <span class="badge bg-{{ $complaint->priority === 'high' ? 'danger' : ($complaint->priority === 'medium' ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
                 {{ ucfirst($complaint->priority) }}
               </span>
             </div>

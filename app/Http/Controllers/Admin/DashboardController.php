@@ -732,7 +732,7 @@ class DashboardController extends Controller
             
             $withinSla = Complaint::where('created_at', '>=', now()->subDays(30))
                 ->whereIn('status', ['resolved', 'closed'])
-                ->whereRaw("{$timeDiff} <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active')")
+                ->whereRaw("{$timeDiff} <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999)")
                 ->count();
 
             $breached = $totalComplaints - $withinSla;
@@ -790,7 +790,7 @@ class DashboardController extends Controller
         $timeDiff = $this->getTimeDiffFromNow('created_at');
         
         return Complaint::whereIn('status', ['assigned', 'in_progress'])
-            ->whereRaw("{$timeDiff} > (SELECT max_response_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active')")
+            ->whereRaw("{$timeDiff} > COALESCE((SELECT MIN(max_response_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999)")
             ->count();
     }
 
@@ -867,8 +867,8 @@ class DashboardController extends Controller
         $data = Complaint::where('created_at', '>=', now()->subDays($period))
             ->selectRaw("category, 
                 COUNT(*) as total,
-                SUM(CASE WHEN {$timeDiff} <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active') THEN 1 ELSE 0 END) as within_sla,
-                SUM(CASE WHEN {$timeDiff} > (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active') THEN 1 ELSE 0 END) as breached")
+                SUM(CASE WHEN {$timeDiff} <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999) THEN 1 ELSE 0 END) as within_sla,
+                SUM(CASE WHEN {$timeDiff} > COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999) THEN 1 ELSE 0 END) as breached")
             ->groupBy('category')
             ->get();
 
