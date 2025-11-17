@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Spare;
+use App\Models\ComplaintCategory;
 
 class HomeController extends Controller
 {
@@ -56,10 +57,11 @@ class HomeController extends Controller
             'rejected_approvals' => class_exists(\App\Models\SpareApprovalPerforma::class) ? \App\Models\SpareApprovalPerforma::where('status', 'rejected')->count() : 0,
         ];
 
+        $page = request()->get('page', 1);
+        $perPage = 5;
         $recentComplaints = Complaint::with(['client', 'assignedEmployee'])
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+            ->paginate($perPage, ['*'], 'page', $page);
 
         $pendingApprovals = class_exists(\App\Models\SpareApprovalPerforma::class)
             ? \App\Models\SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare'])
@@ -88,6 +90,49 @@ class HomeController extends Controller
             ->groupBy('category')
             ->pluck('count', 'category')
             ->toArray();
+
+        // Get complaints by category - using ComplaintCategory model
+        $categories = ComplaintCategory::all();
+        $complaintsByCategory = [];
+        
+        foreach ($categories as $category) {
+            $count = Complaint::where('category', $category->name)->count();
+            $complaintsByCategory[$category->id] = [
+                'name' => $category->name,
+                'count' => $count,
+                'description' => $category->description,
+            ];
+        }
+
+        // Calculate percentage changes
+        $lastMonthComplaints = Complaint::whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->startOfMonth()])->count();
+        $thisMonthComplaints = Complaint::where('created_at', '>=', now()->startOfMonth())->count();
+        $totalComplaintsChange = $lastMonthComplaints > 0 ? round((($thisMonthComplaints - $lastMonthComplaints) / $lastMonthComplaints) * 100) : 0;
+        
+        $lastMonthInProgress = Complaint::whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->startOfMonth()])
+            ->whereIn('status', ['new', 'assigned', 'in_progress'])->count();
+        $thisMonthInProgress = Complaint::where('created_at', '>=', now()->startOfMonth())
+            ->whereIn('status', ['new', 'assigned', 'in_progress'])->count();
+        $inProgressChange = $lastMonthInProgress > 0 ? round((($thisMonthInProgress - $lastMonthInProgress) / $lastMonthInProgress) * 100) : 0;
+
+        // Get weekly data for bar chart (last 7 days)
+        $weeklyData = [];
+        $lastWeekData = [];
+        $weekDayLabels = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $weeklyData[] = Complaint::whereDate('created_at', $date->toDateString())->count();
+            $lastWeekDate = $date->copy()->subWeek();
+            $lastWeekData[] = Complaint::whereDate('created_at', $lastWeekDate->toDateString())->count();
+            // Get actual day name (Mon, Tue, etc.)
+            $weekDayLabels[] = $date->format('D');
+        }
+        $maxWeeklyValue = max(max($weeklyData ?: [0]), max($lastWeekData ?: [0]), 1);
+
+        // Calculate average for gauge
+        $totalResolved = Complaint::whereIn('status', ['resolved', 'closed'])->count();
+        $totalComplaints = Complaint::count();
+        $averagePercentage = $totalComplaints > 0 ? round(($totalResolved / $totalComplaints) * 100, 2) : 0;
 
         $employeePerformance = Employee::query()
             ->withCount(['assignedComplaints' => function($query) {
@@ -132,6 +177,15 @@ class HomeController extends Controller
             'overdueComplaints',
             'complaintsByStatus',
             'complaintsByType',
+            'complaintsByCategory',
+            'categories',
+            'totalComplaintsChange',
+            'inProgressChange',
+            'weeklyData',
+            'lastWeekData',
+            'weekDayLabels',
+            'maxWeeklyValue',
+            'averagePercentage',
             'employeePerformance',
             'slaPerformance',
             'monthlyTrends'

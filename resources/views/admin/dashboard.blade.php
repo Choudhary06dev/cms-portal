@@ -281,7 +281,7 @@
     <div class="card-glass chart-container">
       <h5 class="mb-4 text-white" style="font-weight: 700; font-size: 1.25rem;">
         <i data-feather="bar-chart-2" class="me-2" style="width: 24px; height: 24px;"></i>
-        Complaints by Type
+        Complaints by Category
       </h5>
       <div id="complaintsTypeChart" style="height: 300px;"></div>
     </div>
@@ -826,10 +826,37 @@
     var complaintsStatusChart = new ApexCharts(document.querySelector("#complaintsStatusChart"), complaintsStatusOptions);
     complaintsStatusChart.render();
 
-    // Complaints by Type Chart
+    // Complaints by Category Chart
   @php
-    $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [0, 0, 0, 0];
-    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return ucfirst($type); }, array_keys($complaintsByType)) : ['Electric', 'Sanitary', 'Kitchen', 'General'];
+    $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [];
+    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return $type; }, array_keys($complaintsByType)) : [];
+    
+    // Color mapping based on category name to ensure unique colors
+    $colorMap = [
+      'B&R-I' => '#3b82f6',                    // Blue
+      'B&R-II' => '#f97316',                 // Orange
+      'E&M NRC (Elect)' => '#8b5cf6',        // Purple
+      'E&M NRC (Gas)' => '#10b981',           // Green
+      'E&M NRC (Water Supply)' => '#06b6d4', // Light Blue (Cyan)
+      'F&S' => '#ec4899',                     // Pink
+    ];
+    $fallbackColors = ['#f59e0b', '#ef4444', '#84cc16', '#14b8a6', '#a855f7', '#22c55e'];
+    $categoryColors = [];
+    $colorIndex = 0;
+    
+    foreach($typeLabels as $label) {
+      if(isset($colorMap[$label])) {
+        $categoryColors[] = $colorMap[$label];
+      } else {
+        $categoryColors[] = $fallbackColors[$colorIndex % count($fallbackColors)];
+        $colorIndex++;
+      }
+    }
+    
+    // If no colors, use default
+    if(empty($categoryColors)) {
+      $categoryColors = ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'];
+    }
   @endphp
     var complaintsTypeOptions = {
     series: @json($typeData),
@@ -839,7 +866,7 @@
         background: 'transparent'
       },
     labels: @json($typeLabels),
-      colors: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'],
+      colors: @json($categoryColors),
       legend: {
         position: 'bottom',
         labels: {

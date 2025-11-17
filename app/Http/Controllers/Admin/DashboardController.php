@@ -278,15 +278,25 @@ class DashboardController extends Controller
             $complaintsByStatus['product_na'] = 0;
         }
 
-        // Get complaints by category with location filtering and filters
-        $complaintsByTypeQuery = Complaint::query();
-        $this->filterComplaintsByLocation($complaintsByTypeQuery, $user);
-        $this->applyFilters($complaintsByTypeQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
-        $complaintsByType = $complaintsByTypeQuery->selectRaw('category, COUNT(*) as count')
-            ->groupBy('category')
-            ->orderBy('category', 'asc') // Sort by category in ascending order
-            ->pluck('count', 'category')
-            ->toArray();
+        // Get complaints by category - using ComplaintCategory model
+        $allCategories = ComplaintCategory::orderBy('name', 'asc')->get();
+        $complaintsByType = [];
+        $complaintsByCategory = [];
+        
+        foreach ($allCategories as $cat) {
+            $complaintsByTypeQuery = Complaint::query();
+            $this->filterComplaintsByLocation($complaintsByTypeQuery, $user);
+            $this->applyFilters($complaintsByTypeQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
+            $count = $complaintsByTypeQuery->where('category', $cat->name)->count();
+            
+            if ($count > 0) {
+                $complaintsByType[$cat->name] = $count;
+            }
+            $complaintsByCategory[$cat->id] = [
+                'name' => $cat->name,
+                'count' => $count,
+            ];
+        }
 
         // Get employee performance with location filtering
         $employeePerformanceQuery = Employee::query();

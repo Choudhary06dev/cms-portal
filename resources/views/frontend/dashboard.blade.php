@@ -369,10 +369,20 @@
     right: 0;
     display: flex;
     justify-content: space-around;
+    align-items: center;
     font-size: 10px;
     opacity: .9;
     color: #fff;
     font-weight: 500;
+    gap: 6px;
+  }
+  
+  .bar-x-axis span {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    white-space: nowrap;
+    max-width: 40px;
   }
 
   .bar-increase-label {
@@ -393,6 +403,7 @@
     bottom: 30px;
     display: flex;
     align-items: flex-end;
+    justify-content: space-around;
     gap: 6px;
     height: calc(100% - 38px);
   }
@@ -427,6 +438,7 @@
     gap: 3px;
     flex: 1;
     max-width: 40px;
+    min-width: 0;
     height: 100%;
   }
 
@@ -665,6 +677,43 @@
     background: rgba(0, 0, 0, 0.05);
   }
 
+  .item-actions {
+    position: relative;
+  }
+
+  .actions-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 160px;
+    overflow: hidden;
+  }
+
+  .actions-dropdown .dropdown-item {
+    display: block;
+    padding: 10px 16px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .actions-dropdown .dropdown-item:last-child {
+    border-bottom: none;
+  }
+
+  .actions-dropdown .dropdown-item:hover {
+    background: #f5f5f5;
+    color: #667eea;
+  }
+
   .pagination-info {
     color: #7b7b7b;
     font-size: 13px;
@@ -715,6 +764,15 @@
     background: #f5f5f5;
   }
 
+  .pagination-btn.complaints-page-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .pagination-btn.complaints-page-link:hover {
+    background: #f5f5f5;
+  }
+
   .dashboard-footer {
     margin-top: 24px;
     text-align: center;
@@ -759,8 +817,8 @@
         <div class="icon">👤</div>
         <div class="meta">
           <h2>Total Complaints</h2>
-          <div class="value">932</div>
-          <p>+10% than last month</p>
+          <div class="value">{{ number_format($stats['total_complaints']) }}</div>
+          <p>{{ $totalComplaintsChange >= 0 ? '+' : '' }}{{ $totalComplaintsChange }}% than last month</p>
         </div>
       </div>
     </div>
@@ -770,8 +828,8 @@
         <div class="icon">⏳</div>
         <div class="meta">
           <h2>Total In Progress</h2>
-          <div class="value">357</div>
-          <p>+23% than last month</p>
+          <div class="value">{{ number_format($stats['pending_complaints']) }}</div>
+          <p>{{ $inProgressChange >= 0 ? '+' : '' }}{{ $inProgressChange }}% than last month</p>
         </div>
       </div>
     </div>
@@ -789,26 +847,35 @@
           </select>
         </div>
         <div class="chart-plot">
+          @php
+            $complaintsData = $monthlyTrends['complaints'] ?? [];
+            $resolutionsData = $monthlyTrends['resolutions'] ?? [];
+            $monthsLabels = $monthlyTrends['months'] ?? [];
+            $maxValue = max(max($complaintsData ?: [0]), max($resolutionsData ?: [0]), 1);
+            $chartHeight = 200;
+            $chartWidth = 400;
+            $pointCount = max(count($complaintsData), count($resolutionsData), 1);
+            $xStep = $pointCount > 1 ? $chartWidth / ($pointCount - 1) : $chartWidth;
+            
+            // Ensure arrays have same length
+            while(count($complaintsData) < $pointCount) {
+              $complaintsData[] = 0;
+            }
+            while(count($resolutionsData) < $pointCount) {
+              $resolutionsData[] = 0;
+            }
+          @endphp
           <div class="chart-y-axis">
-            <span>100</span>
-            <span>75</span>
-            <span>50</span>
-            <span>25</span>
+            <span>{{ $maxValue }}</span>
+            <span>{{ round($maxValue * 0.75) }}</span>
+            <span>{{ round($maxValue * 0.5) }}</span>
+            <span>{{ round($maxValue * 0.25) }}</span>
             <span>0</span>
           </div>
           <div class="chart-x-axis">
-            <span>Jan</span>
-            <span>Feb</span>
-            <span>Mar</span>
-            <span>Apr</span>
-            <span>May</span>
-            <span>Jun</span>
-            <span>Jul</span>
-            <span>Aug</span>
-            <span>Sep</span>
-            <span>Oct</span>
-            <span>Nov</span>
-            <span>Dec</span>
+            @foreach($monthsLabels as $month)
+            <span>{{ $month }}</span>
+            @endforeach
           </div>
           <div class="chart-line">
             <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none" style="overflow:visible">
@@ -839,41 +906,73 @@
                 </filter>
               </defs>
               
-              <!-- Comparison line (lighter green) - smoother curve -->
-              <path d="M0,170 C16,155 25,145 33,135 C50,120 58,110 66,145 C75,125 87,110 100,95 C115,80 124,70 133,75 C142,70 154,65 166,55 C178,50 189,47 200,45 C211,43 222,41 233,40 C244,41 255,45 266,50 C277,55 288,60 300,65 C311,70 322,77 333,85 C344,93 355,99 366,105 C377,110 388,113 400,115" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowGreen)" />
+              @php
+                // Generate paths for resolutions line (green)
+                $resolutionsPath = '';
+                $resolutionsAreaPath = '';
+                $lastIndex = count($resolutionsData) - 1;
+                for($i = 0; $i < count($resolutionsData); $i++) {
+                  $x = $i * $xStep;
+                  $y = $chartHeight - (($resolutionsData[$i] / $maxValue) * $chartHeight);
+                  if($i == 0) {
+                    $resolutionsPath .= "M $x,$y ";
+                    $resolutionsAreaPath .= "M $x,$y ";
+                  } else {
+                    $resolutionsPath .= "L $x,$y ";
+                    $resolutionsAreaPath .= "L $x,$y ";
+                  }
+                }
+                $resolutionsAreaPath .= "L " . ($lastIndex * $xStep) . ",$chartHeight L 0,$chartHeight Z";
+                
+                // Generate paths for complaints line (yellow)
+                $complaintsPath = '';
+                $complaintsAreaPath = '';
+                for($i = 0; $i < count($complaintsData); $i++) {
+                  $x = $i * $xStep;
+                  $y = $chartHeight - (($complaintsData[$i] / $maxValue) * $chartHeight);
+                  if($i == 0) {
+                    $complaintsPath .= "M $x,$y ";
+                    $complaintsAreaPath .= "M $x,$y ";
+                  } else {
+                    $complaintsPath .= "L $x,$y ";
+                    $complaintsAreaPath .= "L $x,$y ";
+                  }
+                }
+                $complaintsAreaPath .= "L " . ($lastIndex * $xStep) . ",$chartHeight L 0,$chartHeight Z";
+              @endphp
               
-              <!-- Area fill for comparison line -->
-              <path d="M0,170 C16,155 25,145 33,135 C50,120 58,110 66,145 C75,125 87,110 100,95 C115,80 124,70 133,75 C142,70 154,65 166,55 C178,50 189,47 200,45 C211,43 222,41 233,40 C244,41 255,45 266,50 C277,55 288,60 300,65 C311,70 322,77 333,85 C344,93 355,99 366,105 C377,110 388,113 400,115 L400,200 L0,200 Z" fill="url(#greenLineGradient)" />
+              <!-- Resolutions line (green) -->
+              <path d="{{ $resolutionsAreaPath }}" fill="url(#greenLineGradient)" />
+              <path d="{{ $resolutionsPath }}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowGreen)" />
               
-              <!-- Main line (prominent) - smoother and cleaner -->
-              <path d="M0,170 L33,140 L66,120 L100,95 L133,80 L166,65 L200,55 L233,50 L266,58 L300,70 L333,85 L366,100 L400,110" fill="none" stroke="#ffd166" stroke-width="3.5" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowWhite)" />
+              <!-- Complaints line (yellow) -->
+              <path d="{{ $complaintsAreaPath }}" fill="url(#lineGradient)" />
+              <path d="{{ $complaintsPath }}" fill="none" stroke="#ffd166" stroke-width="3.5" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowWhite)" />
               
-              <!-- Area fill for main line - smoother gradient -->
-              <path d="M0,170 L33,140 L66,120 L100,95 L133,80 L166,65 L200,55 L233,50 L266,58 L300,70 L333,85 L366,100 L400,110 L400,200 L0,200 Z" fill="url(#lineGradient)" />
+              <!-- Data points for resolutions -->
+              @foreach($resolutionsData as $index => $value)
+                @php
+                  $x = $index * $xStep;
+                  $y = $chartHeight - (($value / $maxValue) * $chartHeight);
+                @endphp
+                <circle cx="{{ $x }}" cy="{{ $y }}" r="2.5" fill="#22c55e" opacity="0.6" />
+              @endforeach
               
-              <!-- Data points on comparison line (smaller, subtle) -->
-              <circle cx="233" cy="40" r="2.5" fill="#22c55e" opacity="0.6" />
-              <circle cx="200" cy="45" r="2.5" fill="#22c55e" opacity="0.6" />
-              <circle cx="100" cy="95" r="2.5" fill="#22c55e" opacity="0.6" />
-              
-              <!-- Data points on main line (cleaner and consistent) -->
-              <circle cx="33" cy="140" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="66" cy="120" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="100" cy="95" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="133" cy="80" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="166" cy="65" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="200" cy="55" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              
-              <!-- November point - highlighted -->
-              <circle cx="233" cy="50" r="5" fill="#ffd166" opacity="0.3" filter="url(#glowWhite)" />
-              <circle cx="233" cy="50" r="4.5" fill="#ffd166" stroke="#fff" stroke-width="2" filter="url(#glowWhite)" />
-              <circle cx="233" cy="50" r="3" fill="#fff" />
-              
-              <circle cx="266" cy="58" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="300" cy="70" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="333" cy="85" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="366" cy="100" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
-              <circle cx="400" cy="110" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" /> 
+              <!-- Data points for complaints -->
+              @foreach($complaintsData as $index => $value)
+                @php
+                  $x = $index * $xStep;
+                  $y = $chartHeight - (($value / $maxValue) * $chartHeight);
+                  $isLast = $index == count($complaintsData) - 1;
+                @endphp
+                @if($isLast)
+                  <circle cx="{{ $x }}" cy="{{ $y }}" r="5" fill="#ffd166" opacity="0.3" filter="url(#glowWhite)" />
+                  <circle cx="{{ $x }}" cy="{{ $y }}" r="4.5" fill="#ffd166" stroke="#fff" stroke-width="2" filter="url(#glowWhite)" />
+                  <circle cx="{{ $x }}" cy="{{ $y }}" r="3" fill="#fff" />
+                @else
+                  <circle cx="{{ $x }}" cy="{{ $y }}" r="3.5" fill="#ffd166" stroke="#fff" stroke-width="1.5" filter="url(#glowWhite)" />
+                @endif
+              @endforeach 
             </svg>
           </div>
         </div>
@@ -885,64 +984,61 @@
         <div class="bar-header">
           <div class="bar-title">Total Complaint Bar</div>
         </div>
+        @php
+          $thisWeekTotal = array_sum($weeklyData ?? []);
+          $lastWeekTotal = array_sum($lastWeekData ?? []);
+          $weekDays = $weekDayLabels ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          // Ensure we have 7 days
+          while(count($weekDays) < 7) {
+            $weekDays[] = '';
+          }
+          while(count($weeklyData) < 7) {
+            $weeklyData[] = 0;
+          }
+          while(count($lastWeekData) < 7) {
+            $lastWeekData[] = 0;
+          }
+        @endphp
         <div class="bar-legend">
           <div class="bar-legend-item">
             <div class="bar-legend-color" style="background:#6bd1ff"></div>
-            <span>This Week 1.245</span>
+            <span>This Week {{ number_format($thisWeekTotal) }}</span>
           </div>
           <div class="bar-legend-item">
             <div class="bar-legend-color" style="background:#ffd166"></div>
-            <span>Last Week 1.356</span>
+            <span>Last Week {{ number_format($lastWeekTotal) }}</span>
           </div>
         </div>
         <div class="bars-container">
           <div class="bar-y-axis">
-            <span>100</span>
-            <span>80</span>
-            <span>60</span>
-            <span>40</span>
-            <span>20</span>
+            <span>{{ $maxWeeklyValue }}</span>
+            <span>{{ round($maxWeeklyValue * 0.8) }}</span>
+            <span>{{ round($maxWeeklyValue * 0.6) }}</span>
+            <span>{{ round($maxWeeklyValue * 0.4) }}</span>
+            <span>{{ round($maxWeeklyValue * 0.2) }}</span>
             <span>0</span>
           </div>
-          <div class="bar-x-axis">
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-            <span>Sun</span>
-          </div>
           <div class="bars-wrapper">
-            <div class="bar-group">
-              <div class="bar bar-blue" style="height:65%; width: 100%;"></div>
-              <div class="bar bar-yellow" style="height:50%; width: 100%;"></div>
-            </div>
-            <div class="bar-group">
-              <div class="bar bar-blue" style="height:55%; width: 100%;"></div>
-              <div class="bar bar-yellow" style="height:45%; width: 100%;"></div>
-            </div>
-            <div class="bar-group">
-              <div class="bar bar-blue" style="height:45%; width: 100%;"></div>
-              <div class="bar bar-yellow" style="height:40%; width: 100%;"></div>
-            </div>
-            <div class="bar-group" style="position: relative;">
-              <div class="bar bar-blue" style="height:60%; width: 100%;"></div>
-              <div class="bar bar-yellow" style="height:55%; width: 100%;"></div>
-              <div class="bar-increase-label" style="left: 50%; transform: translateX(-50%); top: -20px;">42% increases</div>
-            </div>
-            <div class="bar-group">
-              <div class="bar bar-blue" style="height:70%; width: 100%;"></div>
-              <div class="bar bar-yellow" style="height:65%; width: 100%;"></div>
-            </div>
-            <div class="bar-group">
-              <div class="bar bar-blue" style="height:80%; width: 100%;"></div>
-              <div class="bar bar-yellow" style="height:75%; width: 100%;"></div>
-            </div>
-            <div class="bar-group">
-              <div class="bar bar-blue" style="height:58%; width: 100%;"></div>
-              <div class="bar bar-yellow" style="height:52%; width: 100%;"></div>
-            </div>
+            @foreach($weeklyData as $index => $thisWeekValue)
+              @php
+                $lastWeekValue = $lastWeekData[$index] ?? 0;
+                $thisWeekHeight = $maxWeeklyValue > 0 ? ($thisWeekValue / $maxWeeklyValue) * 100 : 0;
+                $lastWeekHeight = $maxWeeklyValue > 0 ? ($lastWeekValue / $maxWeeklyValue) * 100 : 0;
+                $increase = $lastWeekValue > 0 ? round((($thisWeekValue - $lastWeekValue) / $lastWeekValue) * 100) : 0;
+              @endphp
+              <div class="bar-group" style="position: relative;">
+                <div class="bar bar-blue" style="height: {{ $thisWeekHeight }}%; width: 100%;"></div>
+                <div class="bar bar-yellow" style="height: {{ $lastWeekHeight }}%; width: 100%;"></div>
+                @if($increase > 0)
+                <div class="bar-increase-label" style="left: 50%; transform: translateX(-50%); top: -20px;">{{ $increase }}% increase</div>
+                @endif
+              </div>
+            @endforeach
+          </div>
+          <div class="bar-x-axis">
+            @foreach($weekDays as $index => $day)
+            <span>{{ $day }}</span>
+            @endforeach
           </div>
         </div>
       </div>
@@ -955,30 +1051,36 @@
         <div class="gauge-legend">
           <div class="gauge-legend-item">
             <div class="gauge-legend-color" style="background:#ffd166"></div>
-            <span>This Week 1.245</span>
+            <span>This Week {{ number_format($thisWeekTotal) }}</span>
           </div>
           <div class="gauge-legend-item">
             <div class="gauge-legend-color" style="background:#ff6b4b"></div>
-            <span>Last Week 1.356</span>
+            <span>Last Week {{ number_format($lastWeekTotal) }}</span>
           </div>
         </div>
         <div class="gauge-center">
+          @php
+            $gaugePercentage = min($averagePercentage, 100);
+            $gaugeAngle = ($gaugePercentage / 100) * 180;
+            $gaugeX = 80 + 70 * cos(deg2rad(180 - $gaugeAngle));
+            $gaugeY = 80 - 70 * sin(deg2rad(180 - $gaugeAngle));
+          @endphp
           <svg class="gauge-svg" width="180" height="100" viewBox="0 0 160 90" style="pointer-events: none;">
             <path d="M10 80 A70 70 0 0 1 150 80" fill="none" stroke="#ffd779" stroke-width="16" stroke-linecap="round" opacity="0.6"/>
-            <path d="M35 80 A45 45 0 0 1 125 80" fill="none" stroke="#ff6b4b" stroke-width="18" stroke-linecap="round"/>
+            <path d="M10 80 A70 70 0 {{ $gaugePercentage > 50 ? 1 : 0 }} 1 {{ $gaugeX }} {{ $gaugeY }}" fill="none" stroke="#ff6b4b" stroke-width="18" stroke-linecap="round"/>
           </svg>
           <div style="position: relative; z-index: 2; text-align: center;">
-            <div class="gauge-value">46.78</div>
+            <div class="gauge-value">{{ number_format($averagePercentage, 2) }}</div>
             <div class="gauge-label">Average</div>
           </div>
         </div>
         <div class="small-metrics">
           <div class="m">
-            <div class="value">146.06k</div>
+            <div class="value">{{ $stats['total_complaints'] > 1000 ? number_format($stats['total_complaints'] / 1000, 2) . 'k' : number_format($stats['total_complaints']) }}</div>
             <div class="label">Total Complaints</div>
           </div>
           <div class="m">
-            <div class="value">40.36k</div>
+            <div class="value">{{ $stats['resolved_complaints'] > 1000 ? number_format($stats['resolved_complaints'] / 1000, 2) . 'k' : number_format($stats['resolved_complaints']) }}</div>
             <div class="label">Solved Complaints</div>
           </div>
         </div>
@@ -988,125 +1090,130 @@
 
   <div class="list-card">
     <h3>Details on Complaints</h3>
-
+    <div id="complaintsList">
+    @forelse($recentComplaints as $complaint)
+    @php
+      $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
+      $statusLabels = [
+        'assigned' => 'Assigned',
+        'in_progress' => 'In Progress',
+        'resolved' => 'Addressed',
+        'closed' => 'Closed',
+        'work_performa' => 'Work Performa',
+        'maint_performa' => 'Maintenance Performa',
+        'work_priced_performa' => 'Work Priced',
+        'maint_priced_performa' => 'Maintenance Priced',
+        'product_na' => 'Product N/A',
+        'un_authorized' => 'Un-Authorized',
+        'pertains_to_ge_const_isld' => 'GE Const Isld',
+      ];
+      $statusLabel = $statusLabels[$displayStatus] ?? ucfirst(str_replace('_', ' ', $displayStatus));
+      $statusColors = [
+        'assigned' => '#64748b',
+        'in_progress' => '#dc2626',
+        'resolved' => '#16a34a',
+        'closed' => '#16a34a',
+        'work_performa' => '#60a5fa',
+        'maint_performa' => '#eab308',
+        'work_priced_performa' => '#9333ea',
+        'maint_priced_performa' => '#ea580c',
+        'product_na' => '#000000',
+        'un_authorized' => '#ec4899',
+        'pertains_to_ge_const_isld' => '#06b6d4',
+      ];
+      $statusColor = $statusColors[$displayStatus] ?? '#64748b';
+    @endphp
     <div class="list-item">
       <div class="bullet"></div>
       <div class="item-meta">
         <div class="item-info">
-          <div class="item-title">Problem 1</div>
-          <div class="item-id">ID 123456789</div>
+          <div class="item-title">{{ Str::limit($complaint->title, 40) }}</div>
+          <div class="item-id">ID: {{ $complaint->id }} | Category: {{ $complaint->category ?? 'N/A' }} | Status: <span style="color: {{ $statusColor }}; font-weight: 600;">{{ $statusLabel }}</span></div>
         </div>
         <div class="complainant">
-          <div class="avatar-small">A</div>
+          <div class="avatar-small">{{ strtoupper(substr($complaint->client->name ?? ($complaint->client->client_name ?? 'U'), 0, 1)) }}</div>
           <div class="complainant-info">
-            <div class="complainant-name">Name</div>
-            <div class="complainant-label">Complaint by</div>
+            <div class="complainant-name">Complaint by</div>
+            <div class="complainant-label">{{ $complaint->client->name ?? ($complaint->client->client_name ?? 'Unknown') }}</div>
           </div>
         </div>
-        <div class="item-phone">+92 12345 6789</div>
+        <div class="item-phone">{{ $complaint->client->phone ?? ($complaint->client->phone_number ?? 'N/A') }}</div>
         <div class="item-actions">
-          <div class="action-icon">🖨️</div>
-          <div class="action-icon">⋯</div>
+          <div class="action-icon print-complaint" data-complaint-id="{{ $complaint->id }}" title="Print Complaint">🖨️</div>
+          <div class="action-icon more-actions" data-complaint-id="{{ $complaint->id }}" title="More Actions">⋯</div>
+          <div class="actions-dropdown" id="dropdown-{{ $complaint->id }}" style="display: none;">
+            <a href="/admin/complaints/{{ $complaint->id }}" target="_blank" class="dropdown-item">View Details</a>
+            <a href="/admin/complaints/{{ $complaint->id }}/print-slip" target="_blank" class="dropdown-item">Print Slip</a>
+          </div>
         </div>
       </div>
     </div>
-
+    @empty
     <div class="list-item">
-      <div class="bullet"></div>
-      <div class="item-meta">
-        <div class="item-info">
-          <div class="item-title">Problem 1</div>
-          <div class="item-id">ID 123456789</div>
-        </div>
-        <div class="complainant">
-          <div class="avatar-small">B</div>
-          <div class="complainant-info">
-            <div class="complainant-name">Name</div>
-            <div class="complainant-label">Complaint by</div>
-          </div>
-        </div>
-        <div class="item-phone">+92 12345 6789</div>
-        <div class="item-actions">
-          <div class="action-icon">🖨️</div>
-          <div class="action-icon">⋯</div>
-        </div>
+      <div class="item-meta" style="justify-content: center; padding: 20px;">
+        <div style="color: #6b6b6b;">No complaints found</div>
       </div>
     </div>
-
-    <div class="list-item">
-      <div class="bullet"></div>
-      <div class="item-meta">
-        <div class="item-info">
-          <div class="item-title">Problem 1</div>
-          <div class="item-id">ID 123456789</div>
-        </div>
-        <div class="complainant">
-          <div class="avatar-small">C</div>
-          <div class="complainant-info">
-            <div class="complainant-name">Name</div>
-            <div class="complainant-label">Complaint by</div>
-          </div>
-        </div>
-        <div class="item-phone">+92 12345 6789</div>
-        <div class="item-actions">
-          <div class="action-icon">🖨️</div>
-          <div class="action-icon">⋯</div>
-        </div>
-      </div>
+    @endforelse
     </div>
 
-    <div class="list-item">
-      <div class="bullet"></div>
-      <div class="item-meta">
-        <div class="item-info">
-          <div class="item-title">Problem 1</div>
-          <div class="item-id">ID 123456789</div>
-        </div>
-        <div class="complainant">
-          <div class="avatar-small">D</div>
-          <div class="complainant-info">
-            <div class="complainant-name">Name</div>
-            <div class="complainant-label">Complaint by</div>
-          </div>
-        </div>
-        <div class="item-phone">+92 12345 6789</div>
-        <div class="item-actions">
-          <div class="action-icon">🖨️</div>
-          <div class="action-icon">⋯</div>
-        </div>
-      </div>
+    @php
+      $currentPage = $recentComplaints->currentPage();
+      $totalPages = $recentComplaints->lastPage();
+      $firstItem = $recentComplaints->firstItem() ?? 0;
+      $lastItem = $recentComplaints->lastItem() ?? 0;
+      $totalComplaints = $recentComplaints->total();
+    @endphp
+    <div class="pagination-info">Showing {{ $firstItem }}-{{ $lastItem }} from {{ number_format($totalComplaints) }} complaints</div>
+    @if($totalPages > 1)
+    <div class="pagination" id="complaintsPagination">
+      @if($currentPage > 1)
+      <a href="{{ $recentComplaints->previousPageUrl() }}" class="pagination-btn arrow complaints-page-link">←</a>
+      @else
+      <button class="pagination-btn arrow" disabled>←</button>
+      @endif
+      
+      @php
+        $startPage = max(1, $currentPage - 1);
+        $endPage = min($totalPages, $currentPage + 1);
+        if ($endPage - $startPage < 2) {
+          if ($startPage == 1) {
+            $endPage = min($totalPages, $startPage + 2);
+          } else {
+            $startPage = max(1, $endPage - 2);
+          }
+        }
+      @endphp
+      
+      @if($startPage > 1)
+      <a href="{{ $recentComplaints->url(1) }}" class="pagination-btn complaints-page-link">1</a>
+      @if($startPage > 2)
+      <span class="pagination-btn" style="pointer-events: none;">...</span>
+      @endif
+      @endif
+      
+      @for($i = $startPage; $i <= $endPage; $i++)
+      @if($i == $currentPage)
+      <button class="pagination-btn active">{{ $i }}</button>
+      @else
+      <a href="{{ $recentComplaints->url($i) }}" class="pagination-btn complaints-page-link">{{ $i }}</a>
+      @endif
+      @endfor
+      
+      @if($endPage < $totalPages)
+      @if($endPage < $totalPages - 1)
+      <span class="pagination-btn" style="pointer-events: none;">...</span>
+      @endif
+      <a href="{{ $recentComplaints->url($totalPages) }}" class="pagination-btn complaints-page-link">{{ $totalPages }}</a>
+      @endif
+      
+      @if($currentPage < $totalPages)
+      <a href="{{ $recentComplaints->nextPageUrl() }}" class="pagination-btn arrow complaints-page-link">→</a>
+      @else
+      <button class="pagination-btn arrow" disabled>→</button>
+      @endif
     </div>
-
-    <div class="list-item">
-      <div class="bullet"></div>
-      <div class="item-meta">
-        <div class="item-info">
-          <div class="item-title">Problem 1</div>
-          <div class="item-id">ID 123456789</div>
-        </div>
-        <div class="complainant">
-          <div class="avatar-small">E</div>
-          <div class="complainant-info">
-            <div class="complainant-name">Name</div>
-            <div class="complainant-label">Complaint by</div>
-          </div>
-        </div>
-        <div class="item-phone">+92 12345 6789</div>
-        <div class="item-actions">
-          <div class="action-icon">🖨️</div>
-          <div class="action-icon">⋯</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="pagination-info">Showing 1-5 from 100 data</div>
-    <div class="pagination">
-      <button class="pagination-btn arrow">←</button>
-      <button class="pagination-btn active">1</button>
-      <button class="pagination-btn">2</button>
-      <button class="pagination-btn">3</button>
-      <button class="pagination-btn arrow">→</button>
-    </div>
+    @endif
   </div>
 
 </div>
@@ -1123,6 +1230,60 @@
       setTimeout(() => {
         b.style.transform = 'scaleY(1)';
       }, 80 * i);
+    });
+
+    // Handle pagination clicks - scroll to top of complaints section
+    document.querySelectorAll('.complaints-page-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        // Let the link work normally, but scroll to complaints section after navigation
+        const complaintsSection = document.querySelector('.list-card');
+        if (complaintsSection) {
+          setTimeout(() => {
+            complaintsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+      });
+    });
+
+    // Handle print complaint icon click
+    document.querySelectorAll('.print-complaint').forEach(icon => {
+      icon.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const complaintId = this.getAttribute('data-complaint-id');
+        if (complaintId) {
+          window.open(`/admin/complaints/${complaintId}/print-slip`, '_blank');
+        }
+      });
+    });
+
+    // Handle more actions dropdown
+    document.querySelectorAll('.more-actions').forEach(icon => {
+      icon.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const complaintId = this.getAttribute('data-complaint-id');
+        const dropdown = document.getElementById(`dropdown-${complaintId}`);
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.actions-dropdown').forEach(dd => {
+          if (dd.id !== `dropdown-${complaintId}`) {
+            dd.style.display = 'none';
+          }
+        });
+
+        // Toggle current dropdown
+        if (dropdown) {
+          dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+      });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.item-actions')) {
+        document.querySelectorAll('.actions-dropdown').forEach(dd => {
+          dd.style.display = 'none';
+        });
+      }
     });
   });
 </script>
