@@ -13,7 +13,6 @@
     <!-- Logo -->
     <div class="absolute top-9 left-1/2 transform -translate-x-1/2 text-white text-center">
         <img src="https://tse2.mm.bing.net/th/id/OIP.HN5w-gh1toIzBM3qZ2c7ygHaJ4?pid=Api&h=220&P=0" class="h-20 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Badge_of_the_Pakistan_Navy.png/240px-Badge_of_the_Pakistan_Navy.png'" />
-        <p class="text-white font-semibold text-lg">PAKISTAN</p>
     </div>
     <!-- Filters -->
     <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 rounded-xl p-4 flex items-end justify-center gap-3" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); width: fit-content; max-width: 95%;">
@@ -74,7 +73,7 @@
 </div>
 
 <!-- Main Content -->
-<div class="px-6 mt-10 mb-8 grid grid-cols-4 gap-6">
+<div class="mx-auto mt-10 mb-8 grid grid-cols-4 gap-6" style="background: white; padding: 2rem 3rem; max-width: 95%; border-radius: 12px;">
     <!-- Left Graphs -->
     <div class="col-span-3 space-y-6">
         <!-- Monthly Complaints and TVRR Complaints Row -->
@@ -94,63 +93,71 @@
                 </div>
             </div>
         </div>
-        <!-- Yearly Comparison -->
+        <!-- Complaint Resolution Trend -->
         <div class="bg-white p-6 rounded-xl shadow">
-            <h2 class="text-xl font-semibold mb-4">Recen Ed VS Resolved Year TD Date (2025)</h2>
+            <h2 class="text-xl font-semibold mb-4">Complaint Resolution Trend (2025)</h2>
             <div class="h-64">
-                <canvas id="resolvedVsEdChart"></canvas>
+                <canvas id="resolutionTrendChart"></canvas>
             </div>
         </div>
     </div>
     <!-- Right Stats Boxes -->
-    <div class="col-span-1 grid grid-cols-2 gap-4">
+    <div class="col-span-1 grid grid-cols-2 gap-3" style="align-self: start;">
         <!-- Total Complaints (First) -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 120px;">
-            <span id="stat-total-complaints">{{ $stats['total_complaints'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Total Complaints</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-total-complaints" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['total_complaints'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Total Complaints</span>
         </div>
         <!-- In Progress -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 120px;">
-            <span id="stat-in-progress">{{ $stats['in_progress'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">In Progress</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-in-progress" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['in_progress'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">In Progress</span>
         </div>
         <!-- Addressed -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px;">
-            <span id="stat-addressed">{{ $stats['addressed'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Addressed</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-addressed" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['addressed'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Addressed</span>
         </div>
         <!-- Work Performa -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 120px;">
-            <span id="stat-work-performa">{{ $stats['work_performa'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Work Performa</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-work-performa" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['work_performa'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Work Performa</span>
         </div>
         <!-- Maintenance Performa -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); min-height: 120px;">
-            <span id="stat-maint-performa">{{ $stats['maint_performa'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Maintenance Performa</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-maint-performa" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['maint_performa'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Maintenance Performa</span>
         </div>
         <!-- Un Authorized -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); min-height: 120px;">
-            <span id="stat-un-authorized">{{ $stats['un_authorized'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Un Authorized</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-un-authorized" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['un_authorized'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Un Authorized</span>
         </div>
         <!-- Product N/A -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px;">
-            <span id="stat-product">{{ $stats['product'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Product N/A</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-product" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['product'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Product N/A</span>
         </div>
         <!-- Resolution Rate -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 120px;">
-            <span id="stat-resolution-rate">{{ $stats['resolution_rate'] ?? 0 }}%</span>
-            <span class="text-sm font-normal mt-1">Resolution Rate</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-resolution-rate" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['resolution_rate'] ?? 0 }}%</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Resolution Rate</span>
+        </div>
+        <!-- Pertains to GE/Const/Isld -->
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-pertains-ge" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Pertains to GE/Const/Isld</span>
+        </div>
+        <!-- Closed Complaints -->
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-closed" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['closed'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Closed</span>
         </div>
     </div>
 </div>
 
 <!-- Footer -->
-{{-- <footer class="text-center py-6 text-gray-600 mt-10 bg-blue-900 text-white">
-    © 2021 - 2025 All rights reserved.
-</footer> --}}
+
 
 @endsection
 
@@ -166,8 +173,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthlyData = @json($monthlyComplaints ?? []);
     @php
         $defaultMonthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        // Ensure we have 12 months of data
+        $monthlyComplaintsData = $monthlyComplaints ?? [];
+        $monthlyResolvedData = $resolvedVsEdData ?? [];
+        
+        // Pad arrays to ensure 12 months
+        while(count($monthlyComplaintsData) < 12) {
+            $monthlyComplaintsData[] = 0;
+        }
+        while(count($monthlyResolvedData) < 12) {
+            $monthlyResolvedData[] = 0;
+        }
+        
+        // Take only first 12 months
+        $monthlyComplaintsData = array_slice($monthlyComplaintsData, 0, 12);
+        $monthlyResolvedData = array_slice($monthlyResolvedData, 0, 12);
     @endphp
     const monthLabels = @json($monthLabels ?? $defaultMonthLabels);
+    const monthlyComplaintsReceived = @json($monthlyComplaintsData);
+    const monthlyComplaintsResolved = @json($monthlyResolvedData);
     const complaintsByStatus = @json($complaintsByStatus ?? []);
     const resolvedVsEdData = @json($resolvedVsEdData ?? []);
     const recentEdData = @json($recentEdData ?? []);
@@ -256,30 +280,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Recen Ed VS Resolved Year TD Date Chart (Stacked Bar Chart)
-    const ctx2 = document.getElementById('resolvedVsEdChart').getContext('2d');
-    const resolvedVsEdChart = new Chart(ctx2, {
-        type: 'bar',
+    // Complaint Resolution Trend Chart (Line Chart)
+    const ctx2 = document.getElementById('resolutionTrendChart').getContext('2d');
+    const resolutionTrendChart = new Chart(ctx2, {
+        type: 'line',
         data: {
             labels: monthLabels,
             datasets: [
                 {
-                    label: 'Recent Ed',
-                    data: recentEdData,
-                    backgroundColor: '#FF6B35', // Orange
-                    borderRadius: 4,
+                    label: 'Complaints Received',
+                    data: monthlyComplaintsReceived,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
                 },
                 {
-                    label: 'Resolved',
-                    data: resolvedVsEdData,
-                    backgroundColor: '#EC4899', // Pink
-                    borderRadius: 4,
-                },
-                {
-                    label: 'Year TD',
-                    data: yearTdData,
-                    backgroundColor: '#9333EA', // Purple
-                    borderRadius: 4,
+                    label: 'Complaints Resolved',
+                    data: monthlyComplaintsResolved,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#22c55e',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
                 }
             ]
         },
@@ -306,12 +336,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     bodyFont: {
                         size: 12
-                    }
+                    },
+                    mode: 'index',
+                    intersect: false
                 }
             },
             scales: {
                 x: {
-                    stacked: true,
                     grid: {
                         display: false
                     },
@@ -322,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 y: {
-                    stacked: true,
                     beginAtZero: true,
                     grid: {
                         color: 'rgba(0, 0, 0, 0.05)'
@@ -333,6 +363,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
             }
         }
     });

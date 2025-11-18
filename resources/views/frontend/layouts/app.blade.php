@@ -16,15 +16,11 @@
   <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
     <style>
       html,body{margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    /* Fixed navbar spacer */
-    .nav-spacer{height:42px}
-    @media (max-width: 991.98px){ .nav-spacer{height:80px} }
     </style>
   @stack('styles')
 </head>
 <body>
   @include('frontend.layouts.navbar')
-    <div class="nav-spacer"></div>
 
     <main>
       @yield('content')

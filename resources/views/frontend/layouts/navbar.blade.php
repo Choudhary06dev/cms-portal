@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark" style="background: #001f3f !important; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: rgba(15, 23, 42, 0.9) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
   <div class="container-fluid px-4">
     <!-- Logo & Brand -->
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
@@ -90,19 +90,20 @@
 <style>
   .navbar {
     transition: all 0.3s ease;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
     z-index: 1030;
     margin: 0 !important;
     padding: 0.75rem 0;
-    background: #001f3f !important;
+    background: rgba(15, 23, 42, 0.9) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .navbar-brand {
     transition: transform 0.3s ease;
+    color: #ffffff !important;
+  }
+  
+  .navbar-brand span {
+    color: #ffffff !important;
   }
   
   .navbar-brand:hover {
@@ -120,6 +121,7 @@
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
+    color: #ffffff !important;
   }
   
   .nav-link::after {
