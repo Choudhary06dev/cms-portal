@@ -148,10 +148,10 @@
             <span id="stat-pertains-ge" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
             <span class="text-xs font-normal" style="line-height: 1.2;">Pertains to GE/Const/Isld</span>
         </div>
-        <!-- Closed Complaints -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-closed" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['closed'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Closed</span>
+        <!-- Assigned Complaints -->
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-assigned" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['assigned'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Assigned</span>
         </div>
     </div>
 </div>
@@ -552,18 +552,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterSelects = document.querySelectorAll('.filter-select');
     const resetBtn = document.getElementById('resetFilters');
     
-    // Handle filter changes
+    // Handle filter changes (excluding city filter which has its own handler)
     filterSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            applyFilters();
-        });
+        if (select.id !== 'filterCity') {
+            select.addEventListener('change', function() {
+                applyFilters();
+            });
+        }
     });
     
     // Handle GE change to update GE Nodes
     document.getElementById('filterCity').addEventListener('change', function() {
         const cityId = this.value;
-        // Reload page with new city filter to get updated GE Nodes
-        applyFilters();
+        // Reload page with new city filter to get updated GE Nodes dropdown
+        // (GE Nodes dropdown needs server-side update, so we reload the page)
+        const sectorId = document.getElementById('filterSector').value;
+        const category = document.getElementById('filterCategory').value;
+        const status = document.getElementById('filterStatus').value;
+        const dateRange = document.getElementById('filterDateRange').value;
+        
+        const params = new URLSearchParams();
+        if (cityId) params.append('city_id', cityId);
+        if (sectorId) params.append('sector_id', sectorId);
+        if (category && category !== 'all') params.append('category', category);
+        if (status && status !== 'all') params.append('status', status);
+        if (dateRange) params.append('date_range', dateRange);
+        
+        window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
     });
     
     // Reset filters
@@ -585,7 +600,109 @@ document.addEventListener('DOMContentLoaded', function() {
         if (status && status !== 'all') params.append('status', status);
         if (dateRange) params.append('date_range', dateRange);
         
-        window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+        // Show loading state
+        const statBoxes = document.querySelectorAll('[id^="stat-"]');
+        statBoxes.forEach(box => {
+            box.textContent = '...';
+        });
+        
+        // Fetch data via AJAX
+        fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update stats boxes
+            updateStats(data.stats);
+            
+            // Update charts
+            updateCharts(data);
+            
+            // Update URL without reload
+            window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + params.toString());
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            // Fallback to page reload on error
+            window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+        });
+    }
+    
+    function updateStats(stats) {
+        // Update all stat boxes
+        if (stats.total_complaints !== undefined) {
+            document.getElementById('stat-total-complaints').textContent = stats.total_complaints || 0;
+        }
+        if (stats.in_progress !== undefined) {
+            document.getElementById('stat-in-progress').textContent = stats.in_progress || 0;
+        }
+        if (stats.addressed !== undefined) {
+            document.getElementById('stat-addressed').textContent = stats.addressed || 0;
+        }
+        if (stats.work_performa !== undefined) {
+            document.getElementById('stat-work-performa').textContent = stats.work_performa || 0;
+        }
+        if (stats.maint_performa !== undefined) {
+            document.getElementById('stat-maint-performa').textContent = stats.maint_performa || 0;
+        }
+        if (stats.un_authorized !== undefined) {
+            document.getElementById('stat-un-authorized').textContent = stats.un_authorized || 0;
+        }
+        if (stats.product !== undefined) {
+            document.getElementById('stat-product').textContent = stats.product || 0;
+        }
+        if (stats.resolution_rate !== undefined) {
+            document.getElementById('stat-resolution-rate').textContent = (stats.resolution_rate || 0) + '%';
+        }
+        if (stats.pertains_to_ge_const_isld !== undefined) {
+            document.getElementById('stat-pertains-ge').textContent = stats.pertains_to_ge_const_isld || 0;
+        }
+        if (stats.assigned !== undefined) {
+            document.getElementById('stat-assigned').textContent = stats.assigned || 0;
+        }
+    }
+    
+    function updateCharts(data) {
+        // Update Monthly Complaints Chart
+        if (data.monthlyComplaints && monthlyComplaintsChart) {
+            monthlyComplaintsChart.data.datasets[0].data = data.monthlyComplaints;
+            monthlyComplaintsChart.data.labels = data.monthLabels;
+            monthlyComplaintsChart.update();
+        }
+        
+        // Update Complaints by Status Chart
+        if (data.complaintsByStatus && complaintsByStatusChart) {
+            const statusKeys = Object.keys(data.complaintsByStatus);
+            const statusLabels = statusKeys.map(key => {
+                if (statusMap[key] && statusMap[key].label) {
+                    return statusMap[key].label;
+                }
+                return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            });
+            const statusData = Object.values(data.complaintsByStatus);
+            const statusColors = statusKeys.map(key => {
+                if (statusMap[key] && statusMap[key].color) {
+                    return statusMap[key].color;
+                }
+                return '#64748b';
+            });
+            
+            complaintsByStatusChart.data.labels = statusLabels;
+            complaintsByStatusChart.data.datasets[0].data = statusData;
+            complaintsByStatusChart.data.datasets[0].backgroundColor = statusColors;
+            complaintsByStatusChart.update();
+        }
+        
+        // Update Resolution Trend Chart
+        if (data.recentEdData && data.resolvedVsEdData && resolutionTrendChart) {
+            resolutionTrendChart.data.datasets[0].data = data.recentEdData;
+            resolutionTrendChart.data.datasets[1].data = data.resolvedVsEdData;
+            resolutionTrendChart.data.labels = data.monthLabels;
+            resolutionTrendChart.update();
+        }
     }
 });
 </script>
