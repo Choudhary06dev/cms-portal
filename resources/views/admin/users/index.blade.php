@@ -10,7 +10,7 @@
       <h2 class="text-white mb-2">User Management</h2>
       <p class="text-light">Manage system users and their access</p>
     </div>
-    <a href="{{ route('admin.users.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.users.create') }}" class="btn btn-outline-secondary">
       <i data-feather="user-plus" class="me-2"></i>Add New User
     </a>
   </div>
@@ -62,8 +62,8 @@
           <th>Username</th>
           <th>Name</th>
           <th>Role</th>
-          <th>City</th>
-          <th>Sector</th>
+          <th>GE Groups</th>
+          <th>GE Nodes</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -96,7 +96,7 @@
               $roleName = strtolower($user->role->role_name ?? '');
             @endphp
             @if(in_array($roleName, ['director', 'admin']))
-              <span class="badge bg-info">All Cities</span>
+              <span class="badge bg-info">All GE Groups</span>
             @else
               {{ $user->city->name ?? 'N/A' }}
             @endif
@@ -106,9 +106,9 @@
               $roleName = strtolower($user->role->role_name ?? '');
             @endphp
             @if(in_array($roleName, ['director', 'admin']))
-              <span class="badge bg-info">All Sectors</span>
+              <span class="badge bg-info">All GE Nodes</span>
             @elseif($roleName === 'garrison_engineer')
-              <span class="badge bg-info">All Sectors</span>
+              <span class="badge bg-info">All GE Nodes</span>
             @else
               {{ $user->sector->name ?? 'N/A' }}
             @endif
@@ -183,69 +183,6 @@
 @endsection
 
 @push('styles')
-<style>
-  body.modal-open-blur {
-      overflow: hidden;
-  }
-  body.modal-open-blur::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      z-index: 1040;
-      pointer-events: none;
-  }
-  body.modal-open-blur .modal-backdrop,
-  #userModal.modal.show ~ .modal-backdrop,
-  #userModal.modal.show + .modal-backdrop,
-  .modal-backdrop.show,
-  .modal-backdrop {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      background-color: transparent !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      pointer-events: none !important;
-  }
-  
-  /* Ensure modal content is above blur layer */
-  #userModal {
-      z-index: 1055 !important;
-  }
-  
-  #userModal .modal-dialog {
-      z-index: 1055 !important;
-      position: relative;
-  }
-  
-  #userModal .modal-content {
-      max-height: 90vh;
-      overflow-y: auto;
-      z-index: 1055 !important;
-      position: relative;
-  }
-  
-  #userModal .modal-body {
-      padding: 1.5rem;
-  }
-  
-  #userModal .btn-close {
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      padding: 0.5rem !important;
-      opacity: 1 !important;
-  }
-  
-  #userModal .btn-close:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-  }
-</style>
 @endpush
 
 @push('scripts')
@@ -415,9 +352,75 @@
       
       if (userContent) {
         modalBody.innerHTML = userContent;
+        // Function to apply table column borders
+        const applyTableBorders = () => {
+          const modalTables = modalBody.querySelectorAll('table');
+          modalTables.forEach((table) => {
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            
+            ths.forEach((th) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            tds.forEach((td) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          // Apply again after delays to catch any late-loading content
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('userModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            // Also apply immediately if modal is already shown
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         console.error('Could not find user content in response');

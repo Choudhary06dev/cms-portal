@@ -10,9 +10,7 @@
       <h2 class="text-white mb-2">Create SLA Rule</h2>
       <p class="text-light">Add a new SLA rule to the system</p>
     </div>
-    <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">
-      <i data-feather="arrow-left" class="me-2"></i>Back to SLA Rules
-    </a>
+    
   </div>
 </div>
 
@@ -138,7 +136,7 @@
 
             <div class="d-flex justify-content-end gap-2">
               <a href="{{ route('admin.sla.index') }}" class="btn btn-outline-secondary">Cancel</a>
-              <button type="submit" class="btn btn-accent">Create SLA Rule</button>
+              <button type="submit" class="btn btn-outline-secondary"><i data-feather="plus" class="me-2"></i>Create SLA Rule</button>
             </div>
           </form>
         </div>
@@ -149,70 +147,4 @@
 @endsection
 
 @push('styles')
-<style>
-/* Form controls styling for all themes */
-.form-control {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(59, 130, 246, 0.3) !important;
-  color: #1e293b !important;
-}
-.form-control::placeholder {
-  color: rgba(30, 41, 59, 0.6) !important;
-}
-.form-control:focus {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-color: #3b82f6 !important;
-  color: #1e293b !important;
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-}
-.form-select {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(59, 130, 246, 0.3) !important;
-  color: #1e293b !important;
-}
-.form-select:focus {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-color: #3b82f6 !important;
-  color: #1e293b !important;
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-}
-/* Light theme dropdown styling */
-.theme-light .form-select {
-  background-color: #fff !important;
-  color: #1e293b !important;
-}
-.theme-light .form-select option {
-  background-color: #fff !important;
-  color: #1e293b !important;
-}
-.theme-light .form-select option:hover {
-  background-color: #f8fafc !important;
-  color: #1e293b !important;
-}
-.theme-light .form-select option:checked {
-  background-color: #3b82f6 !important;
-  color: #fff !important;
-}
-/* Dark and Night theme dropdown styling */
-.theme-dark .form-select,
-.theme-night .form-select {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
-}
-.theme-dark .form-select option,
-.theme-night .form-select option {
-  background-color: #1e293b !important;
-  color: #fff !important;
-}
-.theme-dark .form-select option:hover,
-.theme-night .form-select option:hover {
-  background-color: #334155 !important;
-  color: #fff !important;
-}
-.theme-dark .form-select option:checked,
-.theme-night .form-select option:checked {
-  background-color: #3b82f6 !important;
-  color: #fff !important;
-}
-</style>
 @endpush

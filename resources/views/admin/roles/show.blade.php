@@ -105,7 +105,7 @@
                     {{ $user->email }}
                   </span>
                 @endif
-                <span class="badge ms-2 {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.75rem; padding: 4px 8px;">
+                <span class="badge ms-2 {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.75rem; padding: 4px 8px; color: #ffffff !important;">
                   {{ ucfirst($user->status) }}
                 </span>
               </div>
@@ -149,43 +149,85 @@
             </thead>
             <tbody>
               @php
-              $modules = ['users', 'roles', 'employees', 'clients', 'complaints', 'spares', 'approvals', 'reports', 'sla'];
+              // Get all permissions assigned to this role
+              $allPermissions = $role->rolePermissions->pluck('module_name')->toArray();
+              
+              // Define module labels for display
+              $moduleLabels = [
+                'dashboard' => 'Dashboard',
+                'users' => 'Users',
+                'roles' => 'Roles',
+                'employees' => 'Employees',
+                'designation' => 'Designations',
+                'city' => 'GE Groups',
+                'sector' => 'GE Nodes',
+                'clients' => 'Clients',
+                'complaints' => 'Complaints Mgmt',
+                'category' => 'Complaint Cat',
+                'complaint-titles' => 'Complaint Types',
+                'complaints' => 'Complaints Regn',
+                'approvals' => 'Total Complaints',
+                'spares' => 'Stock Products',
+                'reports' => 'Reports',
+                'sla' => 'SLA Rules',
+              ];
+              
+              // Show all permissions that exist for this role
+              $displayPermissions = [];
+              foreach ($allPermissions as $perm) {
+                if (isset($moduleLabels[$perm])) {
+                  $displayPermissions[$perm] = $moduleLabels[$perm];
+                } else {
+                  $displayPermissions[$perm] = ucfirst(str_replace('-', ' ', $perm));
+                }
+              }
+              
+              // Sort permissions alphabetically
+              asort($displayPermissions);
               @endphp
               
-              @foreach($modules as $module)
-              @php
-              $permission = $role->rolePermissions->where('module_name', $module)->first();
-              @endphp
-              <tr>
-                <td class="text-white">
-                  <strong style="font-size: 0.875rem;">{{ ucfirst($module) }}</strong>
-                </td>
-                <td class="text-center">
-                  <span class="badge bg-{{ $permission && $permission->can_view ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
-                    <i data-feather="{{ $permission && $permission->can_view ? 'check' : 'x' }}" class="me-1"></i>
-                    {{ $permission && $permission->can_view ? 'Yes' : 'No' }}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span class="badge bg-{{ $permission && $permission->can_add ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
-                    <i data-feather="{{ $permission && $permission->can_add ? 'check' : 'x' }}" class="me-1"></i>
-                    {{ $permission && $permission->can_add ? 'Yes' : 'No' }}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span class="badge bg-{{ $permission && $permission->can_edit ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
-                    <i data-feather="{{ $permission && $permission->can_edit ? 'check' : 'x' }}" class="me-1"></i>
-                    {{ $permission && $permission->can_edit ? 'Yes' : 'No' }}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span class="badge bg-{{ $permission && $permission->can_delete ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
-                    <i data-feather="{{ $permission && $permission->can_delete ? 'check' : 'x' }}" class="me-1"></i>
-                    {{ $permission && $permission->can_delete ? 'Yes' : 'No' }}
-                  </span>
-                </td>
-              </tr>
-              @endforeach
+              @if(count($displayPermissions) > 0)
+                @foreach($displayPermissions as $module => $label)
+                @php
+                $hasPermission = in_array($module, $allPermissions);
+                @endphp
+                <tr>
+                  <td class="text-white">
+                    <strong style="font-size: 0.875rem;">{{ $label }}</strong>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-{{ $hasPermission ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
+                      <i data-feather="{{ $hasPermission ? 'check' : 'x' }}" class="me-1"></i>
+                      {{ $hasPermission ? 'Yes' : 'No' }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-{{ $hasPermission ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
+                      <i data-feather="{{ $hasPermission ? 'check' : 'x' }}" class="me-1"></i>
+                      {{ $hasPermission ? 'Yes' : 'No' }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-{{ $hasPermission ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
+                      <i data-feather="{{ $hasPermission ? 'check' : 'x' }}" class="me-1"></i>
+                      {{ $hasPermission ? 'Yes' : 'No' }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-{{ $hasPermission ? 'success' : 'secondary' }}" style="font-size: 0.875rem;">
+                      <i data-feather="{{ $hasPermission ? 'check' : 'x' }}" class="me-1"></i>
+                      {{ $hasPermission ? 'Yes' : 'No' }}
+                    </span>
+                  </td>
+                </tr>
+                @endforeach
+              @else
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    No permissions assigned to this role.
+                  </td>
+                </tr>
+              @endif
             </tbody>
           </table>
         </div>
@@ -201,24 +243,6 @@
   </div>
 </div>
 @push('styles')
-<style>
-  .info-item {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  
-  .info-item:last-child {
-    border-bottom: none;
-  }
-  
-  .card-glass {
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .card-glass:hover {
-    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
-  }
-</style>
 @endpush
 
 @push('scripts')

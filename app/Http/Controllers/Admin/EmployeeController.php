@@ -44,15 +44,14 @@ class EmployeeController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%") // department field stores category
                   ->orWhere('designation', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        // Filter by category (stored in department field for backward compatibility)
+        // Filter by category
         if ($request->has('category') && $request->category) {
-            $query->where('department', 'like', "%{$request->category}%");
+            $query->where('category', $request->category);
         }
 
         // Filter by status
@@ -60,9 +59,24 @@ class EmployeeController extends Controller
             $query->where('status', $request->status);
         }
 
-        $employees = $query->with(['city', 'sector'])->orderBy('id', 'desc')->paginate(10);
+        $employees = $query->with(['city', 'sector'])->orderBy('id', 'asc')->paginate(10);
         
-        return view('admin.employees.index', compact('employees'));
+        // Get categories for filter dropdown from ComplaintCategory table
+        $categories = collect();
+        if (Schema::hasTable('complaint_categories')) {
+            $categories = ComplaintCategory::orderBy('name')->pluck('name');
+        } else {
+            // Fallback: Get from employees with location filtering
+            $categoriesQuery = Employee::select('category')
+                ->whereNotNull('category')
+                ->where('category', '!=', '');
+            $this->filterEmployeesByLocation($categoriesQuery, $user);
+            $categories = $categoriesQuery->distinct()
+                ->orderBy('category')
+                ->pluck('category');
+        }
+        
+        return view('admin.employees.index', compact('employees', 'categories'));
     }
 
     /**
@@ -78,7 +92,7 @@ class EmployeeController extends Controller
             : collect();
         
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $designations = Schema::hasTable('designations')
@@ -116,13 +130,13 @@ class EmployeeController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
             'category' => $categoryRule,
-            'designation' => 'nullable|string|max:100',
-            'phone' => 'nullable|string|max:20',
+            'designation' => 'required|string|max:100',
+            'phone' => 'nullable|string|min:11|max:20',
             // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
             'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'sector_id' => 'nullable|exists:sectors,id',
+            'city_id' => 'required|exists:cities,id',
+            'sector_id' => 'required|exists:sectors,id',
             'status' => 'nullable|in:active,inactive',
         ]);
 
@@ -147,7 +161,7 @@ class EmployeeController extends Controller
             // Create employee record (no user creation)
             $employee = Employee::create([
                 'name' => $request->name,
-                'department' => $request->category, // Store category in department field for backward compatibility
+                'category' => $request->category,
                 'designation' => $request->designation,
                 'phone' => $request->phone,
                 // 'emp_id' removed
@@ -223,7 +237,7 @@ class EmployeeController extends Controller
             : collect();
         
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $designations = Schema::hasTable('designations')
@@ -301,7 +315,7 @@ class EmployeeController extends Controller
         // Explicitly filter by city_id - ensure only sectors for this city are returned
         $sectors = Sector::where('city_id', '=', $cityId)
             ->where('status', '=', 'active')
-            ->orderBy('name')
+            ->orderBy('id', 'asc')
             ->get(['id', 'name']);
         
         // Log all sectors in database for debugging (remove in production)
@@ -329,14 +343,14 @@ class EmployeeController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|min:11|max:20',
             'category' => $categoryRule,
-            'designation' => 'nullable|string|max:100',
+            'designation' => 'required|string|max:100',
             // 'emp_id' removed
             'date_of_hire' => 'nullable|date',
             'address' => 'nullable|string|max:500',
-            'city_id' => 'nullable|exists:cities,id',
-            'sector_id' => 'nullable|exists:sectors,id',
+            'city_id' => 'required|exists:cities,id',
+            'sector_id' => 'required|exists:sectors,id',
             'status' => 'required|in:active,inactive',
         ]);
 
@@ -358,7 +372,7 @@ class EmployeeController extends Controller
             // Update employee
             $employee->update([
                 'name' => $request->name,
-                'department' => $request->category, // Store category in department field for backward compatibility
+                'category' => $request->category,
                 'designation' => $request->designation ?? $employee->designation,
                 'phone' => $request->phone,
                 // 'emp_id' removed
@@ -473,104 +487,6 @@ class EmployeeController extends Controller
         }
     }
 
-    /**
-     * Get employee leaves
-     */
-    public function getLeaves(Employee $employee)
-    {
-        $leaves = $employee->leaves()->latest()->paginate(10);
-        
-        return response()->json([
-            'success' => true,
-            'leaves' => $leaves
-        ]);
-    }
-
-    /**
-     * Create leave for employee
-     */
-    public function createLeave(Request $request, Employee $employee)
-    {
-        $validator = Validator::make($request->all(), [
-            'leave_type' => 'required|string|max:50',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'reason' => 'required|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $leave = $employee->leaves()->create([
-                'leave_type' => $request->leave_type,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'reason' => $request->reason,
-                'status' => 'pending',
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave request created successfully.',
-                'leave' => $leave
-            ]);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error creating leave request: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Approve leave
-     */
-    public function approveLeave(Employee $employee, $leaveId)
-    {
-        try {
-            $leave = $employee->leaves()->findOrFail($leaveId);
-            $leave->update(['status' => 'approved']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave approved successfully.'
-            ]);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error approving leave: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Reject leave
-     */
-    public function rejectLeave(Employee $employee, $leaveId)
-    {
-        try {
-            $leave = $employee->leaves()->findOrFail($leaveId);
-            $leave->update(['status' => 'rejected']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave rejected successfully.'
-            ]);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error rejecting leave: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 
     /**
      * Get employee performance

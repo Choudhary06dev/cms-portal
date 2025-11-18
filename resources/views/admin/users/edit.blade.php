@@ -56,8 +56,10 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="phone" class="form-label text-white">Phone</label>
-            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
+            <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}" 
+                   pattern="[0-9]*" inputmode="numeric" 
+                   onkeypress="return event.charCode >= 48 && event.charCode <= 57">
             @error('phone')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -122,17 +124,17 @@
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="city_id" class="form-label text-white">City</label>
+            <label for="city_id" class="form-label text-white">GE Groups</label>
             <select class="form-select @error('city_id') is-invalid @enderror" 
                     id="city_id" name="city_id">
-              <option value="">Select City (if required)</option>
+              <option value="">Select GE Groups</option>
               @foreach($cities as $city)
                 <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id', $user->city_id) == $city->id ? 'selected' : '' }}>
                   {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                 </option>
               @endforeach
             </select>
-            <small class="text-muted">Required for: GE, Complaint Center, Department Staff</small>
+            <small class="text-muted"></small>
             @error('city_id')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -141,10 +143,10 @@
         
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="sector_id" class="form-label text-white">Sector</label>
+            <label for="sector_id" class="form-label text-white">GE Nodes</label>
             <select class="form-select @error('sector_id') is-invalid @enderror" 
                     id="sector_id">
-              <option value="">Select City first</option>
+              <option value="">Select GE Groups first</option>
               @foreach($sectors as $sector)
                 <option value="{{ $sector->id }}" {{ old('sector_id', $user->sector_id) == $sector->id ? 'selected' : '' }}>
                   {{ $sector->name }}
@@ -153,7 +155,7 @@
             </select>
             <!-- Hidden field to ensure sector_id is always submitted even when select is disabled -->
             <input type="hidden" id="sector_id_hidden" name="sector_id" value="{{ old('sector_id', $user->sector_id) }}">
-            <small class="text-muted">Required for: Complaint Center, Department Staff</small>
+            <small class="text-muted"></small>
             @error('sector_id')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -177,88 +179,41 @@
 @endsection
 
 @push('styles')
-<style>
-  .form-control {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(59, 130, 246, 0.3) !important;
-    color: #1e293b !important;
-  }
-  
-  .form-control::placeholder {
-    color: rgba(30, 41, 59, 0.6) !important;
-  }
-  
-  .form-control:focus {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border-color: #3b82f6 !important;
-    color: #1e293b !important;
-    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-  }
-  
-  .form-select {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(59, 130, 246, 0.3) !important;
-    color: #1e293b !important;
-  }
-  
-  .form-select:focus {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border-color: #3b82f6 !important;
-    color: #1e293b !important;
-    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-  }
-  
-  /* Light theme dropdown styling */
-  .theme-light .form-select {
-    background-color: #fff !important;
-    color: #1e293b !important;
-  }
-  
-  .theme-light .form-select option {
-    background-color: #fff !important;
-    color: #1e293b !important;
-  }
-  
-  .theme-light .form-select option:hover {
-    background-color: #f8fafc !important;
-    color: #1e293b !important;
-  }
-  
-  .theme-light .form-select option:checked {
-    background-color: #3b82f6 !important;
-    color: #fff !important;
-  }
-  
-  /* Dark and Night theme dropdown styling */
-  .theme-dark .form-select,
-  .theme-night .form-select {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: #fff !important;
-  }
-  
-  .theme-dark .form-select option,
-  .theme-night .form-select option {
-    background-color: #1e293b !important;
-    color: #fff !important;
-  }
-  
-  .theme-dark .form-select option:hover,
-  .theme-night .form-select option:hover {
-    background-color: #334155 !important;
-    color: #fff !important;
-  }
-  
-  .theme-dark .form-select option:checked,
-  .theme-night .form-select option:checked {
-    background-color: #3b82f6 !important;
-    color: #fff !important;
-  }
-</style>
 @endpush
 
 @push('scripts')
 <script>
   feather.replace();
+
+  // Phone number input validation - only allow numbers
+  document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+      phoneInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        const numbersOnly = pastedText.replace(/[^0-9]/g, '');
+        this.value = numbersOnly;
+      });
+    }
+    
+    // Form validation - check phone number before submit
+    const userForm = document.querySelector('form[action*="users"]');
+    if (userForm) {
+      userForm.addEventListener('submit', function(e) {
+        const phoneValue = phoneInput ? phoneInput.value.trim() : '';
+        if (phoneValue && phoneValue.length < 11) {
+          e.preventDefault();
+          alert('Phone number must be at least 11 digits.');
+          if (phoneInput) phoneInput.focus();
+          return false;
+        }
+      });
+    }
+  });
 
   // Dynamic sector loading based on city
   const citySelect = document.getElementById('city_id');
@@ -286,12 +241,12 @@
       if (roleText.includes('garrison engineer') || roleText.includes('garrison_engineer')) {
         sectorSelect.innerHTML = '<option value="">N/A (GE sees all sectors)</option>';
         sectorSelect.disabled = true;
-        SQLSTATE[HY000] [1049] Unknown database 'complaint_management' (Connection: mysql, SQL: select * from `sessions` where `id` = Q85bpOShOySQ8B2rMigCjfwkeEvqsefd5zAzQYgs limit 1)        syncSectorHidden(); // Clear hidden field
+        syncSectorHidden(); // Clear hidden field
         return;
       }
       
       if (!cityId) {
-        sectorSelect.innerHTML = '<option value="">Select City first</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Groups first</option>';
         sectorSelect.disabled = true;
         syncSectorHidden(); // Clear hidden field
         return;
@@ -342,7 +297,7 @@
           citySelect.disabled = true;
           sectorSelect.disabled = true;
           citySelect.value = '';
-          sectorSelect.innerHTML = '<option value="">Select City first</option>';
+          sectorSelect.innerHTML = '<option value="">Select GE Groups first</option>';
           sectorSelect.value = '';
           citySelect.required = false;
           sectorSelect.required = false;

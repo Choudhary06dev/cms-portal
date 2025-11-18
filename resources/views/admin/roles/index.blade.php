@@ -10,7 +10,7 @@
       <h2 class="text-white mb-2">Role Management</h2>
       <p class="text-light">Manage user roles and permissions</p>
     </div>
-    <a href="{{ route('admin.roles.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.roles.create') }}" class="btn btn-outline-secondary">
       <i data-feather="plus-circle" class="me-2"></i>Add New Role
     </a>
   </div>
@@ -132,69 +132,6 @@
 @endsection
 
 @push('styles')
-<style>
-  body.modal-open-blur {
-      overflow: hidden;
-  }
-  body.modal-open-blur::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      z-index: 1040;
-      pointer-events: none;
-  }
-  body.modal-open-blur .modal-backdrop,
-  #roleModal.modal.show ~ .modal-backdrop,
-  #roleModal.modal.show + .modal-backdrop,
-  .modal-backdrop.show,
-  .modal-backdrop {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      background-color: transparent !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      pointer-events: none !important;
-  }
-  
-  /* Ensure modal content is above blur layer */
-  #roleModal {
-      z-index: 1055 !important;
-  }
-  
-  #roleModal .modal-dialog {
-      z-index: 1055 !important;
-      position: relative;
-  }
-  
-  #roleModal .modal-content {
-      max-height: 90vh;
-      overflow-y: auto;
-      z-index: 1055 !important;
-      position: relative;
-  }
-  
-  #roleModal .modal-body {
-      padding: 1.5rem;
-  }
-  
-  #roleModal .btn-close {
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      padding: 0.5rem !important;
-      opacity: 1 !important;
-  }
-  
-  #roleModal .btn-close:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-  }
-</style>
 @endpush
 
 @push('scripts')
@@ -364,9 +301,73 @@
       
       if (roleContent) {
         modalBody.innerHTML = roleContent;
+        // Function to apply table column borders
+        const applyTableBorders = () => {
+          const modalTables = modalBody.querySelectorAll('table');
+          modalTables.forEach((table) => {
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            
+            ths.forEach((th) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            tds.forEach((td) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('roleModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         console.error('Could not find role content in response');

@@ -5,15 +5,19 @@
 @section('content')
 <style>
   :root { 
-    --blue:#0d6efd; 
-    --blue2:#3b82f6; 
-    --slate:#64748b; 
-    --dark:#1a1a1a;
+    --navy-primary: #003366;
+    --navy-dark: #001f3f;
+    --navy-light: #004d99;
+    --navy-accent: #0066cc;
+    --blue: var(--navy-primary);
+    --blue2: var(--navy-light);
+    --slate: #64748b; 
+    --dark: #1a1a1a;
   }
   
   /* Hero Section */
   .page-hero { 
-    background: linear-gradient(135deg, var(--blue) 0%, #0a58ca 50%, var(--blue2) 100%); 
+    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-primary) 50%, var(--navy-light) 100%); 
     color:#fff; 
     padding:100px 20px; 
     border-radius:0; 
@@ -638,8 +642,7 @@
     <div class="container">
       <h3>Experience All Features Today</h3>
       <p>Start your free trial and see how our comprehensive platform can transform your complaint management.</p>
-      <a href="{{ route('frontend.register') }}" class="btn btn-light btn-lg me-3">Start Free Trial</a>
-      <a href="{{ route('frontend.contact') }}" class="btn btn-outline-light btn-lg">Schedule Demo</a>
+      <a href="{{ route('frontend.register') }}" class="btn btn-light btn-lg">Start Free Trial</a>
       <p class="mt-4 mb-0 small opacity-75">No credit card required • Full access for 14 days • Setup in minutes</p>
     </div>
   </div>

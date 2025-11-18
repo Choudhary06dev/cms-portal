@@ -3,481 +3,11 @@
 
 @section('title', 'Dashboard — CMS Admin')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+@endpush
+
 @section('content')
-  <style>
-  /* Enhanced & Attractive Light Theme for Dashboard */
-  .theme-light {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
-    color: #1e293b !important;
-  }
-  
-  .theme-light body {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
-    color: #1e293b !important;
-  }
-  
-  .theme-light .content {
-    background: transparent !important;
-    color: #1e293b !important;
-  }
-  
-  /* Modern Glass Morphism Cards */
-  .theme-light .card-glass {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%) !important;
-    border: 1px solid rgba(59, 130, 246, 0.1) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-    backdrop-filter: blur(10px) !important;
-    color: #1e293b !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    overflow: hidden !important;
-    position: relative !important;
-  }
-  
-  .theme-light .card-glass::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 3px !important;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899) !important;
-    opacity: 0 !important;
-    transition: opacity 0.4s ease !important;
-  }
-  
-  .theme-light .card-glass:hover::before {
-    opacity: 1 !important;
-  }
-  
-  .theme-light .card-glass:hover {
-    box-shadow: 0 16px 48px rgba(59, 130, 246, 0.15), 0 8px 16px rgba(59, 130, 246, 0.1) !important;
-    transform: translateY(-4px) scale(1.02) !important;
-    border-color: rgba(59, 130, 246, 0.3) !important;
-  }
-  
-  /* Gradient Stat Cards */
-  .stat-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%) !important;
-    border-radius: 24px !important;
-    padding: 2rem !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    position: relative !important;
-    overflow: hidden !important;
-  }
-  
-  .stat-card::after {
-    content: '' !important;
-    position: absolute !important;
-    top: -50% !important;
-    right: -50% !important;
-    width: 200% !important;
-    height: 200% !important;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%) !important;
-    opacity: 0 !important;
-    transition: opacity 0.6s ease !important;
-  }
-  
-  .stat-card:hover::after {
-    opacity: 1 !important;
-    animation: shimmer 2s infinite !important;
-  }
-  
-  @keyframes shimmer {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-  
-  .stat-card:hover {
-    transform: translateY(-8px) scale(1.03) !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12) !important;
-  }
-  
-  /* Stat Card Icon Containers */
-  .stat-icon {
-    width: 70px !important;
-    height: 70px !important;
-    border-radius: 18px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    backdrop-filter: blur(10px) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
-    transition: all 0.4s ease !important;
-  }
-  
-  .stat-card:hover .stat-icon {
-    transform: rotate(360deg) scale(1.1) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
-  }
-  
-  /* Animated Number Display */
-  .stat-number {
-    font-size: 2.5rem !important;
-    font-weight: 800 !important;
-    background: linear-gradient(135deg, currentColor 0%, currentColor 100%) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    letter-spacing: -0.02em !important;
-    line-height: 1.2 !important;
-  }
-  
-  .stat-label {
-    font-size: 0.95rem !important;
-    font-weight: 600 !important;
-    color: #64748b !important;
-    margin-top: 0.5rem !important;
-    letter-spacing: 0.3px !important;
-  }
-  
-  /* Typography Enhancements */
-  .theme-light h1, .theme-light h2, .theme-light h3, 
-  .theme-light h4, .theme-light h5, .theme-light h6 {
-    color: #0f172a !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.02em !important;
-  }
-  
-  .theme-light .dashboard-header h2 {
-    color: #0f172a !important;
-    font-weight: 800 !important;
-    font-size: 2.25rem !important;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-  }
-  
-  .theme-light .dashboard-header p {
-    color: #64748b !important;
-    font-size: 1rem !important;
-    font-weight: 500 !important;
-  }
-  
-  /* Enhanced Button Styling */
-  .theme-light .btn {
-    font-weight: 600 !important;
-    border-radius: 12px !important;
-    padding: 0.625rem 1.5rem !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    letter-spacing: 0.3px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  }
-  
-  .theme-light .btn-primary,
-  .theme-light .btn-accent {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-    border: none !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3) !important;
-  }
-  
-  .theme-light .btn-primary:hover,
-  .theme-light .btn-accent:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4) !important;
-    transform: translateY(-2px) !important;
-  }
-  
-  .theme-light .btn-outline-secondary {
-    color: #64748b !important;
-    border: 2px solid #e2e8f0 !important;
-    background: transparent !important;
-  }
-  
-  .theme-light .btn-outline-secondary:hover {
-    background: #f8fafc !important;
-    border-color: #cbd5e1 !important;
-    color: #475569 !important;
-  }
-  
-  /* Modern Table Styling */
-  .theme-light .table {
-    color: #1e293b !important;
-    background: transparent !important;
-    border-radius: 12px !important;
-    overflow: hidden !important;
-  }
-  
-  .theme-light .table th {
-    color: #0f172a !important;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
-    font-weight: 700 !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    padding: 1rem !important;
-    text-transform: uppercase !important;
-    font-size: 0.75rem !important;
-    letter-spacing: 0.5px !important;
-  }
-  
-  .theme-light .table td {
-    color: #334155 !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    padding: 1rem !important;
-    font-weight: 500 !important;
-  }
-  
-  .theme-light .table tbody tr {
-    transition: all 0.2s ease !important;
-  }
-  
-  .theme-light .table tbody tr:hover {
-    background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%) !important;
-    transform: scale(1.01) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-  }
-  
-  /* Enhanced Badge Styling */
-  .theme-light .badge,
-  .theme-light .status-badge,
-  .theme-light .priority-badge {
-    font-weight: 700 !important;
-    padding: 0.5rem 1rem !important;
-    border-radius: 10px !important;
-    font-size: 0.75rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-    border: 2px solid transparent !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .theme-light .badge:hover,
-  .theme-light .status-badge:hover,
-  .theme-light .priority-badge:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  }
-  
-  /* Form Controls */
-  .theme-light .form-control,
-  .theme-light .form-select {
-    background: #ffffff !important;
-    border: 2px solid #e2e8f0 !important;
-    color: #1e293b !important;
-    border-radius: 10px !important;
-    padding: 0.625rem 1rem !important;
-    font-weight: 500 !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .theme-light .form-control:focus,
-  .theme-light .form-select:focus {
-    background: #ffffff !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
-    transform: translateY(-1px) !important;
-  }
-  
-  .theme-light .form-label {
-    color: #1e293b !important;
-    font-weight: 600 !important;
-    font-size: 0.875rem !important;
-    letter-spacing: 0.3px !important;
-  }
-  
-  /* Progress Bars with Gradient */
-  .theme-light .progress {
-    background: #f1f5f9 !important;
-    border-radius: 10px !important;
-    height: 16px !important;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
-    overflow: hidden !important;
-  }
-  
-  .theme-light .progress-bar {
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
-    transition: width 0.6s ease !important;
-  }
-  
-  /* Chart Container Enhancements */
-  .chart-container {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
-    border-radius: 20px !important;
-    padding: 2rem !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
-  }
-  
-  /* Filter Box Styling */
-  .filter-box {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
-    border-radius: 20px !important;
-    padding: 1.5rem 2rem !important;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
-    border: 1px solid rgba(59, 130, 246, 0.1) !important;
-  }
-  
-  /* Icon Feature Enhancements */
-  .feather-lg {
-    width: 32px !important;
-    height: 32px !important;
-    stroke-width: 2.5 !important;
-  }
-  
-  /* Alert Boxes */
-  .theme-light .alert {
-    background: #ffffff !important;
-    border: 2px solid #e5e7eb !important;
-    border-radius: 16px !important;
-    padding: 1.25rem 1.5rem !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
-  }
-  
-  .theme-light .alert-success {
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
-    border-color: #22c55e !important;
-    color: #166534 !important;
-  }
-  
-  .theme-light .alert-warning {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
-    border-color: #f59e0b !important;
-    color: #92400e !important;
-  }
-  
-  /* Colored Text Classes */
-  .theme-light .text-primary {
-    color: #2563eb !important;
-    font-weight: 700 !important;
-  }
-  
-  .theme-light .text-success {
-    color: #16a34a !important;
-    font-weight: 700 !important;
-  }
-  
-  .theme-light .text-warning {
-    color: #ea580c !important;
-    font-weight: 700 !important;
-  }
-  
-  .theme-light .text-danger {
-    color: #dc2626 !important;
-    font-weight: 700 !important;
-  }
-  
-  /* Keep all other existing theme-light styles */
-  .theme-light p, .theme-light span, .theme-light div {
-    color: #1e293b !important;
-  }
-  
-  .theme-light .text-white {
-    color: #1e293b !important;
-    font-weight: 700 !important;
-  }
-  
-  .theme-light .text-light {
-    color: #64748b !important;
-  }
-  
-  .theme-light .text-muted {
-    color: #64748b !important;
-    font-size: 0.875rem !important;
-    font-weight: 500 !important;
-  }
-  
-  /* Chart toolbar and tooltip fixes remain the same */
-  .apexcharts-toolbar {
-    z-index: 1000 !important;
-  }
-  
-  .theme-light .apexcharts-menu {
-    background: #ffffff !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 12px !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12) !important;
-  }
-  
-  .theme-light .apexcharts-menu-item {
-    color: #1e293b !important;
-    padding: 0.625rem 1rem !important;
-    font-weight: 500 !important;
-  }
-  
-  .theme-light .apexcharts-menu-item:hover {
-    background: #f3f4f6 !important;
-  }
-  
-  .theme-light .apexcharts-tooltip {
-    background: #ffffff !important;
-    color: #1e293b !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-  }
-  
-  .theme-light .apexcharts-tooltip-title {
-    background: #f9fafb !important;
-    color: #1e293b !important;
-    border-bottom: 2px solid #e2e8f0 !important;
-    font-weight: 700 !important;
-    padding: 0.75rem 1rem !important;
-  }
-  
-  /* GE Progress Cards Enhancement */
-  .ge-progress-card {
-    border-radius: 24px !important;
-    padding: 2rem !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    position: relative !important;
-    overflow: hidden !important;
-  }
-  
-  .ge-progress-card::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2), transparent) !important;
-    opacity: 0 !important;
-    transition: opacity 0.4s ease !important;
-  }
-  
-  .ge-progress-card:hover::before {
-    opacity: 1 !important;
-  }
-  
-  .ge-progress-card:hover {
-    transform: translateY(-8px) scale(1.02) !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
-  }
-  
-  /* Keep all dark/night theme styles unchanged */
-  .theme-night body {
-    background: linear-gradient(135deg, #000000 0%, #111111 100%);
-    color: #e5e5e5;
-  }
-  
-  .theme-night .content {
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-night .card-glass {
-    background: rgba(0, 0, 0, 0.8) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #e5e5e5 !important;
-  }
-  
-  .theme-dark body {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: #e2e8f0;
-  }
-  
-  .theme-dark .content {
-    color: #e2e8f0 !important;
-  }
-  
-  .theme-dark .card-glass {
-    background: rgba(30, 41, 59, 0.8) !important;
-    border: 1px solid rgba(148, 163, 184, 0.1) !important;
-    color: #e2e8f0 !important;
-  }
-</style>
 
 <!-- DASHBOARD HEADER -->
 <div class="mb-5 dashboard-header">
@@ -530,9 +60,9 @@
         
         @if($showSectorFilter)
         <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Sector</label>
+          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">GE Nodes</label>
           <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px;">
-            <option value="">All Sectors</option>
+            <option value="">All GE Nodes</option>
             @if($sectors && $sectors->count() > 0)
               @foreach($sectors as $sector)
                 <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
@@ -593,206 +123,144 @@
 @endif
 
 <!-- STATISTICS CARDS -->
-<div class="row mb-5 g-4">
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.25) 100%) !important; border: 2px solid rgba(59, 130, 246, 0.3) !important;">
+<div class="row mb-5 g-3 justify-content-center">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-primary">{{ $stats['total_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['total_complaints'] ?? 0 }}</div>
           <div class="stat-label">Total Complaints</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.4)) !important;">
-          <i data-feather="alert-circle" class="feather-lg" style="color: #3b82f6;"></i>
+        <div class="stat-icon">
+          <i data-feather="alert-circle" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.25) 100%) !important; border: 2px solid rgba(239, 68, 68, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-danger">{{ $stats['pending_complaints'] ?? 0 }}</div>
-          <div class="stat-label">Pending</div>
+          <div class="stat-number">{{ $stats['pending_complaints'] ?? 0 }}</div>
+          <div class="stat-label">In Progress</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.4)) !important;">
-          <i data-feather="clock" class="feather-lg" style="color: #ef4444;"></i>
+        <div class="stat-icon">
+          <i data-feather="clock" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.25) 100%) !important; border: 2px solid rgba(34, 197, 94, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-success">{{ $stats['addressed_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['addressed_complaints'] ?? 0 }}</div>
           <div class="stat-label">Addressed</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.4)) !important;">
-          <i data-feather="check-circle" class="feather-lg" style="color: #22c55e;"></i>
+        <div class="stat-icon">
+          <i data-feather="check-circle" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.25) 100%) !important; border: 2px solid rgba(239, 68, 68, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number text-danger">{{ $stats['overdue_complaints'] ?? 0 }}</div>
-          <div class="stat-label">Overdue</div>
-        </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.4)) !important;">
-          <i data-feather="alert-triangle" class="feather-lg" style="color: #ef4444;"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- COMPLAINT STATUS CARDS -->
-<div class="row mb-5 g-4">
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(59, 130, 246, 0.25) 100%) !important; border: 2px solid rgba(96, 165, 250, 0.3) !important;">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="flex-grow-1">
-          <div class="stat-number" style="color: #60a5fa;">{{ $stats['work_performa'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['work_performa'] ?? 0 }}</div>
           <div class="stat-label">Work Performa</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(96, 165, 250, 0.4)) !important;">
-          <i data-feather="file-text" class="feather-lg" style="color: #60a5fa;"></i>
+        <div class="stat-icon">
+          <i data-feather="file-text" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%) !important; border: 2px solid rgba(234, 179, 8, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #eab308;">{{ $stats['maint_performa'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['maint_performa'] ?? 0 }}</div>
           <div class="stat-label">Maintenance Performa</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(234, 179, 8, 0.4)) !important;">
-          <i data-feather="tool" class="feather-lg" style="color: #eab308;"></i>
+        <div class="stat-icon">
+          <i data-feather="tool" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(126, 34, 206, 0.25) 100%) !important; border: 2px solid rgba(147, 51, 234, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #9333ea;">{{ $stats['work_priced_performa'] ?? 0 }}</div>
-          <div class="stat-label">Work Performa Priced</div>
-        </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(147, 51, 234, 0.4)) !important;">
-          <i data-feather="dollar-sign" class="feather-lg" style="color: #9333ea;"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-md-3">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, rgba(194, 65, 12, 0.25) 100%) !important; border: 2px solid rgba(234, 88, 12, 0.3) !important;">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="flex-grow-1">
-          <div class="stat-number" style="color: #ea580c;">{{ $stats['maint_priced_performa'] ?? 0 }}</div>
-          <div class="stat-label">Maintenance Performa Priced</div>
-        </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.2), rgba(234, 88, 12, 0.4)) !important;">
-          <i data-feather="dollar-sign" class="feather-lg" style="color: #ea580c;"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row mb-5 g-4">
-  <div class="col-md-4">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(219, 39, 119, 0.25) 100%) !important; border: 2px solid rgba(236, 72, 153, 0.3) !important;">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="flex-grow-1">
-          <div class="stat-number" style="color: #ec4899;">{{ $stats['un_authorized'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['un_authorized'] ?? 0 }}</div>
           <div class="stat-label">Un Authorized</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.4)) !important;">
-          <i data-feather="x-octagon" class="feather-lg" style="color: #ec4899;"></i>
+        <div class="stat-icon">
+          <i data-feather="x-octagon" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-4">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(100, 116, 139, 0.15) 0%, rgba(71, 85, 105, 0.25) 100%) !important; border: 2px solid rgba(100, 116, 139, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #64748b;">{{ $stats['product_na'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['product_na'] ?? 0 }}</div>
           <div class="stat-label">Product N/A</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(100, 116, 139, 0.2), rgba(100, 116, 139, 0.4)) !important;">
-          <i data-feather="package-x" class="feather-lg" style="color: #64748b;"></i>
+        <div class="stat-icon" style="display: flex !important; visibility: visible !important;">
+          <i data-feather="box" class="feather-lg" style="display: block !important; visibility: visible !important; width: 24px !important; height: 24px !important;"></i>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-4">
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.25) 100%) !important; border: 2px solid rgba(6, 182, 212, 0.3) !important;">
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number" style="color: #06b6d4;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
           <div class="stat-label">Pertains to GE/Const/Isld</div>
         </div>
-        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.4)) !important;">
-          <i data-feather="map-pin" class="feather-lg" style="color: #06b6d4;"></i>
+        <div class="stat-icon">
+          <i data-feather="map-pin" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-<!-- ADDITIONAL STATS -->
-<div class="row mb-5 justify-content-center g-4">
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.25) 100%) !important; border: 2px solid rgba(99, 102, 241, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.4)) !important;">
-        <i data-feather="users" class="feather-lg" style="color: #6366f1;"></i>
+  
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number">{{ $stats['total_users'] ?? 0 }}</div>
+          <div class="stat-label">Users</div>
+        </div>
+        <div class="stat-icon">
+          <i data-feather="users" class="feather-lg"></i>
+        </div>
       </div>
-      <div class="stat-number" style="color: #6366f1;">{{ $stats['total_users'] ?? 0 }}</div>
-      <div class="stat-label">Users</div>
     </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.25) 100%) !important; border: 2px solid rgba(168, 85, 247, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.4)) !important;">
-        <i data-feather="user-check" class="feather-lg" style="color: #a855f7;"></i>
+  <div class="col-md-2 col-lg-2">
+    <div class="stat-card" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%) !important;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="flex-grow-1">
+          <div class="stat-number">{{ $stats['total_employees'] ?? 0 }}</div>
+          <div class="stat-label">Employees</div>
+        </div>
+        <div class="stat-icon">
+          <i data-feather="user-check" class="feather-lg"></i>
+        </div>
       </div>
-      <div class="stat-number" style="color: #a855f7;">{{ $stats['total_employees'] ?? 0 }}</div>
-      <div class="stat-label">Employees</div>
-    </div>
-  </div>
-  
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(249, 115, 22, 0.25) 100%) !important; border: 2px solid rgba(251, 146, 60, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.4)) !important;">
-        <i data-feather="alert-triangle" class="feather-lg" style="color: #fb923c;"></i>
-      </div>
-      <div class="stat-number text-warning">{{ $stats['low_stock_items'] ?? 0 }}</div>
-      <div class="stat-label">Low Stock</div>
-    </div>
-  </div>
-  
-  <div class="col-md-3">
-    <div class="stat-card text-center" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%) !important; border: 2px solid rgba(16, 185, 129, 0.3) !important;">
-      <div class="stat-icon mx-auto mb-3" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.4)) !important;">
-        <i data-feather="trending-up" class="feather-lg" style="color: #10b981;"></i>
-      </div>
-      <div class="stat-number text-success">{{ $slaPerformance['sla_percentage'] ?? 0 }}%</div>
-      <div class="stat-label">SLA Performance</div>
     </div>
   </div>
 </div>
@@ -813,15 +281,37 @@
     <div class="card-glass chart-container">
       <h5 class="mb-4 text-white" style="font-weight: 700; font-size: 1.25rem;">
         <i data-feather="bar-chart-2" class="me-2" style="width: 24px; height: 24px;"></i>
-        Complaints by Type
+        Complaints by Category
       </h5>
       <div id="complaintsTypeChart" style="height: 300px;"></div>
     </div>
   </div>
 </div>
 
-<!-- GE PROGRESS SECTION (For Director Only) -->
-@if(isset($geProgress) && count($geProgress) > 0)
+<!-- GE FEEDBACK OVERVIEW SECTION -->
+@php
+  $showGEFeedback = false;
+  $user = auth()->user();
+  
+  // Location filter logic:
+  // 1. If user's city_id AND sector_id are both null - show all data
+  // 2. If user's city_id is set but sector_id is null - show only their city's data
+  // 3. If user has sector_id - they shouldn't see GE Feedback Overview
+  $canSeeAllData = (!$user->city_id && !$user->sector_id);
+  $canSeeCityData = ($user->city_id && !$user->sector_id);
+  
+  // Show section based on location filter only
+  if ($canSeeAllData || $canSeeCityData) {
+    $showGEFeedback = true;
+  }
+@endphp
+
+@if($showGEFeedback)
+@php
+  $hasData = isset($geProgress) && count($geProgress) > 0;
+  $displayedProgress = $hasData ? array_slice($geProgress, 0, 3) : [];
+  $hasMore = $hasData && count($geProgress) > 3;
+@endphp
 <div class="row mt-5 mb-5">
   <div class="col-12">
     <div class="card-glass" style="padding: 2.5rem;">
@@ -830,6 +320,7 @@
           <i data-feather="users" class="me-2" style="width: 28px; height: 28px;"></i>GE Feedback Overview
         </h5>
       </div>
+      @if($hasData)
       <div class="row g-4">
         @php
           $colorSchemes = [
@@ -839,9 +330,9 @@
             ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
             ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
           ];
-          $totalCards = count($geProgress);
+          $totalCards = count($displayedProgress);
         @endphp
-        @foreach($geProgress as $index => $geData)
+        @foreach($displayedProgress as $index => $geData)
         @php
           $colorScheme = $colorSchemes[$index % count($colorSchemes)];
           $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
@@ -865,40 +356,40 @@
           }
         @endphp
         <div class="{{ $colClasses }} {{ $offsetClasses }}">
-          <div class="ge-progress-card" style="padding: 2rem; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 24px !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.25rem; color: #ffffff !important;">{{ $geData['ge']->name ?? $geData['ge']->username }}</h6>
-                <p class="mb-0 text-white" style="font-size: 0.9rem; opacity: 0.95; color: #ffffff !important;">
-                  <i data-feather="map-pin" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
+                <p class="mb-0 text-white" style="font-size: 0.8rem; opacity: 0.95; color: #ffffff !important;">
+                  <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
                   <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
                 </p>
               </div>
-              <div style="width: 60px; height: 60px; background: rgba(255, 255, 255, 0.25); border-radius: 16px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);">
-                <i data-feather="user-check" style="width: 28px; height: 28px; color: #ffffff;"></i>
+              <div style="width: 45px; height: 45px; background: rgba(255, 255, 255, 0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);">
+                <i data-feather="user-check" style="width: 22px; height: 22px; color: #ffffff;"></i>
               </div>
             </div>
-            <div class="mb-3">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-white" style="font-size: 0.95rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Progress</span>
-                <span class="text-white" style="font-weight: 800; font-size: 1.75rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
+            <div class="mb-2">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-white" style="font-size: 0.85rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Progress</span>
+                <span class="text-white" style="font-weight: 800; font-size: 1.4rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
               </div>
-              <div class="progress" style="height: 18px; background-color: rgba(0, 0, 0, 0.25); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
+              <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
                 <div class="progress-bar" role="progressbar" 
-                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 10px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);" 
+                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 8px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);" 
                      aria-valuenow="{{ $geData['progress_percentage'] }}" 
                      aria-valuemin="0" 
                      aria-valuemax="100">
                 </div>
               </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.25);">
-              <span class="text-white" style="font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
-                <i data-feather="check-circle" style="width: 18px; height: 18px; color: #ffffff;"></i>
+            <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.25);">
+              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
                 <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['resolved_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Resolved</span>
               </span>
-              <span class="text-white" style="font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
-                <i data-feather="file-text" style="width: 18px; height: 18px; color: #ffffff;"></i>
+              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
                 <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['total_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Total</span>
               </span>
             </div>
@@ -906,6 +397,92 @@
         </div>
         @endforeach
       </div>
+      @else
+      <div class="text-center py-5">
+        <i data-feather="users" class="feather-lg mb-3 text-muted"></i>
+        <p class="text-muted mb-0">No GE Feedback data available at the moment.</p>
+      </div>
+      @endif
+      @if($hasData && $hasMore)
+      <div class="row g-4 mt-2" id="allGEProgress" style="display: none;">
+        @php
+          $remainingProgress = array_slice($geProgress, 3);
+          $totalRemainingCards = count($remainingProgress);
+        @endphp
+        @foreach($remainingProgress as $index => $geData)
+        @php
+          $actualIndex = $index + 3;
+          $colorScheme = $colorSchemes[$actualIndex % count($colorSchemes)];
+          $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                          ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+                          ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
+          
+          $colClasses = 'col-md-6 col-lg-4 mb-3';
+          $offsetClasses = '';
+          
+          if ($totalRemainingCards == 1) {
+            $colClasses = 'col-md-6 col-lg-4 mb-3';
+            $offsetClasses = 'offset-md-3 offset-lg-4';
+          }
+          elseif ($totalRemainingCards % 3 == 2 && $index >= $totalRemainingCards - 2) {
+            if ($index == $totalRemainingCards - 2) {
+              $offsetClasses = 'offset-lg-2';
+            }
+          }
+          elseif ($totalRemainingCards % 3 == 1 && $index == $totalRemainingCards - 1) {
+            $offsetClasses = 'offset-lg-4';
+          }
+        @endphp
+        <div class="{{ $colClasses }} {{ $offsetClasses }}">
+          <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
+                <p class="mb-0 text-white" style="font-size: 0.8rem; opacity: 0.95; color: #ffffff !important;">
+                  <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
+                  <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
+                </p>
+              </div>
+              <div style="width: 45px; height: 45px; background: rgba(255, 255, 255, 0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);">
+                <i data-feather="user-check" style="width: 22px; height: 22px; color: #ffffff;"></i>
+              </div>
+            </div>
+            <div class="mb-2">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-white" style="font-size: 0.85rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Progress</span>
+                <span class="text-white" style="font-weight: 800; font-size: 1.4rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
+              </div>
+              <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 8px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);" 
+                     aria-valuenow="{{ $geData['progress_percentage'] }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.25);">
+              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['resolved_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Resolved</span>
+              </span>
+              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['total_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Total</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        @endforeach
+      </div>
+      @endif
+      @if($hasMore)
+      <div class="text-center mt-4">
+        <button type="button" class="btn btn-accent btn-sm" onclick="showAllGEProgress()" id="seeMoreBtn">
+          <i data-feather="chevron-down" class="me-1" style="width: 16px; height: 16px;"></i>See More
+        </button>
+      </div>
+      @endif
     </div>
   </div>
 </div>
@@ -952,24 +529,36 @@
           <tbody>
             @forelse($recentComplaints ?? [] as $complaint)
             <tr>
-              <td><strong>#{{ str_pad($complaint->id, 4, '0', STR_PAD_LEFT) }}</strong></td>
+              <td><strong>{{ (int)$complaint->id }}</strong></td>
               <td>{{ $complaint->client->client_name }}</td>
               <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
               <td>
-                @if($complaint->status === 'resolved')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'in_progress')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #b91c1c !important; color: #ffffff !important; border-color: #991b1b !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'assigned')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'un_authorized')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'pertains_to_ge_const_isld')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
-                @elseif($complaint->status === 'product_na')
-                  <span class="status-badge status-{{ $complaint->status }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @php
+                  // Map 'new' status to 'assigned' for display
+                  $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
+                @endphp
+                @if($displayStatus === 'resolved')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">Addressed</span>
+                @elseif($displayStatus === 'in_progress')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">In Progress</span>
+                @elseif($displayStatus === 'assigned')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'work_performa')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #60a5fa !important; color: #ffffff !important; border-color: #3b82f6 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'maint_performa')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'work_priced_performa')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #9333ea !important; color: #ffffff !important; border-color: #7e22ce !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'maint_priced_performa')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ea580c !important; color: #ffffff !important; border-color: #c2410c !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'un_authorized')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'pertains_to_ge_const_isld')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'product_na')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @else
-                  <span class="status-badge status-{{ $complaint->status }}" style="color: #ffffff !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="color: #ffffff !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @endif
               </td>
               <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
@@ -997,7 +586,7 @@
               @if($approvalStatus)
                 {{ ucfirst($approvalStatus) }} Approvals
               @else
-                In-progress Complaints
+                In Progress Complaints
               @endif
             </h5>
             <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-warning btn-sm">View All</a>
@@ -1009,18 +598,21 @@
                   <th>Complaint ID</th>
                   <th>Complainant</th>
                   <th>Employee Assigned</th>
-                  <th>Status</th>
                   <th>Items</th>
                   <th>Registration Date/Time</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @foreach($pendingApprovals as $approval)
                 <tr>
-                  <td>{{ $approval->complaint ? str_pad($approval->complaint->id, 4, '0', STR_PAD_LEFT) : 'N/A' }}</td>
+                  <td>{{ $approval->complaint ? (int)$approval->complaint->id : 'N/A' }}</td>
                   <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
                   <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
+                 
+                  <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
+                  <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
                   <td>
                     @php
                       $statusColors = [
@@ -1030,15 +622,13 @@
                       ];
                       $statusColor = $statusColors[$approval->status] ?? ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'];
                     @endphp
-                    <span class="badge" style="background-color: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }} !important; border: 1px solid {{ $statusColor['border'] }}; padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600;">
+                    <span class="badge" style="background-color: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }} !important; border: 1px solid {{ $statusColor['border'] }}; padding: 3px 6px !important; font-size: 10px !important; font-weight: 600; line-height: 1.1; border-radius: 6px !important;">
                       {{ $approval->getStatusDisplayAttribute() }}
                     </span>
                   </td>
-                  <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
-                  <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
                   <td>
-                    <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-sm btn-outline-primary">
-                      <i data-feather="eye" class="me-1"></i>View
+                    <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-xs btn-outline-primary" style="padding: 0.15rem 0.4rem; font-size: 0.7rem; line-height: 1.2;">
+                      <i data-feather="eye" class="me-1" style="width: 8px; height: 8px;"></i>View
                     </a>
                   </td>
                 </tr>
@@ -1180,7 +770,7 @@
       } elseif ($status === 'pertains_to_ge_const_isld') {
         return 'Pertains to GE(N) Const Isld';
       } elseif ($status === 'in_progress') {
-        return 'In-Process';
+        return 'In Progress';
       }
       return $label;
     }, $statusKeys) : ['New', 'Assigned', 'In Progress', 'Addressed'];
@@ -1236,10 +826,37 @@
     var complaintsStatusChart = new ApexCharts(document.querySelector("#complaintsStatusChart"), complaintsStatusOptions);
     complaintsStatusChart.render();
 
-    // Complaints by Type Chart
+    // Complaints by Category Chart
   @php
-    $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [0, 0, 0, 0];
-    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return ucfirst($type); }, array_keys($complaintsByType)) : ['Electric', 'Sanitary', 'Kitchen', 'General'];
+    $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [];
+    $typeLabels = isset($complaintsByType) ? array_map(function($type) { return $type; }, array_keys($complaintsByType)) : [];
+    
+    // Color mapping based on category name to ensure unique colors
+    $colorMap = [
+      'B&R-I' => '#3b82f6',                    // Blue
+      'B&R-II' => '#f97316',                 // Orange
+      'E&M NRC (Elect)' => '#8b5cf6',        // Purple
+      'E&M NRC (Gas)' => '#10b981',           // Green
+      'E&M NRC (Water Supply)' => '#06b6d4', // Light Blue (Cyan)
+      'F&S' => '#ec4899',                     // Pink
+    ];
+    $fallbackColors = ['#f59e0b', '#ef4444', '#84cc16', '#14b8a6', '#a855f7', '#22c55e'];
+    $categoryColors = [];
+    $colorIndex = 0;
+    
+    foreach($typeLabels as $label) {
+      if(isset($colorMap[$label])) {
+        $categoryColors[] = $colorMap[$label];
+      } else {
+        $categoryColors[] = $fallbackColors[$colorIndex % count($fallbackColors)];
+        $colorIndex++;
+      }
+    }
+    
+    // If no colors, use default
+    if(empty($categoryColors)) {
+      $categoryColors = ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'];
+    }
   @endphp
     var complaintsTypeOptions = {
     series: @json($typeData),
@@ -1249,7 +866,7 @@
         background: 'transparent'
       },
     labels: @json($typeLabels),
-      colors: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'],
+      colors: @json($categoryColors),
       legend: {
         position: 'bottom',
         labels: {
@@ -1621,9 +1238,9 @@
         // }
         
         if (sectorFilter) {
-          sectorFilter.innerHTML = '<option value="">Loading sectors...</option>';
+          sectorFilter.innerHTML = '<option value="">Loading GE Nodes...</option>';
           sectorFilter.disabled = true;
-          
+
           if (cityId) {
             // Fetch sectors for selected city
             fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
@@ -1635,7 +1252,7 @@
             })
             .then(response => response.json())
             .then(data => {
-              sectorFilter.innerHTML = '<option value="">All Sectors</option>';
+              sectorFilter.innerHTML = '<option value="">All GE Nodes</option>';
               const sectors = Array.isArray(data) ? data : (data.sectors || []);
               if (sectors && sectors.length > 0) {
                 sectors.forEach(function(sector) {
@@ -1646,19 +1263,19 @@
                 });
               }
               sectorFilter.disabled = false;
-              // Auto-apply filters after loading sectors
+              // Auto-apply filters after loading GE Nodes
               applyDashboardFilters();
             })
             .catch(error => {
-              console.error('Error loading sectors:', error);
-              sectorFilter.innerHTML = '<option value="">All Sectors</option>';
+              console.error('Error loading GE Nodes:', error);
+              sectorFilter.innerHTML = '<option value="">All GE Nodes</option>';
               sectorFilter.disabled = false;
               // Auto-apply filters even on error
               applyDashboardFilters();
             });
           } else {
-            // Show all sectors if no city selected (Director) - reload page to get all sectors
-            sectorFilter.innerHTML = '<option value="">All Sectors</option>';
+            // Show all GE Nodes if no city selected (Director) - reload page to get all GE Nodes
+            sectorFilter.innerHTML = '<option value="">All GE Nodes</option>';
             sectorFilter.disabled = false;
             // Auto-apply filters
             applyDashboardFilters();
@@ -1704,24 +1321,78 @@
       });
     }
     
-    // Override inline styles for filter labels in dark/night theme
+    // Override inline styles for filter labels in dark/night theme using style injection
     function updateFilterLabelsColor() {
       const body = document.body;
       const isDarkTheme = body.classList.contains('theme-dark');
       const isNightTheme = body.classList.contains('theme-night');
       
       if (isDarkTheme || isNightTheme) {
-        const filterLabels = document.querySelectorAll('.card-glass.mb-4 label.form-label');
+        // Inject a style tag with maximum specificity to override inline styles
+        let styleId = 'filter-labels-dark-theme-style';
+        let existingStyle = document.getElementById(styleId);
+        if (!existingStyle) {
+          existingStyle = document.createElement('style');
+          existingStyle.id = styleId;
+          existingStyle.innerHTML = `
+            body.theme-dark .filter-box label,
+            body.theme-night .filter-box label,
+            body.theme-dark .filter-box .form-label,
+            body.theme-night .filter-box .form-label,
+            body.theme-dark .filter-box .col-auto label,
+            body.theme-night .filter-box .col-auto label {
+              color: #e2e8f0 !important;
+            }
+          `;
+          document.head.appendChild(existingStyle);
+        }
+        
+        // Also directly manipulate the style attribute
+        const filterLabels = document.querySelectorAll('.filter-box label, .filter-box .form-label, .filter-box .col-auto label');
         filterLabels.forEach(function(label) {
-          if (label.style.color && label.style.color.includes('#1e293b')) {
-            label.style.setProperty('color', '#ffffff', 'important');
+          // Completely replace the style attribute
+          let currentStyle = label.getAttribute('style') || '';
+          // Split by semicolon and filter out color
+          let styles = currentStyle.split(';').filter(function(style) {
+            return !style.trim().toLowerCase().startsWith('color');
+          });
+          // Join back and add white color
+          let newStyle = styles.join(';').trim();
+          if (newStyle && !newStyle.endsWith(';')) {
+            newStyle += ';';
           }
+          newStyle += ' color: #e2e8f0 !important;';
+          // Set the new style
+          label.setAttribute('style', newStyle);
+          // Also use cssText as backup
+          label.style.cssText = newStyle;
         });
+      } else {
+        // Remove the injected style in light theme
+        let styleId = 'filter-labels-dark-theme-style';
+        let existingStyle = document.getElementById(styleId);
+        if (existingStyle) {
+          existingStyle.remove();
+        }
       }
     }
     
-    // Run on page load
+    // Run immediately and multiple times to ensure it works
     updateFilterLabelsColor();
+    
+    // Run on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        updateFilterLabelsColor();
+        setTimeout(updateFilterLabelsColor, 100);
+        setTimeout(updateFilterLabelsColor, 500);
+        setTimeout(updateFilterLabelsColor, 1000);
+      });
+    } else {
+      setTimeout(updateFilterLabelsColor, 100);
+      setTimeout(updateFilterLabelsColor, 500);
+      setTimeout(updateFilterLabelsColor, 1000);
+    }
     
     // Watch for theme changes
     const observer = new MutationObserver(function(mutations) {
@@ -1737,6 +1408,35 @@
         attributes: true,
         attributeFilter: ['class']
       });
+    }
+
+    // Function to show/hide all GE Progress boxes
+    function showAllGEProgress() {
+      const allGEProgress = document.getElementById('allGEProgress');
+      const seeMoreBtn = document.getElementById('seeMoreBtn');
+      
+      if (allGEProgress && seeMoreBtn) {
+        // Show all boxes - remove inline style to let Bootstrap row class handle display
+        allGEProgress.removeAttribute('style');
+        seeMoreBtn.innerHTML = '<i data-feather="chevron-up" class="me-1" style="width: 16px; height: 16px;"></i>See Less';
+        seeMoreBtn.setAttribute('onclick', 'hideAllGEProgress()');
+        // Reinitialize feather icons
+        feather.replace();
+      }
+    }
+
+    // Function to hide all GE Progress boxes
+    function hideAllGEProgress() {
+      const allGEProgress = document.getElementById('allGEProgress');
+      const seeMoreBtn = document.getElementById('seeMoreBtn');
+      
+      if (allGEProgress && seeMoreBtn) {
+        allGEProgress.style.display = 'none';
+        seeMoreBtn.innerHTML = '<i data-feather="chevron-down" class="me-1" style="width: 16px; height: 16px;"></i>See More';
+        seeMoreBtn.setAttribute('onclick', 'showAllGEProgress()');
+        // Reinitialize feather icons
+        feather.replace();
+      }
     }
 </script>
 @endpush

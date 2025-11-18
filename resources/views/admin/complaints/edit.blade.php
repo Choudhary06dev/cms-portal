@@ -43,10 +43,10 @@
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
-                  <label for="city_id" class="form-label text-white">City</label>
+                  <label for="city_id" class="form-label text-white">GE Groups</label>
                   <select class="form-select @error('city_id') is-invalid @enderror" 
                           id="city_id" name="city_id">
-                    <option value="">Select City</option>
+                    <option value="">Select GE Groups</option>
                     @if(isset($cities) && $cities->count() > 0)
                       @foreach($cities as $city)
                         <option value="{{ $city->id }}" {{ (string)old('city_id', $defaultCityId ?? '') === (string)$city->id ? 'selected' : '' }}>
@@ -62,11 +62,11 @@
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
-                  <label for="sector_id" class="form-label text-white">Sector</label>
+                  <label for="sector_id" class="form-label text-white">GE Nodes</label>
                   <select class="form-select @error('sector_id') is-invalid @enderror" 
                           id="sector_id" name="sector_id" {{ (old('city_id', $defaultCityId ?? null)) ? '' : 'disabled' }}>
                     @php $hasCity = old('city_id', $defaultCityId ?? null); @endphp
-                    <option value="">{{ $hasCity ? 'Loading sectors...' : 'Select City First' }}</option>
+                    <option value="">{{ $hasCity ? 'Loading GE Nodes...' : 'Select GE Groups First' }}</option>
                     @if(isset($sectors) && $sectors->count() > 0)
                       @foreach($sectors as $sector)
                         <option value="{{ $sector->id }}" {{ (string)old('sector_id', $defaultSectorId ?? '') === (string)$sector->id ? 'selected' : '' }}>
@@ -92,7 +92,9 @@
               <div class="col-md-3">
                 <div class="mb-3">
                   <label for="phone" class="form-label text-white">Phone No.</label>
-                  <input type="text" class="form-control @error('phone') is-invalid @enderror" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number">
+                  <input type="tel" class="form-control @error('phone') is-invalid @enderror" id="client_phone" name="phone" value="{{ old('phone', $complaint->client->phone ?? '') }}" placeholder="Enter phone number"
+                    pattern="[0-9]*" inputmode="numeric" 
+                    onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                   @error('phone')
                     <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
@@ -124,10 +126,10 @@
               
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label for="title" class="form-label text-white">Complaint Title <span class="text-danger">*</span></label>
+                  <label for="title" class="form-label text-white">Complaint Type <span class="text-danger">*</span></label>
                   <select class="form-select @error('title') is-invalid @enderror" 
                           id="title" name="title" autocomplete="off" required>
-                    <option value="">Select Complaint Title</option>
+                    <option value="">Select Complaint Type</option>
                     @if(old('title', $complaint->title))
                       <option value="{{ old('title', $complaint->title) }}" selected>{{ old('title', $complaint->title) }}</option>
                     @endif
@@ -170,11 +172,11 @@
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
                         <option value="{{ $employee->id }}" 
-                                data-category="{{ $employee->department }}"
+                                data-category="{{ $employee->category ?? '' }}"
                                 data-city="{{ $employee->city_id }}"
                                 data-sector="{{ $employee->sector_id }}"
                                 {{ (string)old('assigned_employee_id', $complaint->assigned_employee_id) === (string)$employee->id ? 'selected' : '' }}>
-                          {{ $employee->name }}
+                          {{ $employee->name }}@if($employee->designation) ({{ $employee->designation }})@endif
                         </option>
                       @endforeach
                     @else
@@ -215,77 +217,39 @@
 @endsection
 
 @push('styles')
-<style>
-/* Form control styling for all themes */
-.form-control {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(59, 130, 246, 0.3) !important;
-  color: #1e293b !important;
-}
-.form-control::placeholder {
-  color: rgba(30, 41, 59, 0.6) !important;
-}
-.form-control:focus {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-color: #3b82f6 !important;
-  color: #1e293b !important;
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-}
-.form-select {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(59, 130, 246, 0.3) !important;
-  color: #1e293b !important;
-}
-.form-select:focus {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-color: #3b82f6 !important;
-  color: #1e293b !important;
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-}
-/* Light theme dropdown styling */
-.theme-light .form-select {
-  background-color: #fff !important;
-  color: #1e293b !important;
-}
-.theme-light .form-select option {
-  background-color: #fff !important;
-  color: #1e293b !important;
-}
-.theme-light .form-select option:hover {
-  background-color: #f8fafc !important;
-  color: #1e293b !important;
-}
-.theme-light .form-select option:checked {
-  background-color: #3b82f6 !important;
-  color: #fff !important;
-}
-/* Dark and Night theme dropdown styling */
-.theme-dark .form-select,
-.theme-night .form-select {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
-}
-.theme-dark .form-select option,
-.theme-night .form-select option {
-  background-color: #1e293b !important;
-  color: #fff !important;
-}
-.theme-dark .form-select option:hover,
-.theme-night .form-select option:hover {
-  background-color: #334155 !important;
-  color: #fff !important;
-}
-.theme-dark .form-select option:checked,
-.theme-night .form-select option:checked {
-  background-color: #3b82f6 !important;
-  color: #fff !important;
-}
-</style>
 @endpush
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Phone number input validation - only allow numbers
+  const phoneInput = document.getElementById('client_phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    phoneInput.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+      const numbersOnly = pastedText.replace(/[^0-9]/g, '');
+      this.value = numbersOnly;
+    });
+  }
+  
+  // Form validation - check phone number before submit
+  const complaintForm = document.querySelector('form[action*="complaints"]');
+  if (complaintForm) {
+    complaintForm.addEventListener('submit', function(e) {
+      const phoneValue = phoneInput ? phoneInput.value.trim() : '';
+      if (phoneValue && phoneValue.length < 11) {
+        e.preventDefault();
+        alert('Phone number must be at least 11 digits.');
+        if (phoneInput) phoneInput.focus();
+        return false;
+      }
+    });
+  }
+  
   const categorySelect = document.getElementById('category');
   const employeeSelect = document.getElementById('assigned_employee_id');
   const addressInput = document.getElementById('client_address');
@@ -457,10 +421,17 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(data => {
         // Clear options
-        titleSelect.innerHTML = '<option value="">Select Complaint Title</option>';
+        titleSelect.innerHTML = '<option value="">Select Complaint Type</option>';
 
         if (data && data.length > 0) {
-          data.forEach(title => {
+          // Sort titles in ascending order by title name (natural/numeric sorting)
+          const sortedData = data.sort((a, b) => {
+            const titleA = (a.title || '').toLowerCase();
+            const titleB = (b.title || '').toLowerCase();
+            return titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: 'base' });
+          });
+          
+          sortedData.forEach(title => {
             const option = document.createElement('option');
             option.value = title.title;
             option.textContent = title.title;
@@ -685,11 +656,11 @@ document.addEventListener('DOMContentLoaded', function() {
     citySelect.addEventListener('change', function() {
       const cityId = this.value;
       if (!cityId) {
-        sectorSelect.innerHTML = '<option value="">Select City First</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
         sectorSelect.disabled = true;
         return;
       }
-      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+      sectorSelect.innerHTML = '<option value="">Loading GE Nodes...</option>';
       sectorSelect.disabled = true;
       fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
         headers: {
@@ -700,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(response => response.json())
       .then(data => {
-        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
         if (data && data.length > 0) {
           data.forEach(sector => {
             const option = document.createElement('option');
@@ -709,13 +680,13 @@ document.addEventListener('DOMContentLoaded', function() {
             sectorSelect.appendChild(option);
           });
         } else {
-          sectorSelect.innerHTML = '<option value="">No sectors found for this city</option>';
+          sectorSelect.innerHTML = '<option value="">No GE Nodes found for this GE Groups</option>';
         }
         sectorSelect.disabled = false;
       })
       .catch(error => {
-        console.error('Error loading sectors:', error);
-        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        console.error('Error loading GE Nodes:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading GE Nodes</option>';
         sectorSelect.disabled = false;
       });
     });
@@ -734,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(response => response.json())
       .then(data => {
-        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
         if (data && data.length > 0) {
           data.forEach(sector => {
             const option = document.createElement('option');
@@ -746,13 +717,13 @@ document.addEventListener('DOMContentLoaded', function() {
             sectorSelect.appendChild(option);
           });
         } else {
-          sectorSelect.innerHTML = '<option value=\"\">No sectors found for this city</option>';
+          sectorSelect.innerHTML = '<option value=\"\">No GE Nodes found for this GE Groups</option>';
         }
         sectorSelect.disabled = false;
       })
       .catch(error => {
-        console.error('Error loading sectors:', error);
-        sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+        console.error('Error loading GE Nodes:', error);
+        sectorSelect.innerHTML = '<option value="">Error loading GE Nodes</option>';
         sectorSelect.disabled = false;
       });
     }

@@ -14,11 +14,10 @@ return new class extends Migration
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->foreignId('client_id')->constrained('clients');
-            $table->string('city', 50)->nullable();
-            $table->string('sector', 100)->nullable();
+            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('city_id')->nullable();
+            $table->unsignedBigInteger('sector_id')->nullable();
             $table->string('category', 100);
-            $table->string('department', 100)->nullable();
             $table->text('description')->nullable();
             $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na', 'un_authorized', 'pertains_to_ge_const_isld'])->default('new');
             $table->unsignedBigInteger('assigned_employee_id')->nullable();
@@ -26,7 +25,7 @@ return new class extends Migration
             $table->timestamp('closed_at')->nullable();
             
             // Spare part columns
-            $table->foreignId('spare_id')->nullable()->constrained('spares');
+            $table->unsignedBigInteger('spare_id')->nullable();
             $table->integer('spare_quantity')->nullable();
             $table->unsignedBigInteger('spare_used_by')->nullable();
             $table->timestamp('spare_used_at')->nullable();

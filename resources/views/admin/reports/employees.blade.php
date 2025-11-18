@@ -11,7 +11,7 @@
       <p class="text-light">Employee Performance Report</p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-success" onclick="window.print()">
+      <button class="btn btn-primary" onclick="window.print()">
         <i data-feather="printer" class="me-2"></i>Print
       </button>
       <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
@@ -34,11 +34,11 @@
         <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $dateTo }}" required onchange="submitEmployeesReportFilters()">
       </div>
       <div class="col-md-4">
-        <label for="department" class="form-label text-white">Department</label>
-        <select class="form-select" id="department" name="department" onchange="submitEmployeesReportFilters()">
-          <option value="">All Departments</option>
-          @foreach(\App\Models\Employee::distinct()->whereNotNull('department')->pluck('department') as $dept)
-            <option value="{{ $dept }}" {{ $department == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+        <label for="category" class="form-label text-white">Category</label>
+        <select class="form-select" id="category" name="category" onchange="submitEmployeesReportFilters()">
+          <option value="">All Categories</option>
+          @foreach(\App\Models\Employee::distinct()->whereNotNull('category')->pluck('category') as $cat)
+            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
         </select>
       </div>
@@ -90,7 +90,7 @@
           <tr>
             <th>#</th>
             <th>Employee Name</th>
-            <th>Department</th>
+            <th>Category</th>
             <th>Designation</th>
             <th class="text-end">Total Complaints</th>
             <th class="text-end">Resolved</th>
@@ -102,7 +102,7 @@
           <tr>
             <td>{{ $loop->iteration }}</td>
             <td>{{ $emp['employee']->name ?? 'N/A' }}</td>
-            <td>{{ $emp['employee']->department ?? 'N/A' }}</td>
+            <td>{{ $emp['employee']->category ?? 'N/A' }}</td>
             <td>{{ $emp['employee']->designation ?? '' }}</td>
             <td class="text-end">{{ number_format($emp['total_complaints']) }}</td>
             <td class="text-end">{{ number_format($emp['resolved_complaints']) }}</td>

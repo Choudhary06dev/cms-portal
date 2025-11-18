@@ -15,10 +15,9 @@ class Complaint extends Model
     protected $fillable = [
         'title',
         'client_id',
-        'city',
-        'sector',
+        'city_id',
+        'sector_id',
         'category',
-        'department',
         'priority',
         'description',
         'assigned_employee_id',
@@ -35,7 +34,7 @@ class Complaint extends Model
      */
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class)->withTrashed();
+        return $this->belongsTo(Client::class, 'client_id', 'id')->withTrashed();
     }
 
     /**
@@ -43,7 +42,23 @@ class Complaint extends Model
      */
     public function assignedEmployee(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'assigned_employee_id')->withTrashed();
+        return $this->belongsTo(Employee::class, 'assigned_employee_id', 'id')->withTrashed();
+    }
+
+    /**
+     * Get the city that owns the complaint.
+     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id', 'id');
+    }
+
+    /**
+     * Get the sector that owns the complaint.
+     */
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(Sector::class, 'sector_id', 'id');
     }
 
     /**
@@ -51,7 +66,7 @@ class Complaint extends Model
      */
     public function attachments(): HasMany
     {
-        return $this->hasMany(ComplaintAttachment::class);
+        return $this->hasMany(ComplaintAttachment::class, 'complaint_id', 'id');
     }
 
     /**
@@ -59,7 +74,7 @@ class Complaint extends Model
      */
     public function logs(): HasMany
     {
-        return $this->hasMany(ComplaintLog::class);
+        return $this->hasMany(ComplaintLog::class, 'complaint_id', 'id');
     }
 
     /**
@@ -67,7 +82,7 @@ class Complaint extends Model
      */
     public function spareParts(): HasMany
     {
-        return $this->hasMany(ComplaintSpare::class);
+        return $this->hasMany(ComplaintSpare::class, 'complaint_id', 'id');
     }
 
     /**
@@ -75,7 +90,7 @@ class Complaint extends Model
      */
     public function spareApprovals(): HasMany
     {
-        return $this->hasMany(SpareApprovalPerforma::class);
+        return $this->hasMany(SpareApprovalPerforma::class, 'complaint_id', 'id');
     }
 
     /**
@@ -83,7 +98,7 @@ class Complaint extends Model
      */
     public function feedback(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(ComplaintFeedback::class);
+        return $this->hasOne(ComplaintFeedback::class, 'complaint_id', 'id')->withTrashed();
     }
 
     /**
@@ -91,7 +106,7 @@ class Complaint extends Model
      */
     public function stockLogs(): HasMany
     {
-        return $this->hasMany(SpareStockLog::class, 'reference_id');
+        return $this->hasMany(SpareStockLog::class, 'reference_id', 'id');
     }
 
     /**
@@ -130,9 +145,8 @@ class Complaint extends Model
     public static function getStatuses(): array
     {
         return [
-            'new' => 'New',
             'assigned' => 'Assigned',
-            'in_progress' => 'In Progress',
+            'in_progress' => 'In Process',
             'resolved' => 'Resolved',
             'closed' => 'Closed',
         ];
@@ -163,7 +177,9 @@ class Complaint extends Model
      */
     public function getStatusDisplayAttribute(): string
     {
-        return self::getStatuses()[$this->status] ?? $this->status;
+        // Map 'new' status to 'assigned' for display purposes
+        $status = $this->status === 'new' ? 'assigned' : $this->status;
+        return self::getStatuses()[$status] ?? $status;
     }
 
     /**
@@ -354,6 +370,8 @@ class Complaint extends Model
                             'complaint_id' => $complaint->id,
                             'requested_by' => $requestedByEmployee->id,
                             'status' => 'pending',
+                            'performa_type' => null, // No performa type selected initially
+                            // waiting_for_authority removed
                             'remarks' => 'Auto-created for new complaint',
                         ]);
                     }

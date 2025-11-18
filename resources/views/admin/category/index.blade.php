@@ -36,7 +36,7 @@
 
 <div class="card-glass mb-3">
   <div class="card-header">
-    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add Category</h5>
+    <h5 class="text-white"><i data-feather="plus" class="me-2"></i>Add Category</h5>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ route('admin.category.store') }}" class="d-flex flex-wrap align-items-end gap-2">
@@ -52,19 +52,11 @@
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div class="d-grid" style="flex: 0 0 140px;">
-        <button class="btn btn-accent" type="submit" style="width: 100%;">Add</button>
+        <button class="btn btn-outline-secondary" type="submit" style="width: 100%;"> <i data-feather="plus" class="me-2"></i> Add</button>
       </div>
     </form>
   </div>
 @push('styles')
-<style>
-  .container-narrow { max-width: 960px; margin: 0 auto; }
-  .table.compact-table th, .table.compact-table td { padding: .55rem .75rem; font-size: .95rem; }
-  .card-glass { padding: 16px; }
-  .form-control, .form-select { padding: .48rem .7rem; font-size: .96rem; }
-  .btn.btn-sm { padding: .32rem .6rem; font-size: .85rem; }
-  .card-title { font-size: 1.05rem; }
-</style>
 @endpush
 
 </div>
@@ -91,15 +83,17 @@
             <td>{{ $cat->name }}</td>
             <td>{{ $cat->description ? Str::limit($cat->description, 80) : '-' }}</td>
             <td>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editCategoryModal" 
-                        data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" data-description="{{ $cat->description }}">
-                  Edit
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editCategoryModal" 
+                        data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" data-description="{{ $cat->description }}" title="Edit" style="padding: 3px 8px;">
+                  <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
-                <form action="{{ route('admin.category.destroy', $cat) }}" method="POST" class="category-delete-form" onsubmit="return confirm('Delete this category?')">
+                <form action="{{ route('admin.category.destroy', $cat) }}" method="POST" class="category-delete-form" onsubmit="return confirm('Delete this category?')" style="display: inline;">
                   @csrf
                   @method('DELETE')
-                  <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                  <button class="btn btn-outline-danger btn-sm" type="submit" title="Delete" style="padding: 3px 8px;">
+                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                  </button>
                 </form>
               </div>
             </td>

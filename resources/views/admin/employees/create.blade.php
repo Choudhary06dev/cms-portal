@@ -16,7 +16,7 @@
 
 <!-- EMPLOYEE FORM -->
 <div class="card-glass">
-  <form action="{{ route('admin.employees.store') }}" method="POST" autocomplete="off" novalidate>
+  <form action="{{ route('admin.employees.store') }}" method="POST" autocomplete="off" id="employeeForm" onsubmit="return validateEmployeeForm()">
     @csrf
     
     <div class="row">
@@ -33,8 +33,10 @@
       <div class="col-md-6">
         <div class="mb-3">
           <label for="phone" class="form-label text-white">Phone</label>
-          <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                 id="phone" name="phone" value="{{ old('phone') }}">
+          <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                 id="phone" name="phone" value="{{ old('phone') }}" 
+                 pattern="[0-9]*" inputmode="numeric" 
+                 onkeypress="return event.charCode >= 48 && event.charCode <= 57">
           @error('phone')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
@@ -62,9 +64,9 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="designation" class="form-label text-white">Designation</label>
+          <label for="designation" class="form-label text-white">Designation <span class="text-danger">*</span></label>
           <select class="form-select @error('designation') is-invalid @enderror" 
-                  id="designation" name="designation" disabled>
+                  id="designation" name="designation" disabled required>
             <option value="">Select Category First</option>
           </select>
           @error('designation')
@@ -74,10 +76,10 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="city_id" class="form-label text-white">City</label>
+          <label for="city_id" class="form-label text-white">GE Groups <span class="text-danger">*</span></label>
           <select class="form-select @error('city_id') is-invalid @enderror" 
-                  id="city_id" name="city_id">
-            <option value="">Select City</option>
+                  id="city_id" name="city_id" required>
+            <option value="">Select GE Groups</option>
             @if(isset($cities) && $cities->count() > 0)
               @foreach ($cities as $city)
                 <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
@@ -91,10 +93,10 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="sector_id" class="form-label text-white">Sector</label>
+          <label for="sector_id" class="form-label text-white">GE Nodes <span class="text-danger">*</span></label>
           <select class="form-select @error('sector_id') is-invalid @enderror" 
-                  id="sector_id" name="sector_id" disabled>
-            <option value="">Select City First</option>
+                  id="sector_id" name="sector_id" disabled required>
+            <option value="">Select GE Groups First</option>
           </select>
           @error('sector_id')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -159,6 +161,34 @@
   feather.replace();
   
   document.addEventListener('DOMContentLoaded', function() {
+    // Phone number input validation - only allow numbers
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+      phoneInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        const numbersOnly = pastedText.replace(/[^0-9]/g, '');
+        this.value = numbersOnly;
+      });
+    }
+    
+    // Form validation - check phone number before submit
+    const employeeForm = document.getElementById('employeeForm');
+    if (employeeForm) {
+      employeeForm.addEventListener('submit', function(e) {
+        const phoneValue = phoneInput ? phoneInput.value.trim() : '';
+        if (phoneValue && phoneValue.length < 11) {
+          e.preventDefault();
+          alert('Phone number must be at least 11 digits.');
+          if (phoneInput) phoneInput.focus();
+          return false;
+        }
+      });
+    }
+    
     const categorySelect = document.getElementById('category');
     const designationSelect = document.getElementById('designation');
     const citySelect = document.getElementById('city_id');
@@ -168,8 +198,15 @@
     if (categorySelect && designationSelect) {
       categorySelect.addEventListener('change', function() {
         const category = this.value;
-        designationSelect.innerHTML = '<option value="">Loading...</option>';
-        designationSelect.disabled = true;
+        const designationSelectEl = document.getElementById('designation');
+        
+        if (!designationSelectEl) {
+          console.error('Designation select element not found');
+          return;
+        }
+        
+        designationSelectEl.innerHTML = '<option value="">Loading...</option>';
+        designationSelectEl.disabled = true;
         
         if (category) {
           fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(category)}`, {
@@ -177,30 +214,43 @@
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
               'Accept': 'application/json',
-            }
+            },
+            credentials: 'same-origin'
           })
-          .then(response => response.json())
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
           .then(data => {
-            designationSelect.innerHTML = '<option value="">Select Designation</option>';
+            designationSelectEl.innerHTML = '<option value="">Select Designation</option>';
             
             if (data.designations && data.designations.length > 0) {
               data.designations.forEach(function(designation) {
                 const option = document.createElement('option');
                 option.value = designation.name;
                 option.textContent = designation.name;
-                designationSelect.appendChild(option);
+                designationSelectEl.appendChild(option);
               });
-              designationSelect.disabled = false;
+              designationSelectEl.disabled = false;
+              designationSelectEl.required = true;
             } else {
-              designationSelect.innerHTML = '<option value="">No Designation Available</option>';
+              designationSelectEl.innerHTML = '<option value="">No Designation Available</option>';
+              designationSelectEl.disabled = true;
+              designationSelectEl.required = false;
             }
           })
           .catch(error => {
             console.error('Error fetching designations:', error);
-            designationSelect.innerHTML = '<option value="">Error Loading Designations</option>';
+            designationSelectEl.innerHTML = '<option value="">Error Loading Designations</option>';
+            designationSelectEl.disabled = true;
+            designationSelectEl.required = false;
           });
         } else {
-          designationSelect.innerHTML = '<option value="">Select Category First</option>';
+          designationSelectEl.innerHTML = '<option value="">Select Category First</option>';
+          designationSelectEl.disabled = true;
+          designationSelectEl.required = false;
         }
       });
     }
@@ -242,9 +292,9 @@
             return response.json();
           })
           .then(data => {
-            console.log('Sectors data received:', data);
-            console.log('Number of sectors for city:', data.sectors ? data.sectors.length : 0);
-            sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+            console.log('GE Nodes data received:', data);
+            console.log('Number of GE Nodes for GE Groups:', data.sectors ? data.sectors.length : 0);
+            sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
             
             if (data.sectors && data.sectors.length > 0) {
               data.sectors.forEach(function(sector) {
@@ -254,21 +304,66 @@
                 sectorSelect.appendChild(option);
               });
               sectorSelect.disabled = false;
-              console.log('Sectors loaded successfully:', data.sectors.length);
+              sectorSelect.required = true;
+              console.log('GE Nodes loaded successfully:', data.sectors.length);
             } else {
-              sectorSelect.innerHTML = '<option value="">No Sector Available</option>';
-              console.log('No sectors found for city ID:', actualCityId);
+              sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
+              sectorSelect.disabled = true;
+              sectorSelect.required = false;
+              console.log('No GE Nodes found for GE Groups ID:', actualCityId);
             }
           })
           .catch(error => {
-            console.error('Error fetching sectors:', error);
-            sectorSelect.innerHTML = '<option value="">Error Loading Sectors</option>';
+            console.error('Error fetching GE Nodes:', error);
+            sectorSelect.innerHTML = '<option value="">Error Loading GE Nodes</option>';
           });
         } else {
-          sectorSelect.innerHTML = '<option value="">Select City First</option>';
+          sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
+          sectorSelect.disabled = true;
+          sectorSelect.required = false;
         }
       });
     }
+    
+    // Form validation before submit
+    window.validateEmployeeForm = function() {
+      const citySelect = document.getElementById('city_id');
+      const sectorSelect = document.getElementById('sector_id');
+      const designationSelect = document.getElementById('designation');
+      
+      // Enable sector select if it's disabled but has a value
+      if (sectorSelect && sectorSelect.disabled && sectorSelect.value) {
+        sectorSelect.disabled = false;
+      }
+      
+      // Enable designation select if it's disabled but has a value
+      if (designationSelect && designationSelect.disabled && designationSelect.value) {
+        designationSelect.disabled = false;
+      }
+      
+      // Check if city is selected
+      if (!citySelect || !citySelect.value) {
+        alert('Please select GE Groups');
+        if (citySelect) citySelect.focus();
+        return false;
+      }
+      
+      // Check if sector is selected
+      if (!sectorSelect || !sectorSelect.value) {
+        alert('Please select GE Nodes');
+        if (sectorSelect) sectorSelect.focus();
+        return false;
+      }
+      
+      // Check if designation is selected
+      if (!designationSelect || !designationSelect.value) {
+        alert('Please select Designation');
+        if (designationSelect) designationSelect.focus();
+        return false;
+      }
+      
+      return true;
+    };
   });
 </script>
 @endpush

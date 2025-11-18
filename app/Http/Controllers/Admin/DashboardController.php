@@ -40,15 +40,20 @@ class DashboardController extends Controller
         $complaintStatus = $request->input('complaint_status');
         $dateRange = $request->input('date_range');
         
-        // Get GE role for loading users
-        $geRole = \App\Models\Role::where('role_name', 'garrison_engineer')->first();
+        // Get GE role for loading users - try multiple variations
+        $geRole = \App\Models\Role::where(function($q) {
+            $q->whereRaw('LOWER(role_name) = ?', ['garrison_engineer'])
+              ->orWhereRaw('LOWER(role_name) = ?', ['garrison engineer'])
+              ->orWhereRaw('LOWER(role_name) LIKE ?', ['%garrison%engineer%'])
+              ->orWhereRaw('LOWER(role_name) LIKE ?', ['%ge%']);
+        })->first();
         
         // Get cities for filter: Check user table - if city_id is null, user can see all cities
         $cities = collect();
         if (Schema::hasTable('cities')) {
             if (!$user->city_id) {
                 // User has no city_id assigned, can see all cities
-                $cities = City::where('status', 'active')->orderBy('name')->get();
+                $cities = City::where('status', 'active')->orderBy('id', 'asc')->get();
                 // Load GE users for each city
                 if ($geRole) {
                     $cities->load(['users' => function($query) use ($geRole) {
@@ -79,14 +84,14 @@ class DashboardController extends Controller
                 if (!$user->city_id) {
                     // If user has no city_id, show all sectors or sectors of selected city
                     if ($cityId) {
-                        $sectors = Sector::where('city_id', $cityId)->where('status', 'active')->orderBy('name')->get();
+                        $sectors = Sector::where('city_id', $cityId)->where('status', 'active')->orderBy('id', 'asc')->get();
                     } else {
                         // User has no city_id and no sector_id - show all sectors
-                        $sectors = Sector::where('status', 'active')->orderBy('name')->get();
+                        $sectors = Sector::where('status', 'active')->orderBy('id', 'asc')->get();
                     }
                 } else {
                     // If user has city_id, show sectors in their city
-                    $sectors = Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('name')->get();
+                    $sectors = Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('id', 'asc')->get();
                 }
             } elseif ($user->sector_id && $user->sector) {
                 // User has sector_id assigned, sees only their sector
@@ -147,14 +152,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        // Get approvals with location filtering and filters (all statuses, not just pending)
+        // Get approvals with location filtering and filters
         $pendingApprovalsQuery = SpareApprovalPerforma::with(['complaint.client', 'complaint.assignedEmployee', 'requestedBy', 'items.spare']);
         
-        // Apply approval status filter directly on approvals (if specified, otherwise show all)
+        // Apply approval status filter directly on approvals (if specified, otherwise show only pending)
         if ($approvalStatus) {
             $pendingApprovalsQuery->where('status', $approvalStatus);
+        } else {
+            // If no approval status filter, show only pending approvals for "In Progress Complaints" section
+            $pendingApprovalsQuery->where('status', 'pending');
         }
-        // If no approval status filter, show all approvals (pending, approved, rejected)
         
         // Apply location filter through complaint relationship
         if (!$this->canViewAllData($user)) {
@@ -196,19 +203,100 @@ class DashboardController extends Controller
         $complaintsByStatusQuery = Complaint::query();
         $this->filterComplaintsByLocation($complaintsByStatusQuery, $user);
         $this->applyFilters($complaintsByStatusQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
-        $complaintsByStatus = $complaintsByStatusQuery->selectRaw('status, COUNT(*) as count')
+        
+        // Clone query before selectRaw to use for performa type counts
+        $performaCountQuery = clone $complaintsByStatusQuery;
+        
+        // Get status counts - map 'new' status to 'assigned' (same as approvals page)
+        $statusCounts = $complaintsByStatusQuery->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
+        
+        // Map 'new' status to 'assigned' for display (same logic as approvals page)
+        $complaintsByStatus = [];
+        foreach ($statusCounts as $status => $count) {
+            $displayStatus = ($status === 'new') ? 'assigned' : $status;
+            if (!isset($complaintsByStatus[$displayStatus])) {
+                $complaintsByStatus[$displayStatus] = 0;
+            }
+            $complaintsByStatus[$displayStatus] += $count;
+        }
+        
+        // Add performa type complaints that are stored as in_progress with performa_type in approvals
+        // Work Performa - count complaints with work_performa status (waiting_for_authority removed)
+        $workPerformaCount = (clone $performaCountQuery)
+            ->where('status', 'work_performa')
+            ->count();
+        if ($workPerformaCount > 0) {
+            $complaintsByStatus['work_performa'] = ($complaintsByStatus['work_performa'] ?? 0) + $workPerformaCount;
+        }
+        
+        // Maintenance Performa - count complaints with maint_performa status (waiting_for_authority removed)
+        $maintPerformaCount = (clone $performaCountQuery)
+            ->where('status', 'maint_performa')
+            ->count();
+        if ($maintPerformaCount > 0) {
+            $complaintsByStatus['maint_performa'] = ($complaintsByStatus['maint_performa'] ?? 0) + $maintPerformaCount;
+        }
+        
+        // Work Performa Priced - count complaints with work_priced_performa status (waiting_for_authority removed)
+        $workPricedPerformaCount = (clone $performaCountQuery)
+            ->where('status', 'work_priced_performa')
+            ->count();
+        if ($workPricedPerformaCount > 0) {
+            $complaintsByStatus['work_priced_performa'] = ($complaintsByStatus['work_priced_performa'] ?? 0) + $workPricedPerformaCount;
+        }
+        
+        // Maintenance Performa Priced - count complaints with maint_priced_performa status (waiting_for_authority removed)
+        $maintPricedPerformaCount = (clone $performaCountQuery)
+            ->where('status', 'maint_priced_performa')
+            ->count();
+        if ($maintPricedPerformaCount > 0) {
+            $complaintsByStatus['maint_priced_performa'] = ($complaintsByStatus['maint_priced_performa'] ?? 0) + $maintPricedPerformaCount;
+        }
 
-        // Get complaints by category with location filtering and filters
-        $complaintsByTypeQuery = Complaint::query();
-        $this->filterComplaintsByLocation($complaintsByTypeQuery, $user);
-        $this->applyFilters($complaintsByTypeQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
-        $complaintsByType = $complaintsByTypeQuery->selectRaw('category, COUNT(*) as count')
-            ->groupBy('category')
-            ->pluck('count', 'category')
-            ->toArray();
+        // Product N/A - count product_na status OR in_progress complaints with product_na performa_type
+        // First get direct product_na status count (already in $complaintsByStatus from line 199-202)
+        $directProductNaCount = $complaintsByStatus['product_na'] ?? 0;
+        
+        // Then count in_progress complaints with product_na performa_type in approvals
+        $productNaFromApprovals = (clone $performaCountQuery)
+            ->where('status', 'in_progress')
+            ->whereHas('spareApprovals', function($q) {
+                $q->where('performa_type', 'product_na')
+                  ->whereNull('deleted_at'); // Exclude soft deleted approvals
+            })
+            ->count();
+        
+        // Set total product_na count
+        $totalProductNa = $directProductNaCount + $productNaFromApprovals;
+        if ($totalProductNa > 0) {
+            $complaintsByStatus['product_na'] = $totalProductNa;
+        } elseif (!isset($complaintsByStatus['product_na'])) {
+            // Ensure product_na key exists even if count is 0
+            $complaintsByStatus['product_na'] = 0;
+        }
+
+        // Get complaints by category - using ComplaintCategory model
+        $allCategories = ComplaintCategory::orderBy('name', 'asc')->get();
+        $complaintsByType = [];
+        $complaintsByCategory = [];
+        
+        foreach ($allCategories as $cat) {
+            $complaintsByTypeQuery = Complaint::query();
+            $this->filterComplaintsByLocation($complaintsByTypeQuery, $user);
+            $this->applyFilters($complaintsByTypeQuery, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
+            $count = $complaintsByTypeQuery->where('category', $cat->name)->count();
+            
+            if ($count > 0) {
+                $complaintsByType[$cat->name] = $count;
+            }
+            $complaintsByCategory[$cat->id] = [
+                'name' => $cat->name,
+                'count' => $count,
+            ];
+        }
 
         // Get employee performance with location filtering
         $employeePerformanceQuery = Employee::query();
@@ -227,94 +315,110 @@ class DashboardController extends Controller
         // Get monthly trends with filters
         $monthlyTrends = $this->getMonthlyTrends($user, $cityId, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
 
-        // Get GE progress for Director or current GE user
+        // Get GE progress based on location filter only
+        // GE Groups are stored in cities table
         $geProgress = [];
-        $userRoleName = strtolower($user->role->role_name ?? '');
-        $isDirector = $this->canViewAllData($user);
-        $isGE = ($userRoleName === 'garrison_engineer');
         
-        // Show GE Feedback Overview if:
-        // 1. User is Director (canViewAllData)
-        // 2. User is GE
-        // 3. OR user has city_id and sector_id both null (can see all data)
+        // Location filter logic:
+        // 1. If user's city_id AND sector_id are both null - show all data
+        // 2. If user's city_id is set but sector_id is null - show only their city's data
+        // 3. If user has sector_id - they shouldn't see GE Feedback Overview
         $canSeeAllData = (!$user->city_id && !$user->sector_id);
+        $canSeeCityData = ($user->city_id && !$user->sector_id);
         
-        if (($isDirector || $isGE || $canSeeAllData) && $geRole) {
-            // If Director or user can see all data (city_id and sector_id both null), show all active GEs or filtered GE
-            // If GE, show only their own progress (if they are active)
-            if ($isDirector || $canSeeAllData) {
-                $geUsersQuery = User::where('role_id', $geRole->id)
-                    ->where('status', 'active')
-                    ->whereNotNull('city_id')
-                    ->with('city');
-                
-                // Apply GE filter if city_id is selected in dashboard filter
-                if ($cityId) {
-                    $geUsersQuery->where('city_id', $cityId);
-                }
-                
-                $geUsers = $geUsersQuery->orderBy('name')->get();
-            } else {
-                // GE user - show only their own progress if they are active
-                if ($user->status === 'active') {
-                    $geUsers = collect([$user]);
-                } else {
-                    $geUsers = collect();
-                }
+        // Check if user has permission to see GE Feedback Overview based on location filter
+        // Always initialize geProgress array even if empty, so view can check permissions
+        if ($canSeeAllData || $canSeeCityData) {
+            // Load GE Groups from cities table (cities with names containing 'GE' or 'AGE')
+            // Check if cities table exists
+            if (Schema::hasTable('cities')) {
+                // Load GE Groups from cities table (cities with names containing 'GE' or 'AGE')
+                $geGroupsQuery = City::where(function($q) {
+                        $q->where('name', 'LIKE', '%GE%')
+                          ->orWhere('name', 'LIKE', '%AGE%')
+                          ->orWhere('name', 'LIKE', '%ge%')
+                          ->orWhere('name', 'LIKE', '%age%');
+                    })
+                    ->where('status', 'active') // Only active cities
+                    ->orderBy('name');
+            
+            // Apply location filtering based on logged-in user's city_id and sector_id
+            // If user's city_id AND sector_id are both null, show all GE Groups (no filter)
+            // If user's sector_id is null but city_id has value, show only that GE Group
+            if (!$user->city_id && !$user->sector_id) {
+                // User has no city_id and no sector_id - show all GE Groups (no filter)
+            } elseif ($user->city_id && !$user->sector_id) {
+                // User has city_id but no sector_id - show only that GE Group
+                $geGroupsQuery->where('id', $user->city_id);
             }
             
-            foreach ($geUsers as $geUser) {
-                // Get total complaints for this GE's city with filters applied
-                $totalComplaintsQuery = Complaint::whereHas('client', function($q) use ($geUser) {
-                    if ($geUser->city_id && $geUser->city) {
-                        $q->where('city', $geUser->city->name);
-                    }
+            // Apply GE filter if city_id is selected in dashboard filter (priority)
+            // Dashboard filter uses city_id for GE Groups
+            if ($cityId) {
+                $geGroupsQuery->where('id', $cityId);
+            }
+            
+            $geGroups = $geGroupsQuery->get();
+            
+            foreach ($geGroups as $geGroup) {
+                // Get total complaints for this GE Group (city) with filters applied
+                // Filter by complaint's city_id
+                $totalComplaintsQuery = Complaint::query();
+                $totalComplaintsQuery->where(function($q) use ($geGroup) {
+                    // First try to match by complaint's city_id
+                    $q->where('city_id', $geGroup->id)
+                      // Or match by client's city name
+                      ->orWhereHas('client', function($clientQ) use ($geGroup) {
+                          $clientQ->where('city', $geGroup->name);
+                      });
                 });
                 
                 // Apply location filtering based on logged-in user's city_id and sector_id
-                // If user's city_id and sector_id are null, show all data (no filter)
-                // If user's sector_id is null (but city_id is set), show only their city's data
-                if ($user->city_id && !$user->sector_id) {
+                // If user's city_id AND sector_id are both null, show all data (no filter)
+                // If user's sector_id is null but city_id has value, show only that city's data
+                if (!$user->city_id && !$user->sector_id) {
+                    // User has no city_id and no sector_id - show all data (no filter)
+                } elseif ($user->city_id && !$user->sector_id) {
                     // User has city_id but no sector_id - show only their city's data
-                    if ($user->city) {
-                        $totalComplaintsQuery->whereHas('client', function($q) use ($user) {
-                            $q->where('city', $user->city->name);
-                        });
-                    }
+                    $totalComplaintsQuery->where('city_id', $user->city_id);
                 }
-                // If user's city_id and sector_id are both null, no filter is applied (show all data)
+                // If user has sector_id, they shouldn't see GE Feedback Overview (handled by canSeeAllData check)
                 
                 // Apply filters (sector, category, complaint status, date range)
-                // Note: Don't apply city_id filter again as we're already filtering by GE's city
+                // Note: Don't apply city_id filter again as we're already filtering by GE Group's city_id
                 $this->applyFilters($totalComplaintsQuery, null, $sectorId, $category, $approvalStatus, $complaintStatus, $dateRange);
                 $totalComplaints = $totalComplaintsQuery->count();
                 
-                // Get resolved complaints for this GE's city with feedback and filters
+                // Get resolved complaints for this GE Group (city) with feedback and filters
+                // Include both 'resolved' and 'closed' status complaints
                 // Feedback relationship automatically excludes soft deleted records
                 // When feedback is updated, the existing record is updated (not deleted)
-                $resolvedComplaintsQuery = Complaint::whereHas('client', function($q) use ($geUser) {
-                    if ($geUser->city_id && $geUser->city) {
-                        $q->where('city', $geUser->city->name);
-                    }
-                })->where('status', 'resolved')
-                  ->with('feedback'); // Load feedback relationship (excludes soft deleted by default)
+                $resolvedComplaintsQuery = Complaint::query();
+                $resolvedComplaintsQuery->where(function($q) use ($geGroup) {
+                    // First try to match by complaint's city_id
+                    $q->where('city_id', $geGroup->id)
+                      // Or match by client's city name
+                      ->orWhereHas('client', function($clientQ) use ($geGroup) {
+                          $clientQ->where('city', $geGroup->name);
+                      });
+                })
+                  ->whereIn('status', ['resolved', 'closed'])
+                  ->with('feedback'); // Load feedback relationship
                 
                 // Apply location filtering based on logged-in user's city_id and sector_id
-                // If user's city_id and sector_id are null, show all data (no filter)
-                // If user's sector_id is null (but city_id is set), show only their city's data
-                if ($user->city_id && !$user->sector_id) {
+                // If user's city_id AND sector_id are both null, show all data (no filter)
+                // If user's sector_id is null but city_id has value, show only that city's data
+                if (!$user->city_id && !$user->sector_id) {
+                    // User has no city_id and no sector_id - show all data (no filter)
+                } elseif ($user->city_id && !$user->sector_id) {
                     // User has city_id but no sector_id - show only their city's data
-                    if ($user->city) {
-                        $resolvedComplaintsQuery->whereHas('client', function($q) use ($user) {
-                            $q->where('city', $user->city->name);
-                        });
-                    }
+                    $resolvedComplaintsQuery->where('city_id', $user->city_id);
                 }
-                // If user's city_id and sector_id are both null, no filter is applied (show all data)
+                // If user has sector_id, they shouldn't see GE Feedback Overview (handled by canSeeAllData check)
                 
                 // Apply filters (sector, category, date range) - but NOT complaint status
                 // because we always need resolved status for feedback calculation
-                // Note: Don't apply city_id filter again as we're already filtering by GE's city
+                // Note: Don't apply city_id filter again as we're already filtering by GE Group's city_id
                 $this->applyFilters($resolvedComplaintsQuery, null, $sectorId, $category, $approvalStatus, null, $dateRange);
                 
                 $resolvedComplaints = $resolvedComplaintsQuery->get();
@@ -350,14 +454,18 @@ class DashboardController extends Controller
                     : 0;
                 
                 $geProgress[] = [
-                    'ge' => $geUser,
-                    'city' => $geUser->city ? $geUser->city->name : 'N/A',
+                    'ge' => $geGroup, // Store city object (GE Group)
+                    'ge_name' => $geGroup->name, // GE Group name
+                    'city' => $geGroup->name, // GE Group name (same as city name)
                     'total_complaints' => $totalComplaints,
                     'resolved_complaints' => $resolvedComplaints->count(),
                     'resolved_with_good_feedback' => $resolvedWithGoodFeedback,
                     'resolved_with_bad_feedback' => $resolvedWithBadFeedback,
                     'progress_percentage' => $progressPercentage,
                 ];
+            }
+            } else {
+                // Cities table doesn't exist, geProgress will remain empty
             }
         }
 
@@ -427,12 +535,48 @@ class DashboardController extends Controller
         
         // Filter by complaint status
         if ($complaintStatus) {
-            // Handle special performa statuses - work_performa and maint_performa are shown as in_progress
-            if ($complaintStatus === 'work_performa' || $complaintStatus === 'maint_performa') {
-                // These are shown as in_progress with special badges
-                $query->where('status', 'in_progress');
+            // Handle special performa statuses - work_performa and maint_performa
+            if ($complaintStatus === 'work_performa') {
+                // Match complaints with work_performa status OR in_progress with work_performa performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'work_performa')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('performa_type', 'work_performa');
+                               });
+                      });
+                });
+            } elseif ($complaintStatus === 'maint_performa') {
+                // Match complaints with maint_performa status OR in_progress with maint_performa performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'maint_performa')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('performa_type', 'maint_performa');
+                               });
+                      });
+                });
+            } elseif ($complaintStatus === 'work_priced_performa') {
+                // waiting_for_authority removed - only check direct status match
+                $query->where('status', 'work_priced_performa');
+            } elseif ($complaintStatus === 'maint_priced_performa') {
+                // waiting_for_authority removed - only check direct status match
+                $query->where('status', 'maint_priced_performa');
+            } elseif ($complaintStatus === 'product_na') {
+                // Match product_na status OR in_progress with product_na performa_type
+                $query->where(function($q) {
+                    $q->where('status', 'product_na')
+                      ->orWhere(function($subQ) {
+                          $subQ->where('status', 'in_progress')
+                               ->whereHas('spareApprovals', function($approvalQ) {
+                                   $approvalQ->where('performa_type', 'product_na');
+                               });
+                      });
+                });
             } else {
-                // For priced performa and other statuses, filter by actual status
+                // For other statuses, filter by actual status
                 $query->where('status', $complaintStatus);
             }
         }
@@ -520,13 +664,38 @@ class DashboardController extends Controller
             'complaints_this_month' => (clone $complaintsQuery)->where('created_at', '>=', $thisMonth)->count(),
             'complaints_last_month' => (clone $complaintsQuery)->whereBetween('created_at', [$lastMonth, $thisMonth])->count(),
 
-            // Complaint status statistics
-            'work_performa' => (clone $complaintsQuery)->where('status', 'work_performa')->count(),
-            'maint_performa' => (clone $complaintsQuery)->where('status', 'maint_performa')->count(),
+            // Complaint status statistics - include both direct status and performa_type from approvals
+            'work_performa' => (clone $complaintsQuery)->where(function($q) {
+                $q->where('status', 'work_performa')
+                  ->orWhere(function($subQ) {
+                      $subQ->where('status', 'in_progress')
+                           ->whereHas('spareApprovals', function($approvalQ) {
+                               $approvalQ->where('performa_type', 'work_performa');
+                           });
+                  });
+            })->count(),
+            'maint_performa' => (clone $complaintsQuery)->where(function($q) {
+                $q->where('status', 'maint_performa')
+                  ->orWhere(function($subQ) {
+                      $subQ->where('status', 'in_progress')
+                           ->whereHas('spareApprovals', function($approvalQ) {
+                               $approvalQ->where('performa_type', 'maint_performa');
+                           });
+                  });
+            })->count(),
             'work_priced_performa' => (clone $complaintsQuery)->where('status', 'work_priced_performa')->count(),
             'maint_priced_performa' => (clone $complaintsQuery)->where('status', 'maint_priced_performa')->count(),
             'un_authorized' => (clone $complaintsQuery)->where('status', 'un_authorized')->count(),
-            'product_na' => (clone $complaintsQuery)->where('status', 'product_na')->count(),
+            'product_na' => (clone $complaintsQuery)->where(function($q) {
+                $q->where('status', 'product_na')
+                  ->orWhere(function($subQ) {
+                      $subQ->where('status', 'in_progress')
+                           ->whereHas('spareApprovals', function($approvalQ) {
+                               $approvalQ->where('performa_type', 'product_na')
+                                         ->whereNull('deleted_at'); // Exclude soft deleted approvals
+                           });
+                  });
+            })->count(),
             'pertains_to_ge_const_isld' => (clone $complaintsQuery)->where('status', 'pertains_to_ge_const_isld')->count(),
 
             // User statistics (users are not location-based)
@@ -563,7 +732,7 @@ class DashboardController extends Controller
             
             $withinSla = Complaint::where('created_at', '>=', now()->subDays(30))
                 ->whereIn('status', ['resolved', 'closed'])
-                ->whereRaw("{$timeDiff} <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active')")
+                ->whereRaw("{$timeDiff} <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999)")
                 ->count();
 
             $breached = $totalComplaints - $withinSla;
@@ -621,7 +790,7 @@ class DashboardController extends Controller
         $timeDiff = $this->getTimeDiffFromNow('created_at');
         
         return Complaint::whereIn('status', ['assigned', 'in_progress'])
-            ->whereRaw("{$timeDiff} > (SELECT max_response_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active')")
+            ->whereRaw("{$timeDiff} > COALESCE((SELECT MIN(max_response_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999)")
             ->count();
     }
 
@@ -698,8 +867,8 @@ class DashboardController extends Controller
         $data = Complaint::where('created_at', '>=', now()->subDays($period))
             ->selectRaw("category, 
                 COUNT(*) as total,
-                SUM(CASE WHEN {$timeDiff} <= (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active') THEN 1 ELSE 0 END) as within_sla,
-                SUM(CASE WHEN {$timeDiff} > (SELECT max_resolution_time FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active') THEN 1 ELSE 0 END) as breached")
+                SUM(CASE WHEN {$timeDiff} <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999) THEN 1 ELSE 0 END) as within_sla,
+                SUM(CASE WHEN {$timeDiff} > COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = 'active'), 999999) THEN 1 ELSE 0 END) as breached")
             ->groupBy('category')
             ->get();
 

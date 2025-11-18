@@ -20,7 +20,7 @@ class DesignationController extends Controller
                 ->with('error', 'Run migrations to create designations table.');
         }
 
-        $designations = Designation::orderBy('id', 'desc')->paginate(15);
+        $designations = Designation::orderBy('id', 'asc')->paginate(15);
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
@@ -58,7 +58,6 @@ class DesignationController extends Controller
                     }
                 }
             ],
-            'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ];
         
@@ -139,10 +138,17 @@ class DesignationController extends Controller
             }
             
             $designation->update($validated);
-            return back()->with('success', 'Designation updated');
+            
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => true, 'message' => 'Designation updated']);
+            }
+            return redirect()->route('admin.designation.index')->with('success', 'Designation updated');
         } catch (\Exception $e) {
             Log::error('Designation update error: ' . $e->getMessage());
-            return back()->with('error', 'Error updating designation: ' . $e->getMessage())->withInput();
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => false, 'message' => 'Error updating designation: ' . $e->getMessage()], 422);
+            }
+            return redirect()->route('admin.designation.index')->with('error', 'Error updating designation: ' . $e->getMessage())->withInput();
         }
     }
 

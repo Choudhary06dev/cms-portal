@@ -34,28 +34,6 @@
   </div>
 @endif
 
-<!-- Filters -->
-<div class="card-glass mb-3" style="display: inline-block; width: fit-content;">
-  <form method="GET" action="{{ route('admin.complaint-titles.index') }}" class="d-flex flex-wrap align-items-end gap-2">
-    <div style="min-width: 200px; flex: 0 0 240px;">
-      <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Category</label>
-      <select name="category" class="form-select" onchange="this.form.submit()">
-        <option value="">All Categories</option>
-        @foreach($categories as $cat)
-          <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-        @endforeach
-      </select>
-    </div>
-    <div style="min-width: 240px; flex: 1 1 320px;">
-      <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Search</label>
-      <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search Types or description...">
-    </div>
-    <div class="d-grid" style="flex: 0 0 120px;">
-      <button class="btn btn-accent" type="submit" style="width: 100%;">Search</button>
-    </div>
-  </form>
-</div>
-
 <div class="card-glass mb-3">
   <div class="card-header">
     <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add Complaint Type</h5>
@@ -75,7 +53,7 @@
       </div>
       <div style="min-width: 280px; flex: 1 1 400px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Types <span class="text-danger">*</span></label>
-        <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror" placeholder="Complaint title" required>
+        <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror" placeholder="Complaint Type" required>
         @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 260px; flex: 1 1 380px;">
@@ -84,7 +62,7 @@
         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div class="d-grid" style="flex: 0 0 140px;">
-        <button class="btn btn-accent" type="submit" style="width: 100%;">Add</button>
+        <button class="btn btn-outline-secondary" type="submit" style="width: 100%;"> <i data-feather="plus" class="me-2"></i> Add</button>
       </div>
     </form>
   </div>
@@ -100,8 +78,9 @@
         <thead>
           <tr>
             <th style="width:70px">#</th>
+                        <th>Types</th>
+
             <th>Category</th>
-            <th>Types</th>
             <th>Description</th>
             <th style="width:180px">Actions</th>
           </tr>
@@ -110,21 +89,22 @@
         @forelse($complaintTitles as $title)
           <tr>
             <td>{{ $title->id }}</td>
+                        <td><strong>{{ $title->title }}</strong></td>
+
             <td>
               {{ ucfirst($title->category) }}
             </td>
-            <td><strong>{{ $title->title }}</strong></td>
             <td>{{ $title->description ? Str::limit($title->description, 80) : '-' }}</td>
             <td>
               <div class="btn-group" role="group">
-                <button class="btn btn-outline-info btn-sm" onclick="editTitle({{ $title->id }}, '{{ $title->category }}', '{{ addslashes($title->title) }}', '{{ addslashes($title->description ?? '') }}')" title="Edit">
-                  <i data-feather="edit"></i>
+                <button class="btn btn-outline-primary btn-sm" onclick="editTitle({{ $title->id }}, '{{ $title->category }}', '{{ addslashes($title->title) }}', '{{ addslashes($title->description ?? '') }}')" title="Edit" style="padding: 3px 8px;">
+                  <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
                 <form action="{{ route('admin.complaint-titles.destroy', $title) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this complaint title?');">
                   @csrf
                   @method('DELETE')
-                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
-                    <i data-feather="trash-2"></i>
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete" style="padding: 3px 8px;">
+                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
                   </button>
                 </form>
               </div>
@@ -187,8 +167,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-accent">Update</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-accent">Save Changes</button>
         </div>
       </form>
     </div>
@@ -197,14 +177,6 @@
 </div>
 
 @push('styles')
-<style>
-  .container-narrow { max-width: 1200px; margin: 0 auto; }
-  .table.compact-table th, .table.compact-table td { padding: .55rem .75rem; font-size: .95rem; }
-  .card-glass { padding: 16px; }
-  .form-control, .form-select { padding: .48rem .7rem; font-size: .96rem; }
-  .btn.btn-sm { padding: .32rem .6rem; font-size: .85rem; }
-  .card-title { font-size: 1.05rem; }
-</style>
 @endpush
 
 @push('scripts')

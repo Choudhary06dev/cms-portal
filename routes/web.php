@@ -121,10 +121,6 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         // Employee-specific routes (must come AFTER resource routes)
         Route::get('employees/{employee}/edit-data', [AdminEmployeeController::class, 'getEditData'])->name('employees.edit-data');
         Route::post('employees/{employee}/toggle-status', [AdminEmployeeController::class, 'toggleStatus'])->name('employees.toggle-status');
-        Route::get('employees/{employee}/leaves', [AdminEmployeeController::class, 'getLeaves'])->name('employees.leaves');
-        Route::post('employees/{employee}/leaves', [AdminEmployeeController::class, 'createLeave'])->name('employees.create-leave');
-        Route::post('employees/{employee}/leaves/{leave}/approve', [AdminEmployeeController::class, 'approveLeave'])->name('employees.approve-leave');
-        Route::post('employees/{employee}/leaves/{leave}/reject', [AdminEmployeeController::class, 'rejectLeave'])->name('employees.reject-leave');
         Route::get('employees/{employee}/performance', [AdminEmployeeController::class, 'getPerformance'])->name('employees.performance');
     });
     
@@ -179,7 +175,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('sector', AdminSectorController::class)
         ->only(['index','store','update','destroy'])
-        ->middleware(['permission:employees.view']);
+        ->middleware(['permission:sector.view']);
     Route::get('sectors-by-city', [AdminSectorController::class, 'getSectorsByCity'])->name('sectors.by-city');
 
     // ===============================
@@ -187,7 +183,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('city', AdminCityController::class)
         ->only(['index','store','update','destroy'])
-        ->middleware(['permission:employees.view']);
+        ->middleware(['permission:city.view']);
 
 
     // ===============================
@@ -195,7 +191,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // ===============================
     Route::resource('designation', AdminDesignationController::class)
         ->only(['index','store','update','destroy'])
-        ->middleware(['permission:employees.view']);
+        ->middleware(['permission:designation.view']);
 
     // ===============================
     // ⚙️ Spares, Approvals, SLA, Reports, Settings, Help
@@ -215,6 +211,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::post('approvals/{approval}/reject', [AdminApprovalController::class, 'reject'])->middleware(['permission:approvals.view'])->name('approvals.reject');
     Route::post('approvals/{approval}/update-reason', [AdminApprovalController::class, 'updateReason'])->middleware(['permission:approvals.view'])->name('approvals.update-reason');
     Route::post('approvals/{approval}/save-performa', [AdminApprovalController::class, 'saveWithPerforma'])->middleware(['permission:approvals.view'])->name('approvals.save-performa');
+    Route::post('approvals/{approval}/update-performa-type', [AdminApprovalController::class, 'updatePerformaType'])->middleware(['permission:approvals.view'])->name('approvals.update-performa-type');
     Route::post('approvals/bulk-action', [AdminApprovalController::class, 'bulkAction'])->middleware(['permission:approvals.view'])->name('approvals.bulk-action');
     Route::post('approvals/complaints/{complaintId}/update-status', [AdminApprovalController::class, 'updateComplaintStatus'])->middleware(['permission:approvals.view'])->name('approvals.complaints.update-status');
     Route::resource('sla', AdminSlaController::class)->middleware(['permission:sla.view']);

@@ -27,7 +27,7 @@ class ComplaintAttachment extends Model
      */
     public function complaint(): BelongsTo
     {
-        return $this->belongsTo(Complaint::class);
+        return $this->belongsTo(Complaint::class, 'complaint_id', 'id');
     }
 
     /**

@@ -34,7 +34,7 @@ class StockAddData extends Model
      */
     public function spare(): BelongsTo
     {
-        return $this->belongsTo(Spare::class);
+        return $this->belongsTo(Spare::class, 'spare_id', 'id');
     }
 
     /**
@@ -42,7 +42,7 @@ class StockAddData extends Model
      */
     public function addedByEmployee(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'added_by');
+        return $this->belongsTo(Employee::class, 'added_by', 'id');
     }
 }
 

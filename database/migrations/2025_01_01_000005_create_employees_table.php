@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name', 150);
             $table->string('email', 150)->nullable()->unique();
-            $table->string('department', 100)->nullable();
             $table->string('designation', 100)->nullable();
             $table->string('phone', 20)->nullable();
             // emp_id removed
@@ -28,18 +27,6 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
-        
-        // Add foreign key constraints only if cities and sectors tables exist
-        if (Schema::hasTable('cities')) {
-            Schema::table('employees', function (Blueprint $table) {
-                $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
-            });
-        }
-        if (Schema::hasTable('sectors')) {
-            Schema::table('employees', function (Blueprint $table) {
-                $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('set null');
-            });
-        }
     }
 
     /**

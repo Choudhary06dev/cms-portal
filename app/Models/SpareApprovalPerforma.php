@@ -35,7 +35,7 @@ class SpareApprovalPerforma extends Model
      */
     public function complaint(): BelongsTo
     {
-        return $this->belongsTo(Complaint::class);
+        return $this->belongsTo(Complaint::class, 'complaint_id', 'id');
     }
 
     /**
@@ -43,7 +43,7 @@ class SpareApprovalPerforma extends Model
      */
     public function requestedBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'requested_by')->withTrashed();
+        return $this->belongsTo(Employee::class, 'requested_by', 'id')->withTrashed();
     }
 
     /**
@@ -51,7 +51,7 @@ class SpareApprovalPerforma extends Model
      */
     public function approvedBy(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'approved_by')->withTrashed();
+        return $this->belongsTo(Employee::class, 'approved_by', 'id')->withTrashed();
     }
 
     /**
@@ -59,7 +59,7 @@ class SpareApprovalPerforma extends Model
      */
     public function items(): HasMany
     {
-        return $this->hasMany(SpareApprovalItem::class, 'performa_id');
+        return $this->hasMany(SpareApprovalItem::class, 'performa_id', 'id');
     }
 
     /**
@@ -68,7 +68,7 @@ class SpareApprovalPerforma extends Model
     public static function getStatuses(): array
     {
         return [
-            'pending' => 'Pending',
+            'pending' => 'In Progress',
             'approved' => 'Approved',
             'rejected' => 'Rejected',
         ];

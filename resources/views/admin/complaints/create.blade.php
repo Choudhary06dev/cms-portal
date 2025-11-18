@@ -76,10 +76,10 @@
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
-                                <label for="city_id" class="form-label text-white">City</label>
+                                <label for="city_id" class="form-label text-white">GE Groups</label>
                                 <select class="form-select @error('city_id') is-invalid @enderror" id="city_id"
                                     name="city_id">
-                                    <option value="">Select City</option>
+                                    <option value="">Select GE Groups</option>
                                     @if (isset($cities) && $cities->count() > 0)
                                         @foreach ($cities as $city)
                                             <option value="{{ $city->id }}"
@@ -96,11 +96,11 @@
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
-                                <label for="sector_id" class="form-label text-white">Sector</label>
+                                <label for="sector_id" class="form-label text-white">GE Nodes</label>
                                 <select class="form-select @error('sector_id') is-invalid @enderror" id="sector_id"
                                     name="sector_id" {{ old('city_id', $defaultCityId ?? null) ? '' : 'disabled' }}>
                                     <option value="">
-                                        {{ old('city_id', $defaultCityId ?? null) ? 'Loading sectors...' : 'Select City First' }}
+                                        {{ old('city_id', $defaultCityId ?? null) ? 'Loading GE Nodes...' : 'Select GE Groups First' }}
                                     </option>
                                 </select>
                                 @error('sector_id')
@@ -113,7 +113,7 @@
                                 <label for="address" class="form-label text-white">Address</label>
                                 <input type="text" class="form-control @error('address') is-invalid @enderror"
                                     id="address" name="address" value="{{ old('address') }}"
-                                    placeholder="e.g., 00/0-ST-0-B-0">
+                                    placeholder="e.g., 00-ST0-B0">
                                 @error('address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -122,9 +122,11 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="phone" class="form-label text-white">Phone No.</label>
-                                <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                                <input type="tel" class="form-control @error('phone') is-invalid @enderror"
                                     id="phone" name="phone" value="{{ old('phone') }}"
-                                    placeholder="Enter phone number">
+                                    placeholder="Enter phone number"
+                                    pattern="[0-9]*" inputmode="numeric" 
+                                    onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                                 @error('phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -211,11 +213,11 @@
                                     @if (isset($employees) && $employees->count() > 0)
                                         @foreach ($employees as $employee)
                                             <option value="{{ $employee->id }}"
-                                                data-category="{{ $employee->department }}"
+                                                data-category="{{ $employee->category ?? '' }}"
                                                 data-city="{{ $employee->city_id }}"
                                                 data-sector="{{ $employee->sector_id }}"
                                                 {{ (string) old('assigned_employee_id') === (string) $employee->id ? 'selected' : '' }}>
-                                                {{ $employee->name }}</option>
+                                                {{ $employee->name }}@if($employee->designation) ({{ $employee->designation }})@endif</option>
                                         @endforeach
                                     @else
                                         <option value="" disabled>No employees available</option>
@@ -255,94 +257,46 @@
 @endsection
 
 @push('styles')
-    <style>
-        /* Form control styling for all themes */
-        .form-control {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(59, 130, 246, 0.3) !important;
-            color: #1e293b !important;
-        }
-
-        .form-control::placeholder {
-            color: rgba(30, 41, 59, 0.6) !important;
-        }
-
-        .form-control:focus {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-color: #3b82f6 !important;
-            color: #1e293b !important;
-            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-        }
-
-        .form-select {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(59, 130, 246, 0.3) !important;
-            color: #1e293b !important;
-        }
-
-        .form-select:focus {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-color: #3b82f6 !important;
-            color: #1e293b !important;
-            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
-        }
-
-        /* Light theme dropdown styling */
-        .theme-light .form-select {
-            background-color: #fff !important;
-            color: #1e293b !important;
-        }
-
-        .theme-light .form-select option {
-            background-color: #fff !important;
-            color: #1e293b !important;
-        }
-
-        .theme-light .form-select option:hover {
-            background-color: #f8fafc !important;
-            color: #1e293b !important;
-        }
-
-        .theme-light .form-select option:checked {
-            background-color: #3b82f6 !important;
-            color: #fff !important;
-        }
-
-        /* Dark and Night theme dropdown styling */
-        .theme-dark .form-select,
-        .theme-night .form-select {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            color: #fff !important;
-        }
-
-        .theme-dark .form-select option,
-        .theme-night .form-select option {
-            background-color: #1e293b !important;
-            color: #fff !important;
-        }
-
-        .theme-dark .form-select option:hover,
-        .theme-night .form-select option:hover {
-            background-color: #334155 !important;
-            color: #fff !important;
-        }
-
-        .theme-dark .form-select option:checked,
-        .theme-night .form-select option:checked {
-            background-color: #3b82f6 !important;
-            color: #fff !important;
-        }
-    </style>
 @endpush
 
 @push('scripts')
     <script>
         // Stock validation and auto-adjustment
         document.addEventListener('DOMContentLoaded', function() {
+            // Phone number input validation - only allow numbers
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+                phoneInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                    const numbersOnly = pastedText.replace(/[^0-9]/g, '');
+                    this.value = numbersOnly;
+                });
+            }
+            
             const spareSelect = document.getElementById('spare_select');
             const quantityInput = document.getElementById('quantity_input');
             const stockWarning = document.getElementById('stock_warning');
             const categorySelect = document.getElementById('category');
+            
+            // Get form reference once (will be used for multiple validations)
+            const complaintForm = document.querySelector('form[action*="complaints"]');
+            
+            // Form validation - check phone number before submit
+            if (complaintForm && phoneInput) {
+                complaintForm.addEventListener('submit', function(e) {
+                    const phoneValue = phoneInput.value.trim();
+                    if (phoneValue && phoneValue.length < 11) {
+                        e.preventDefault();
+                        alert('Phone number must be at least 11 digits.');
+                        phoneInput.focus();
+                        return false;
+                    }
+                });
+            }
 
             // Stock validation and auto-adjustment (only if spare/quantity inputs exist)
             if (spareSelect && quantityInput) {
@@ -517,7 +471,14 @@
                             titleSelect.innerHTML = '<option value="">Select Complaint Title</option>';
 
                             if (data && data.length > 0) {
-                                data.forEach(title => {
+                                // Sort titles in ascending order by title name (natural/numeric sorting)
+                                const sortedData = data.sort((a, b) => {
+                                    const titleA = (a.title || '').toLowerCase();
+                                    const titleB = (b.title || '').toLowerCase();
+                                    return titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: 'base' });
+                                });
+                                
+                                sortedData.forEach(title => {
                                     const option = document.createElement('option');
                                     option.value = title.title;
                                     option.textContent = title.title;
@@ -647,12 +608,12 @@
                     const cityId = this.value;
 
                     if (!cityId) {
-                        sectorSelect.innerHTML = '<option value="">Select City First</option>';
+                        sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
                         sectorSelect.disabled = true;
                         return;
                     }
 
-                    sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+                    sectorSelect.innerHTML = '<option value="">Loading GE Nodes...</option>';
                     sectorSelect.disabled = true;
 
                     fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
@@ -664,7 +625,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+                            sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
                             if (data && data.length > 0) {
                                 data.forEach(sector => {
                                     const option = document.createElement('option');
@@ -674,13 +635,13 @@
                                 });
                             } else {
                                 sectorSelect.innerHTML =
-                                    '<option value="">No sectors found for this city</option>';
+                                    '<option value="">No GE Nodes found for this GE Groups</option>';
                             }
                             sectorSelect.disabled = false;
                         })
                         .catch(error => {
-                            console.error('Error loading sectors:', error);
-                            sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+                            console.error('Error loading GE Nodes:', error);
+                            sectorSelect.innerHTML = '<option value="">Error loading GE Nodes</option>';
                             sectorSelect.disabled = false;
                         });
                 });
@@ -700,7 +661,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+                            sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
                             if (data && data.length > 0) {
                                 data.forEach(sector => {
                                     const option = document.createElement('option');
@@ -714,20 +675,20 @@
                                 });
                             } else {
                                 sectorSelect.innerHTML =
-                                    '<option value="">No sectors found for this city</option>';
+                                    '<option value="">No GE Nodes found for this GE Groups</option>';
                             }
                             sectorSelect.disabled = false;
                         })
                         .catch(error => {
-                            console.error('Error loading sectors:', error);
-                            sectorSelect.innerHTML = '<option value="">Error loading sectors</option>';
+                            console.error('Error loading GE Nodes:', error);
+                            sectorSelect.innerHTML = '<option value="">Error loading GE Nodes</option>';
                             sectorSelect.disabled = false;
                         });
                 }
             }
 
             // Form submit handler: sync title_other to title when "Other" is selected
-            const complaintForm = document.querySelector('form[action*="complaints.store"]');
+            // Use the same form reference declared above
             if (complaintForm && titleSelect && titleOtherInput) {
                 complaintForm.addEventListener('submit', function(e) {
                     if (titleSelect.value === 'other' || titleOtherInput.style.display !== 'none') {

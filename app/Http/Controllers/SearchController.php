@@ -158,8 +158,7 @@ class SearchController extends Controller
         // Search Employees
         $employees = Employee::query()
             ->where(function($q) use ($query) {
-                $q->where('designation', 'like', "%{$query}%")
-                  ->orWhere('department', 'like', "%{$query}%");
+                $q->where('designation', 'like', "%{$query}%");
             })
             ->orWhere('name', 'like', "%{$query}%")
             ->orWhere('email', 'like', "%{$query}%")
@@ -178,7 +177,7 @@ class SearchController extends Controller
                         'id' => $employee->id,
                         'title' => $employee->name ?? 'Unknown',
                         'subtitle' => $employee->designation,
-                        'description' => $employee->department,
+                        'description' => '',
                         'status' => ($employee->status === 'active') ? 'Active' : 'Inactive',
                         'url' => route('admin.employees.show', $employee->id),
                         'created_at' => $employee->created_at->format('M d, Y')

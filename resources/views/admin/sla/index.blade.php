@@ -10,7 +10,7 @@
       <h2 class="text-white mb-2" >SLA Rules Management</h2>
       <p class="text-light" >Manage Service Level Agreement rules and compliance</p>
       </div>
-    <a href="{{ route('admin.sla.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.sla.create') }}" class="btn btn-outline-secondary">
       <i data-feather="plus" class="me-2"></i>Add SLA Rule
         </a>
       </div>
@@ -79,21 +79,21 @@
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
           <td >{{ $rule->notifyTo->name ?? 'N/A' }}</td>
           <td>
-            <span class="status-badge status-{{ $rule->status ?? 'active' }}" style="color: #ffffff !important;">
+            <span class="status-badge status-{{ $rule->status ?? 'active' }}">
               {{ ucfirst($rule->status ?? 'active') }}
                 </span>
               </td>
           <td >{{ $rule->created_at->format('M d, Y') }}</td>
               <td>
             <div class="btn-group" role="group">
-              <button class="btn btn-outline-info btn-sm" onclick="viewRule({{ $rule->id }})" title="View Details">
-                    <i data-feather="eye"></i>
+              <button class="btn btn-outline-success btn-sm" onclick="viewRule({{ $rule->id }})" title="View Details" style="padding: 3px 8px;">
+                    <i data-feather="eye" style="width: 16px; height: 16px;"></i>
               </button>
-              <button class="btn btn-outline-warning btn-sm" onclick="editRule({{ $rule->id }})" title="Edit">
-                    <i data-feather="edit"></i>
-              </button>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteRule({{ $rule->id }})" title="Delete">
-                      <i data-feather="trash-2"></i>
+              <a href="{{ route('admin.sla.edit', $rule->id) }}" class="btn btn-outline-primary btn-sm" title="Edit" style="padding: 3px 8px;">
+                    <i data-feather="edit" style="width: 16px; height: 16px;"></i>
+              </a>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteRule({{ $rule->id }})" title="Delete" style="padding: 3px 8px;">
+                      <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
               </td>
@@ -127,18 +127,6 @@
 @endsection
 
 @push('styles')
-<style>
-  .priority-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-  .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-  .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-  .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-  .priority-urgent { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
-  .priority-emergency { background: rgba(220, 38, 38, 0.3); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.5); }
-  
-  .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-  .status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-  .status-inactive { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-</style>
 @endpush
 
 @push('scripts')

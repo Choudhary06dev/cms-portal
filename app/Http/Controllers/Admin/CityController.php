@@ -20,7 +20,7 @@ class CityController extends Controller
         }
 
         // Show all cities; status column indicates active/inactive
-        $cities = City::orderBy('id', 'desc')->paginate(15);
+        $cities = City::orderBy('id', 'asc')->paginate(15);
         return view('admin.city.index', compact('cities'));
     }
 
@@ -31,8 +31,6 @@ class CityController extends Controller
         }
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:cities,name,NULL,id,status,active',
-            'province' => 'nullable|string|max:100|in:Sindh,Punjab,KPK,Balochistan,Federal,Azad Kashmir',
-            'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
         City::create($validated);
@@ -50,8 +48,6 @@ class CityController extends Controller
             
             $rules = [
                 'name' => 'required|string|max:100',
-                'province' => 'nullable|string|max:100|in:Sindh,Punjab,KPK,Balochistan,Federal,Azad Kashmir',
-                'description' => 'nullable|string',
                 'status' => 'required|in:active,inactive',
             ];
             
@@ -69,9 +65,16 @@ class CityController extends Controller
             
             $validated = $request->validate($rules);
             $city->update($validated);
+            
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => true, 'message' => 'City updated']);
+            }
             return back()->with('success', 'City updated');
         } catch (\Exception $e) {
             Log::error('City update error: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+            }
             return back()->with('error', 'Error updating city: ' . $e->getMessage())->withInput();
         }
     }

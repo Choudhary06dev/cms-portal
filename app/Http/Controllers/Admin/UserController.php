@@ -58,7 +58,7 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        $cities = City::where('status', 'active')->orderBy('name')->get();
+        $cities = City::where('status', 'active')->orderBy('id', 'asc')->get();
         $sectors = collect(); // Will be populated dynamically based on selected city
         return view('admin.users.create', compact('roles', 'cities', 'sectors'));
     }
@@ -72,6 +72,7 @@ class UserController extends Controller
             'username' => 'required|string|max:100|unique:users',
             'name' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:150|unique:users,email',
+            'phone' => 'nullable|string|min:11|max:20',
             'password' => 'required|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'city_id' => 'nullable|exists:cities,id',
@@ -138,9 +139,9 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        $cities = City::where('status', 'active')->orderBy('name')->get();
+        $cities = City::where('status', 'active')->orderBy('id', 'asc')->get();
         $sectors = $user->city_id 
-            ? Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('name')->get()
+            ? Sector::where('city_id', $user->city_id)->where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         return view('admin.users.edit', compact('user', 'roles', 'cities', 'sectors'));
     }
@@ -160,7 +161,7 @@ class UserController extends Controller
             'username' => 'required|string|max:100|unique:users,username,' . $user->id,
             'name' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:150|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|min:11|max:20',
             'password' => 'nullable|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'city_id' => 'nullable|exists:cities,id',

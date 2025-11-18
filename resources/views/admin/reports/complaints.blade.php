@@ -10,10 +10,10 @@
       <h2 class="text-white mb-2">(CMS) COMPLAINT MANAGEMENT SYSTEM</h2>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-success" onclick="window.print()">
+      <button class="btn btn-primary" onclick="window.print()">
         <i data-feather="printer" class="me-2"></i>Print Pdf
       </button>
-      <a href="{{ route('admin.reports.complaints', array_merge(request()->query(), ['format' => 'excel'])) }}" class="btn btn-success">
+      <a href="{{ route('admin.reports.complaints', array_merge(request()->query(), ['format' => 'excel'])) }}" class="btn btn-primary">
         <i data-feather="download" class="me-2"></i>Excel
       </a>
     </div>
@@ -44,23 +44,23 @@
       <p class="text-muted small mb-0">Period: {{ \Carbon\Carbon::parse($dateFrom)->format('d M Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('d M Y') }}</p>
     </div>
     
-    <div class="table-responsive">
-      <table class="table table-bordered table-dark" style="font-size: 0.875rem; width: 100%;">
+    <div class="table-responsive" style="overflow-x: hidden !important; width: 100% !important; max-width: 100% !important;">
+      <table class="table table-bordered table-dark" style="font-size: 0.65rem; width: 100%; table-layout: fixed;">
         <thead>
           <tr class="table-header-row">
-            <th rowspan="2" class="align-middle text-left" style="min-width: 200px; color: #000000 !important; font-weight: 700 !important; text-align: left !important;">Description</th>
+            <th rowspan="2" class="align-middle text-left" style="width: 12%; color: #000000 !important; font-weight: 700 !important; text-align: left !important; font-size: 0.65rem !important; padding: 0.3rem 0.2rem !important;">Description</th>
             @foreach($categories as $catKey => $catName)
-              <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important;">{{ $catName }}</th>
+              <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.6rem !important; white-space: nowrap !important; padding: 0.3rem 0.15rem !important; width: {{ 88 / (count($categories) * 2 + 2) }}% !important;">{{ $catName }}</th>
             @endforeach
-            <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Total</th>
+            <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.3rem 0.15rem !important; width: 6% !important;">Total</th>
           </tr>
           <tr class="table-header-row">
             @foreach($categories as $catKey => $catName)
-              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Qty (No's)</th>
-              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">%age</th>
+              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.6rem !important; padding: 0.25rem 0.1rem !important;">Qty</th>
+              <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.6rem !important; padding: 0.25rem 0.1rem !important;">%</th>
             @endforeach
-            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">Qty (No's)</th>
-            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important;">%age</th>
+            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.25rem 0.1rem !important;">Qty</th>
+            <th class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.25rem 0.1rem !important;">%</th>
           </tr>
         </thead>
         <tbody>
@@ -81,15 +81,15 @@
           @endphp
           @foreach($reportData as $rowKey => $row)
           <tr class="{{ $rowKey === 'total' ? 'table-total-row' : '' }}">
-            <td class="fw-bold text-left" style="text-align: left !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
+            <td class="fw-bold text-left" style="text-align: left !important; font-size: 0.65rem !important; padding: 0.3rem 0.2rem !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">
               {{ $statusDisplayNames[$rowKey] ?? $row['name'] }}
             </td>
             @foreach($categories as $catKey => $catName)
               @php
                 $cellData = $row['categories'][$catKey] ?? ['count' => 0, 'percentage' => 0];
               @endphp
-              <td class="text-center" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['count']) }}</td>
-              <td class="text-center" style="{{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['percentage'], 1) }}%</td>
+              <td class="text-center" style="font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['count']) }}</td>
+              <td class="text-center" style="font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important; {{ $rowKey === 'total' ? 'color: #000000 !important; font-weight: 700 !important;' : '' }}">{{ number_format($cellData['percentage'], 1) }}%</td>
             @endforeach
             @php
               // Calculate grand total: sum of all primary columns
@@ -128,8 +128,8 @@
               }
               $rowGrandPercent = $grandTotal > 0 ? ($rowGrandTotal / $grandTotal * 100) : 0;
             @endphp
-            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important;">{{ number_format($rowGrandTotal) }}</td>
-            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important;">{{ number_format($rowGrandPercent, 1) }}%</td>
+            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important;">{{ number_format($rowGrandTotal) }}</td>
+            <td class="text-center fw-bold" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.65rem !important; padding: 0.3rem 0.1rem !important;">{{ number_format($rowGrandPercent, 1) }}%</td>
           </tr>
           @endforeach
         </tbody>
@@ -192,9 +192,10 @@
     }
   }
   .table th, .table td {
-    padding: 0.5rem;
+    padding: 0.3rem 0.15rem !important;
     vertical-align: middle;
     text-align: center;
+    font-size: 0.65rem !important;
   }
   .table-dark {
     background-color: #1e293b;
@@ -209,13 +210,49 @@
     border-color: #334155;
   }
   .table-responsive {
-    overflow-x: auto;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+  }
+  
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+  
+  .content {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
   }
   
   /* Header styling - sirf text black, background original */
   .table-header-black {
     color: #000000 !important;
     font-weight: 700 !important;
+  }
+  
+  /* Make header text smaller to fit in one line */
+  .table-header-row th {
+    font-size: 0.6rem !important;
+    white-space: nowrap !important;
+    padding: 0.3rem 0.15rem !important;
+    line-height: 1.1 !important;
+    word-break: break-word !important;
+  }
+  
+  .table {
+    font-size: 0.65rem !important;
+  }
+  
+  .table th, .table td {
+    font-size: 0.65rem !important;
+    padding: 0.3rem 0.15rem !important;
   }
   
   /* Total row styling - sirf text black, background original */
@@ -242,6 +279,77 @@
     background-color: #334155;
   }
   
+  /* Dark and Night theme support - make text white */
+  html.theme-dark .table-header-row th,
+  html.theme-night .table-header-row th,
+  body.theme-dark .table-header-row th,
+  body.theme-night .table-header-row th,
+  html.theme-dark .table-dark .table-header-row th,
+  html.theme-night .table-dark .table-header-row th,
+  body.theme-dark .table-dark .table-header-row th,
+  body.theme-night .table-dark .table-header-row th {
+    color: #ffffff !important;
+    background-color: #0f172a !important;
+  }
+
+  html.theme-dark .table-dark thead th,
+  html.theme-night .table-dark thead th,
+  body.theme-dark .table-dark thead th,
+  body.theme-night .table-dark thead th,
+  html.theme-dark table.table-dark thead th,
+  html.theme-night table.table-dark thead th,
+  body.theme-dark table.table-dark thead th,
+  body.theme-night table.table-dark thead th {
+    color: #ffffff !important;
+    background-color: #0f172a !important;
+  }
+
+  html.theme-dark .table-dark td,
+  html.theme-night .table-dark td,
+  body.theme-dark .table-dark td,
+  body.theme-night .table-dark td {
+    color: #ffffff !important;
+  }
+
+  html.theme-dark .table-total-row td,
+  html.theme-night .table-total-row td,
+  body.theme-dark .table-total-row td,
+  body.theme-night .table-total-row td {
+    color: #ffffff !important;
+    background-color: #1e293b !important;
+  }
+
+  html.theme-dark .table-dark tbody tr:not(.table-total-row) td,
+  html.theme-night .table-dark tbody tr:not(.table-total-row) td,
+  body.theme-dark .table-dark tbody tr:not(.table-total-row) td,
+  body.theme-night .table-dark tbody tr:not(.table-total-row) td {
+    color: #ffffff !important;
+  }
+
+  /* Total column (last 2 columns) - make text white in dark/night theme */
+  html.theme-dark .table-dark thead th:last-child,
+  html.theme-dark .table-dark thead th:nth-last-child(2),
+  html.theme-night .table-dark thead th:last-child,
+  html.theme-night .table-dark thead th:nth-last-child(2),
+  body.theme-dark .table-dark thead th:last-child,
+  body.theme-dark .table-dark thead th:nth-last-child(2),
+  body.theme-night .table-dark thead th:last-child,
+  body.theme-night .table-dark thead th:nth-last-child(2) {
+    color: #ffffff !important;
+    background-color: #0f172a !important;
+  }
+
+  html.theme-dark .table-dark tbody td:last-child,
+  html.theme-dark .table-dark tbody td:nth-last-child(2),
+  html.theme-night .table-dark tbody td:last-child,
+  html.theme-night .table-dark tbody td:nth-last-child(2),
+  body.theme-dark .table-dark tbody td:last-child,
+  body.theme-dark .table-dark tbody td:nth-last-child(2),
+  body.theme-night .table-dark tbody td:last-child,
+  body.theme-night .table-dark tbody td:nth-last-child(2) {
+    color: #ffffff !important;
+  }
+
   /* Print styling */
   @media print {
     .table-header-black {
@@ -258,6 +366,100 @@
 @push('scripts')
 <script>
 let complaintsReportDebounceTimer;
+
+// Function to apply dark/night theme styles to table headers and total row
+function applyThemeToTableHeaders() {
+    const isDarkTheme = document.documentElement.classList.contains('theme-dark') || 
+                        document.documentElement.classList.contains('theme-night') ||
+                        document.body.classList.contains('theme-dark') || 
+                        document.body.classList.contains('theme-night');
+    
+    // Get all table headers
+    const headers = document.querySelectorAll('.table-header-row th, .table-dark thead th');
+    headers.forEach(th => {
+        const currentStyle = th.getAttribute('style') || '';
+        if (isDarkTheme) {
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                th.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            } else if (currentStyle.includes('color: #ffffff')) {
+                // Already white, keep it
+            }
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
+    
+    // Get all total row cells
+    const totalCells = document.querySelectorAll('.table-total-row td, .table-dark tbody tr.table-total-row td');
+    totalCells.forEach(td => {
+        const currentStyle = td.getAttribute('style') || '';
+        if (isDarkTheme) {
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                td.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            }
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
+    
+    // Get Total column headers (last 2 columns - Qty and %)
+    const totalColumnHeaders = document.querySelectorAll('.table-dark thead th:last-child, .table-dark thead th:nth-last-child(2)');
+    totalColumnHeaders.forEach(th => {
+        const currentStyle = th.getAttribute('style') || '';
+        if (isDarkTheme) {
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                th.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            }
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                th.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                th.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
+    
+    // Get all cells in the Total column (last 2 columns)
+    const totalColumnCells = document.querySelectorAll('.table-dark tbody td:last-child, .table-dark tbody td:nth-last-child(2)');
+    totalColumnCells.forEach(td => {
+        const currentStyle = td.getAttribute('style') || '';
+        if (isDarkTheme) {
+            // Replace black color with white for dark theme
+            if (currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#000000\s*!important/g, 'color: #ffffff !important'));
+            } else if (!currentStyle.includes('color:')) {
+                td.setAttribute('style', currentStyle + ' color: #ffffff !important;');
+            }
+        } else {
+            // Light theme - restore black color
+            if (currentStyle.includes('color: #ffffff')) {
+                td.setAttribute('style', currentStyle.replace(/color:\s*#ffffff\s*!important/g, 'color: #000000 !important'));
+            } else if (!currentStyle.includes('color: #000000')) {
+                td.setAttribute('style', currentStyle + ' color: #000000 !important;');
+            }
+        }
+    });
+}
 
 function submitComplaintsReportFilters() {
     clearTimeout(complaintsReportDebounceTimer);
@@ -301,6 +503,9 @@ function loadComplaintsReport() {
             content.innerHTML = newContent.innerHTML;
         }
         
+        // Apply theme styles after content loads
+        applyThemeToTableHeaders();
+        
         // Re-initialize feather icons
         if (typeof feather !== 'undefined') {
             feather.replace();
@@ -313,6 +518,34 @@ function loadComplaintsReport() {
         }
     });
 }
+
+// Apply theme styles on page load
+document.addEventListener('DOMContentLoaded', function() {
+    applyThemeToTableHeaders();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                applyThemeToTableHeaders();
+            }
+        });
+    });
+    
+    if (document.documentElement) {
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    }
+    
+    if (document.body) {
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    }
+});
 </script>
 @endpush
 

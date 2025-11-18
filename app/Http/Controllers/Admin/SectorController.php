@@ -22,9 +22,9 @@ class SectorController extends Controller
         }
 
         // Show all sectors; status column indicates active/inactive
-        $sectors = Sector::with('city')->orderBy('id', 'desc')->paginate(15);
+        $sectors = Sector::with('city')->orderBy('id', 'asc')->paginate(15);
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         return view('admin.sector.index', compact('sectors', 'cities'));
     }
@@ -37,7 +37,6 @@ class SectorController extends Controller
         $validated = $request->validate([
             'city_id' => 'required|exists:cities,id',
             'name' => 'required|string|max:100',
-            'description' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
         
@@ -66,7 +65,6 @@ class SectorController extends Controller
             $rules = [
                 'city_id' => 'required|exists:cities,id',
                 'name' => 'required|string|max:100',
-                'description' => 'nullable|string',
                 'status' => 'required|in:active,inactive',
             ];
             
@@ -85,9 +83,16 @@ class SectorController extends Controller
             
             $validated = $request->validate($rules);
             $sector->update($validated);
+            
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => true, 'message' => 'Sector updated']);
+            }
             return back()->with('success', 'Sector updated');
         } catch (\Exception $e) {
             Log::error('Sector update error: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+            }
             return back()->with('error', 'Error updating sector: ' . $e->getMessage())->withInput();
         }
     }
@@ -131,7 +136,7 @@ class SectorController extends Controller
 
         $sectors = Sector::where('city_id', $cityId)
             ->where('status', 'active')
-            ->orderBy('name')
+            ->orderBy('id', 'asc')
             ->get(['id', 'name']);
 
         return response()->json($sectors);

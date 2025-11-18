@@ -1,13 +1,13 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Cities — CMS Admin')
+@section('title', 'GE Groups — CMS Admin')
 
 @section('content')
 <div class="container-narrow">
 <div class="mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <h2 class="text-white mb-1">Cities</h2>
-    <p class="text-light mb-0">Manage cities for employee selection</p>
+    <h2 class="text-white mb-1">GE Groups</h2>
+    <p class="text-light mb-0">Manage GE Groups for employee selection</p>
   </div>
 </div>
 
@@ -36,14 +36,14 @@
 
 <div class="card-glass mb-3">
   <div class="card-header">
-    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add City</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="plus" class="me-2"></i>Add GE Groups</h5>
   </div>
   <div class="card-body">
     <form method="POST" action="{{ route('admin.city.store') }}" class="d-flex flex-wrap align-items-end gap-2">
       @csrf
       <div style="min-width: 220px; flex: 0 0 260px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Name</label>
-        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="City name" required>
+        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="GE Groups name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 160px; flex: 0 0 180px;">
@@ -54,26 +54,18 @@
         </select>
       </div>
       <div class="d-grid" style="flex: 0 0 140px;">
-        <button class="btn btn-accent" type="submit" style="width: 100%;">Add</button>
+        <button class="btn btn-outline-secondary" type="submit" style="width: 100%;"><i data-feather="plus" class="me-2"></i>Add</button>
       </div>
     </form>
   </div>
 @push('styles')
-<style>
-  .container-narrow { max-width: 960px; margin: 0 auto; }
-  .table.compact-table th, .table.compact-table td { padding: .55rem .75rem; font-size: .95rem; }
-  .card-glass { padding: 16px; }
-  .form-control, .form-select { padding: .48rem .7rem; font-size: .96rem; }
-  .btn.btn-sm { padding: .32rem .6rem; font-size: .85rem; }
-  .card-title { font-size: 1.05rem; }
-</style>
 @endpush
 
 </div>
 
 <div class="card-glass">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>Cities</h5>
+    <h5 class="card-title mb-0 text-white"><i data-feather="list" class="me-2"></i>GE Groups</h5>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -95,22 +87,24 @@
               <span class="badge {{ $city->status==='active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">{{ ucfirst($city->status) }}</span>
             </td>
             <td>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#editCityModal" 
-                        data-id="{{ $city->id }}" data-name="{{ $city->name }}" data-status="{{ $city->status }}">
-                  Edit
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editCityModal" 
+                        data-id="{{ $city->id }}" data-name="{{ $city->name }}" data-status="{{ $city->status }}" title="Edit" style="padding: 3px 8px;">
+                  <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
-                <form action="{{ route('admin.city.destroy', $city) }}" method="POST" class="city-delete-form" onsubmit="return confirm('Delete this city?')">
+                <form action="{{ route('admin.city.destroy', $city) }}" method="POST" class="city-delete-form" onsubmit="return confirm('Delete this city?')" style="display: inline;">
                   @csrf
                   @method('DELETE')
-                  <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                  <button class="btn btn-outline-danger btn-sm" type="submit" title="Delete" style="padding: 3px 8px;">
+                    <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+                  </button>
                 </form>
               </div>
             </td>
           </tr>
           @empty
           <tr>
-            <td colspan="4" class="text-center text-muted">No cities yet.</td>
+            <td colspan="4" class="text-center text-muted">No GE Groups yet.</td>
           </tr>
           @endforelse
         </tbody>
@@ -135,7 +129,7 @@
   <div class="modal-dialog">
     <div class="modal-content bg-dark text-white">
       <div class="modal-header">
-        <h5 class="modal-title" id="editCityModalLabel">Edit City</h5>
+        <h5 class="modal-title" id="editCityModalLabel">Edit GE Groups</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="editCityForm" method="POST">

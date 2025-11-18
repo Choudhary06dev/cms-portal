@@ -39,7 +39,7 @@ class ComplaintController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Complaint::with(['client', 'assignedEmployee', 'attachments', 'spareParts.spare', 'spareApprovals']);
+        $query = Complaint::with(['client', 'assignedEmployee', 'city', 'sector', 'attachments', 'spareParts.spare', 'spareApprovals']);
 
         // Apply location-based filtering
         $this->filterComplaintsByLocation($query, $user);
@@ -73,89 +73,11 @@ class ComplaintController extends Controller
             $statusValue = $request->status;
             
             // Handle work_priced_performa and maint_priced_performa filters
-            // These might be stored as in_progress with pending approvals that have waiting_for_authority flag
+            // waiting_for_authority removed - only check direct status match
             if ($statusValue === 'work_priced_performa') {
-                // Match report logic exactly: work_priced_performa = status OR (in_progress with waiting_for_authority = true AND performa_type = work_performa)
-                // We need to EXCLUDE simple work performa (those with performa_type = work_performa but waiting_for_authority != true)
-                $query->where(function($q) {
-                    // Check for direct status match
-                    $q->where('status', 'work_priced_performa')
-                      // OR check for in_progress with pending approvals that have waiting_for_authority = true AND performa_type = work_performa
-                      ->orWhere(function($subQ) {
-                          $subQ->where('status', 'in_progress')
-                               ->whereHas('spareApprovals', function($approvalQ) {
-                                   $approvalQ->where('status', 'pending')
-                                             ->where('waiting_for_authority', true)
-                                             ->where('performa_type', 'work_performa');
-                               });
-                      });
-                })
-                // EXCLUDE regular work_performa and maint_performa statuses (direct status) - these are simple performas
-                ->where('status', '!=', 'work_performa')
-                ->where('status', '!=', 'maint_performa')
-                // EXCLUDE: in_progress complaints that have simple work performa (performa_type = work_performa but waiting_for_authority != true)
-                // AND don't have priced work performa (waiting_for_authority = true)
-                // We need to exclude complaints that have simple work performa but don't have priced work performa
-                ->where(function($q) {
-                    // Exclude if it has simple work performa (without waiting_for_authority) AND doesn't have priced work performa (with waiting_for_authority = true)
-                    // This means: exclude if (has simple work performa) AND (doesn't have priced work performa)
-                    $q->whereRaw('NOT EXISTS (
-                        SELECT 1 FROM spare_approval_performa sap1
-                        WHERE sap1.complaint_id = complaints.id
-                        AND sap1.status = "pending"
-                        AND sap1.performa_type = "work_performa"
-                        AND (sap1.waiting_for_authority = 0 OR sap1.waiting_for_authority IS NULL)
-                        AND sap1.deleted_at IS NULL
-                        AND NOT EXISTS (
-                            SELECT 1 FROM spare_approval_performa sap2
-                            WHERE sap2.complaint_id = complaints.id
-                            AND sap2.status = "pending"
-                            AND sap2.performa_type = "work_performa"
-                            AND sap2.waiting_for_authority = 1
-                            AND sap2.deleted_at IS NULL
-                        )
-                    )');
-                });
+                $query->where('status', 'work_priced_performa');
             } elseif ($statusValue === 'maint_priced_performa') {
-                // Match report logic exactly: maint_priced_performa = status OR (in_progress with waiting_for_authority = true AND performa_type = maint_performa)
-                // We need to EXCLUDE simple maint performa (those with performa_type = maint_performa but waiting_for_authority != true)
-                $query->where(function($q) {
-                    // Check for direct status match
-                    $q->where('status', 'maint_priced_performa')
-                      // OR check for in_progress with pending approvals that have waiting_for_authority = true AND performa_type = maint_performa
-                      ->orWhere(function($subQ) {
-                          $subQ->where('status', 'in_progress')
-                               ->whereHas('spareApprovals', function($approvalQ) {
-                                   $approvalQ->where('status', 'pending')
-                                             ->where('waiting_for_authority', true)
-                                             ->where('performa_type', 'maint_performa');
-                               });
-                      });
-                })
-                // EXCLUDE regular work_performa and maint_performa statuses (direct status) - these are simple performas
-                ->where('status', '!=', 'work_performa')
-                ->where('status', '!=', 'maint_performa')
-                // EXCLUDE: in_progress complaints that have simple maint performa (performa_type = maint_performa but waiting_for_authority != true)
-                // AND don't have priced maint performa (waiting_for_authority = true)
-                ->where(function($q) {
-                    // Exclude if it has simple maint performa (without waiting_for_authority) AND doesn't have priced maint performa (with waiting_for_authority = true)
-                    $q->whereRaw('NOT EXISTS (
-                        SELECT 1 FROM spare_approval_performa sap1
-                        WHERE sap1.complaint_id = complaints.id
-                        AND sap1.status = "pending"
-                        AND sap1.performa_type = "maint_performa"
-                        AND (sap1.waiting_for_authority = 0 OR sap1.waiting_for_authority IS NULL)
-                        AND sap1.deleted_at IS NULL
-                        AND NOT EXISTS (
-                            SELECT 1 FROM spare_approval_performa sap2
-                            WHERE sap2.complaint_id = complaints.id
-                            AND sap2.status = "pending"
-                            AND sap2.performa_type = "maint_performa"
-                            AND sap2.waiting_for_authority = 1
-                            AND sap2.deleted_at IS NULL
-                        )
-                    )');
-                });
+                $query->where('status', 'maint_priced_performa');
             } else {
                 // For other statuses, use direct filter
                 $query->where('status', $statusValue);
@@ -191,7 +113,10 @@ class ComplaintController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $complaints = $query->orderBy('id', 'desc')->paginate(15);
+        // Order by ID descending (3, 2, 1...) - newest/highest ID first
+        // Clear any existing orders and set explicit descending order
+        $query->reorder()->orderBy('id', 'desc');
+        $complaints = $query->paginate(15);
         
         // Filter employees by location
         $employeesQuery = Employee::where('status', 'active');
@@ -220,7 +145,7 @@ class ComplaintController extends Controller
         
         // Get cities and sectors for dropdowns
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
         
         $sectors = collect(); // Will be loaded dynamically based on city selection
@@ -263,11 +188,11 @@ class ComplaintController extends Controller
             // Status removed from form - will be managed in approvals view, default to 'new'
             'attachments' => 'nullable|array|max:5',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
-            'city' => 'nullable|string|max:100',
-            'sector' => 'nullable|string|max:100',
+            'city_id' => 'nullable|exists:cities,id',
+            'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
             'email' => 'nullable|string|max:150',
-            'phone' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|min:11|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -283,7 +208,7 @@ class ComplaintController extends Controller
         DB::beginTransaction();
         
         try {
-            // Get city and sector names from IDs if provided
+            // Get city and sector names from IDs if provided (for client table)
             $cityName = null;
             $sectorName = null;
             
@@ -297,15 +222,6 @@ class ComplaintController extends Controller
                 $sectorName = $sector ? $sector->name : null;
             }
             
-            // Fallback to text inputs if present
-            $cityName = $cityName ?? ($request->city ?: null);
-            $sectorName = $sectorName ?? ($request->sector ?: '');
-            
-            // Ensure sector is not null (column is not nullable)
-            if (empty($sectorName)) {
-                $sectorName = '';
-            }
-            
             // Find or create client by name
             $client = Client::firstOrCreate(
                 ['client_name' => trim($request->client_name)],
@@ -314,7 +230,7 @@ class ComplaintController extends Controller
                     'email' => $request->input('email', ''),
                     'phone' => $request->input('phone', ''),
                     'city' => $cityName ?? '',
-                    'sector' => $sectorName,
+                    'sector' => $sectorName ?? '',
                     'address' => $request->input('address'),
                     'status' => 'active',
                 ]
@@ -349,13 +265,13 @@ class ComplaintController extends Controller
             $complaint = Complaint::create([
                 'title' => $finalTitle,
                 'client_id' => $client->id,
-                'city' => $cityName,
-                'sector' => $sectorName,
+                'city_id' => $request->city_id ?: null,
+                'sector_id' => $request->sector_id ?: null,
                 'category' => $request->category,
                 'priority' => $request->priority,
                 'description' => $request->description,
-                'assigned_employee_id' => $request->assigned_employee_id,
-                'status' => 'new', // Default to 'new' - status will be managed in approvals view
+                'assigned_employee_id' => $request->assigned_employee_id ?: null,
+                'status' => 'assigned', // Default to 'assigned' - no performa type selected initially
             ]);
 
         // Handle file attachments
@@ -416,6 +332,8 @@ class ComplaintController extends Controller
             $complaint->load([
                 'client',
                 'assignedEmployee',
+                'city',
+                'sector',
                 'attachments',
                 'logs.actionBy',
                 'spareParts.spare',
@@ -483,33 +401,20 @@ class ComplaintController extends Controller
 
         // Provide cities/sectors for dropdowns (match create() UX)
         $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('name')->get()
+            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
 
-        // Derive defaults from existing complaint city/sector names
-        $defaultCityId = null;
-        $defaultSectorId = null;
+        // Get default city_id and sector_id from complaint
+        $defaultCityId = $complaint->city_id;
+        $defaultSectorId = $complaint->sector_id;
         $sectors = collect();
 
-        if ($complaint->city && Schema::hasTable('cities')) {
-            $city = City::where('name', $complaint->city)->first();
-            if ($city) {
-                $defaultCityId = $city->id;
-                if (Schema::hasTable('sectors')) {
-                    $sectors = Sector::where('city_id', $city->id)
-                        ->where('status', 'active')
-                        ->orderBy('name')
-                        ->get();
-                    if ($complaint->sector) {
-                        $sector = Sector::where('city_id', $city->id)
-                            ->where('name', $complaint->sector)
-                            ->first();
-                        if ($sector) {
-                            $defaultSectorId = $sector->id;
-                        }
-                    }
-                }
-            }
+        // Load sectors for the selected city
+        if ($defaultCityId && Schema::hasTable('sectors')) {
+            $sectors = Sector::where('city_id', $defaultCityId)
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get();
         }
 
         return view('admin.complaints.edit', compact(
@@ -544,13 +449,11 @@ class ComplaintController extends Controller
             'spare_parts' => 'nullable|array',
             'spare_parts.0.spare_id' => 'nullable|exists:spares,id',
             'spare_parts.0.quantity' => 'nullable|integer|min:1',
-            'city' => 'nullable|string|max:100',
-            'sector' => 'nullable|string|max:100',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
             'address' => 'nullable|string|max:500',
             'email' => 'nullable|string|max:150',
-            'phone' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|min:11|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -617,12 +520,12 @@ class ComplaintController extends Controller
         $complaint->update([
             'title' => $finalTitle,
             'client_id' => $client->id,
-            'city' => $cityName,
-            'sector' => $sectorName,
+            'city_id' => $request->city_id ?: null,
+            'sector_id' => $request->sector_id ?: null,
             'category' => $request->category,
             'priority' => $request->priority,
             'description' => $request->description,
-            'assigned_employee_id' => $request->assigned_employee_id,
+            'assigned_employee_id' => $request->assigned_employee_id ?: null,
             // Status not updated here - will be managed in approvals view
             // Keep existing status and closed_at
         ]);

@@ -10,7 +10,7 @@
       <h2 class="text-white mb-2">Employees Management</h2>
       <p class="text-light">Manage employee information and records</p>
     </div>
-    <a href="{{ route('admin.employees.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.employees.create') }}" class="btn btn-outline-secondary">
       <i data-feather="user-plus" class="me-2"></i>Add New Employee
     </a>
   </div>
@@ -27,8 +27,14 @@
     </div>
     <div class="col-auto">
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
-      <input type="text" class="form-control" name="category" placeholder="Category" 
-             value="{{ request('category') }}" oninput="handleEmployeesSearchInput()" style="font-size: 0.9rem; width: 140px;">
+      <select class="form-select" name="category" onchange="submitEmployeesFilters()" style="font-size: 0.9rem; width: 140px;">
+        <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
+        @if(isset($categories) && $categories->count() > 0)
+          @foreach($categories as $cat)
+            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+          @endforeach
+        @endif
+      </select>
     </div>
     <div class="col-auto">
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
@@ -58,8 +64,8 @@
           <th>Employee</th>
           <th>Category</th>
           <th>Designation</th>
-          <th>City</th>
-          <th>Sector</th>
+          <th>GE Groups</th>
+          <th>GE Nodes</th>
           <th>Phone</th>
           <th>Status</th>
           <th>Hire Date</th>
@@ -81,7 +87,7 @@
               </div>
             </div>
           </td>
-          <td>{{ ucfirst($employee->department ?? 'N/A') }}</td>
+          <td>{{ ucfirst($employee->category ?? 'N/A') }}</td>
           <td>{{ $employee->designation ?? '' }}</td>
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>
@@ -191,59 +197,6 @@
 @endsection
 
 @push('styles')
-<style>
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  .spinning {
-    animation: spin 1s linear infinite;
-  }
-  
-  /* Blur effect for background when modal is open */
-  body.modal-open-blur {
-    overflow: hidden;
-  }
-  
-  body.modal-open-blur::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    z-index: 1040;
-    pointer-events: none;
-  }
-  
-  #viewEmployeeModal .modal-content {
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  
-  #viewEmployeeModal .modal-body {
-    padding: 1.5rem;
-  }
-  
-  #viewEmployeeModal .btn-close {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    padding: 0.5rem !important;
-    opacity: 1 !important;
-  }
-  
-  #viewEmployeeModal .btn-close:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-  }
-  
-  #viewEmployeeModal .modal-footer .btn {
-    min-width: 100px;
-    font-weight: 500;
-  }
-</style>
 @endpush
 
 @push('scripts')
@@ -305,6 +258,7 @@
 
     const tbody = document.getElementById('employeesTableBody');
     const paginationContainer = document.getElementById('employeesPagination');
+    const footerContainer = document.getElementById('employeesTableFooter');
     
     if (tbody) {
       tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
@@ -325,6 +279,7 @@
       
       const newTbody = doc.querySelector('#employeesTableBody');
       const newPagination = doc.querySelector('#employeesPagination');
+      const newFooter = doc.querySelector('#employeesTableFooter');
       
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
@@ -335,6 +290,11 @@
         paginationContainer.innerHTML = newPagination.innerHTML;
         // Re-initialize feather icons after pagination update
         feather.replace();
+      }
+      
+      // Update total records footer with filtered count
+      if (newFooter && footerContainer) {
+        footerContainer.innerHTML = newFooter.innerHTML;
       }
 
       const newUrl = `{{ route('admin.employees.index') }}?${params.toString()}`;
@@ -455,9 +415,73 @@
       // If we found content, use it
       if (employeeContent) {
         modalBody.innerHTML = employeeContent;
+        // Function to apply table column borders
+        const applyTableBorders = () => {
+          const modalTables = modalBody.querySelectorAll('table');
+          modalTables.forEach((table) => {
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            
+            ths.forEach((th) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            tds.forEach((td) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('viewEmployeeModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         // Fallback: try to get all card-glass elements, but avoid duplicates

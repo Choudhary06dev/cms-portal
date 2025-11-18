@@ -60,7 +60,7 @@
         <div class="d-flex align-items-start">
           <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">City</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Groups</div>
             <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->city->name ?? 'N/A' }}</div>
           </div>
         </div>
@@ -72,7 +72,7 @@
         <div class="d-flex align-items-start">
           <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Sector</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Nodes</div>
             <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->sector->name ?? 'N/A' }}</div>
           </div>
         </div>
@@ -121,7 +121,7 @@
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
             <div>
-              <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.85rem; padding: 6px 12px;">
+              <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
                 {{ ucfirst($user->status ?? 'inactive') }}
               </span>
               @if($user->status === 'inactive' && $user->updated_at)
@@ -161,24 +161,6 @@
 @endsection
 
 @push('styles')
-<style>
-  .info-item {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  
-  .info-item:last-child {
-    border-bottom: none;
-  }
-  
-  .card-glass {
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .card-glass:hover {
-    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
-  }
-</style>
 @endpush
 
 @push('scripts')

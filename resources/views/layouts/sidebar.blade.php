@@ -10,6 +10,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="{{ asset('css/sidebar.css') }}" rel="stylesheet">
   <link href="{{ asset('css/themes.css') }}" rel="stylesheet">
+  <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
   
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -72,297 +73,6 @@
       };
     })();
   </script>
-  <style>
-    :root{
-      --glass-bg: rgba(255,255,255,0.08);
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --muted: #64748b;
-      --sidebar-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-      --topbar-bg: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
-    }
-    body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); color:#f1f5f9; min-height:100vh; }
-    .sidebar {
-      min-height:100vh;
-      width: 240px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid rgba(59, 130, 246, 0.2);
-      padding: 16px;
-      position: fixed;
-      left:0; top:50px; bottom:0;
-      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
-      z-index: 999;
-    }
-    .brand { color: var(--accent); font-weight:700; font-size:18px; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-    .nav-link { 
-      color: #cbd5e1; 
-      border-radius:8px; 
-      transition: none !important; 
-      white-space: nowrap !important;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 0.9rem;
-      display: flex !important;
-      align-items: center;
-      text-align: left !important;
-      justify-content: flex-start !important;
-    }
-    .nav-link:hover, .nav-link.active { 
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1)); 
-      color: #fff; 
-      transform: none !important; 
-    }
-    .nav-link i {
-      flex-shrink: 0 !important;
-      width: 18px !important;
-      height: 18px !important;
-      min-width: 18px !important;
-    }
-    .nav-link i[data-feather="file-text"] {
-      width: 20px !important;
-      height: 20px !important;
-      min-width: 20px !important;
-    }
-    .nav-link i svg {
-      width: 18px !important;
-      height: 18px !important;
-    }
-    .nav-link i[data-feather="file-text"] svg {
-      width: 20px !important;
-      height: 20px !important;
-    }
-    .nav-link span, .nav-link .text-decoration-none {
-      white-space: nowrap !important;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .nav-link .text-decoration-none[href*="complaints"] {
-      overflow: visible !important;
-      text-overflow: clip !important;
-      flex: 1 1 auto !important;
-      min-width: 0 !important;
-    }
-    .nav-link[style*="overflow: visible"] {
-      overflow: visible !important;
-      text-overflow: clip !important;
-    }
-    .nav-link[style*="overflow: visible"] .text-decoration-none {
-      overflow: visible !important;
-      text-overflow: clip !important;
-      max-width: none !important;
-    }
-    .content { margin-left: 250px; padding: 20px; margin-top: 50px; }
-    /* Topbar styles are now in the navigation component */
-    .card-glass { 
-      background: var(--glass-bg); 
-      border:1px solid rgba(59, 130, 246, 0.1); 
-      border-radius:14px; 
-      padding:14px; 
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(10px);
-    }
-    .table thead th { 
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); 
-      color:#e2e8f0; 
-      border-bottom: 2px solid rgba(59, 130, 246, 0.2);
-      padding: 0.5rem 0.75rem !important;
-      font-size: 0.875rem !important;
-    }
-    .table td { 
-      padding: 0.5rem 0.75rem !important;
-      font-size: 0.875rem !important;
-    }
-    .table { 
-      font-size: 0.875rem !important;
-    }
-    .table-sm th,
-    .table-sm td {
-      padding: 0.4rem 0.5rem !important;
-      font-size: 0.8rem !important;
-    }
-    .compact-table th,
-    .compact-table td {
-      padding: 0.4rem 0.5rem !important;
-      font-size: 0.8rem !important;
-    }
-    
-    /* Zebra striping for all tables - alternating row colors */
-    /* Override Bootstrap table-dark default background first */
-    .table-dark,
-    table.table-dark {
-      background-color: transparent !important;
-    }
-    /* Odd rows (1st, 3rd, 5th...) - very light white background */
-    table.table tbody tr:nth-child(odd),
-    table.table-dark tbody tr:nth-child(odd),
-    .table tbody tr:nth-child(odd),
-    .table-dark tbody tr:nth-child(odd),
-    table tbody tr:nth-child(odd),
-    .table-compact tbody tr:nth-child(odd) {
-      background-color: rgba(255, 255, 255, 0.03) !important;
-    }
-    table.table tbody tr:nth-child(odd) td,
-    table.table-dark tbody tr:nth-child(odd) td,
-    .table tbody tr:nth-child(odd) td,
-    .table-dark tbody tr:nth-child(odd) td,
-    table tbody tr:nth-child(odd) td,
-    .table-compact tbody tr:nth-child(odd) td {
-      background-color: rgba(255, 255, 255, 0.03) !important;
-    }
-    /* Even rows (2nd, 4th, 6th...) - very light gradient like thead */
-    table.table tbody tr:nth-child(even),
-    table.table-dark tbody tr:nth-child(even),
-    .table tbody tr:nth-child(even),
-    .table-dark tbody tr:nth-child(even),
-    table tbody tr:nth-child(even),
-    .table-compact tbody tr:nth-child(even) {
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.05), rgba(37, 99, 235, 0.03)) !important;
-    }
-    table.table tbody tr:nth-child(even) td,
-    table.table-dark tbody tr:nth-child(even) td,
-    .table tbody tr:nth-child(even) td,
-    .table-dark tbody tr:nth-child(even) td,
-    table tbody tr:nth-child(even) td,
-    .table-compact tbody tr:nth-child(even) td {
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.05), rgba(37, 99, 235, 0.03)) !important;
-    }
-    .btn-accent { 
-      background: linear-gradient(135deg, #60a5fa, #3b82f6); 
-      border:none; 
-      color:#fff; 
-      font-weight:700; 
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-      transition: none !important;
-    }
-    .btn-accent:hover { 
-      background: linear-gradient(135deg, #3b82f6, #2563eb); 
-      transform: none !important;
-      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.3);
-    }
-    .btn-sm { padding: 6px 12px; font-size: 12px; }
-    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .status-new { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-    .status-assigned { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .status-in_progress { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
-    .status-resolved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .status-closed { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
-    .status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .status-approved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .status-rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-    .priority-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-    .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .priority-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-    .section-title { color: #9fb7d8; font-size:12px; margin-top:18px; margin-bottom:8px; white-space: nowrap; }
-    .nav-item-parent .nav-link { position: relative; }
-    .nav-arrow-btn:hover { opacity: 0.8; }
-    .nav-arrow-btn:focus { outline: none; box-shadow: none; }
-    .text-muted { color: #94a3b8 !important; }
-    .text-white { color: #ffffff !important; }
-    .text-light { color: #cbd5e1 !important; }
-    .h1, .h2, .h3, .h4, .h5, .h6 { color: #ffffff !important; }
-    .card-glass h1, .card-glass h2, .card-glass h3, .card-glass h4, .card-glass h5, .card-glass h6 { color: #ffffff !important; }
-    .card-glass p { color: #cbd5e1 !important; }
-    .card-glass .text-muted { color: #94a3b8 !important; }
-    
-    /* Modal Styles */
-    .modal-content { border-radius: 12px; }
-    .modal-header { border-radius: 12px 12px 0 0; }
-    .modal-footer { border-radius: 0 0 12px 12px; }
-    
-    /* Designations, Cities, Sectors, Complaint Types, Complaint Categories Modal Styles */
-    #designationsModal,
-    #citiesModal,
-    #sectorsModal,
-    #complaintTypesModal,
-    #complaintCategoriesModal {
-      z-index: 1055 !important;
-    }
-    #designationsModal .modal-dialog,
-    #citiesModal .modal-dialog,
-    #sectorsModal .modal-dialog,
-    #complaintTypesModal .modal-dialog,
-    #complaintCategoriesModal .modal-dialog {
-      z-index: 1055 !important;
-      position: relative;
-    }
-    #designationsModal .modal-content,
-    #citiesModal .modal-content,
-    #sectorsModal .modal-content,
-    #complaintTypesModal .modal-content,
-    #complaintCategoriesModal .modal-content {
-      max-height: 90vh;
-      overflow-y: auto;
-      z-index: 1055 !important;
-      position: relative;
-    }
-    #designationsModal .modal-body,
-    #citiesModal .modal-body,
-    #sectorsModal .modal-body,
-    #complaintTypesModal .modal-body,
-    #complaintCategoriesModal .modal-body {
-      padding: 1.5rem;
-    }
-    #designationsModal .btn-close,
-    #citiesModal .btn-close,
-    #sectorsModal .btn-close,
-    #complaintTypesModal .btn-close,
-    #complaintCategoriesModal .btn-close {
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      padding: 0.5rem !important;
-      opacity: 1 !important;
-    }
-    #designationsModal .btn-close:hover,
-    #citiesModal .btn-close:hover,
-    #sectorsModal .btn-close:hover,
-    #complaintTypesModal .btn-close:hover,
-    #complaintCategoriesModal .btn-close:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-    }
-    
-    /* Completely remove/hide Bootstrap backdrop for these modals */
-    body.modal-open-blur .modal-backdrop,
-    #designationsModal.modal.show ~ .modal-backdrop,
-    #designationsModal.modal.show + .modal-backdrop,
-    #citiesModal.modal.show ~ .modal-backdrop,
-    #citiesModal.modal.show + .modal-backdrop,
-    #sectorsModal.modal.show ~ .modal-backdrop,
-    #sectorsModal.modal.show + .modal-backdrop,
-    #complaintTypesModal.modal.show ~ .modal-backdrop,
-    #complaintTypesModal.modal.show + .modal-backdrop,
-    #complaintCategoriesModal.modal.show ~ .modal-backdrop,
-    #complaintCategoriesModal.modal.show + .modal-backdrop,
-    .modal-backdrop.show {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      background-color: transparent !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      pointer-events: none !important;
-    }
-    .form-control:focus, .form-select:focus { 
-      border-color: #3b82f6; 
-      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25); 
-      background: rgba(255,255,255,0.15);
-    }
-    .form-control::placeholder, .form-select::placeholder { color: #94a3b8; }
-    .btn-close { filter: invert(1); }
-    .avatar-sm { width: 40px; height: 40px; }
-    .avatar-lg { width: 80px; height: 80px; }
-
-    
-    /* Adjust content margin for topbar */
-    .content {
-      margin-top: 50px;
-    }
-    
-    @media (max-width: 991px){
-      .sidebar { position: relative; width:100%; min-height:auto; }
-      .content { margin-left:0; padding:12px; }
-    }
-  </style>
   @stack('styles')
 </head>
 <body>
@@ -392,62 +102,76 @@
       <i data-feather="users" class="me-2"></i> Users
     </a>
     @endif
+    @if($user && ($user->hasPermission('city') || $userRole === 'director' || $userRole === 'admin'))
+    <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}">
+      <i data-feather="map" class="me-2"></i> GE Groups
+    </a>
+    @endif
+    @if($user && ($user->hasPermission('sector') || $userRole === 'director' || $userRole === 'admin'))
+    <a href="{{ route('admin.sector.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}">
+      <i data-feather="map-pin" class="me-2"></i> GE Nodes
+    </a>
+    @endif
     @if($user && ($user->hasPermission('roles') || $userRole === 'director' || $userRole === 'admin'))
     <a href="{{ route('admin.roles.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
       <i data-feather="shield" class="me-2"></i> Roles
     </a>
     @endif
-    @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'department_staff'))
+    @if($user && (($user->hasPermission('employees') || $user->hasPermission('designation') || $user->hasPermission('city') || $user->hasPermission('sector')) || $userRole === 'director' || $userRole === 'admin' || $userRole === 'department_staff'))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'active' : '' }}">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.designation.*') ? 'active' : '' }}">
+        @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'department_staff'))
         <a href="{{ route('admin.employees.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
           <i data-feather="user-check" class="me-2"></i> Employees
         </a>
-        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'true' : 'false' }}" style="background: none; color: inherit; cursor: pointer;">
+        @else
+        <span class="d-flex align-items-center flex-grow-1 text-white-50" style="cursor: default;">
+          <i data-feather="user-check" class="me-2"></i> Employees
+        </span>
+        @endif
+        @if($user && (($user->hasPermission('designation') || $user->hasPermission('city') || $user->hasPermission('sector')) || $userRole === 'director' || $userRole === 'admin'))
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.designation.*') ? 'true' : 'false' }}" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
         </button>
+        @endif
       </div>
-      <div class="collapse {{ request()->routeIs('admin.designation.*') || request()->routeIs('admin.sector.*') || request()->routeIs('admin.city.*') ? 'show' : '' }}" id="employeesSubmenu">
-        @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="javascript:void(0)" onclick="openDesignationsModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+      <div class="collapse {{ request()->routeIs('admin.designation.*') ? 'show' : '' }}" id="employeesSubmenu">
+        @if($user && ($user->hasPermission('designation') || $userRole === 'director' || $userRole === 'admin'))
+        <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="award" class="me-2"></i> Designations
         </a>
         @endif
-        @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin'))
-         <a href="javascript:void(0)" onclick="openCitiesModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="map" class="me-2"></i> Cities
-        </a>
-        <a href="javascript:void(0)" onclick="openSectorsModal()" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="map-pin" class="me-2"></i> Sectors
-        </a>
-        @endif
-       
       </div>
     </div>
     @endif
-    @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff') || ($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer')))
+    @if($user && (($user->hasPermission('category') || $user->hasPermission('complaint-titles') || $user->hasPermission('complaints') || $user->hasPermission('approvals')) || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
     <div class="nav-item-parent mb-1">
-      <div class="nav-link d-flex align-items-center py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important; cursor: pointer;" id="complaintsManagementToggle">
-          <i data-feather="file-text" class="me-2" style="width: 20px !important; height: 20px !important; stroke-width: 2.5 !important; min-width: 20px !important; flex-shrink: 0 !important;"></i> 
-        <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Management</span>
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important; cursor: pointer;" id="complaintsManagementToggle" data-bs-toggle="collapse" data-bs-target="#complaintsManagementSubmenu" aria-expanded="{{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'true' : 'false' }}">
+        <div class="d-flex align-items-center flex-grow-1">
+          <i data-feather="file-text" class="me-2"></i> 
+          <span style="overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; display: inline-block;">Complaints Mgmt</span>
+        </div>
+          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
       </div>
-      <div class="complaints-submenu" id="complaintsManagementSubmenu" style="display: {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'block' : 'none' }};">
-        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
-        <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="list" class="me-2"></i> Complaints Registered
+      <div class="collapse {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'show' : '' }}" id="complaintsManagementSubmenu">
+        @if($user && ($user->hasPermission('category') || $userRole === 'director' || $userRole === 'admin'))
+        <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="tag" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Cat
         </a>
         @endif
-        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin'))
-        <a href="javascript:void(0)" id="complaintTypesLink" onclick="openComplaintTypesModal()" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;" role="button">
-          <i data-feather="file-text" class="me-2"></i> Complaint Types
+        @if($user && ($user->hasPermission('complaint-titles') || $userRole === 'director' || $userRole === 'admin'))
+        <a href="{{ route('admin.complaint-titles.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Types
         </a>
-        <a href="javascript:void(0)" id="complaintCategoriesLink" onclick="openComplaintCategoriesModal()" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;" role="button">
-          <i data-feather="tag" class="me-2"></i> Complaint Categories
+        @endif
+        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
+        <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="list" class="me-2" style="width: 18px; height: 18px;"></i> Complaints Regn
         </a>
         @endif
         @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
         <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
-          <i data-feather="eye" class="me-2"></i> Total Complaints
+          <i data-feather="eye" class="me-2" style="width: 18px; height: 18px;"></i> Total Complaints
         </a>
         @endif
       </div>
@@ -487,6 +211,21 @@
 
     // Topbar functionality
     document.addEventListener('DOMContentLoaded', function() {
+      // Initialize all icons including those in collapsed submenus
+      setTimeout(() => {
+        feather.replace();
+        // Force initialization of all icons in submenus
+        const allSubmenuIcons = document.querySelectorAll('.collapse i[data-feather], #complaintsManagementSubmenu i[data-feather]');
+        allSubmenuIcons.forEach(icon => {
+          if (!icon.querySelector('svg')) {
+            // Create a temporary visible container to ensure icon renders
+            const tempParent = icon.parentElement;
+            if (tempParent) {
+              feather.replace();
+            }
+          }
+        });
+      }, 300);
       // Global search functionality with autocomplete
       const globalSearch = document.getElementById('globalSearch');
       
@@ -660,95 +399,144 @@
         });
       }
 
-      // Handle Complaints Management submenu toggle - ONLY on direct click on toggle element
+      // Handle Complaints Management submenu - Allow clicking anywhere on the toggle div
       const complaintsManagementToggle = document.getElementById('complaintsManagementToggle');
       const complaintsManagementSubmenu = document.getElementById('complaintsManagementSubmenu');
       
       if (complaintsManagementToggle && complaintsManagementSubmenu) {
-        // Remove any Bootstrap data attributes immediately
-        complaintsManagementSubmenu.removeAttribute('data-bs-toggle');
-        complaintsManagementSubmenu.removeAttribute('data-bs-target');
-        complaintsManagementToggle.removeAttribute('data-bs-toggle');
-        complaintsManagementToggle.removeAttribute('data-bs-target');
-        
-        // Remove collapse class to prevent Bootstrap from handling it
-        complaintsManagementSubmenu.classList.remove('collapse');
-        complaintsManagementSubmenu.classList.remove('show');
-        
-        // Prevent Bootstrap from initializing collapse on this element
-        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-          const existingInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu);
-          if (existingInstance) {
-            existingInstance.dispose();
-          }
-        }
-        
-        // Store the toggle element reference
-        const toggleElement = complaintsManagementToggle;
-        
-        // ONLY allow toggle when clicking EXACTLY on the toggle element or its direct children
-        toggleElement.addEventListener('click', function(e) {
-          // First check: event must be on the toggle element itself
-          if (e.currentTarget !== toggleElement) {
-            return; // Not our element, ignore
+        // Allow clicking anywhere on the toggle div to open/close submenu
+        complaintsManagementToggle.addEventListener('click', function(e) {
+          // Don't toggle if clicking on a submenu link (should be handled separately)
+          if (e.target.closest('#complaintsManagementSubmenu')) {
+            return;
           }
           
-          // Get the exact element that was clicked
-          const clickedElement = e.target;
-          
-          // Check if click is EXACTLY on toggle div, icon, or span - nothing else
-          const isOnToggleDiv = clickedElement === toggleElement;
-          const toggleIcon = toggleElement.querySelector('i[data-feather]');
-          const toggleSpan = toggleElement.querySelector('span');
-          const isOnToggleIcon = clickedElement === toggleIcon || (toggleIcon && toggleIcon.contains(clickedElement));
-          const isOnToggleSpan = clickedElement === toggleSpan || (toggleSpan && toggleSpan.contains(clickedElement));
-          
-          // Check if clicking on a link or other nav item
-          const isInLink = clickedElement.closest('a') !== null;
-          const isInOtherNav = clickedElement.closest('.nav-link') !== null && 
-                              clickedElement.closest('#complaintsManagementToggle') === null;
-          
-          // ONLY allow if clicking on toggle element itself or its direct children (icon/span), nothing else
-          const isValidClick = (isOnToggleDiv || isOnToggleIcon || isOnToggleSpan) && !isInLink && !isInOtherNav;
-          
-          // ONLY toggle if it's a valid click on toggle element
-          if (isValidClick) {
+          // Prevent default Bootstrap behavior on arrow button to avoid double toggle
+          if (e.target.closest('.nav-arrow-btn')) {
             e.preventDefault();
             e.stopPropagation();
-            e.stopImmediatePropagation();
-            
-            // Toggle display
-            const currentDisplay = complaintsManagementSubmenu.style.display;
-            const isVisible = currentDisplay !== 'none' && currentDisplay !== '';
-            
-            if (isVisible) {
-              complaintsManagementSubmenu.style.display = 'none';
-            } else {
-              complaintsManagementSubmenu.style.display = 'block';
-            }
-            
-            // Re-initialize Feather icons
-            setTimeout(() => {
-              feather.replace();
-            }, 100);
           }
-          // If not a valid click, do nothing - let the event bubble normally
-        }, false); // Use bubble phase, not capture
+          
+          // Toggle the collapse
+          const collapseInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu) || new bootstrap.Collapse(complaintsManagementSubmenu, {toggle: false});
+          if (complaintsManagementSubmenu.classList.contains('show')) {
+            collapseInstance.hide();
+          } else {
+            collapseInstance.show();
+          }
+        });
         
-        // Prevent submenu links from triggering parent toggle
+        // Prevent modal clicks from triggering submenu
+        document.addEventListener('click', function(e) {
+          // If clicking on any modal or modal content, prevent it from affecting submenu
+          const isModalClick = e.target.closest('.modal') !== null || 
+                               e.target.closest('[data-bs-toggle="modal"]') !== null ||
+                               e.target.closest('[data-bs-target*="Modal"]') !== null;
+          
+          if (isModalClick) {
+            // Ensure submenu stays closed when modals are clicked
+            if (complaintsManagementSubmenu.classList.contains('show')) {
+              const collapseInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu);
+              if (collapseInstance) {
+                collapseInstance.hide();
+              } else {
+                complaintsManagementSubmenu.classList.remove('show');
+              }
+            }
+          }
+        }, true);
+        
+        // Prevent submenu links from closing the dropdown
         const submenuLinks = complaintsManagementSubmenu.querySelectorAll('a');
         submenuLinks.forEach(link => {
           link.addEventListener('click', function(e) {
             e.stopPropagation();
+            // Prevent Bootstrap collapse from hiding
+            e.stopImmediatePropagation();
           }, true);
         });
         
-        // Initialize icons
-        feather.replace();
+        // Prevent collapse from hiding when clicking on submenu links
+        let preventHide = false;
+        
+        // Track clicks on submenu links
+        submenuLinks.forEach(link => {
+          link.addEventListener('mousedown', function() {
+            preventHide = true;
+          });
+          link.addEventListener('click', function() {
+            preventHide = true;
+            // Reset after navigation
+            setTimeout(() => {
+              preventHide = false;
+            }, 100);
+          });
+        });
+        
+        // Prevent hide event if clicking on submenu links
+        complaintsManagementSubmenu.addEventListener('hide.bs.collapse', function(e) {
+          if (preventHide) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            preventHide = false;
+            return false;
+          }
+        });
+        
+        // Also prevent clicks outside from closing if clicking on submenu
+        document.addEventListener('click', function(e) {
+          const clickedLink = e.target.closest('#complaintsManagementSubmenu a');
+          if (clickedLink) {
+            preventHide = true;
+            // Don't let Bootstrap collapse handle this click
+            e.stopPropagation();
+            // Get the collapse instance and prevent hiding
+            const collapseInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu);
+            if (collapseInstance) {
+              // Temporarily disable the collapse
+              collapseInstance._isTransitioning = false;
+            }
+          }
+        }, true);
+        
+        // Override Bootstrap collapse hide method for this specific submenu
+        const collapseInstance = bootstrap.Collapse.getInstance(complaintsManagementSubmenu) || new bootstrap.Collapse(complaintsManagementSubmenu, {toggle: false});
+        const originalHide = collapseInstance.hide;
+        collapseInstance.hide = function() {
+          if (preventHide) {
+            preventHide = false;
+            return;
+          }
+          return originalHide.call(this);
+        };
+        
+        // Ensure submenu starts closed on page load (unless on a related route)
+        const isRelatedRoute = @json(request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')));
+        if (!isRelatedRoute) {
+          if (complaintsManagementSubmenu.classList.contains('show')) {
+            complaintsManagementSubmenu.classList.remove('show');
+          }
+        }
+        
+        // Initialize icons - ensure Complaints Management icon is rendered
+        const complaintsIcon = complaintsManagementToggle.querySelector('i[data-feather]');
+        if (complaintsIcon) {
+          // Force icon initialization
+          setTimeout(() => {
+            feather.replace();
+            // Double check and re-render if needed
+            if (!complaintsIcon.querySelector('svg')) {
+              feather.replace();
+            }
+          }, 50);
+        } else {
+          feather.replace();
+        }
       }
 
       // Handle submenu collapse/expand with arrow rotation and icon initialization
-      const submenus = ['employeesSubmenu'];
+      const submenus = ['employeesSubmenu', 'complaintsManagementSubmenu'];
       
       submenus.forEach(submenuId => {
         const submenu = document.getElementById(submenuId);
@@ -759,8 +547,23 @@
           if (arrow) {
             submenu.addEventListener('show.bs.collapse', function() {
               arrow.style.transform = 'rotate(180deg)';
-              // Re-initialize Feather icons when submenu is shown
-              feather.replace();
+              // Re-initialize Feather icons when submenu is shown - multiple attempts
+              setTimeout(() => {
+                feather.replace();
+              }, 10);
+              setTimeout(() => {
+                feather.replace();
+                // Specifically initialize icons in this submenu
+                const submenuIcons = submenu.querySelectorAll('i[data-feather]');
+                submenuIcons.forEach(icon => {
+                  if (!icon.querySelector('svg')) {
+                    feather.replace();
+                  }
+                });
+              }, 100);
+              setTimeout(() => {
+                feather.replace();
+              }, 300);
             });
             
             submenu.addEventListener('hide.bs.collapse', function() {
@@ -770,9 +573,26 @@
             // Initialize arrow position based on current state
             if (submenu.classList.contains('show')) {
               arrow.style.transform = 'rotate(180deg)';
+              // Initialize icons if submenu is already open
+              setTimeout(() => {
+                const submenuIcons = submenu.querySelectorAll('i[data-feather]');
+                submenuIcons.forEach(icon => {
+                  if (!icon.querySelector('svg')) {
+                    feather.replace();
+                  }
+                });
+              }, 100);
             } else {
               arrow.style.transform = 'rotate(0deg)';
             }
+          }
+          
+          // Also initialize icons immediately for this submenu
+          const submenuIcons = submenu.querySelectorAll('i[data-feather]');
+          if (submenuIcons.length > 0) {
+            setTimeout(() => {
+              feather.replace();
+            }, 200);
           }
           
           // Initialize icons if submenu is already shown
@@ -872,127 +692,6 @@
     });
   </script>
   
-  <!-- Designations Modal -->
-  <script>
-    // Ensure sidebar submenu links open their modals reliably
-    document.addEventListener('click', function(e) {
-      const typesLink = document.getElementById('complaintTypesLink');
-      const catsLink = document.getElementById('complaintCategoriesLink');
-      if (typesLink && (e.target === typesLink || (typesLink.contains(e.target)))) {
-        e.preventDefault();
-        e.stopPropagation();
-        try { openComplaintTypesModal(); } catch (_) {}
-      }
-      if (catsLink && (e.target === catsLink || (catsLink.contains(e.target)))) {
-        e.preventDefault();
-        e.stopPropagation();
-        try { openComplaintCategoriesModal(); } catch (_) {}
-      }
-    }, true); // capture to intercept before parent handlers
-  </script>
-  <div class="modal fade" id="designationsModal" tabindex="-1" aria-labelledby="designationsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="designationsModalLabel">
-            <i data-feather="award" class="me-2"></i>Designations
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeDesignationsModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="designationsModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Cities Modal -->
-  <div class="modal fade" id="citiesModal" tabindex="-1" aria-labelledby="citiesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="citiesModalLabel">
-            <i data-feather="map" class="me-2"></i>Cities
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeCitiesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="citiesModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sectors Modal -->
-  <div class="modal fade" id="sectorsModal" tabindex="-1" aria-labelledby="sectorsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="sectorsModalLabel">
-            <i data-feather="map-pin" class="me-2"></i>Sectors
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeSectorsModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="sectorsModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Complaint Types Modal -->
-  <div class="modal fade" id="complaintTypesModal" tabindex="-1" aria-labelledby="complaintTypesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="complaintTypesModalLabel">
-            <i data-feather="file-text" class="me-2"></i>Complaint Types
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintTypesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="complaintTypesModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Complaint Categories Modal -->
-  <div class="modal fade" id="complaintCategoriesModal" tabindex="-1" aria-labelledby="complaintCategoriesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="complaintCategoriesModalLabel">
-            <i data-feather="tag" class="me-2"></i>Complaint Categories
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintCategoriesModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
-        </div>
-        <div class="modal-body" id="complaintCategoriesModalBody">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script>
     // Generic function to open modal and load content
@@ -1149,6 +848,80 @@
           // Re-initialize edit modal handlers after content is loaded
           setTimeout(() => {
             feather.replace();
+            
+            // Direct click handlers for City buttons - MUST work
+            const cityButtons = modalBody.querySelectorAll('button[data-bs-target="#editCityModal"], button[data-modal-target="#editCityModal"]');
+            cityButtons.forEach(btn => {
+              // Remove data-bs-toggle to prevent Bootstrap auto-handling
+              btn.removeAttribute('data-bs-toggle');
+              
+              // Add direct click handler with highest priority
+              btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const status = this.getAttribute('data-status');
+                
+                // Wait a bit to ensure modal is in DOM
+                setTimeout(() => {
+                  const editCityModalEl = document.getElementById('editCityModal');
+                  
+                  if (!editCityModalEl) {
+                    console.error('editCityModal not found in DOM');
+                    return;
+                  }
+                  
+                  const form = document.getElementById('editCityForm');
+                  const nameInput = document.getElementById('editCityName');
+                  const statusSelect = document.getElementById('editCityStatus');
+
+                  if (form && id) {
+                    form.action = `${window.location.origin}/admin/city/${id}`;
+                  }
+                  if (nameInput) nameInput.value = name || '';
+                  if (statusSelect) statusSelect.value = status || 'active';
+                  
+                  // Prevent parent modal from closing
+                  const parentModal = modalElement;
+                  if (parentModal) {
+                    parentModal.classList.add('modal-static');
+                    const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                    if (parentBackdrop) {
+                      parentBackdrop.style.pointerEvents = 'none';
+                    }
+                  }
+                  
+                  editCityModalEl.style.zIndex = '1070';
+                  let modal = bootstrap.Modal.getInstance(editCityModalEl);
+                  if (!modal) {
+                    modal = new bootstrap.Modal(editCityModalEl, {
+                      backdrop: true,
+                      keyboard: true,
+                      focus: true
+                    });
+                  }
+                  modal.show();
+                  
+                  setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach((backdrop, index) => {
+                      if (index === backdrops.length - 1) {
+                        backdrop.style.zIndex = '1069';
+                      } else {
+                        backdrop.style.zIndex = '1054';
+                      }
+                    });
+                    if (parentModal) {
+                      parentModal.style.zIndex = '1055';
+                      parentModal.classList.add('show');
+                    }
+                  }, 10);
+                }, 50);
+              }, true); // Use capture phase for highest priority
+            });
             
             // Direct click handlers for Designation buttons - MUST work
             const designationButtons = modalBody.querySelectorAll('button[data-bs-target="#editDesignationModal"], button[data-modal-target="#editDesignationModal"]');
@@ -2021,6 +1794,307 @@
               };
             }
             
+            // Handle edit form submissions via AJAX to stay in modal
+            // Define this function outside so it's accessible everywhere
+            if (typeof window.handleEditFormSubmit !== 'function') {
+              window.handleEditFormSubmit = function(form, modalId, parentModalId, parentModalBodyId, route) {
+                // Check if already bound
+                if (form.hasAttribute('data-ajax-bound')) {
+                  return;
+                }
+                form.setAttribute('data-ajax-bound', 'true');
+                
+                form.addEventListener('submit', function(e) {
+                  e.preventDefault();
+                
+                const formData = new FormData(form);
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn ? submitBtn.textContent : '';
+                
+                if (submitBtn) {
+                  submitBtn.disabled = true;
+                  submitBtn.textContent = 'Saving...';
+                }
+                
+                fetch(form.action, {
+                  method: 'POST',
+                  headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token')
+                  },
+                  credentials: 'same-origin',
+                  body: formData
+                })
+                .then(response => {
+                  // Check if response is redirect (302/301) or success
+                  if (response.redirected || response.status === 302 || response.status === 301) {
+                    // Redirect happened, which means success - reload modal
+                    return { success: true, redirected: true };
+                  }
+                  
+                  if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                      return response.json();
+                    }
+                    // If HTML response, treat as success
+                    return { success: true };
+                  }
+                  
+                  return response.text().then(text => {
+                    try {
+                      return JSON.parse(text);
+                    } catch {
+                      // If it's HTML error page, still reload modal
+                      if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                        return { success: true };
+                      }
+                      throw new Error(text || 'Update failed');
+                    }
+                  });
+                })
+                .then(data => {
+                  // Close edit modal
+                  const editModalEl = document.getElementById(modalId);
+                  if (editModalEl) {
+                    const editModal = bootstrap.Modal.getInstance(editModalEl);
+                    if (editModal) {
+                      editModal.hide();
+                    }
+                  }
+                  
+                  // Reload parent modal content
+                  if (parentModalId && parentModalBodyId && route) {
+                    const parentModalBody = document.getElementById(parentModalBodyId);
+                    if (parentModalBody) {
+                      parentModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                      
+                      fetch(route + '?format=html', {
+                        method: 'GET',
+                        headers: {
+                          'X-Requested-With': 'XMLHttpRequest',
+                          'Accept': 'text/html',
+                        },
+                        credentials: 'same-origin'
+                      })
+                      .then(response => response.text())
+                      .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        let contentSection = doc.querySelector('section.content') || doc.querySelector('.content') || doc.querySelector('main') || doc.body;
+                        
+                        let modalContent = '';
+                        const allCards = contentSection.querySelectorAll('.card-glass');
+                        const seenCards = new Set();
+                        allCards.forEach(card => {
+                          const cardHTML = card.outerHTML;
+                          const cardId = cardHTML.substring(0, 300);
+                          if (!seenCards.has(cardId)) {
+                            seenCards.add(cardId);
+                            modalContent += '<div class="mb-3">' + cardHTML + '</div>';
+                          }
+                        });
+                        
+                        if (modalContent) {
+                          parentModalBody.innerHTML = modalContent;
+                          
+                          // Move edit modals to document.body
+                          const fetchedEditModals = doc.querySelectorAll('.modal[id^="edit"]');
+                          fetchedEditModals.forEach(editModal => {
+                            const existing = document.getElementById(editModal.id);
+                            if (existing && existing.parentElement) {
+                              existing.parentElement.removeChild(existing);
+                            }
+                            document.body.appendChild(editModal);
+                            editModal.style.zIndex = '1070';
+                            editModal.style.display = '';
+                          });
+                          
+                          // Re-initialize all handlers by re-running the same code that runs after modal loads
+                          // Extract edit modals and move to document.body
+                          const editModalsFromContent = parentModalBody.querySelectorAll('.modal[id^="edit"]');
+                          editModalsFromContent.forEach(editModal => {
+                            editModal.remove();
+                            document.body.appendChild(editModal);
+                            editModal.style.zIndex = '1070';
+                            editModal.style.display = '';
+                          });
+                          
+                          // Extract and execute scripts
+                          const scripts = parentModalBody.querySelectorAll('script');
+                          scripts.forEach(script => {
+                            const newScript = document.createElement('script');
+                            if (script.src) {
+                              newScript.src = script.src;
+                            } else {
+                              newScript.textContent = script.textContent;
+                            }
+                            document.body.appendChild(newScript);
+                          });
+                          
+                          // Re-initialize handlers after a short delay
+                          setTimeout(() => {
+                            feather.replace();
+                            
+                            // Re-apply all the same handlers (City, Designation, etc.)
+                            // This is the same code that runs initially, so we need to extract it
+                            // For now, just trigger a page reload of the modal by calling openModal again
+                            // But we're already in the modal, so we'll just re-run initialization
+                            
+                            // Re-bind edit form submissions
+                            const editCityForm = document.getElementById('editCityForm');
+                            if (editCityForm && typeof window.handleEditFormSubmit === 'function') {
+                              const cityRoute = window.location.origin + '/admin/city';
+                              window.handleEditFormSubmit(editCityForm, 'editCityModal', parentModalId, parentModalBodyId, cityRoute);
+                            }
+                            
+                            const editSectorForm = document.getElementById('editSectorForm');
+                            if (editSectorForm && typeof window.handleEditFormSubmit === 'function') {
+                              const sectorRoute = window.location.origin + '/admin/sector';
+                              window.handleEditFormSubmit(editSectorForm, 'editSectorModal', parentModalId, parentModalBodyId, sectorRoute);
+                            }
+                            
+                            const editDesignationForm = document.getElementById('editDesignationForm');
+                            if (editDesignationForm && typeof window.handleEditFormSubmit === 'function') {
+                              const designationRoute = window.location.origin + '/admin/designation';
+                              window.handleEditFormSubmit(editDesignationForm, 'editDesignationModal', parentModalId, parentModalBodyId, designationRoute);
+                            }
+                            
+                            const editCategoryForm = document.getElementById('editCategoryForm');
+                            if (editCategoryForm && typeof window.handleEditFormSubmit === 'function') {
+                              const categoryRoute = window.location.origin + '/admin/category';
+                              window.handleEditFormSubmit(editCategoryForm, 'editCategoryModal', parentModalId, parentModalBodyId, categoryRoute);
+                            }
+                            
+                            const editForm = document.getElementById('editForm');
+                            if (editForm && typeof window.handleEditFormSubmit === 'function') {
+                              const complaintTitleRoute = window.location.origin + '/admin/complaint-titles';
+                              window.handleEditFormSubmit(editForm, 'editModal', parentModalId, parentModalBodyId, complaintTitleRoute);
+                            }
+                            
+                            // Re-bind delete handlers
+                            initDeleteHandlers(parentModalBody);
+                            
+                            // Re-bind direct click handlers for City and Designation
+                            const cityButtons = parentModalBody.querySelectorAll('button[data-bs-target="#editCityModal"], button[data-modal-target="#editCityModal"]');
+                            cityButtons.forEach(btn => {
+                              if (!btn.hasAttribute('data-handler-bound')) {
+                                btn.setAttribute('data-handler-bound', 'true');
+                                btn.removeAttribute('data-bs-toggle');
+                                btn.addEventListener('click', function(e) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.stopImmediatePropagation();
+                                  const id = this.getAttribute('data-id');
+                                  const name = this.getAttribute('data-name');
+                                  const status = this.getAttribute('data-status');
+                                  setTimeout(() => {
+                                    const editCityModalEl = document.getElementById('editCityModal');
+                                    if (!editCityModalEl) return;
+                                    const form = document.getElementById('editCityForm');
+                                    const nameInput = document.getElementById('editCityName');
+                                    const statusSelect = document.getElementById('editCityStatus');
+                                    if (form && id) form.action = `${window.location.origin}/admin/city/${id}`;
+                                    if (nameInput) nameInput.value = name || '';
+                                    if (statusSelect) statusSelect.value = status || 'active';
+                                    const parentModal = document.getElementById(parentModalId);
+                                    if (parentModal) {
+                                      parentModal.classList.add('modal-static');
+                                      const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                                      if (parentBackdrop) parentBackdrop.style.pointerEvents = 'none';
+                                    }
+                                    editCityModalEl.style.zIndex = '1070';
+                                    let modal = bootstrap.Modal.getInstance(editCityModalEl);
+                                    if (!modal) modal = new bootstrap.Modal(editCityModalEl, { backdrop: true, keyboard: true, focus: true });
+                                    modal.show();
+                                    setTimeout(() => {
+                                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                                      backdrops.forEach((b, i) => {
+                                        b.style.zIndex = i === backdrops.length - 1 ? '1069' : '1054';
+                                      });
+                                      if (parentModal) {
+                                        parentModal.style.zIndex = '1055';
+                                        parentModal.classList.add('show');
+                                      }
+                                    }, 10);
+                                  }, 50);
+                                }, true);
+                              }
+                            });
+                            
+                            const designationButtons = parentModalBody.querySelectorAll('button[data-bs-target="#editDesignationModal"], button[data-modal-target="#editDesignationModal"]');
+                            designationButtons.forEach(btn => {
+                              if (!btn.hasAttribute('data-handler-bound')) {
+                                btn.setAttribute('data-handler-bound', 'true');
+                                btn.removeAttribute('data-bs-toggle');
+                                btn.addEventListener('click', function(e) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.stopImmediatePropagation();
+                                  const id = this.getAttribute('data-id');
+                                  const category = this.getAttribute('data-category');
+                                  const name = this.getAttribute('data-name');
+                                  const status = this.getAttribute('data-status');
+                                  setTimeout(() => {
+                                    const editDesignationModalEl = document.getElementById('editDesignationModal');
+                                    if (!editDesignationModalEl) return;
+                                    const form = document.getElementById('editDesignationForm');
+                                    const categorySelect = document.getElementById('editDesignationCategory');
+                                    const nameInput = document.getElementById('editDesignationName');
+                                    const statusSelect = document.getElementById('editDesignationStatus');
+                                    if (form && id) form.action = `${window.location.origin}/admin/designation/${id}`;
+                                    if (categorySelect && category) categorySelect.value = category || '';
+                                    if (nameInput) nameInput.value = name || '';
+                                    if (statusSelect) statusSelect.value = status || 'active';
+                                    const parentModal = document.getElementById(parentModalId);
+                                    if (parentModal) {
+                                      parentModal.classList.add('modal-static');
+                                      const parentBackdrop = document.querySelector('.modal-backdrop:not(:last-child)');
+                                      if (parentBackdrop) parentBackdrop.style.pointerEvents = 'none';
+                                    }
+                                    editDesignationModalEl.style.zIndex = '1070';
+                                    let modal = bootstrap.Modal.getInstance(editDesignationModalEl);
+                                    if (!modal) modal = new bootstrap.Modal(editDesignationModalEl, { backdrop: true, keyboard: true, focus: true });
+                                    modal.show();
+                                    setTimeout(() => {
+                                      const backdrops = document.querySelectorAll('.modal-backdrop');
+                                      backdrops.forEach((b, i) => {
+                                        b.style.zIndex = i === backdrops.length - 1 ? '1069' : '1054';
+                                      });
+                                      if (parentModal) {
+                                        parentModal.style.zIndex = '1055';
+                                        parentModal.classList.add('show');
+                                      }
+                                    }, 10);
+                                  }, 50);
+                                }, true);
+                              }
+                            });
+                          }, 200);
+                        }
+                      })
+                      .catch(error => {
+                        console.error('Error reloading modal:', error);
+                        location.reload();
+                      });
+                    }
+                  } else {
+                    // Fallback: reload page
+                    location.reload();
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                  alert('Error updating: ' + (error.message || 'Unknown error'));
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                  }
+                });
+              });
+            };
+            
             // Re-initialize delete form handlers
             modalBody.querySelectorAll('form.city-delete-form, form.sector-delete-form, form.designation-delete-form, form.category-delete-form').forEach(function(form) {
               form.addEventListener('submit', function(e) {
@@ -2055,6 +2129,42 @@
                 });
               });
             });
+          };
+          
+          initDeleteHandlers(modalBody);
+          
+          // Also bind edit forms when modal first loads
+          if (typeof window.handleEditFormSubmit === 'function') {
+            const editCityForm = document.getElementById('editCityForm');
+            if (editCityForm) {
+              const cityRoute = window.location.origin + '/admin/city';
+              window.handleEditFormSubmit(editCityForm, 'editCityModal', modalElement.id, modalBody.id, cityRoute);
+            }
+            
+            const editSectorForm = document.getElementById('editSectorForm');
+            if (editSectorForm) {
+              const sectorRoute = window.location.origin + '/admin/sector';
+              window.handleEditFormSubmit(editSectorForm, 'editSectorModal', modalElement.id, modalBody.id, sectorRoute);
+            }
+            
+            const editDesignationForm = document.getElementById('editDesignationForm');
+            if (editDesignationForm) {
+              const designationRoute = window.location.origin + '/admin/designation';
+              window.handleEditFormSubmit(editDesignationForm, 'editDesignationModal', modalElement.id, modalBody.id, designationRoute);
+            }
+            
+            const editCategoryForm = document.getElementById('editCategoryForm');
+            if (editCategoryForm) {
+              const categoryRoute = window.location.origin + '/admin/category';
+              window.handleEditFormSubmit(editCategoryForm, 'editCategoryModal', modalElement.id, modalBody.id, categoryRoute);
+            }
+            
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+              const complaintTitleRoute = window.location.origin + '/admin/complaint-titles';
+              window.handleEditFormSubmit(editForm, 'editModal', modalElement.id, modalBody.id, complaintTitleRoute);
+            }
+          }
           }, 200);
         } else {
           console.error('Could not find content in response');
@@ -2074,91 +2184,6 @@
         document.body.classList.remove('modal-open-blur');
         feather.replace();
       }, { once: true });
-    }
-    
-    // Function to open designations modal
-    function openDesignationsModal() {
-      openModal('designationsModal', 'designationsModalBody', '{{ route("admin.designation.index") }}', 'Designations');
-    }
-    
-    // Function to close designations modal
-    function closeDesignationsModal() {
-      const modalElement = document.getElementById('designationsModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open cities modal
-    function openCitiesModal() {
-      openModal('citiesModal', 'citiesModalBody', '{{ route("admin.city.index") }}', 'Cities');
-    }
-    
-    // Function to close cities modal
-    function closeCitiesModal() {
-      const modalElement = document.getElementById('citiesModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open sectors modal
-    function openSectorsModal() {
-      openModal('sectorsModal', 'sectorsModalBody', '{{ route("admin.sector.index") }}', 'Sectors');
-    }
-    
-    // Function to close sectors modal
-    function closeSectorsModal() {
-      const modalElement = document.getElementById('sectorsModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open complaint types modal
-    function openComplaintTypesModal() {
-      openModal('complaintTypesModal', 'complaintTypesModalBody', '{{ route("admin.complaint-titles.index") }}', 'Complaint Types');
-    }
-    
-    // Function to close complaint types modal
-    function closeComplaintTypesModal() {
-      const modalElement = document.getElementById('complaintTypesModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
-    }
-    
-    // Function to open complaint categories modal
-    function openComplaintCategoriesModal() {
-      openModal('complaintCategoriesModal', 'complaintCategoriesModalBody', '{{ route("admin.category.index") }}', 'Complaint Categories');
-    }
-    
-    // Function to close complaint categories modal
-    function closeComplaintCategoriesModal() {
-      const modalElement = document.getElementById('complaintCategoriesModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-      document.body.classList.remove('modal-open-blur');
     }
   </script>
   

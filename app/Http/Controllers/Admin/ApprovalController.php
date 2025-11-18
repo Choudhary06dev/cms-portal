@@ -123,36 +123,12 @@ class ApprovalController extends Controller
                     $query->where('complaints.status', '!=', 'resolved');
                 } elseif ($statusValue === 'work_priced_performa') {
                     // Handle work_priced_performa filter
-                    // First exclude regular work_performa and maint_performa statuses
-                    $query->where('complaints.status', '!=', 'work_performa')
-                          ->where('complaints.status', '!=', 'maint_performa')
-                          ->where(function($q) {
-                              // Check for direct status match
-                              $q->where('complaints.status', 'work_priced_performa')
-                                // OR check for in_progress with pending approvals that have waiting_for_authority flag AND performa_type = work_performa
-                                ->orWhere(function($subQ) {
-                                    $subQ->where('complaints.status', 'in_progress')
-                                         ->where('spare_approval_performa.status', 'pending')
-                                         ->where('spare_approval_performa.waiting_for_authority', true)
-                                         ->where('spare_approval_performa.performa_type', 'work_performa');
-                                });
-                          });
+                    // Only check for direct status match (waiting_for_authority removed)
+                    $query->where('complaints.status', 'work_priced_performa');
                 } elseif ($statusValue === 'maint_priced_performa') {
                     // Handle maint_priced_performa filter
-                    // First exclude regular work_performa and maint_performa statuses
-                    $query->where('complaints.status', '!=', 'work_performa')
-                          ->where('complaints.status', '!=', 'maint_performa')
-                          ->where(function($q) {
-                              // Check for direct status match
-                              $q->where('complaints.status', 'maint_priced_performa')
-                                // OR check for in_progress with pending approvals that have waiting_for_authority flag AND performa_type = maint_performa
-                                ->orWhere(function($subQ) {
-                                    $subQ->where('complaints.status', 'in_progress')
-                                         ->where('spare_approval_performa.status', 'pending')
-                                         ->where('spare_approval_performa.waiting_for_authority', true)
-                                         ->where('spare_approval_performa.performa_type', 'maint_performa');
-                                });
-                          });
+                    // Only check for direct status match (waiting_for_authority removed)
+                    $query->where('complaints.status', 'maint_priced_performa');
                 } else {
                     // Regular status filter
                     $query->where('complaints.status', $statusValue);
@@ -257,6 +233,8 @@ class ApprovalController extends Controller
                 'assigned' => 'Assigned',
                 'in_progress' => 'In-Process',
                 'resolved' => 'Addressed',
+                'work_performa' => 'Work Performa',
+                'maint_performa' => 'Maintenance Performa',
                 'work_priced_performa' => 'Work Performa Priced',
                 'maint_priced_performa' => 'Maintenance Performa Priced',
                 'product_na' => 'Product N/A',
@@ -288,9 +266,9 @@ class ApprovalController extends Controller
                 'performa_maint_performa' => $performaTypes['performa_maint_performa'],
             ];
             
-            // Add remaining statuses (excluding already added ones)
+            // Add remaining statuses (excluding already added ones and work_performa/maint_performa from filter)
             foreach ($statusLabels as $key => $label) {
-                if (!in_array($key, ['assigned', 'in_progress', 'resolved'])) {
+                if (!in_array($key, ['assigned', 'in_progress', 'resolved', 'work_performa', 'maint_performa'])) {
                     $orderedStatusesForFilter[$key] = $label;
                 }
             }
@@ -481,7 +459,7 @@ class ApprovalController extends Controller
                     'id' => $approval->id,
                     'status' => $approval->status,
                     'performa_type' => $approval->performa_type,
-                    'waiting_for_authority' => $approval->waiting_for_authority ?? false,
+                    // waiting_for_authority removed
                     'created_at' => $approval->created_at ? $approval->created_at->format('M d, Y H:i') : null,
                     'approved_at' => $approval->approved_at ? $approval->approved_at->format('M d, Y H:i') : null,
                     'remarks' => $approval->remarks,
@@ -714,9 +692,21 @@ class ApprovalController extends Controller
      */
     public function saveWithPerforma(Request $request, SpareApprovalPerforma $approval)
     {
-        $validator = Validator::make($request->all(), [
-            'performa_type' => 'required|in:work_performa,maint_performa',
-            'waiting_for_authority' => 'nullable|boolean',
+        // Allow null performa_type to clear it - normalize the value first
+        $performaType = $request->performa_type;
+        if ($performaType === null || $performaType === 'null' || $performaType === '' || $performaType === 'undefined') {
+            $performaType = null;
+        }
+        
+        // Build validation rules - if null, just nullable; otherwise check if it's in the allowed list
+        $performaTypeRules = 'nullable';
+        if ($performaType !== null) {
+            $performaTypeRules .= '|in:work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na';
+        }
+        
+        $validator = Validator::make(array_merge($request->all(), ['performa_type' => $performaType]), [
+            'performa_type' => $performaTypeRules,
+            // waiting_for_authority removed - no longer needed
             'remarks' => 'nullable|string',
         ]);
 
@@ -730,31 +720,52 @@ class ApprovalController extends Controller
 
         try {
             // Update approval with performa type and mark as waiting for authority
-            $updateData = [
-                'performa_type' => $request->performa_type,
-                'waiting_for_authority' => $request->has('waiting_for_authority') ? (bool)$request->waiting_for_authority : true,
-            ];
+            $updateData = [];
+            
+            // Use normalized performa_type value
+            $updateData['performa_type'] = $performaType;
+            
+            // Update status: If performa_type is set, set status to 'approved', otherwise keep as 'pending'
+            if ($performaType) {
+                $updateData['status'] = 'approved'; // Set status to approved when performa_type is set
+            }
+            // If performa_type is null, status remains 'pending' (default)
+            
+            // waiting_for_authority removed - no longer needed
+            // Stock will be issued directly when authority code is added
             
             if ($request->has('remarks')) {
                 $updateData['remarks'] = $request->remarks;
-            } elseif (!isset($updateData['remarks'])) {
-                $updateData['remarks'] = 'Waiting for authority number';
             }
             
-            $approval->update($updateData);
+            // Use DB::table to ensure status is updated correctly
+            DB::table('spare_approval_performa')
+                ->where('id', $approval->id)
+                ->update($updateData);
+            
+            // Refresh the approval model
+            $approval->refresh();
 
-            // Update complaint status to in_progress if waiting for authority
-            if ($approval->complaint && $updateData['waiting_for_authority']) {
+            // Update complaint status based on performa type
+            // Logic: If performa_type is set, use it directly as status (ID format: work_performa, maint_performa, product_na)
+            // If performa_type is null, don't change complaint status (status is managed by status dropdown)
+            if ($approval->complaint && $updateData['performa_type']) {
                 $complaint = $approval->complaint;
-                if ($complaint->status === 'assigned' || $complaint->status === 'new') {
-                    $complaint->status = 'in_progress';
+                
+                // Use performa_type directly as status (ID format)
+                $newStatus = $updateData['performa_type']; // work_performa, maint_performa, or product_na
+                
+                // Update complaint status if not resolved/closed
+                if (!in_array($complaint->status, ['resolved', 'closed'])) {
+                    $complaint->status = $newStatus;
                     $complaint->save();
                 }
             }
+            // If performa_type is null, don't change complaint status - it's managed by status dropdown
 
             return response()->json([
                 'success' => true,
-                'message' => $updateData['waiting_for_authority'] ? 'Approval saved. Waiting for authority number.' : 'Approval updated.',
+                'message' => 'Approval updated successfully.',
                 'approval' => $approval->fresh()
             ]);
         } catch (\Exception $e) {
@@ -766,6 +777,70 @@ class ApprovalController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to save approval: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update performa type for approval record
+     */
+    public function updatePerformaType(Request $request, SpareApprovalPerforma $approval)
+    {
+        $validator = Validator::make($request->all(), [
+            'performa_type' => 'required|in:work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Use DB::table to ensure status is updated correctly
+            DB::table('spare_approval_performa')
+                ->where('id', $approval->id)
+                ->update([
+                    'performa_type' => $request->performa_type,
+                    'status' => 'approved', // Set status to approved when performa_type is set
+                ]);
+            
+            // Refresh the approval model
+            $approval->refresh();
+
+            // Update complaint status based on performa type
+            // Logic: If performa_type is set, use it directly as status (ID format: work_performa, maint_performa, product_na)
+            // If performa_type is null, don't change complaint status (status is managed by status dropdown)
+            if ($approval->complaint && $request->performa_type) {
+                $complaint = $approval->complaint;
+                
+                // Use performa_type directly as status (ID format)
+                $newStatus = $request->performa_type; // work_performa, maint_performa, or product_na
+                
+                // Update complaint status if not resolved/closed
+                if (!in_array($complaint->status, ['resolved', 'closed'])) {
+                    $complaint->status = $newStatus;
+                    $complaint->save();
+                }
+            }
+            // If performa_type is null, don't change complaint status - it's managed by status dropdown
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Performa type updated successfully.',
+                'approval' => $approval->fresh()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating performa type', [
+                'approval_id' => $approval->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update performa type: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -1151,15 +1226,39 @@ class ApprovalController extends Controller
 
         // Get current employee for logging
         $currentEmployee = Employee::first();
+        
+        // Logic: Check if approval has performa_type set
+        // If performa_type is set, use it to determine status (ID format: work_performa, maint_performa, product_na)
+        // If performa_type is null/empty, use status from request (status dropdown value)
+        // Exception: resolved, work_priced_performa and maint_priced_performa should always use the requested status
+        $approval = $complaint->spareApprovals()->first() ?? null;
+        $statusToUse = $request->status;
+        
+        // If status is resolved, work_priced_performa or maint_priced_performa, use it directly without checking performa_type
+        if (!in_array($request->status, ['resolved', 'work_priced_performa', 'maint_priced_performa'])) {
+            if ($approval && $approval->performa_type) {
+                // If performa_type is set, use it to determine status (ID format)
+                if ($approval->performa_type === 'work_performa') {
+                    $statusToUse = 'work_performa';
+                } elseif ($approval->performa_type === 'maint_performa') {
+                    $statusToUse = 'maint_performa';
+                } elseif ($approval->performa_type === 'product_na') {
+                    $statusToUse = 'product_na';
+                }
+            }
+        }
+        // If performa_type is null/empty, use status from request (status dropdown value - already in ID format)
 
         // Set closed_at when status becomes 'addressed', but only if it's not already set
         $updateData = [
-            'status' => $request->status,
+            'status' => $statusToUse, // Use statusToUse instead of request->status
         ];
         
-        if ($request->status === 'resolved' && !$complaint->closed_at) {
-            $updateData['closed_at'] = now();
-        } elseif ($request->status !== 'resolved') {
+        if ($statusToUse === 'resolved' && !$complaint->closed_at) {
+            // Get current time in Asia/Karachi timezone and convert to UTC for database storage
+            $nowKarachi = \Carbon\Carbon::now('Asia/Karachi');
+            $updateData['closed_at'] = $nowKarachi->copy()->utc();
+        } elseif ($statusToUse !== 'resolved') {
             // If status is changed from addressed to something else, clear closed_at
             $updateData['closed_at'] = null;
         }
@@ -1168,7 +1267,7 @@ class ApprovalController extends Controller
         $normalizedOldStatus = $oldStatus ?: 'new';
         
         // Check if status is actually changing
-        if ($normalizedOldStatus === $request->status && $complaint->closed_at === ($updateData['closed_at'] ?? null)) {
+        if ($normalizedOldStatus === $statusToUse && $complaint->closed_at === ($updateData['closed_at'] ?? null)) {
             // Status is already set to the requested value, consider it success
             $updated = true;
         } else {
@@ -1207,9 +1306,9 @@ class ApprovalController extends Controller
                     ->value('status');
                 
                 // Check if the update was successful
-                if ($actualStatus !== $request->status) {
+                if ($actualStatus !== $statusToUse) {
                     // Update didn't work, throw error
-                    throw new \Exception('Status update failed. Current status: ' . ($currentDbStatus ?: 'null') . ', Requested: ' . $request->status . ', Actual in DB: ' . ($actualStatus ?: 'null') . ', Rows updated: ' . $updated);
+                    throw new \Exception('Status update failed. Current status: ' . ($currentDbStatus ?: 'null') . ', Requested: ' . $statusToUse . ', Actual in DB: ' . ($actualStatus ?: 'null') . ', Rows updated: ' . $updated);
                 }
                 
                 DB::commit();
@@ -1232,7 +1331,7 @@ class ApprovalController extends Controller
 
         if ($currentEmployee) {
             // Initialize log remarks with status change message
-            $statusDisplay = $request->status === 'resolved' ? 'addressed' : $request->status;
+            $statusDisplay = $statusToUse === 'resolved' ? 'addressed' : $statusToUse;
             $oldStatusDisplay = $oldStatus === 'resolved' ? 'addressed' : $oldStatus;
             $logRemarks = "Status changed from {$oldStatusDisplay} to {$statusDisplay}";
             
@@ -1253,6 +1352,13 @@ class ApprovalController extends Controller
             $updatedStatus = DB::table('complaints')->where('id', $complaint->id)->value('status');
             $updatedClosedAt = DB::table('complaints')->where('id', $complaint->id)->value('closed_at');
             
+            // Format closed_at in Asia/Karachi timezone for display
+            $formattedClosedAt = null;
+            if ($updatedClosedAt) {
+                $closedAtCarbon = \Carbon\Carbon::parse($updatedClosedAt)->setTimezone('Asia/Karachi');
+                $formattedClosedAt = $closedAtCarbon->format('d-m-Y H:i:s');
+            }
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Complaint status updated successfully.',
@@ -1260,7 +1366,7 @@ class ApprovalController extends Controller
                     'id' => $complaint->id,
                     'status' => $updatedStatus,
                     'old_status' => $oldStatus,
-                    'closed_at' => $updatedClosedAt ? \Carbon\Carbon::parse($updatedClosedAt)->format('d-m-Y H:i:s') : null,
+                    'closed_at' => $formattedClosedAt,
                 ]
             ]);
         }

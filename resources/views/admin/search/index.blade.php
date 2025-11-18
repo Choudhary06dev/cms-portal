@@ -141,37 +141,6 @@
   </div>
 @endif
 
-<style>
-.search-result-item:hover {
-  background: rgba(255,255,255,0.1) !important;
-  border-color: rgba(59, 130, 246, 0.3) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.search-results-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.search-results-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.search-results-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.search-results-list::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.5);
-  border-radius: 3px;
-}
-
-.search-results-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.7);
-}
-</style>
 @endsection
 
 @push('scripts')

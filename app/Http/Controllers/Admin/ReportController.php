@@ -8,7 +8,6 @@ use App\Models\Employee;
 use App\Models\Client;
 use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
-use App\Models\EmployeeLeave;
 use App\Models\ReportsSummary;
 use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
@@ -93,7 +92,6 @@ class ReportController extends Controller
             'employees' => [
                 'total' => (clone $employeesQuery)->count(),
                 'active' => (clone $employeesQuery)->count(),
-                'on_leave' => \App\Models\EmployeeLeave::where('status', 'pending')->count(),
                 'avg_performance' => $this->getAverageEmployeePerformance($user)
             ],
             'spares' => [
@@ -380,32 +378,6 @@ class ReportController extends Controller
                 ]);
             }
             
-            // Recent employee activities with location filtering
-            $recentLeavesQuery = EmployeeLeave::with(['employee'])
-                ->where('status', 'pending');
-            
-            // Apply location filtering to employee leaves
-            if ($user && !$this->canViewAllData($user)) {
-                $recentLeavesQuery->whereHas('employee', function($q) use ($user) {
-                    $this->filterEmployeesByLocation($q, $user);
-                });
-            }
-            
-            $recentLeaves = $recentLeavesQuery->latest()
-                ->limit(1)
-                ->get();
-                
-            foreach ($recentLeaves as $leave) {
-                $activities->push([
-                    'type' => 'leave',
-                    'title' => 'Employee leave request',
-                'description' => ($leave->employee->name ?? 'Unknown') . ' requested leave',
-                    'time' => $leave->created_at->diffForHumans(),
-                    'badge' => 'Pending',
-                    'badge_class' => 'warning'
-                ]);
-            }
-            
             // Recent spare part activities
             $recentSpares = Spare::where('stock_quantity', '<=', DB::raw('threshold_level'))
                 ->latest('updated_at')
@@ -584,95 +556,130 @@ class ReportController extends Controller
                 if ($rowKey === 'assigned') {
                     $count = $catComplaints->where('status', 'assigned')->count();
                 } elseif ($rowKey === 'in_progress') {
-                    // Count complaints with in_progress status that do NOT have performa required
+                    // Count complaints with in_progress status that do NOT have any performa type
+                    // Exclude complaints that have work_performa, maint_performa, or product_na performa_type
                     $count = $catComplaints->filter(function($complaint) {
                         if ($complaint->status !== 'in_progress') {
                             return false;
                         }
-                        // Check if complaint has pending performa (work_performa or maint_performa)
+                        // Exclude if status is product_na, work_performa, maint_performa, or priced performa (should be counted separately)
+                        if (in_array($complaint->status, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'])) {
+                            return false;
+                        }
+                        // Check if complaint has any performa type set (work_performa, maint_performa, or product_na) - exclude rejected
                         $hasWorkPerforma = $complaint->spareApprovals->contains(function($approval) {
-                            return $approval->performa_type === 'work_performa' && $approval->status === 'pending';
+                            return $approval->performa_type === 'work_performa' &&
+                                   $approval->status !== 'rejected';
                         });
                         $hasMaintPerforma = $complaint->spareApprovals->contains(function($approval) {
-                            return $approval->performa_type === 'maint_performa' && $approval->status === 'pending';
+                            return $approval->performa_type === 'maint_performa' &&
+                                   $approval->status !== 'rejected';
                         });
-                        // Exclude if has performa required
-                        return !$hasWorkPerforma && !$hasMaintPerforma;
+                        $hasProductNa = $complaint->spareApprovals->contains(function($approval) {
+                            return $approval->performa_type === 'product_na' &&
+                                   $approval->status !== 'rejected';
+                        });
+                        // Exclude if has any performa type
+                        return !$hasWorkPerforma && !$hasMaintPerforma && !$hasProductNa;
                     })->count();
                 } elseif ($rowKey === 'resolved') {
                     $count = $catComplaints->where('status', 'resolved')->count();
                 } elseif ($rowKey === 'work') {
-                    // Count complaints with work performa status OR in_progress with work_performa performa required
+                    // Count complaints that have work_performa performa_type in spareApprovals
+                    // Logic: If performa_type is set, use it; otherwise use complaint status
                     $count = $catComplaints->filter(function($complaint) {
-                        // Direct status check
+                        // First check complaint status - if it's work_performa, include it (simple performa)
                         if ($complaint->status === 'work_performa') {
+                            // Exclude if status is work_priced_performa (should be in work_priced_performa row)
+                            if ($complaint->status === 'work_priced_performa') {
+                                return false;
+                            }
                             return true;
                         }
-                        // Check if in_progress with work_performa performa required
-                        if ($complaint->status === 'in_progress') {
-                            return $complaint->spareApprovals->contains(function($approval) {
-                                return $approval->performa_type === 'work_performa' && $approval->status === 'pending';
-                            });
+                        
+                        // Get approval with performa_type
+                        $approval = $complaint->spareApprovals->first();
+                        
+                        // If performa_type is set, use it
+                        if ($approval && $approval->performa_type === 'work_performa') {
+                            // Exclude if status is work_priced_performa (should be in work_priced_performa row)
+                            if ($complaint->status === 'work_priced_performa') {
+                                return false;
+                            }
+                            // waiting_for_authority removed - only check status
+                            // Exclude if status is rejected
+                            if ($approval->status === 'rejected') {
+                                return false;
+                            }
+                            return true;
                         }
+                        
                         return false;
                     })->count();
                 } elseif ($rowKey === 'maintenance') {
-                    // Count complaints with maint performa status OR in_progress with maint_performa performa required
+                    // Count complaints that have maint_performa performa_type in spareApprovals
+                    // Logic: If performa_type is set, use it; otherwise use complaint status
                     $count = $catComplaints->filter(function($complaint) {
-                        // Direct status check
+                        // First check complaint status - if it's maint_performa, include it (simple performa)
                         if ($complaint->status === 'maint_performa') {
+                            // Exclude if status is maint_priced_performa (should be in maint_priced_performa row)
+                            if ($complaint->status === 'maint_priced_performa') {
+                                return false;
+                            }
                             return true;
                         }
-                        // Check if in_progress with maint_performa performa required
-                        if ($complaint->status === 'in_progress') {
-                            return $complaint->spareApprovals->contains(function($approval) {
-                                return $approval->performa_type === 'maint_performa' && $approval->status === 'pending';
-                            });
+                        
+                        // Get approval with performa_type
+                        $approval = $complaint->spareApprovals->first();
+                        
+                        // If performa_type is set, use it
+                        if ($approval && $approval->performa_type === 'maint_performa') {
+                            // Exclude if status is maint_priced_performa (should be in maint_priced_performa row)
+                            if ($complaint->status === 'maint_priced_performa') {
+                                return false;
+                            }
+                            // waiting_for_authority removed - only check status
+                            // Exclude if status is rejected
+                            if ($approval->status === 'rejected') {
+                                return false;
+                            }
+                            return true;
                         }
+                        
                         return false;
                     })->count();
                 } elseif ($rowKey === 'work_priced_performa') {
-                    // Count complaints with work priced performa status OR in_progress with work_priced_performa performa required
-                    // Same logic structure as regular work performa
+                    // waiting_for_authority removed - only count direct status match
                     $count = $catComplaints->filter(function($complaint) {
-                        // Direct status check
-                        if ($complaint->status === 'work_priced_performa') {
-                            return true;
-                        }
-                        // Check if in_progress with work_priced_performa performa required
-                        // Check for pending approval with waiting_for_authority flag AND performa_type = work_performa
-                        if ($complaint->status === 'in_progress') {
-                            return $complaint->spareApprovals->contains(function($approval) {
-                                return $approval->status === 'pending' 
-                                    && ($approval->waiting_for_authority ?? false)
-                                    && $approval->performa_type === 'work_performa';
-                            });
-                        }
-                        return false;
+                        return $complaint->status === 'work_priced_performa';
                     })->count();
                 } elseif ($rowKey === 'maint_priced_performa') {
-                    // Count complaints with maint priced performa status OR in_progress with maint_priced_performa performa required
-                    // Same logic structure as regular maint performa
+                    // waiting_for_authority removed - only count direct status match
                     $count = $catComplaints->filter(function($complaint) {
-                        // Direct status check
-                        if ($complaint->status === 'maint_priced_performa') {
-                            return true;
-                        }
-                        // Check if in_progress with maint_priced_performa performa required
-                        // Check for pending approval with waiting_for_authority flag AND performa_type = maint_performa
-                        if ($complaint->status === 'in_progress') {
-                            return $complaint->spareApprovals->contains(function($approval) {
-                                return $approval->status === 'pending' 
-                                    && ($approval->waiting_for_authority ?? false)
-                                    && $approval->performa_type === 'maint_performa';
-                            });
-                        }
-                        return false;
+                        return $complaint->status === 'maint_priced_performa';
                     })->count();
                 } elseif ($rowKey === 'product_na') {
-                    // Count complaints with product N/A status
+                    // Count complaints that have product_na status OR product_na performa_type in spareApprovals
+                    // Logic: If performa_type is set, use it; otherwise use complaint status
                     $count = $catComplaints->filter(function($complaint) {
-                        return $complaint->status === 'product_na';
+                        // Get approval with performa_type
+                        $approval = $complaint->spareApprovals->first();
+                        
+                        // If performa_type is set, use it
+                        if ($approval && $approval->performa_type === 'product_na') {
+                            // Exclude if status is rejected
+                            if ($approval->status === 'rejected') {
+                                return false;
+                            }
+                            return true;
+                        }
+                        
+                        // If performa_type is null, check complaint status
+                        if ($complaint->status === 'product_na') {
+                            return true;
+                        }
+                        
+                        return false;
                     })->count();
                 } elseif ($rowKey === 'un_authorized') {
                     // Count complaints with un_authorized status
@@ -824,7 +831,6 @@ class ReportController extends Controller
         // Set default values if not provided
         $dateFrom = $request->date_from ?? now()->subMonth()->format('Y-m-d');
         $dateTo = $request->date_to ?? now()->format('Y-m-d');
-        $department = $request->department;
         $format = $request->format ?? 'html';
 
         // Validate only if parameters are provided
@@ -832,7 +838,6 @@ class ReportController extends Controller
             $request->validate([
                 'date_from' => 'date',
                 'date_to' => 'date|after_or_equal:date_from',
-                'department' => 'nullable|string',
                 'format' => 'nullable|in:html,pdf,excel',
             ]);
         }
@@ -858,10 +863,6 @@ class ReportController extends Controller
         // Apply location-based filtering to employees
         $this->filterEmployeesByLocation($query, $user);
 
-        if ($department) {
-            $query->where('department', $department);
-        }
-
         $employees = $query->get()->map(function($employee) {
             $complaints = $employee->assignedComplaints;
             $resolved = $complaints->whereIn('status', ['resolved', 'closed']);
@@ -884,7 +885,7 @@ class ReportController extends Controller
         ];
 
         if ($format === 'html') {
-            return view('admin.reports.employees', compact('employees', 'summary', 'dateFrom', 'dateTo', 'department'));
+            return view('admin.reports.employees', compact('employees', 'summary', 'dateFrom', 'dateTo'));
         } else {
             return $this->exportReport('employees', $employees, $summary, $format);
         }
@@ -1546,8 +1547,6 @@ class ReportController extends Controller
     {
         $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
-        $department = $request->get('department');
-
         $user = Auth::user();
         $query = Employee::with(['user','assignedComplaints' => function($q) use ($dateFrom, $dateTo, $user){ 
             $q->whereBetween('created_at', [$dateFrom, $dateTo]);
@@ -1569,7 +1568,10 @@ class ReportController extends Controller
         // Apply location-based filtering to employees
         $this->filterEmployeesByLocation($query, $user);
         
-        if ($department) { $query->where('department', $department); }
+        // Filter by category if provided
+        if ($request->has('category') && $request->category) {
+            $query->where('category', $request->category);
+        }
 
         $employees = $query->get()->map(function($employee){
             $complaints = $employee->assignedComplaints; $resolved = $complaints->whereIn('status', ['resolved','closed']);

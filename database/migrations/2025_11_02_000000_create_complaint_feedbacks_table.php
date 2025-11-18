@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('complaint_feedbacks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('complaint_id')->constrained('complaints')->onDelete('cascade');
-            $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
-            $table->foreignId('entered_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->unsignedBigInteger('complaint_id');
+            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('entered_by')->nullable();
             
             // Overall rating
             $table->enum('overall_rating', ['excellent', 'good', 'average', 'poor'])->nullable();

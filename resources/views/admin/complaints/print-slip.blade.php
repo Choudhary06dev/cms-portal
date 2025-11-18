@@ -144,7 +144,7 @@
         
         <div class="info-row">
             <div class="info-label">Assigned To:</div>
-            <div class="info-value">{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}</div>
+            <div class="info-value">{{ $complaint->assignedEmployee->name ?? 'Unassigned' }}@if($complaint->assignedEmployee && $complaint->assignedEmployee->designation) ({{ $complaint->assignedEmployee->designation }})@endif</div>
         </div>
         
         <div class="info-row">

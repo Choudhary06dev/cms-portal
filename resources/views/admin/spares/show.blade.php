@@ -97,7 +97,7 @@
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Stock Quantity</div>
             <div>
-              <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px;">
+              <span class="badge bg-{{ ($spare->stock_quantity ?? 0) <= 0 ? 'danger' : (($spare->stock_quantity ?? 0) <= ($spare->threshold_level ?? 0) ? 'warning' : 'success') }}" style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
                 {{ number_format($spare->stock_quantity ?? 0, 0) }}
               </span>
             </div>
@@ -194,7 +194,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Add Stock</button>
+          <button type="submit" class="btn btn-outline-secondary"><i data-feather="plus" class="me-2"></i>Add Stock</button>
         </div>
       </form>
     </div>
@@ -203,24 +203,6 @@
 
 
 @push('styles')
-<style>
-  .info-item {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  
-  .info-item:last-child {
-    border-bottom: none;
-  }
-  
-  .card-glass {
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .card-glass:hover {
-    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
-  }
-</style>
 @endpush
 
 @push('scripts')

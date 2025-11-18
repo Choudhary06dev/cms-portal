@@ -19,8 +19,8 @@ class CategoryController extends Controller
                 ->with('error', 'Run migrations to create complaint_categories table.');
         }
 
-        // Show all categories - ordered by ID (descending - latest first)
-        $categories = ComplaintCategory::orderBy('id', 'desc')->paginate(15);
+        // Show all categories - ordered by ID (ascending - 1, 2, 3...)
+        $categories = ComplaintCategory::orderBy('id', 'asc')->paginate(15);
         return view('admin.category.index', compact('categories'));
     }
 
@@ -64,9 +64,16 @@ class CategoryController extends Controller
             
             $validated = $request->validate($rules);
             $complaint_category->update($validated);
+            
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => true, 'message' => 'Category updated']);
+            }
             return back()->with('success', 'Category updated');
         } catch (\Exception $e) {
             Log::error('Category update error: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+            }
             return back()->with('error', 'Error updating category: ' . $e->getMessage())->withInput();
         }
     }

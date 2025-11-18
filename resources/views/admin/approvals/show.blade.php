@@ -39,14 +39,30 @@
 
     $rawStatus = $complaint->status ?? 'new';
     $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
-    $statusDisplay = $complaintStatus == 'in_progress' ? 'In-Process' : 
-                    ($complaintStatus == 'resolved' ? 'Addressed' : 
-                    ucfirst(str_replace('_', ' ', $complaintStatus)));
+    $statusLabels = [
+      'assigned' => 'Assigned',
+      'in_progress' => 'In Progress',
+      'resolved' => 'Addressed',
+      'closed' => 'Closed',
+      'work_performa' => 'Work Performa',
+      'maint_performa' => 'Maintenance Performa',
+      'work_priced_performa' => 'Work Priced',
+      'maint_priced_performa' => 'Maintenance Priced',
+      'product_na' => 'Product N/A',
+      'un_authorized' => 'Un-Authorized',
+      'pertains_to_ge_const_isld' => 'GE Const Isld',
+    ];
+    $statusDisplay = $statusLabels[$complaintStatus] ?? ucfirst(str_replace('_', ' ', $complaintStatus));
     $statusColors = [
       'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'],
       'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'],
-      'work_performa' => ['bg' => '#0ea5e9', 'text' => '#ffffff', 'border' => '#0284c7'],
-      'maint_performa' => ['bg' => '#fef08a', 'text' => '#ffffff', 'border' => '#eab308'],
+      'work_performa' => ['bg' => '#60a5fa', 'text' => '#ffffff', 'border' => '#3b82f6'],
+      'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'],
+      'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'],
+      'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'],
+      'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'],
+      'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'],
+      'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'],
       'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'],
     ];
     $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
@@ -145,25 +161,25 @@
       </div>
       @endif
       
-      @if($complaint->city)
+      @if($complaint->city_id && $complaint->city)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">City</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->city }}</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Groups</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->city->name }}</div>
           </div>
         </div>
       </div>
       @endif
       
-      @if($complaint->sector)
+      @if($complaint->sector_id && $complaint->sector)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Sector</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->sector }}</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Nodes</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->sector->name }}</div>
           </div>
         </div>
       </div>
@@ -210,7 +226,7 @@
         <div class="d-flex align-items-start">
           <i data-feather="file-text" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Complaint Title</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Complaint Type</div>
             <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->title }}</div>
           </div>
         </div>
@@ -389,21 +405,32 @@
         </h5>
       </div>
       <div class="card-body">
+        <style>
+          /* Force table column borders */
+          .card-body .table th:not(:last-child),
+          .card-body .table td:not(:last-child) {
+            border-right: 1px solid rgba(201, 160, 160, 0.3) !important;
+          }
+          .card-body .table th:last-child,
+          .card-body .table td:last-child {
+            border-right: none !important;
+          }
+        </style>
         <div class="table-responsive">
-          <table class="table" style="margin-bottom: 0;">
+          <table class="table table-dark" style="margin-bottom: 0;">
             <thead>
               <tr style="background-color: rgba(59, 130, 246, 0.2); border-bottom: 2px solid rgba(59, 130, 246, 0.5);">
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none;">#</th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none;">Item Name</th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">Quantity Requested</th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important;">#</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important;">Item Name</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">Quantity Requested</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">
                   @if($approval->status === 'pending' && ($approval->items && $approval->items->count() > 0))
                     Quantity Approved (Editable)
                   @else
                     Quantity Approved
                   @endif
                 </th>
-                <th style="color: #ffffff; font-weight: 600; padding: 12px; border: none; text-align: center;">Available Stock</th>
+                <th style="color: #ffffff; font-weight: 600; padding: 12px; text-align: center; border-right: none !important;">Available Stock</th>
               </tr>
             </thead>
             <tbody>
@@ -417,15 +444,15 @@
                 $requestedQty = $item->quantity_requested ?? $item->requested_quantity ?? $item->qty ?? $item->quantity ?? 0;
                 $approvedQty = $item->quantity_approved ?? $item->approved_quantity ?? null;
               @endphp
-              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                <td style="color: #e2e8f0; padding: 12px; border: none; font-weight: 500;">{{ $index + 1 }}</td>
-                <td style="color: #ffffff; padding: 12px; border: none; font-weight: 500;">{{ $itemName }}</td>
-                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.25);">
+                <td style="color: #e2e8f0; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; font-weight: 500;">{{ $index + 1 }}</td>
+                <td style="color: #ffffff; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; font-weight: 500;">{{ $itemName }}</td>
+                <td style="color: #e2e8f0; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">
                   <span class="badge" style="background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 6px 12px; font-weight: 600;">
                     {{ number_format((int)$requestedQty, 0) }}
                   </span>
                 </td>
-                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
+                <td style="color: #e2e8f0; padding: 12px; border-right: 1px solid rgba(201, 160, 160, 0.3) !important; text-align: center;">
                   @if($approval->status === 'pending' && ($approval->items && $approval->items->count() > 0))
                     @php
                       $maxQty = min((int)$requestedQty, (int)$availableQty);
@@ -447,8 +474,8 @@
                     </span>
                   @endif
                 </td>
-                <td style="color: #e2e8f0; padding: 12px; border: none; text-align: center;">
-                  <span class="badge bg-{{ ((int)$availableQty <= 0) ? 'danger' : 'success' }}" style="padding: 6px 12px; font-weight: 600;">
+                <td style="color: #ffffff; padding: 12px; text-align: center; border-right: none !important;">
+                  <span class="badge bg-{{ ((int)$availableQty <= 0) ? 'danger' : 'success' }}" style="padding: 6px 12px; font-weight: 600; color: #ffffff !important;">
                     {{ number_format((int)$availableQty, 0) }}
                   </span>
                 </td>

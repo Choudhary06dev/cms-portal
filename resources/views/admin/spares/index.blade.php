@@ -10,7 +10,7 @@
       <h2 class=" mb-2">Product Management</h2>
       <p class="text-light">Manage inventory and Product</p>
     </div>
-    <a href="{{ route('admin.spares.create') }}" class="btn btn-accent">
+    <a href="{{ route('admin.spares.create') }}" class="btn btn-outline-secondary">
       <i class="fas fa-plus me-2"></i>Add Product
     </a>
   </div>
@@ -60,9 +60,11 @@
       <thead>
         <tr>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Sr.No</th>
-          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Product Code</th>
+                    <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Product Name</th>
+
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Brand Name</th>
-          <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Product Name</th>
+                    <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Product Code</th>
+
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Category</th>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Total Received</th>
           <th style="padding: 0.4rem 0.5rem; font-size: 0.8rem; white-space: nowrap;">Issued Qty</th>
@@ -76,10 +78,12 @@
       <tbody id="sparesTableBody">
         @forelse($spares as $spare)
         <tr>
-          <td class="text-muted" style="padding: 0.4rem 0.5rem;">{{ $loop->iteration }}</td>
-          <td style="padding: 0.4rem 0.5rem;">{{ $spare->product_code ?? 'N/A' }}</td>
+          <td class="text-muted" style="padding: 0.4rem 0.5rem;">{{ ($spares->currentPage() - 1) * $spares->perPage() + $loop->iteration }}</td>
+                    <td style="padding: 0.4rem 0.5rem;">{{ $spare->item_name }}</td>
+
           <td style="padding: 0.4rem 0.5rem;">{{ $spare->brand_name ?? 'N/A' }}</td>
-          <td style="padding: 0.4rem 0.5rem;">{{ $spare->item_name }}</td>
+                    <td style="padding: 0.4rem 0.5rem;">{{ $spare->product_code ?? 'N/A' }}</td>
+
           <td style="padding: 0.4rem 0.5rem;">{{ ucfirst($spare->category ?? 'N/A') }}</td>
           <td style="padding: 0.4rem 0.5rem;"><span class="text-success">{{ number_format((float)($spare->total_received_quantity ?? 0), 0) }}</span></td>
           <td style="padding: 0.4rem 0.5rem;"><span class="text-danger">{{ number_format((float)($spare->issued_quantity ?? 0), 0) }}</span></td>
@@ -168,220 +172,6 @@
 @endsection
 
 @push('styles')
-<style>
-  body.modal-open-blur {
-      overflow: hidden;
-  }
-  body.modal-open-blur::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      z-index: 1040;
-      pointer-events: none;
-  }
-  body.modal-open-blur .modal-backdrop,
-  #spareModal.modal.show ~ .modal-backdrop,
-  #spareModal.modal.show + .modal-backdrop,
-  .modal-backdrop.show,
-  .modal-backdrop {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      background-color: transparent !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      pointer-events: none !important;
-  }
-  
-  /* Ensure modal content is above blur layer */
-  #spareModal {
-      z-index: 1055 !important;
-  }
-  
-  #spareModal .modal-dialog {
-      z-index: 1055 !important;
-      position: relative;
-  }
-  
-  #spareModal .modal-content {
-      max-height: 90vh;
-      overflow-y: auto;
-      z-index: 1055 !important;
-      position: relative;
-  }
-  
-  #spareModal .modal-body {
-      padding: 1.5rem;
-  }
-  
-  #spareModal .btn-close {
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      padding: 0.5rem !important;
-      opacity: 1 !important;
-  }
-  
-  #spareModal .btn-close:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-  }
-  .category-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  /* Pagination styles are now centralized in components/pagination.blade.php */
-
-  /* Modal theme styling */
-  .modal-content.card-glass {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: 1px solid rgba(59, 130, 246, 0.2) !important;
-    backdrop-filter: blur(10px) !important;
-  }
-
-  .theme-dark .modal-content.card-glass,
-  .theme-night .modal-content.card-glass {
-    background: rgba(30, 41, 59, 0.95) !important;
-    border: 1px solid rgba(59, 130, 246, 0.3) !important;
-  }
-
-  .modal-header {
-    border-bottom: 1px solid rgba(59, 130, 246, 0.2) !important;
-  }
-
-  .theme-dark .modal-header,
-  .theme-night .modal-header {
-    border-bottom: 1px solid rgba(59, 130, 246, 0.3) !important;
-  }
-
-  .modal-footer {
-    border-top: 1px solid rgba(59, 130, 246, 0.2) !important;
-  }
-
-  .theme-dark .modal-footer,
-  .theme-night .modal-footer {
-    border-top: 1px solid rgba(59, 130, 246, 0.3) !important;
-  }
-
-  .modal-title {
-    color: #1e293b !important;
-  }
-
-  .theme-dark .modal-title,
-  .theme-night .modal-title {
-    color: #fff !important;
-  }
-
-  .modal-body .form-label {
-    color: #1e293b !important;
-  }
-
-  .theme-dark .modal-body .form-label,
-  .theme-night .modal-body .form-label {
-    color: #fff !important;
-  }
-
-  .category-technical {
-    background: rgba(59, 130, 246, 0.2);
-    color: #3b82f6;
-  }
-
-  .category-service {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-  }
-
-  .category-billing {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
-  }
-
-  .category-sanitary {
-    background: rgba(20, 184, 166, 0.2);
-    color: #14b8a6;
-  }
-
-  .category-electric {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
-  }
-
-  .category-kitchen {
-    background: rgba(139, 92, 246, 0.2);
-    color: #8b5cf6;
-  }
-
-  .category-plumbing {
-    background: rgba(59, 130, 246, 0.2);
-    color: #3b82f6;
-  }
-
-  .category-other {
-    background: rgba(107, 114, 128, 0.2);
-    color: #6b7280;
-  }
-
-  .status-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  .status-active {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-  }
-
-  .status-inactive {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-  }
-
-  .status-discontinued {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
-  }
-
-  /* Print button styling */
-  #printSparesBtn {
-    transition: all 0.3s ease;
-  }
-
-  #printSparesBtn:hover {
-    background-color: rgba(59, 130, 246, 0.1);
-    border-color: #3b82f6;
-    color: #3b82f6;
-  }
-
-  /* Action buttons styling */
-  .btn-group .btn {
-    margin-right: 2px;
-  }
-
-  .btn-group .btn:last-child {
-    margin-right: 0;
-  }
-
-  /* Print button in actions */
-  .btn-outline-primary {
-    border-color: #3b82f6;
-    color: #3b82f6;
-  }
-
-  .btn-outline-primary:hover {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
-  }
-</style>
 @endpush
 
 @push('scripts')
@@ -444,6 +234,7 @@
 
     const tbody = document.getElementById('sparesTableBody');
     const paginationContainer = document.getElementById('sparesPagination');
+    const footerContainer = document.getElementById('sparesTableFooter');
     
     if (tbody) {
       tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
@@ -464,6 +255,7 @@
       
       const newTbody = doc.querySelector('#sparesTableBody');
       const newPagination = doc.querySelector('#sparesPagination');
+      const newFooter = doc.querySelector('#sparesTableFooter');
       
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
@@ -474,6 +266,11 @@
         paginationContainer.innerHTML = newPagination.innerHTML;
         // Re-initialize feather icons after pagination update
         feather.replace();
+      }
+      
+      // Update total records footer with filtered count
+      if (newFooter && footerContainer) {
+        footerContainer.innerHTML = newFooter.innerHTML;
       }
 
       const newUrl = `{{ route('admin.spares.index') }}?${params.toString()}`;
@@ -666,9 +463,73 @@
       
       if (spareContent) {
         modalBody.innerHTML = spareContent;
+        // Function to apply table column borders
+        const applyTableBorders = () => {
+          const modalTables = modalBody.querySelectorAll('table');
+          modalTables.forEach((table) => {
+            const ths = table.querySelectorAll('th');
+            const tds = table.querySelectorAll('td');
+            
+            ths.forEach((th) => {
+              const row = th.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('th'));
+              const cellIndex = cellsInRow.indexOf(th);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: none !important;');
+                th.style.borderRight = 'none';
+                th.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+            
+            tds.forEach((td) => {
+              const row = td.parentElement;
+              const cellsInRow = Array.from(row.querySelectorAll('td'));
+              const cellIndex = cellsInRow.indexOf(td);
+              const isLast = cellIndex === cellsInRow.length - 1;
+              
+              if (!isLast) {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
+                td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
+                td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+              } else {
+                td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: none !important;');
+                td.style.borderRight = 'none';
+                td.style.setProperty('border-right', 'none', 'important');
+              }
+            });
+          });
+        };
+        
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
+          applyTableBorders();
+          setTimeout(applyTableBorders, 100);
+          setTimeout(applyTableBorders, 200);
+          setTimeout(applyTableBorders, 500);
+          setTimeout(applyTableBorders, 1000);
+        }, 50);
+        
+        // Also apply when modal is fully shown
+        setTimeout(() => {
+          const modalElement = document.getElementById('spareModal');
+          if (modalElement) {
+            const applyOnShow = function() {
+              setTimeout(applyTableBorders, 100);
+              setTimeout(applyTableBorders, 300);
+              setTimeout(applyTableBorders, 600);
+            };
+            modalElement.addEventListener('shown.bs.modal', applyOnShow, { once: true });
+            if (modalElement.classList.contains('show')) {
+              applyOnShow();
+            }
+          }
         }, 100);
       } else {
         console.error('Could not find spare content in response');

@@ -10,7 +10,7 @@
                 <h2 class="text-white mb-2">Complaints Management</h2>
                 <p class="text-light">Track and manage customer complaints</p>
             </div>
-            <a href="{{ route('admin.complaints.create') }}" class="btn btn-accent">
+            <a href="{{ route('admin.complaints.create') }}" class="btn btn-outline-secondary">
                 <i data-feather="plus" class="me-2"></i>Add Complaint
             </a>
         </div>
@@ -58,7 +58,7 @@
                             <option value="" {{ request('assigned_employee_id') ? '' : 'selected' }}>All</option>
                             @foreach($employees as $employee)
                             <option value="{{ $employee->id }}" {{ request('assigned_employee_id') == $employee->id ? 'selected' : '' }}>
-                                {{ $employee->name }}
+                                {{ $employee->name }}@if($employee->designation) ({{ $employee->designation }})@endif
                             </option>
                             @endforeach
                         </select>
@@ -114,14 +114,13 @@
             <table class="table table-dark table-sm table-compact" style="margin: 0 !important; border-left: none !important; border-radius: 0 0 12px 12px;">
                 <thead>
                     <tr>
-                        <th style="width: 40px; padding-left: 8px !important;">#</th>
-
-                        <th style="width: 130px;">	Registration Date/Time</th>
-                        <th style="width: 130px; text-align: center;">Completion Time</th>
-                        <th style="width: 100px;">Complaint ID</th>
+                        <th style="width: 100px;">CMP-ID</th>
+                        <th style="width: 130px;">Registration Date/Time</th>
+                        <th style="width: 130px; text-align: left;">Completion Time</th>
                         <th style="width: 120px;">Complainant Name</th>
                         <th style="width: 150px;">Address</th>
                         <th style="width: 250px;">Complaint Nature & Type</th>
+                        <th style="width: 100px;">Priority</th>
                         <th style="width: 100px;">Phone No.</th>
                         <th style="width: 80px;">Actions</th>
                     </tr>
@@ -129,14 +128,13 @@
                 <tbody id="complaintsTableBody">
                     @forelse($complaints as $complaint)
                         <tr>
-                            <td>{{ ($complaints->currentPage() - 1) * $complaints->perPage() + $loop->iteration }}</td>
-                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
-                            <td style="white-space: nowrap; text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '-' }}</td>
                             <td style="white-space: nowrap;">
                                 <a href="{{ route('admin.complaints.show', $complaint->id) }}" class="text-decoration-none" style="color: #3b82f6;">
                                     {{ (int)($complaint->complaint_id ?? $complaint->id) }}
                                 </a>
                             </td>
+                            <td style="white-space: nowrap;">{{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '' }}</td>
+                            <td style="white-space: nowrap; text-align: {{ $complaint->closed_at ? 'left' : 'center' }};">{{ $complaint->closed_at ? $complaint->closed_at->timezone('Asia/Karachi')->format('M d, Y H:i:s') : '-' }}</td>
                             <td style="white-space: nowrap;">{{ $complaint->client->client_name ?? 'N/A' }}</td>
                             <td>{{ $complaint->client->address ?? 'N/A' }}</td>
                             <td>
@@ -158,6 +156,23 @@
                                     $displayText = $catDisplay . ' - ' . $designation;
                                 @endphp
                                 <div class="text-white" style="font-weight: normal;">{{ $displayText }}</div>
+                            </td>
+                            <td>
+                                @php
+                                    $priority = $complaint->priority ?? 'medium';
+                                    $priorityColors = [
+                                        'low' => ['bg' => 'rgba(34, 197, 94, 0.2)', 'text' => '#22c55e'],
+                                        'medium' => ['bg' => 'rgba(245, 158, 11, 0.2)', 'text' => '#f59e0b'],
+                                        'high' => ['bg' => 'rgba(239, 68, 68, 0.2)', 'text' => '#ef4444'],
+                                        'urgent' => ['bg' => 'rgba(139, 92, 246, 0.2)', 'text' => '#8b5cf6'],
+                                        'emergency' => ['bg' => 'rgba(220, 38, 38, 0.3)', 'text' => '#dc2626'],
+                                    ];
+                                    $priorityColor = $priorityColors[$priority] ?? $priorityColors['medium'];
+                                    $priorityDisplay = ucfirst($priority);
+                                @endphp
+                                <span class="badge" style="background-color: {{ $priorityColor['bg'] }}; color: {{ $priorityColor['text'] }}; padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 12px;">
+                                    {{ $priorityDisplay }}
+                                </span>
                             </td>
                             <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
                             <td>
@@ -201,276 +216,6 @@
 @endsection
 
 @push('styles')
-    <style>
-        /* Table styles - Compact */
-        .table-compact {
-            margin: 0 !important;
-            border-collapse: collapse;
-            width: 100% !important;
-            border-radius: 0 0 12px 12px;
-            overflow: hidden;
-        }
-        .table-compact th {
-            white-space: nowrap;
-            padding: 4px 6px;
-            font-size: 13px;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        .table-compact th:first-child {
-            padding-left: 8px !important;
-        }
-        .table-compact td {
-            padding: 4px 6px;
-            font-size: 13px;
-            vertical-align: middle;
-        }
-        .table-compact td:first-child {
-            padding-left: 8px !important;
-        }
-        /* Make complaint ID and name columns compact */
-        .table-compact th:nth-child(4),
-        .table-compact td:nth-child(4),
-        .table-compact th:nth-child(5),
-        .table-compact td:nth-child(5) {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        /* Ensure table fits properly */
-        .table-compact {
-            margin-bottom: 0;
-            margin-left: 0;
-            width: 100%;
-        }
-        /* Remove left spacing from table container */
-        .card-body > .table-responsive-xl {
-            margin-left: 0 !important;
-            padding-left: 0 !important;
-            margin-right: 0 !important;
-        }
-        /* Remove all padding from card-glass and card-body for table */
-        .card-glass[style*="padding: 0"] {
-            padding: 0 !important;
-            margin: 0 !important;
-            border-radius: 12px !important;
-            overflow: hidden !important;
-        }
-        .card-glass[style*="padding: 0"] > .card-body {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        /* Ensure table container has no spacing */
-        .card-glass[style*="padding: 0"] > .card-body > .table-responsive-xl {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-        }
-        /* Keep padding for pagination only */
-        #complaintsPagination {
-            padding-left: 1rem;
-            padding-right: 1rem;
-            padding-top: 1rem;
-        }
-        /* Table should fill full width */
-        .card-glass[style*="padding: 0"] .table-compact {
-            margin: 0 !important;
-            width: 100% !important;
-            border-left: none !important;
-            border-right: none !important;
-        }
-        /* Address column with ellipsis for long text */
-        .table-compact td:nth-child(6) {
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        /* Complaint Nature column - allow wrap but limit height */
-        .table-compact td:nth-child(7) {
-            max-width: 250px;
-            word-wrap: break-word;
-            line-height: 1.3;
-        }
-        /* Completion Time column - center align header */
-        .table-compact th:nth-child(3) {
-            text-align: center;
-        }
-        /* Completion Time cells - default to center, but inline style will override for dates */
-        .table-compact td:nth-child(3) {
-            text-align: center;
-        }
-        .category-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .category-technical {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-        }
-
-        .category-service {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-        }
-
-        .category-billing {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-        }
-
-        .category-other {
-            background: rgba(107, 114, 128, 0.2);
-            color: #6b7280;
-        }
-
-        .priority-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .priority-low {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-        }
-
-        .priority-medium {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-        }
-
-        .priority-high {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-
-        .priority-urgent {
-            background: rgba(139, 92, 246, 0.2);
-            color: #8b5cf6;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .status-new {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-        }
-
-        .status-assigned {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-        }
-
-        .status-in-progress {
-            background: rgba(168, 85, 247, 0.2);
-            color: #a855f7;
-        }
-
-        .status-resolved {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-        }
-
-        .status-closed {
-            background: rgba(107, 114, 128, 0.2);
-            color: #6b7280;
-        }
-
-        /* Pagination styles are now centralized in components/pagination.blade.php */
-        
-        /* Table column borders - vertical lines between columns */
-        .table-dark th,
-        .table-dark td {
-            border-right: 1px solid rgba(255, 255, 255, 0.15);
-            border-left: none;
-        }
-        
-        .table-dark th:first-child,
-        .table-dark td:first-child {
-            border-left: none;
-        }
-        
-        .table-dark th:last-child,
-        .table-dark td:last-child {
-            border-right: none;
-        }
-        
-        /* Blur effect for background when modal is open */
-        body.modal-open-blur {
-            overflow: hidden;
-        }
-        
-        body.modal-open-blur::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            z-index: 1040;
-            pointer-events: none;
-        }
-        
-        /* Completely remove/hide Bootstrap backdrop */
-        body.modal-open-blur .modal-backdrop,
-        #complaintModal.modal.show ~ .modal-backdrop,
-        #complaintModal.modal.show + .modal-backdrop,
-        .modal-backdrop.show,
-        .modal-backdrop {
-            display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            background-color: transparent !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            pointer-events: none !important;
-        }
-        
-        /* Ensure modal content is above blur layer */
-        #complaintModal {
-            z-index: 1055 !important;
-        }
-        
-        #complaintModal .modal-dialog {
-            z-index: 1055 !important;
-            position: relative;
-        }
-        
-        #complaintModal .modal-content {
-            max-height: 90vh;
-            overflow-y: auto;
-            z-index: 1055 !important;
-            position: relative;
-        }
-        
-        #complaintModal .modal-body {
-            padding: 1.5rem;
-        }
-        
-        #complaintModal .btn-close {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            padding: 0.5rem !important;
-            opacity: 1 !important;
-        }
-        
-        #complaintModal .btn-close:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-    </style>
 @endpush
 
 <!-- Complaint Modal -->
@@ -560,6 +305,7 @@
 
             const tbody = document.getElementById('complaintsTableBody');
             const paginationContainer = document.getElementById('complaintsPagination');
+            const footerContainer = document.getElementById('complaintsTableFooter');
             
             if (tbody) {
                 tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
@@ -580,6 +326,7 @@
                 
                 const newTbody = doc.querySelector('#complaintsTableBody');
                 const newPagination = doc.querySelector('#complaintsPagination');
+                const newFooter = doc.querySelector('#complaintsTableFooter');
                 
                 if (newTbody && tbody) {
                     tbody.innerHTML = newTbody.innerHTML;
@@ -590,6 +337,11 @@
                     paginationContainer.innerHTML = newPagination.innerHTML;
                     // Re-initialize feather icons after pagination update
                     feather.replace();
+                }
+                
+                // Update total records footer with filtered count
+                if (newFooter && footerContainer) {
+                    footerContainer.innerHTML = newFooter.innerHTML;
                 }
 
                 const newUrl = `{{ route('admin.complaints.index') }}?${params.toString()}`;
@@ -850,9 +602,44 @@
                     complaintContent = tempDiv.innerHTML;
                     
                     modalBody.innerHTML = complaintContent;
+                    // Function to apply table column borders
+                    const applyTableBorders = () => {
+                        const modalTables = modalBody.querySelectorAll('.table');
+                        modalTables.forEach(table => {
+                            const ths = table.querySelectorAll('thead th, tbody th');
+                            const tds = table.querySelectorAll('tbody td');
+                            ths.forEach((th) => {
+                                const row = th.parentElement;
+                                const cellsInRow = row.querySelectorAll('th');
+                                const cellIndex = Array.from(cellsInRow).indexOf(th);
+                                if (cellIndex < cellsInRow.length - 1) {
+                                    th.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+                                } else {
+                                    th.style.setProperty('border-right', 'none', 'important');
+                                }
+                            });
+                            tds.forEach((td) => {
+                                const row = td.parentElement;
+                                const cellsInRow = row.querySelectorAll('td');
+                                const cellIndex = Array.from(cellsInRow).indexOf(td);
+                                if (cellIndex < cellsInRow.length - 1) {
+                                    td.style.setProperty('border-right', '1px solid rgba(201, 160, 160, 0.3)', 'important');
+                                } else {
+                                    td.style.setProperty('border-right', 'none', 'important');
+                                }
+                            });
+                        });
+                    };
+                    
                     // Replace feather icons after content is loaded
                     setTimeout(() => {
                         feather.replace();
+                        applyTableBorders();
+                        // Apply multiple times with delays to ensure it works
+                        setTimeout(applyTableBorders, 100);
+                        setTimeout(applyTableBorders, 200);
+                        setTimeout(applyTableBorders, 500);
+                        setTimeout(applyTableBorders, 1000);
                         // Double-check and remove any share-modal.js scripts that might have been added
                         const shareModalScripts = document.querySelectorAll('script[src*="share-modal"]');
                         shareModalScripts.forEach(script => {
@@ -862,7 +649,23 @@
                                 // Ignore errors
                             }
                         });
-                    }, 100);
+                    }, 50);
+                    
+                    // Watch for new tables being added
+                    const observer = new MutationObserver(() => {
+                        setTimeout(applyTableBorders, 50);
+                    });
+                    observer.observe(modalBody, { childList: true, subtree: true });
+                    
+                    // Stop observing after 10 seconds
+                    setTimeout(() => observer.disconnect(), 10000);
+                    
+                    // Also apply when modal is fully shown
+                    modalElement.addEventListener('shown.bs.modal', function() {
+                        setTimeout(applyTableBorders, 100);
+                        setTimeout(applyTableBorders, 300);
+                        setTimeout(applyTableBorders, 600);
+                    }, { once: true });
                 } else {
                     console.error('Could not find complaint content in response');
                     console.log('Content section:', contentSection);
