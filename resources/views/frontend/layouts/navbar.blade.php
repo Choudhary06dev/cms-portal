@@ -3,9 +3,9 @@
     <!-- Logo & Brand -->
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
       <div class="logo-wrapper me-2">
-        <img src="{{ asset('assests/logo.png') }}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain;">
+        <img src="{{ asset('assests/logo.png') }}" alt="Logo" style="width: 80px; height: 60px; object-fit: contain;">
       </div>
-      <span class="fw-bold fs-5 text-white ms-2">MES</span>
+      <span class="fw-bold fs-5 text-white ms-2">MES (Complaint Management System)</span>
     </a>
 
     <!-- Mobile Toggle -->
@@ -84,26 +84,26 @@
     right: 0;
     width: 100%;
   }
-  
+
   .navbar-brand {
     transition: transform 0.3s ease;
     color: #ffffff !important;
   }
-  
+
   .navbar-brand span {
     color: #ffffff !important;
   }
-  
+
   .navbar-brand:hover {
     transform: scale(1.05);
   }
-  
+
   .logo-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  
+
   .nav-link {
     position: relative;
     transition: all 0.3s ease;
@@ -111,7 +111,7 @@
     align-items: center;
     color: #ffffff !important;
   }
-  
+
   .nav-link::after {
     content: '';
     position: absolute;
@@ -123,25 +123,25 @@
     transition: all 0.3s ease;
     transform: translateX(-50%);
   }
-  
+
   .nav-link:hover::after,
   .nav-link.active::after {
     width: 80%;
   }
-  
+
   .nav-link.active {
     color: #ffd700 !important;
   }
-  
+
   .nav-link:hover {
     color: #ffd700 !important;
   }
-  
+
   .dropdown-menu {
     margin-top: 0.5rem;
     animation: fadeIn 0.3s ease;
   }
-  
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -152,13 +152,13 @@
       transform: translateY(0);
     }
   }
-  
+
   .dropdown-item {
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
   }
-  
+
   .dropdown-item:hover {
     background-color: #f8f9fa;
     padding-left: 1.5rem;
@@ -168,7 +168,7 @@
     background-color: #fee2e2;
     color: #dc2626;
   }
-  
+
   .user-avatar {
     width: 24px;
     height: 24px;
@@ -179,30 +179,30 @@
     justify-content: center;
     color: white;
   }
-  
+
   .btn-light {
     background: white;
     color: #001f3f;
     border: none;
     font-weight: 600;
   }
-  
+
   .btn-light:hover {
     background: #f8f9fa;
     color: #001f3f;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
-  
+
   @media (max-width: 991px) {
     .nav-link::after {
       display: none;
     }
-    
+
     .navbar-nav {
       padding-top: 1rem;
     }
-    
+
     .nav-item {
       margin-bottom: 0.5rem;
     }

@@ -539,18 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 datalabels: {
-                    color: '#ffffff',
-                    font: {
-                        weight: 'bold',
-                        size: 12
-                    },
-                    formatter: function(value, context) {
-                        const percentage = totalComplaints > 0 ? ((value / totalComplaints) * 100).toFixed(1) : 0;
-                        return percentage + '%';
-                    },
-                    textAlign: 'center',
-                    textStrokeColor: 'rgba(0, 0, 0, 0.5)',
-                    textStrokeWidth: 2
+                    display: false
                 }
             }
         },
