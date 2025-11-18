@@ -16,6 +16,11 @@
   <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
     <style>
       html,body{margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+      /* Browser compatibility for text-size-adjust */
+      html, body {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
     </style>
   @stack('styles')
 </head>

@@ -3,12 +3,7 @@
     <!-- Logo & Brand -->
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
       <div class="logo-wrapper me-2">
-        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="45" fill="white" stroke="#003366" stroke-width="3"/>
-          <path d="M50 20 L60 40 L80 45 L65 60 L68 80 L50 70 L32 80 L35 60 L20 45 L40 40 Z" fill="#003366"/>
-          <circle cx="50" cy="50" r="15" fill="#ffd700"/>
-          <text x="50" y="85" text-anchor="middle" font-size="10" fill="#003366" font-weight="bold">PAKISTAN</text>
-        </svg>
+        <img src="{{ asset('assests/logo.png') }}" alt="Logo" style="width: 40px; height: 40px; object-fit: contain;">
       </div>
       <span class="fw-bold fs-5 text-white ms-2">MES</span>
     </a>

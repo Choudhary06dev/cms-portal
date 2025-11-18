@@ -4,21 +4,36 @@
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+<style>
+    .header-bg,
+    div.header-bg,
+    .relative.bg-cover.bg-center.header-bg {
+        height: 40px !important;
+        min-height:400px !important;
+        max-height: none !important;
+    }
+    
+    /* Browser compatibility for text-size-adjust */
+    html, body {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+</style>
 @endpush
 
 @section('content')
 <!-- Header Background -->
-<div class="relative h-64 bg-cover bg-center" style="background-image: url('https://wallpaperaccess.com/full/7431952.jpg');">
+<div class="relative bg-cover bg-center header-bg" style="background-image: url('https://wallpaperaccess.com/full/7431952.jpg');">
     <div class="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
     <!-- Logo -->
     <div class="absolute top-9 left-1/2 transform -translate-x-1/2 text-white text-center">
-        <img src="https://tse2.mm.bing.net/th/id/OIP.HN5w-gh1toIzBM3qZ2c7ygHaJ4?pid=Api&h=220&P=0" class="h-20 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Badge_of_the_Pakistan_Navy.png/240px-Badge_of_the_Pakistan_Navy.png'" />
+        <img src="{{ asset('assests/logo.png') }}" class="h-28 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='{{ asset('assests/logo.png') }}'" />
     </div>
     <!-- Filters -->
-    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 p-2 flex items-end justify-center gap-2" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: fit-content; max-width: 95%; border-radius: 0;">
+    <div class="absolute top-44 left-1/2 transform -translate-x-1/2 p-2 flex items-end justify-center gap-2" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: fit-content; max-width: 90%; border-radius: 4px;">
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">GE</label>
-            <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label for="filterCity" class="block text-xs font-semibold text-white mb-1">GE</label>
+            <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select GE" title="Select GE">
                 <option value="">Select GE</option>
                 @foreach($geGroups as $ge)
                     <option value="{{ $ge->id }}" {{ $cityId == $ge->id ? 'selected' : '' }}>{{ $ge->name }}</option>
@@ -26,8 +41,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">GE Nodes</label>
-            <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label for="filterSector" class="block text-xs font-semibold text-white mb-1">GE Nodes</label>
+            <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select GE Nodes" title="Select GE Nodes">
                 <option value="">All GE Nodes</option>
                 @foreach($geNodes as $node)
                     <option value="{{ $node->id }}" {{ $sectorId == $node->id ? 'selected' : '' }}>{{ $node->name }}</option>
@@ -35,8 +50,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">Complaints Category</label>
-            <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label for="filterCategory" class="block text-xs font-semibold text-white mb-1">Complaints Category</label>
+            <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select Complaints Category" title="Select Complaints Category">
                 <option value="all">All Categories</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->name }}" {{ $category == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -44,8 +59,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">Complaints Status</label>
-            <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label for="filterStatus" class="block text-xs font-semibold text-white mb-1">Complaints Status</label>
+            <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select Complaints Status" title="Select Complaints Status">
                 <option value="all">All Status</option>
                 @foreach($statuses as $key => $label)
                     <option value="{{ $key }}" {{ $status == $key ? 'selected' : '' }}>{{ $label }}</option>
@@ -53,8 +68,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">Date Range</label>
-            <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label for="filterDateRange" class="block text-xs font-semibold text-white mb-1">Date Range</label>
+            <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select Date Range" title="Select Date Range">
                 <option value="">All Time</option>
                 <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                 <option value="today" {{ $dateRange == 'today' ? 'selected' : '' }}>Today</option>
@@ -67,15 +82,16 @@
         </div>
         <div class="flex items-center" style="flex: 0 0 auto;">
             <label class="block text-xs font-semibold text-gray-700 mb-1" style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
-            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem; border-radius: 0;">Reset</button>
+            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem; border-radius: 4px;">Reset</button>
         </div>
     </div>
 </div>
 
-<!-- Main Content -->
-<div class="mx-auto mt-10 mb-8 grid grid-cols-4 gap-6" style="background: white; padding: 2rem 3rem; max-width: 95%; border-radius: 12px;">
-    <!-- Left Graphs -->
-    <div class="col-span-3 space-y-6">
+<!-- Main Content Container -->
+<div class="mx-auto mb-8" style="max-width:90%; margin-top: -8rem; position: relative; z-index: 10;">
+    <div class="flex gap-6">
+        <!-- Left Graphs Section -->
+        <div class="flex-1 space-y-6" style="background: white; padding: 2rem 3rem; border-radius: 12px;">
         <!-- Monthly Complaints and TVRR Complaints Row -->
         <div class="grid grid-cols-2 gap-6">
             <!-- Monthly Complaints -->
@@ -100,9 +116,9 @@
                 <canvas id="resolutionTrendChart"></canvas>
             </div>
         </div>
-    </div>
-    <!-- Right Stats Boxes -->
-    <div class="col-span-1 grid grid-cols-2 gap-3" style="align-self: start;">
+        </div>
+        <!-- Right Stats Boxes Section -->
+        <div class="w-80 grid grid-cols-2 gap-3" style="background: white; padding: 2rem 3rem; border-radius: 12px; align-self: start;">
         <!-- Total Complaints (First) -->
         <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
             <span id="stat-total-complaints" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['total_complaints'] ?? 0 }}</span>
@@ -152,6 +168,7 @@
         <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
             <span id="stat-assigned" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['assigned'] ?? 0 }}</span>
             <span class="text-xs font-normal" style="line-height: 1.2;">Assigned</span>
+        </div>
         </div>
     </div>
 </div>
@@ -613,21 +630,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Accept': 'application/json',
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            // Check if response is JSON
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                return response.json();
+            } else {
+                // If not JSON, stop and don't reload
+                console.warn('Response is not JSON, stopping filter update');
+                return null;
+            }
+        })
         .then(data => {
-            // Update stats boxes
-            updateStats(data.stats);
-            
-            // Update charts
-            updateCharts(data);
-            
-            // Update URL without reload
-            window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + params.toString());
+            if (data && data.stats) {
+                // Update stats boxes
+                updateStats(data.stats);
+                
+                // Update charts
+                updateCharts(data);
+                
+                // Update URL without reload
+                window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + params.toString());
+            }
         })
         .catch(error => {
             console.error('Error fetching data:', error);
-            // Fallback to page reload on error
-            window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+            // Don't auto-reload on error, just log it
         });
     }
     
