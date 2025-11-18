@@ -152,6 +152,9 @@ class HomeController extends Controller
         // In Progress count
         $stats['in_progress'] = (clone $complaintsQuery)->where('status', 'in_progress')->count();
         
+        // Assigned count
+        $stats['assigned'] = (clone $complaintsQuery)->where('status', 'assigned')->count();
+        
         // Closed count
         $stats['closed'] = (clone $complaintsQuery)->where('status', 'closed')->count();
         
@@ -169,6 +172,9 @@ class HomeController extends Controller
         
         // Product N/A count
         $stats['product'] = (clone $complaintsQuery)->where('status', 'product_na')->count();
+        
+        // Pertains to GE/Const/Isld count
+        $stats['pertains_to_ge_const_isld'] = (clone $complaintsQuery)->where('status', 'pertains_to_ge_const_isld')->count();
 
         $page = request()->get('page', 1);
         $perPage = 5;
@@ -251,6 +257,18 @@ class HomeController extends Controller
             'breached' => 0,
             'sla_percentage' => 0,
         ];
+
+        // If AJAX request, return JSON data
+        if ($request->ajax()) {
+            return response()->json([
+                'stats' => $stats,
+                'monthlyComplaints' => $monthlyComplaints,
+                'monthLabels' => $monthLabels,
+                'complaintsByStatus' => $complaintsByStatus,
+                'resolvedVsEdData' => $resolvedVsEdData,
+                'recentEdData' => $recentEdData,
+            ]);
+        }
 
         return view('frontend.dashboard', compact(
             'stats',
