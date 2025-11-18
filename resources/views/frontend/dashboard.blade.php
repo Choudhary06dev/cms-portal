@@ -16,10 +16,10 @@
         <p class="text-white font-semibold text-lg">PAKISTAN</p>
     </div>
     <!-- Filters -->
-    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 rounded-xl p-4 flex items-end justify-center gap-3" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); width: fit-content; max-width: 95%;">
+    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 p-2 flex items-end justify-center gap-2" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: fit-content; max-width: 95%; border-radius: 0;">
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">GE</label>
-            <select id="filterCity" name="city_id" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+            <label class="block text-xs font-semibold text-white mb-1">GE</label>
+            <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
                 <option value="">Select GE</option>
                 @foreach($geGroups as $ge)
                     <option value="{{ $ge->id }}" {{ $cityId == $ge->id ? 'selected' : '' }}>{{ $ge->name }}</option>
@@ -27,8 +27,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">GE Nodes</label>
-            <select id="filterSector" name="sector_id" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+            <label class="block text-xs font-semibold text-white mb-1">GE Nodes</label>
+            <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
                 <option value="">All GE Nodes</option>
                 @foreach($geNodes as $node)
                     <option value="{{ $node->id }}" {{ $sectorId == $node->id ? 'selected' : '' }}>{{ $node->name }}</option>
@@ -36,8 +36,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Complaints Category</label>
-            <select id="filterCategory" name="category" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+            <label class="block text-xs font-semibold text-white mb-1">Complaints Category</label>
+            <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
                 <option value="all">All Categories</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->name }}" {{ $category == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -45,8 +45,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Complaints Status</label>
-            <select id="filterStatus" name="status" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+            <label class="block text-xs font-semibold text-white mb-1">Complaints Status</label>
+            <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
                 <option value="all">All Status</option>
                 @foreach($statuses as $key => $label)
                     <option value="{{ $key }}" {{ $status == $key ? 'selected' : '' }}>{{ $label }}</option>
@@ -54,8 +54,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Date Range</label>
-            <select id="filterDateRange" name="date_range" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+            <label class="block text-xs font-semibold text-white mb-1">Date Range</label>
+            <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
                 <option value="">All Time</option>
                 <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                 <option value="today" {{ $dateRange == 'today' ? 'selected' : '' }}>Today</option>
@@ -68,7 +68,7 @@
         </div>
         <div class="flex items-center" style="flex: 0 0 auto;">
             <label class="block text-xs font-semibold text-gray-700 mb-1" style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
-            <button id="resetFilters" class="px-3 py-1.5 text-sm rounded-lg border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem;">Reset</button>
+            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem; border-radius: 0;">Reset</button>
         </div>
     </div>
 </div>
@@ -103,46 +103,46 @@
         </div>
     </div>
     <!-- Right Stats Boxes -->
-    <div class="col-span-1 grid grid-cols-2 gap-4">
+    <div class="col-span-1 grid grid-cols-2" style="column-gap: 0.5rem; row-gap: 0 !important;">
         <!-- Total Complaints (First) -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); height: 100px;">
             <span id="stat-total-complaints">{{ $stats['total_complaints'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Total Complaints</span>
+            <span class="text-sm font-normal mt-0.5">Total Complaints</span>
         </div>
         <!-- In Progress -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); height: 100px;">
             <span id="stat-in-progress">{{ $stats['in_progress'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">In Progress</span>
+            <span class="text-sm font-normal mt-0.5">In Progress</span>
         </div>
         <!-- Addressed -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); height: 100px; margin-top: -1px;">
             <span id="stat-addressed">{{ $stats['addressed'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Addressed</span>
+            <span class="text-sm font-normal mt-0.5">Addressed</span>
         </div>
         <!-- Work Performa -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); height: 100px; margin-top: -1px;">
             <span id="stat-work-performa">{{ $stats['work_performa'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Work Performa</span>
+            <span class="text-sm font-normal mt-0.5">Work Performa</span>
         </div>
         <!-- Maintenance Performa -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); height: 100px; margin-top: -1px;">
             <span id="stat-maint-performa">{{ $stats['maint_performa'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Maintenance Performa</span>
+            <span class="text-sm font-normal mt-0.5">Maintenance Performa</span>
         </div>
         <!-- Un Authorized -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); height: 100px; margin-top: -1px;">
             <span id="stat-un-authorized">{{ $stats['un_authorized'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Un Authorized</span>
+            <span class="text-sm font-normal mt-0.5">Un Authorized</span>
         </div>
         <!-- Product N/A -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); height: 100px; margin-top: -1px;">
             <span id="stat-product">{{ $stats['product'] ?? 0 }}</span>
-            <span class="text-sm font-normal mt-1">Product N/A</span>
+            <span class="text-sm font-normal mt-0.5">Product N/A</span>
         </div>
         <!-- Resolution Rate -->
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 120px;">
+        <div class="text-white p-1 rounded-md text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); height: 100px; margin-top: -1px;">
             <span id="stat-resolution-rate">{{ $stats['resolution_rate'] ?? 0 }}%</span>
-            <span class="text-sm font-normal mt-1">Resolution Rate</span>
+            <span class="text-sm font-normal mt-0.5">Resolution Rate</span>
         </div>
     </div>
 </div>
