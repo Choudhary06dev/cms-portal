@@ -26,9 +26,9 @@
 <div class="relative bg-cover bg-center header-bg" style="background-image: url('https://wallpaperaccess.com/full/7431952.jpg');">
     <div class="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
     <!-- Logo -->
-    <div class="absolute top-9 left-1/2 transform -translate-x-1/2 text-white text-center">
+    <!-- <div class="absolute top-9 left-1/2 transform -translate-x-1/2 text-white text-center">
         <img src="{{ asset('assests/logo.png') }}" class="h-28 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='{{ asset('assests/logo.png') }}'" />
-    </div>
+    </div> -->
     <!-- Filters -->
     <div class="absolute top-44 left-1/2 transform -translate-x-1/2 p-2 flex items-end justify-center gap-2" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: fit-content; max-width: 90%; border-radius: 4px;">
         <div style="flex: 0 0 auto;">

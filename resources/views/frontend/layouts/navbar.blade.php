@@ -3,9 +3,9 @@
     <!-- Logo & Brand -->
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
       <div class="logo-wrapper me-2">
-        <img src="{{ asset('assests/logo.png') }}" alt="Logo" style="width: 80px; height: 60px; object-fit: contain;">
+        <img src="{{ asset('assests/logo.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
       </div>
-      <span class="fw-bold fs-5 text-white ms-2">MES (Complaint Management System)</span>
+      <span class="fw-bold fs-5 text-white ms-2">MES Complaint Management System</span>
     </a>
 
     <!-- Mobile Toggle -->
@@ -102,6 +102,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .logo-wrapper img {
+    animation: rotateLeftRight 3s ease-in-out infinite;
+    transform-origin: center center;
+  }
+
+  @keyframes rotateLeftRight {
+    0% {
+      transform: rotate(-15deg);
+    }
+    50% {
+      transform: rotate(15deg);
+    }
+    100% {
+      transform: rotate(-15deg);
+    }
   }
 
   .nav-link {
