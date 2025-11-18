@@ -51,7 +51,7 @@
 </div>
 
 <!-- Main Content -->
-<div class="px-6 mt-10 grid grid-cols-4 gap-6">
+<div class="px-6 mt-10 mb-8 grid grid-cols-4 gap-6">
     <!-- Left Graphs -->
     <div class="col-span-3 space-y-6">
         <!-- Monthly Complaints and TVRR Complaints Row -->
@@ -80,15 +80,39 @@
         </div>
     </div>
     <!-- Right Stats Boxes -->
-    <div class="col-span-1 grid grid-cols-2 gap-4">
-        <div class="bg-green-500 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">98%<br><span class="text-sm">Resolution Rate</span></div>
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background-color: #FF6B35; min-height: 120px;">932<br><span class="text-sm">Total Number Of Complaints</span></div>
-        <div class="bg-purple-500 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">3<br><span class="text-sm">Average Resolution</span></div>
-        <div class="bg-blue-500 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">1<br><span class="text-sm">Work Performa</span></div>
-        <div class="bg-pink-600 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">88<br><span class="text-sm">In Progress</span></div>
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background-color: #06b6d4; min-height: 120px;">20<br><span class="text-sm">Complaints Closed</span></div>
-        <div class="bg-blue-700 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">1<br><span class="text-sm">Product</span></div>
-        <div class="bg-green-700 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">8<br><span class="text-sm">Addressed</span></div>
+    <div class="col-span-1 grid grid-cols-2 gap-3">
+        <div class="bg-green-500 text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="min-height: 90px;">
+            <div class="text-lg">98%</div>
+            <div class="text-xs mt-1">Resolution Rate</div>
+        </div>
+        <div class="text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="background-color: #FF6B35; min-height: 90px;">
+            <div class="text-lg">932</div>
+            <div class="text-xs mt-1">Total Number Of Complaints</div>
+        </div>
+        <div class="bg-purple-500 text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="min-height: 90px;">
+            <div class="text-lg">3</div>
+            <div class="text-xs mt-1">Average Resolution</div>
+        </div>
+        <div class="bg-blue-500 text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="min-height: 90px;">
+            <div class="text-lg">1</div>
+            <div class="text-xs mt-1">Work Performa</div>
+        </div>
+        <div class="bg-pink-600 text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="min-height: 90px;">
+            <div class="text-lg">88</div>
+            <div class="text-xs mt-1">In Progress</div>
+        </div>
+        <div class="text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="background-color: #06b6d4; min-height: 90px;">
+            <div class="text-lg">20</div>
+            <div class="text-xs mt-1">Complaints Closed</div>
+        </div>
+        <div class="bg-blue-700 text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="min-height: 90px;">
+            <div class="text-lg">1</div>
+            <div class="text-xs mt-1">Product</div>
+        </div>
+        <div class="bg-green-700 text-white p-4 rounded-xl text-center font-bold flex flex-col justify-center items-center" style="min-height: 90px;">
+            <div class="text-lg">8</div>
+            <div class="text-xs mt-1">Addressed</div>
+        </div>
     </div>
 </div>
 
