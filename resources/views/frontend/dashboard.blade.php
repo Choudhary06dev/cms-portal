@@ -74,7 +74,7 @@
 </div>
 
 <!-- Main Content -->
-<div class="px-6 mt-10 grid grid-cols-4 gap-6">
+<div class="px-6 mt-10 mb-8 grid grid-cols-4 gap-6">
     <!-- Left Graphs -->
     <div class="col-span-3 space-y-6">
         <!-- Monthly Complaints and TVRR Complaints Row -->
