@@ -391,7 +391,7 @@
   <div class="container">                                                                                                            
     <div class="left-section" id="leftSection">
         <div class="image-slider" id="imageSlider">
-            <img src="https://i.ytimg.com/vi/LAhXlh5XfmE/hqdefault.jpg" alt="Navy Image 1" data-bg="https://i.ytimg.com/vi/LAhXlh5XfmE/hqdefault.jpg" class="slider-img active" />
+            <img src="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" alt="Navy Image 1" data-bg="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" class="slider-img" />
             <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" data-bg="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" class="slider-img" />
             <img src="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" alt="Navy Image 3" data-bg="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" class="slider-img" />
         </div>
