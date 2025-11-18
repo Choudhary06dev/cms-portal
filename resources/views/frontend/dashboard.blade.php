@@ -120,54 +120,54 @@
         <!-- Right Stats Boxes Section -->
         <div class="w-80 grid grid-cols-2 gap-3" style="background: white; padding: 2rem 3rem; border-radius: 12px; align-self: start;">
         <!-- Total Complaints (First) -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-total-complaints" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['total_complaints'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Total Complaints</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-total-complaints" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['total_complaints'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Total Complaints</span>
         </div>
         <!-- In Progress -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-in-progress" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['in_progress'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">In Progress</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-in-progress" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['in_progress'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">In Progress</span>
         </div>
         <!-- Addressed -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-addressed" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['addressed'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Addressed</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-addressed" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['addressed'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Addressed</span>
         </div>
         <!-- Work Performa -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-work-performa" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['work_performa'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Work Performa</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-work-performa" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['work_performa'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Work Performa</span>
         </div>
         <!-- Maintenance Performa -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-maint-performa" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['maint_performa'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Maintenance Performa</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-maint-performa" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['maint_performa'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Maintenance Performa</span>
         </div>
         <!-- Un Authorized -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-un-authorized" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['un_authorized'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Un Authorized</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-un-authorized" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['un_authorized'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Un Authorized</span>
         </div>
         <!-- Product N/A -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-product" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['product'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Product N/A</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-product" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['product'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Product N/A</span>
         </div>
         <!-- Resolution Rate -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-resolution-rate" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['resolution_rate'] ?? 0 }}%</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Resolution Rate</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-resolution-rate" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['resolution_rate'] ?? 0 }}%</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Resolution Rate</span>
         </div>
         <!-- Pertains to GE/Const/Isld -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-pertains-ge" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Pertains to GE/Const/Isld</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-pertains-ge" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Pertains to GE/Const/Isld</span>
         </div>
         <!-- Closed Complaints -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-closed" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['closed'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Closed</span>
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-closed" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['closed'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Closed</span>
         </div>
         </div>
     </div>
