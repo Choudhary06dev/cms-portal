@@ -164,10 +164,10 @@
             <span id="stat-pertains-ge" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
             <span class="text-xs font-normal" style="line-height: 1.2;">Pertains to GE/Const/Isld</span>
         </div>
-        <!-- Assigned Complaints -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-assigned" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['assigned'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Assigned</span>
+        <!-- Closed Complaints -->
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-closed" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['closed'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Closed</span>
         </div>
         </div>
     </div>
@@ -214,29 +214,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const recentEdData = @json($recentEdData ?? []);
     const yearTdData = @json($yearTdData ?? []);
     
-    // Monthly Complaints Chart
+    // Monthly Complaints Chart (Grouped Bar Chart)
     const ctx = document.getElementById('monthlyComplaintsChart').getContext('2d');
     const monthlyComplaintsChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: monthLabels,
             datasets: [{
-                label: 'Complaints',
-                data: monthlyData,
-                backgroundColor: [
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981', // Green
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981', // Green
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981', // Green
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981'  // Green
-                ],
+                label: 'Total Complaints',
+                data: monthlyComplaintsReceived,
+                backgroundColor: '#3B82F6', // Blue
+                borderRadius: 4,
+                borderSkipped: false,
+            }, {
+                label: 'Resolved Complaints',
+                data: resolvedVsEdData,
+                backgroundColor: '#22c55e', // Green
                 borderRadius: 4,
                 borderSkipped: false,
             }]
@@ -246,7 +239,15 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -262,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     color: '#ffffff',
                     font: {
                         weight: 'bold',
-                        size: 12
+                        size: 11
                     },
                     anchor: 'center',
                     align: 'center',
@@ -569,33 +570,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterSelects = document.querySelectorAll('.filter-select');
     const resetBtn = document.getElementById('resetFilters');
     
-    // Handle filter changes (excluding city filter which has its own handler)
+    // Handle filter changes
     filterSelects.forEach(select => {
-        if (select.id !== 'filterCity') {
-            select.addEventListener('change', function() {
-                applyFilters();
-            });
-        }
+        select.addEventListener('change', function() {
+            applyFilters();
+        });
     });
     
     // Handle GE change to update GE Nodes
     document.getElementById('filterCity').addEventListener('change', function() {
         const cityId = this.value;
-        // Reload page with new city filter to get updated GE Nodes dropdown
-        // (GE Nodes dropdown needs server-side update, so we reload the page)
-        const sectorId = document.getElementById('filterSector').value;
-        const category = document.getElementById('filterCategory').value;
-        const status = document.getElementById('filterStatus').value;
-        const dateRange = document.getElementById('filterDateRange').value;
-        
-        const params = new URLSearchParams();
-        if (cityId) params.append('city_id', cityId);
-        if (sectorId) params.append('sector_id', sectorId);
-        if (category && category !== 'all') params.append('category', category);
-        if (status && status !== 'all') params.append('status', status);
-        if (dateRange) params.append('date_range', dateRange);
-        
-        window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+        // Reload page with new city filter to get updated GE Nodes
+        applyFilters();
     });
     
     // Reset filters

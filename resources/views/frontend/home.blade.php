@@ -89,7 +89,7 @@
     max-width: 1100px;
     margin: 15px auto;
     margin-top: 80px;
-    padding-top: 20px;
+    padding: 0;
     display: flex;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -104,11 +104,18 @@
     flex: 1.3;
     min-height: 420px;
     background: url('https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg') no-repeat center center/cover;
+    background-size: cover;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    transition: background-image 0.5s ease;
+    border-radius: 20px 0 0 20px;
+  }
+
+  .left-section.default-bg {
+    background: url('https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg') no-repeat center center/cover;
   }
 
   .left-section::before {
@@ -142,6 +149,18 @@
     border-radius: 10px;
     object-fit: cover;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .image-slider img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .image-slider img.active {
+    border: 3px solid #2563eb;
+    transform: scale(1.05);
   }
 
   .right-section {
@@ -152,7 +171,9 @@
     flex-direction: column;
     justify-content: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 0 20px 20px 0;
   }
+
 
   .logo {
     text-align: center;
@@ -368,11 +389,11 @@
 
 
   <div class="container">                                                                                                            
-    <div class="left-section">
-        <div class="image-slider">
-            <img src="https://i.ytimg.com/vi/LAhXlh5XfmE/hqdefault.jpg" alt="Navy Image 1" />
-            <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" />
-            <img src="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" alt="Navy Image 3" />
+    <div class="left-section" id="leftSection">
+        <div class="image-slider" id="imageSlider">
+            <img src="https://i.ytimg.com/vi/LAhXlh5XfmE/hqdefault.jpg" alt="Navy Image 1" data-bg="https://i.ytimg.com/vi/LAhXlh5XfmE/hqdefault.jpg" class="slider-img active" />
+            <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" data-bg="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" class="slider-img" />
+            <img src="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" alt="Navy Image 3" data-bg="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" class="slider-img" />
         </div>
     </div>
 
@@ -380,8 +401,8 @@
         <div class="logo">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Pakistan_Navy_emblem.svg/200px-Pakistan_Navy_emblem.svg.png" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
-        <div class="heading">MES COMPLAINT MANAGEMENT SYSTEM</div>
-        <!-- <p class="subtitle">Nice to see you again</p> -->
+        <div class="heading">NAVY COMPLAINT MANAGEMENT SYSTEM</div>
+        <p class="subtitle">Nice to see you again</p>
 
         <form method="POST" action="{{ route('frontend.login.post') }}" class="form">
             @csrf
@@ -417,6 +438,7 @@
     </div>
   </div>
 
+
 <footer class="home-footer">
     © 2025 MES All Rights Reserved
 </footer>
@@ -444,7 +466,54 @@
     if (typeof feather !== 'undefined') {
       feather.replace();
     }
+
+    // Image slider functionality
+    const sliderImages = document.querySelectorAll('.slider-img');
+    const leftSection = document.getElementById('leftSection');
+    const defaultBg = 'https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg';
+    let isClicked = false;
+
+    // Reset to default background when mouse leaves slider area
+    const imageSlider = document.getElementById('imageSlider');
+    imageSlider.addEventListener('mouseleave', function() {
+      if (!isClicked) {
+        leftSection.style.backgroundImage = `url('${defaultBg}')`;
+        sliderImages.forEach(img => img.classList.remove('active'));
+      }
+    });
+
+    // Hover functionality for background change (temporary)
+    sliderImages.forEach((img, index) => {
+      img.addEventListener('mouseenter', function() {
+        if (!isClicked) {
+          const bgImage = this.getAttribute('data-bg');
+          leftSection.style.backgroundImage = `url('${bgImage}')`;
+        }
+      });
+    });
+
+    // Click on image to change background permanently
+    sliderImages.forEach((img, index) => {
+      img.addEventListener('click', function() {
+        isClicked = true;
+        const bgImage = this.getAttribute('data-bg');
+        leftSection.style.backgroundImage = `url('${bgImage}')`;
+        
+        // Update active class
+        sliderImages.forEach(sliderImg => sliderImg.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Reset button functionality (optional - can add a reset button)
+    // Or reset when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!imageSlider.contains(event.target) && !leftSection.contains(event.target)) {
+        // Don't reset on outside click - keep clicked state
+      }
+    });
   });
+
 </script>
 @endpush
 @endsection
