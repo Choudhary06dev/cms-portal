@@ -15,10 +15,10 @@
         <img src="https://tse2.mm.bing.net/th/id/OIP.HN5w-gh1toIzBM3qZ2c7ygHaJ4?pid=Api&h=220&P=0" class="h-20 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Badge_of_the_Pakistan_Navy.png/240px-Badge_of_the_Pakistan_Navy.png'" />
     </div>
     <!-- Filters -->
-    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 p-2 flex items-end justify-center gap-2" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: fit-content; max-width: 95%; border-radius: 0;">
+    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 rounded-xl p-4 flex items-end justify-center gap-3" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); width: fit-content; max-width: 95%;">
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">GE</label>
-            <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">GE</label>
+            <select id="filterCity" name="city_id" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
                 <option value="">Select GE</option>
                 @foreach($geGroups as $ge)
                     <option value="{{ $ge->id }}" {{ $cityId == $ge->id ? 'selected' : '' }}>{{ $ge->name }}</option>
@@ -26,8 +26,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">GE Nodes</label>
-            <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">GE Nodes</label>
+            <select id="filterSector" name="sector_id" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
                 <option value="">All GE Nodes</option>
                 @foreach($geNodes as $node)
                     <option value="{{ $node->id }}" {{ $sectorId == $node->id ? 'selected' : '' }}>{{ $node->name }}</option>
@@ -35,8 +35,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">Complaints Category</label>
-            <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Complaints Category</label>
+            <select id="filterCategory" name="category" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
                 <option value="all">All Categories</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->name }}" {{ $category == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -44,8 +44,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">Complaints Status</label>
-            <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Complaints Status</label>
+            <select id="filterStatus" name="status" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
                 <option value="all">All Status</option>
                 @foreach($statuses as $key => $label)
                     <option value="{{ $key }}" {{ $status == $key ? 'selected' : '' }}>{{ $label }}</option>
@@ -53,8 +53,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-white mb-1">Date Range</label>
-            <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 180px; border-radius: 0;">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Date Range</label>
+            <select id="filterDateRange" name="date_range" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
                 <option value="">All Time</option>
                 <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                 <option value="today" {{ $dateRange == 'today' ? 'selected' : '' }}>Today</option>
@@ -67,7 +67,7 @@
         </div>
         <div class="flex items-center" style="flex: 0 0 auto;">
             <label class="block text-xs font-semibold text-gray-700 mb-1" style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
-            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem; border-radius: 0;">Reset</button>
+            <button id="resetFilters" class="px-3 py-1.5 text-sm rounded-lg border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem;">Reset</button>
         </div>
     </div>
 </div>
@@ -148,10 +148,10 @@
             <span id="stat-pertains-ge" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
             <span class="text-xs font-normal" style="line-height: 1.2;">Pertains to GE/Const/Isld</span>
         </div>
-        <!-- Assigned Complaints -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
-            <span id="stat-assigned" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['assigned'] ?? 0 }}</span>
-            <span class="text-xs font-normal" style="line-height: 1.2;">Assigned</span>
+        <!-- Closed Complaints -->
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 90px; padding: 0.75rem 0.5rem;">
+            <span id="stat-closed" class="text-xl mb-1" style="line-height: 1.2;">{{ $stats['closed'] ?? 0 }}</span>
+            <span class="text-xs font-normal" style="line-height: 1.2;">Closed</span>
         </div>
     </div>
 </div>
@@ -197,29 +197,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const recentEdData = @json($recentEdData ?? []);
     const yearTdData = @json($yearTdData ?? []);
     
-    // Monthly Complaints Chart
+    // Monthly Complaints Chart (Grouped Bar Chart)
     const ctx = document.getElementById('monthlyComplaintsChart').getContext('2d');
     const monthlyComplaintsChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: monthLabels,
             datasets: [{
-                label: 'Complaints',
-                data: monthlyData,
-                backgroundColor: [
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981', // Green
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981', // Green
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981', // Green
-                    '#FF6B35', // Orange
-                    '#3B82F6', // Blue
-                    '#10B981'  // Green
-                ],
+                label: 'Total Complaints',
+                data: monthlyComplaintsReceived,
+                backgroundColor: '#3B82F6', // Blue
+                borderRadius: 4,
+                borderSkipped: false,
+            }, {
+                label: 'Resolved Complaints',
+                data: resolvedVsEdData,
+                backgroundColor: '#22c55e', // Green
                 borderRadius: 4,
                 borderSkipped: false,
             }]
@@ -229,7 +222,15 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -245,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     color: '#ffffff',
                     font: {
                         weight: 'bold',
-                        size: 12
+                        size: 11
                     },
                     anchor: 'center',
                     align: 'center',
@@ -552,33 +553,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterSelects = document.querySelectorAll('.filter-select');
     const resetBtn = document.getElementById('resetFilters');
     
-    // Handle filter changes (excluding city filter which has its own handler)
+    // Handle filter changes
     filterSelects.forEach(select => {
-        if (select.id !== 'filterCity') {
-            select.addEventListener('change', function() {
-                applyFilters();
-            });
-        }
+        select.addEventListener('change', function() {
+            applyFilters();
+        });
     });
     
     // Handle GE change to update GE Nodes
     document.getElementById('filterCity').addEventListener('change', function() {
         const cityId = this.value;
-        // Reload page with new city filter to get updated GE Nodes dropdown
-        // (GE Nodes dropdown needs server-side update, so we reload the page)
-        const sectorId = document.getElementById('filterSector').value;
-        const category = document.getElementById('filterCategory').value;
-        const status = document.getElementById('filterStatus').value;
-        const dateRange = document.getElementById('filterDateRange').value;
-        
-        const params = new URLSearchParams();
-        if (cityId) params.append('city_id', cityId);
-        if (sectorId) params.append('sector_id', sectorId);
-        if (category && category !== 'all') params.append('category', category);
-        if (status && status !== 'all') params.append('status', status);
-        if (dateRange) params.append('date_range', dateRange);
-        
-        window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+        // Reload page with new city filter to get updated GE Nodes
+        applyFilters();
     });
     
     // Reset filters
@@ -600,109 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (status && status !== 'all') params.append('status', status);
         if (dateRange) params.append('date_range', dateRange);
         
-        // Show loading state
-        const statBoxes = document.querySelectorAll('[id^="stat-"]');
-        statBoxes.forEach(box => {
-            box.textContent = '...';
-        });
-        
-        // Fetch data via AJAX
-        fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Update stats boxes
-            updateStats(data.stats);
-            
-            // Update charts
-            updateCharts(data);
-            
-            // Update URL without reload
-            window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + params.toString());
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            // Fallback to page reload on error
-            window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
-        });
-    }
-    
-    function updateStats(stats) {
-        // Update all stat boxes
-        if (stats.total_complaints !== undefined) {
-            document.getElementById('stat-total-complaints').textContent = stats.total_complaints || 0;
-        }
-        if (stats.in_progress !== undefined) {
-            document.getElementById('stat-in-progress').textContent = stats.in_progress || 0;
-        }
-        if (stats.addressed !== undefined) {
-            document.getElementById('stat-addressed').textContent = stats.addressed || 0;
-        }
-        if (stats.work_performa !== undefined) {
-            document.getElementById('stat-work-performa').textContent = stats.work_performa || 0;
-        }
-        if (stats.maint_performa !== undefined) {
-            document.getElementById('stat-maint-performa').textContent = stats.maint_performa || 0;
-        }
-        if (stats.un_authorized !== undefined) {
-            document.getElementById('stat-un-authorized').textContent = stats.un_authorized || 0;
-        }
-        if (stats.product !== undefined) {
-            document.getElementById('stat-product').textContent = stats.product || 0;
-        }
-        if (stats.resolution_rate !== undefined) {
-            document.getElementById('stat-resolution-rate').textContent = (stats.resolution_rate || 0) + '%';
-        }
-        if (stats.pertains_to_ge_const_isld !== undefined) {
-            document.getElementById('stat-pertains-ge').textContent = stats.pertains_to_ge_const_isld || 0;
-        }
-        if (stats.assigned !== undefined) {
-            document.getElementById('stat-assigned').textContent = stats.assigned || 0;
-        }
-    }
-    
-    function updateCharts(data) {
-        // Update Monthly Complaints Chart
-        if (data.monthlyComplaints && monthlyComplaintsChart) {
-            monthlyComplaintsChart.data.datasets[0].data = data.monthlyComplaints;
-            monthlyComplaintsChart.data.labels = data.monthLabels;
-            monthlyComplaintsChart.update();
-        }
-        
-        // Update Complaints by Status Chart
-        if (data.complaintsByStatus && complaintsByStatusChart) {
-            const statusKeys = Object.keys(data.complaintsByStatus);
-            const statusLabels = statusKeys.map(key => {
-                if (statusMap[key] && statusMap[key].label) {
-                    return statusMap[key].label;
-                }
-                return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            });
-            const statusData = Object.values(data.complaintsByStatus);
-            const statusColors = statusKeys.map(key => {
-                if (statusMap[key] && statusMap[key].color) {
-                    return statusMap[key].color;
-                }
-                return '#64748b';
-            });
-            
-            complaintsByStatusChart.data.labels = statusLabels;
-            complaintsByStatusChart.data.datasets[0].data = statusData;
-            complaintsByStatusChart.data.datasets[0].backgroundColor = statusColors;
-            complaintsByStatusChart.update();
-        }
-        
-        // Update Resolution Trend Chart
-        if (data.recentEdData && data.resolvedVsEdData && resolutionTrendChart) {
-            resolutionTrendChart.data.datasets[0].data = data.recentEdData;
-            resolutionTrendChart.data.datasets[1].data = data.resolvedVsEdData;
-            resolutionTrendChart.data.labels = data.monthLabels;
-            resolutionTrendChart.update();
-        }
+        window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
     }
 });
 </script>
