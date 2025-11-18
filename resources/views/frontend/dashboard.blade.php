@@ -30,10 +30,10 @@
         <img src="{{ asset('assests/logo.png') }}" class="h-28 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='{{ asset('assests/logo.png') }}'" />
     </div>
     <!-- Filters -->
-    <div class="absolute top-44 left-1/2 transform -translate-x-1/2 p-2 flex items-end justify-center gap-2" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: fit-content; max-width: 90%; border-radius: 4px;">
+    <div class="absolute top-44 p-2 flex items-end justify-start gap-2" style="left: 5%; right: calc(5% + 384px + 24px); background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: auto; border-radius: 4px;">
         <div style="flex: 0 0 auto;">
-            <label for="filterCity" class="block text-xs font-semibold text-white mb-1">GE</label>
-            <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select GE" title="Select GE">
+            <label for="filterCity" class="block text-sm font-bold text-white mb-1">GE</label>
+            <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE" title="Select GE">
                 <option value="">Select GE</option>
                 @foreach($geGroups as $ge)
                     <option value="{{ $ge->id }}" {{ $cityId == $ge->id ? 'selected' : '' }}>{{ $ge->name }}</option>
@@ -41,8 +41,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterSector" class="block text-xs font-semibold text-white mb-1">GE Nodes</label>
-            <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select GE Nodes" title="Select GE Nodes">
+            <label for="filterSector" class="block text-sm font-bold text-white mb-1">GE Nodes</label>
+            <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE Nodes" title="Select GE Nodes">
                 <option value="">All GE Nodes</option>
                 @foreach($geNodes as $node)
                     <option value="{{ $node->id }}" {{ $sectorId == $node->id ? 'selected' : '' }}>{{ $node->name }}</option>
@@ -50,8 +50,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterCategory" class="block text-xs font-semibold text-white mb-1">Complaints Category</label>
-            <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select Complaints Category" title="Select Complaints Category">
+            <label for="filterCategory" class="block text-sm font-bold text-white mb-1">Complaints Category</label>
+            <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Complaints Category" title="Select Complaints Category">
                 <option value="all">All Categories</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->name }}" {{ $category == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -59,8 +59,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterStatus" class="block text-xs font-semibold text-white mb-1">Complaints Status</label>
-            <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select Complaints Status" title="Select Complaints Status">
+            <label for="filterStatus" class="block text-sm font-bold text-white mb-1">Complaints Status</label>
+            <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Complaints Status" title="Select Complaints Status">
                 <option value="all">All Status</option>
                 @foreach($statuses as $key => $label)
                     <option value="{{ $key }}" {{ $status == $key ? 'selected' : '' }}>{{ $label }}</option>
@@ -68,8 +68,8 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterDateRange" class="block text-xs font-semibold text-white mb-1">Date Range</label>
-            <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 0.9rem; width: 200px; border-radius: 4px;" aria-label="Select Date Range" title="Select Date Range">
+            <label for="filterDateRange" class="block text-sm font-bold text-white mb-1">Date Range</label>
+            <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Date Range" title="Select Date Range">
                 <option value="">All Time</option>
                 <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                 <option value="today" {{ $dateRange == 'today' ? 'selected' : '' }}>Today</option>
@@ -81,8 +81,8 @@
             </select>
         </div>
         <div class="flex items-center" style="flex: 0 0 auto;">
-            <label class="block text-xs font-semibold text-gray-700 mb-1" style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
-            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem; border-radius: 4px;">Reset</button>
+            <label class="block text-xs font-bold text-gray-700 mb-1" style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
+            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold" style="font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 4px;">Reset</button>
         </div>
     </div>
 </div>
@@ -118,7 +118,7 @@
         </div>
         </div>
         <!-- Right Stats Boxes Section -->
-        <div class="w-80 grid grid-cols-2 gap-3" style="background: white; padding: 2rem 3rem; border-radius: 12px; align-self: start;">
+        <div class="w-96 grid grid-cols-2 gap-3" style="background: white; padding: 2rem 3rem; border-radius: 12px; align-self: start;">
         <!-- Total Complaints (First) -->
         <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-total-complaints" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['total_complaints'] ?? 0 }}</span>
