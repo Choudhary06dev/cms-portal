@@ -12,7 +12,7 @@
         min-height:400px !important;
         max-height: none !important;
     }
-    
+
     /* Browser compatibility for text-size-adjust */
     html, body {
         -webkit-text-size-adjust: 100%;
@@ -22,15 +22,15 @@
 @endpush
 
 @section('content')
-<!-- Header Background -->
-<div class="relative bg-cover bg-center header-bg" style="background-image: url('https://wallpaperaccess.com/full/7431952.jpg');">
+<!-- Header Background --><div class="relative bg-cover bg-center header-bg" style="background-image: url('https://tse1.mm.bing.net/th/id/OIP.zik7BfelfQPsfDPQ6GQMGQHaE8?rs=1&pid=ImgDetMain&o=7&rm=3');">
+
     <div class="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
     <!-- Logo -->
     <!-- <div class="absolute top-9 left-1/2 transform -translate-x-1/2 text-white text-center">
         <img src="{{ asset('assests/logo.png') }}" class="h-28 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='{{ asset('assests/logo.png') }}'" />
     </div> -->
     <!-- Filters -->
-    <div class="absolute top-44 p-2 flex items-end justify-start gap-2" style="left: 5%; right: calc(5% + 384px + 24px); background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); width: auto; border-radius: 4px;">
+    <div class="absolute top-44 p-2 flex items-end justify-start gap-2 flex-wrap" style="left: 5%; max-width: calc(95% - 384px - 24px); background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); border-radius: 4px; overflow: hidden;">
         <div style="flex: 0 0 auto;">
             <label for="filterCity" class="block text-sm font-bold text-white mb-1">GE</label>
             <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE" title="Select GE">
@@ -80,9 +80,9 @@
                 <option value="last_6_months" {{ $dateRange == 'last_6_months' ? 'selected' : '' }}>Last 6 Months</option>
             </select>
         </div>
-        <div class="flex items-center" style="flex: 0 0 auto;">
+        <div class="flex items-center" style="flex: 0 0 auto; min-width: 0;">
             <label class="block text-xs font-bold text-gray-700 mb-1" style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
-            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold" style="font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 4px;">Reset</button>
+            <button id="resetFilters" class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold whitespace-nowrap" style="font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 4px;">Reset</button>
         </div>
     </div>
 </div>
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ensure we have 12 months of data
         $monthlyComplaintsData = $monthlyComplaints ?? [];
         $monthlyResolvedData = $resolvedVsEdData ?? [];
-        
+
         // Pad arrays to ensure 12 months
         while(count($monthlyComplaintsData) < 12) {
             $monthlyComplaintsData[] = 0;
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
         while(count($monthlyResolvedData) < 12) {
             $monthlyResolvedData[] = 0;
         }
-        
+
         // Take only first 12 months
         $monthlyComplaintsData = array_slice($monthlyComplaintsData, 0, 12);
         $monthlyResolvedData = array_slice($monthlyResolvedData, 0, 12);
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resolvedVsEdData = @json($resolvedVsEdData ?? []);
     const recentEdData = @json($recentEdData ?? []);
     const yearTdData = @json($yearTdData ?? []);
-    
+
     // Monthly Complaints Chart (Grouped Bar Chart)
     const ctx = document.getElementById('monthlyComplaintsChart').getContext('2d');
     const monthlyComplaintsChart = new Chart(ctx, {
@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'closed': { label: 'Closed', color: '#06b6d4' }, // Aqua/Cyan (same as pertains_to_ge_const_isld)
         'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
     };
-    
+
     const statusKeys = Object.keys(complaintsByStatus);
     const statusLabels = statusKeys.map(key => {
         if (statusMap[key] && statusMap[key].label) {
@@ -422,12 +422,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Default color from admin side if status not found
         return '#64748b';
     });
-    
+
     const ctx3 = document.getElementById('complaintsByStatusChart').getContext('2d');
-    
+
     // Calculate total for percentage
     const totalComplaints = statusData.reduce((a, b) => a + b, 0);
-    
+
     // Center text plugin for Chart.js
     const centerTextPlugin = {
         id: 'centerText',
@@ -435,11 +435,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const ctx = chart.ctx;
             const centerX = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
             const centerY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
-            
+
             ctx.save();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            
+
             // Get hovered segment
             const activeElements = chart.getActiveElements();
             if (activeElements.length > 0) {
@@ -447,17 +447,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const value = statusData[activeIndex];
                 const percentage = totalComplaints > 0 ? ((value / totalComplaints) * 100).toFixed(1) : 0;
                 const label = statusLabels[activeIndex];
-                
+
                 // Show status name
                 ctx.font = 'bold 14px Arial';
                 ctx.fillStyle = '#1f2937';
                 ctx.fillText(label, centerX, centerY - 10);
-                
+
                 // Show percentage
                 ctx.font = 'bold 20px Arial';
                 ctx.fillStyle = statusColors[activeIndex];
                 ctx.fillText(percentage + '%', centerX, centerY + 15);
-                
+
                 // Show count
                 ctx.font = '12px Arial';
                 ctx.fillStyle = '#6b7280';
@@ -467,11 +467,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 ctx.font = 'bold 14px Arial';
                 ctx.fillStyle = '#1f2937';
                 ctx.fillText('Total', centerX, centerY - 10);
-                
+
                 ctx.font = 'bold 20px Arial';
                 ctx.fillStyle = '#3b82f6';
                 ctx.fillText(totalComplaints, centerX, centerY + 15);
-                
+
                 ctx.font = '12px Arial';
                 ctx.fillStyle = '#6b7280';
                 ctx.fillText('Complaints', centerX, centerY + 35);
@@ -479,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.restore();
         }
     };
-    
+
     const complaintsByStatusChart = new Chart(ctx3, {
         type: 'doughnut',
         data: {
@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         plugins: [centerTextPlugin]
     });
-    
+
     // Add event listener for hover to update chart center text
     const chartCanvas = document.getElementById('complaintsByStatusChart');
     chartCanvas.addEventListener('mousemove', function() {
@@ -554,50 +554,50 @@ document.addEventListener('DOMContentLoaded', function() {
     chartCanvas.addEventListener('mouseleave', function() {
         complaintsByStatusChart.update('none');
     });
-    
+
     // Filter functionality
     const filterSelects = document.querySelectorAll('.filter-select');
     const resetBtn = document.getElementById('resetFilters');
-    
+
     // Handle filter changes
     filterSelects.forEach(select => {
         select.addEventListener('change', function() {
             applyFilters();
         });
     });
-    
+
     // Handle GE change to update GE Nodes
     document.getElementById('filterCity').addEventListener('change', function() {
         const cityId = this.value;
         // Reload page with new city filter to get updated GE Nodes
         applyFilters();
     });
-    
+
     // Reset filters
     resetBtn.addEventListener('click', function() {
         window.location.href = '{{ route("frontend.dashboard") }}';
     });
-    
+
     function applyFilters() {
         const cityId = document.getElementById('filterCity').value;
         const sectorId = document.getElementById('filterSector').value;
         const category = document.getElementById('filterCategory').value;
         const status = document.getElementById('filterStatus').value;
         const dateRange = document.getElementById('filterDateRange').value;
-        
+
         const params = new URLSearchParams();
         if (cityId) params.append('city_id', cityId);
         if (sectorId) params.append('sector_id', sectorId);
         if (category && category !== 'all') params.append('category', category);
         if (status && status !== 'all') params.append('status', status);
         if (dateRange) params.append('date_range', dateRange);
-        
+
         // Show loading state
         const statBoxes = document.querySelectorAll('[id^="stat-"]');
         statBoxes.forEach(box => {
             box.textContent = '...';
         });
-        
+
         // Fetch data via AJAX
         fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
             headers: {
@@ -620,10 +620,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data && data.stats) {
                 // Update stats boxes
                 updateStats(data.stats);
-                
+
                 // Update charts
                 updateCharts(data);
-                
+
                 // Update URL without reload
                 window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + params.toString());
             }
@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Don't auto-reload on error, just log it
         });
     }
-    
+
     function updateStats(stats) {
         // Update all stat boxes
         if (stats.total_complaints !== undefined) {
@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('stat-assigned').textContent = stats.assigned || 0;
         }
     }
-    
+
     function updateCharts(data) {
         // Update Monthly Complaints Chart
         if (data.monthlyComplaints && monthlyComplaintsChart) {
@@ -675,7 +675,7 @@ document.addEventListener('DOMContentLoaded', function() {
             monthlyComplaintsChart.data.labels = data.monthLabels;
             monthlyComplaintsChart.update();
         }
-        
+
         // Update Complaints by Status Chart
         if (data.complaintsByStatus && complaintsByStatusChart) {
             const statusKeys = Object.keys(data.complaintsByStatus);
@@ -692,13 +692,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return '#64748b';
             });
-            
+
             complaintsByStatusChart.data.labels = statusLabels;
             complaintsByStatusChart.data.datasets[0].data = statusData;
             complaintsByStatusChart.data.datasets[0].backgroundColor = statusColors;
             complaintsByStatusChart.update();
         }
-        
+
         // Update Resolution Trend Chart
         if (data.recentEdData && data.resolvedVsEdData && resolutionTrendChart) {
             resolutionTrendChart.data.datasets[0].data = data.recentEdData;
