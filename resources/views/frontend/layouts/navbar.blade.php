@@ -26,16 +26,6 @@
             HOME
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link px-3 text-white {{ request()->routeIs('frontend.about') ? 'active' : '' }}" href="{{ route('frontend.about') }}" style="font-weight: 500;">
-            ABOUT US
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link px-3 text-white {{ request()->routeIs('frontend.contact') ? 'active' : '' }}" href="{{ route('frontend.contact') }}" style="font-weight: 500;">
-            CONTACT
-          </a>
-        </li>
         @if(Auth::guard('frontend')->check())
         <li class="nav-item">
           <a class="nav-link px-3 text-white {{ request()->routeIs('frontend.dashboard') ? 'active' : '' }}" href="{{ route('frontend.dashboard') }}" style="font-weight: 500;">

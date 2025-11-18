@@ -6,8 +6,6 @@ use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\Frontend\AccountController as FrontendAccountController;
 
 Route::get('/', [FrontendHomeController::class, 'index'])->name('frontend.home');
-Route::get('/about', [FrontendHomeController::class, 'about'])->name('frontend.about');
-Route::get('/contact', [FrontendHomeController::class, 'contact'])->name('frontend.contact');
 Route::get('/features', [FrontendHomeController::class, 'features'])->name('frontend.features');
 Route::get('/dashboard', [FrontendHomeController::class, 'dashboard'])->middleware('auth:frontend')->name('frontend.dashboard');
 Route::get('/login', [FrontendAuthController::class, 'showLogin'])->name('frontend.login');

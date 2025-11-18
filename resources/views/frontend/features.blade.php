@@ -642,8 +642,7 @@
     <div class="container">
       <h3>Experience All Features Today</h3>
       <p>Start your free trial and see how our comprehensive platform can transform your complaint management.</p>
-      <a href="{{ route('frontend.register') }}" class="btn btn-light btn-lg me-3">Start Free Trial</a>
-      <a href="{{ route('frontend.contact') }}" class="btn btn-outline-light btn-lg">Schedule Demo</a>
+      <a href="{{ route('frontend.register') }}" class="btn btn-light btn-lg">Start Free Trial</a>
       <p class="mt-4 mb-0 small opacity-75">No credit card required • Full access for 14 days • Setup in minutes</p>
     </div>
   </div>

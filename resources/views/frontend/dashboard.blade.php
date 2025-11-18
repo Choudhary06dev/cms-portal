@@ -11,41 +11,64 @@
 <div class="relative h-64 bg-cover bg-center" style="background-image: url('https://wallpaperaccess.com/full/7431952.jpg');">
     <div class="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
     <!-- Logo -->
-    <div class="absolute top-6 left-1/2 transform -translate-x-1/2 text-white text-center">
-        <img src="https://share.google/images/oNtI0nbVxtLiSmH4B" class="h-20 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Badge_of_the_Pakistan_Navy.png/240px-Badge_of_the_Pakistan_Navy.png'" />
+    <div class="absolute top-9 left-1/2 transform -translate-x-1/2 text-white text-center">
+        <img src="https://tse2.mm.bing.net/th/id/OIP.HN5w-gh1toIzBM3qZ2c7ygHaJ4?pid=Api&h=220&P=0" class="h-20 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Badge_of_the_Pakistan_Navy.png/240px-Badge_of_the_Pakistan_Navy.png'" />
         <p class="text-white font-semibold text-lg">PAKISTAN</p>
     </div>
     <!-- Filters -->
-    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-11/12 rounded-xl p-4 flex justify-between space-x-4" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);">
-        <div class="w-1/5">
+    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 rounded-xl p-4 flex items-end justify-center gap-3" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); width: fit-content; max-width: 95%;">
+        <div style="flex: 0 0 auto;">
             <label class="block text-xs font-semibold text-gray-700 mb-1">GE</label>
-            <select class="w-full p-2 rounded-lg border">
-                <option>Select GE</option>
+            <select id="filterCity" name="city_id" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+                <option value="">Select GE</option>
+                @foreach($geGroups as $ge)
+                    <option value="{{ $ge->id }}" {{ $cityId == $ge->id ? 'selected' : '' }}>{{ $ge->name }}</option>
+                @endforeach
             </select>
         </div>
-        <div class="w-1/5">
+        <div style="flex: 0 0 auto;">
             <label class="block text-xs font-semibold text-gray-700 mb-1">GE Nodes</label>
-            <select class="w-full p-2 rounded-lg border">
-                <option>All GE Nodes</option>
+            <select id="filterSector" name="sector_id" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+                <option value="">All GE Nodes</option>
+                @foreach($geNodes as $node)
+                    <option value="{{ $node->id }}" {{ $sectorId == $node->id ? 'selected' : '' }}>{{ $node->name }}</option>
+                @endforeach
             </select>
         </div>
-        <div class="w-1/5">
+        <div style="flex: 0 0 auto;">
             <label class="block text-xs font-semibold text-gray-700 mb-1">Complaints Category</label>
-            <select class="w-full p-2 rounded-lg border">
-                <option>All Categories</option>
+            <select id="filterCategory" name="category" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+                <option value="all">All Categories</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->name }}" {{ $category == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
+                @endforeach
             </select>
         </div>
-        <div class="w-1/5">
+        <div style="flex: 0 0 auto;">
             <label class="block text-xs font-semibold text-gray-700 mb-1">Complaints Status</label>
-            <select class="w-full p-2 rounded-lg border">
-                <option>All Status</option>
+            <select id="filterStatus" name="status" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+                <option value="all">All Status</option>
+                @foreach($statuses as $key => $label)
+                    <option value="{{ $key }}" {{ $status == $key ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
             </select>
         </div>
-        <div class="w-1/5">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">&nbsp;</label>
-            <select class="w-full p-2 rounded-lg border">
-                <option>Select</option>
+        <div style="flex: 0 0 auto;">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Date Range</label>
+            <select id="filterDateRange" name="date_range" class="p-2 rounded-lg border filter-select" style="font-size: 0.9rem; width: 180px;">
+                <option value="">All Time</option>
+                <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
+                <option value="today" {{ $dateRange == 'today' ? 'selected' : '' }}>Today</option>
+                <option value="this_week" {{ $dateRange == 'this_week' ? 'selected' : '' }}>This Week</option>
+                <option value="last_week" {{ $dateRange == 'last_week' ? 'selected' : '' }}>Last Week</option>
+                <option value="this_month" {{ $dateRange == 'this_month' ? 'selected' : '' }}>This Month</option>
+                <option value="last_month" {{ $dateRange == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                <option value="last_6_months" {{ $dateRange == 'last_6_months' ? 'selected' : '' }}>Last 6 Months</option>
             </select>
+        </div>
+        <div class="flex items-center" style="flex: 0 0 auto;">
+            <label class="block text-xs font-semibold text-gray-700 mb-1" style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
+            <button id="resetFilters" class="px-3 py-1.5 text-sm rounded-lg border bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold" style="font-size: 0.9rem; padding: 0.5rem 1.25rem;">Reset</button>
         </div>
     </div>
 </div>
@@ -66,7 +89,7 @@
             <!-- Complaints by Status -->
             <div class="bg-white p-6 rounded-xl shadow">
                 <h2 class="text-xl font-semibold mb-4">Complaints by Status</h2>
-                <div class="h-48">
+                <div class="h-56 w-full">
                     <canvas id="complaintsByStatusChart"></canvas>
                 </div>
             </div>
@@ -81,14 +104,46 @@
     </div>
     <!-- Right Stats Boxes -->
     <div class="col-span-1 grid grid-cols-2 gap-4">
-        <div class="bg-green-500 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">98%<br><span class="text-sm">Resolution Rate</span></div>
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background-color: #FF6B35; min-height: 120px;">932<br><span class="text-sm">Total Number Of Complaints</span></div>
-        <div class="bg-purple-500 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">3<br><span class="text-sm">Average Resolution</span></div>
-        <div class="bg-blue-500 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">1<br><span class="text-sm">Work Performa</span></div>
-        <div class="bg-pink-600 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">88<br><span class="text-sm">In Progress</span></div>
-        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background-color: #06b6d4; min-height: 120px;">20<br><span class="text-sm">Complaints Closed</span></div>
-        <div class="bg-blue-700 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">1<br><span class="text-sm">Product</span></div>
-        <div class="bg-green-700 text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="min-height: 120px;">8<br><span class="text-sm">Addressed</span></div>
+        <!-- Total Complaints (First) -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 120px;">
+            <span id="stat-total-complaints">{{ $stats['total_complaints'] ?? 0 }}</span>
+            <span class="text-sm font-normal mt-1">Total Complaints</span>
+        </div>
+        <!-- In Progress -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 120px;">
+            <span id="stat-in-progress">{{ $stats['in_progress'] ?? 0 }}</span>
+            <span class="text-sm font-normal mt-1">In Progress</span>
+        </div>
+        <!-- Addressed -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px;">
+            <span id="stat-addressed">{{ $stats['addressed'] ?? 0 }}</span>
+            <span class="text-sm font-normal mt-1">Addressed</span>
+        </div>
+        <!-- Work Performa -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 120px;">
+            <span id="stat-work-performa">{{ $stats['work_performa'] ?? 0 }}</span>
+            <span class="text-sm font-normal mt-1">Work Performa</span>
+        </div>
+        <!-- Maintenance Performa -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); min-height: 120px;">
+            <span id="stat-maint-performa">{{ $stats['maint_performa'] ?? 0 }}</span>
+            <span class="text-sm font-normal mt-1">Maintenance Performa</span>
+        </div>
+        <!-- Un Authorized -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); min-height: 120px;">
+            <span id="stat-un-authorized">{{ $stats['un_authorized'] ?? 0 }}</span>
+            <span class="text-sm font-normal mt-1">Un Authorized</span>
+        </div>
+        <!-- Product N/A -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px;">
+            <span id="stat-product">{{ $stats['product'] ?? 0 }}</span>
+            <span class="text-sm font-normal mt-1">Product N/A</span>
+        </div>
+        <!-- Resolution Rate -->
+        <div class="text-white p-6 rounded-xl text-center text-xl font-bold flex flex-col justify-center items-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 120px;">
+            <span id="stat-resolution-rate">{{ $stats['resolution_rate'] ?? 0 }}%</span>
+            <span class="text-sm font-normal mt-1">Resolution Rate</span>
+        </div>
     </div>
 </div>
 
@@ -101,18 +156,36 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
+// Register the datalabels plugin
+Chart.register(ChartDataLabels);
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Chart data from backend
+    const monthlyData = @json($monthlyComplaints ?? []);
+    @php
+        $defaultMonthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    @endphp
+    const monthLabels = @json($monthLabels ?? $defaultMonthLabels);
+    const complaintsByStatus = @json($complaintsByStatus ?? []);
+    const resolvedVsEdData = @json($resolvedVsEdData ?? []);
+    const recentEdData = @json($recentEdData ?? []);
+    const yearTdData = @json($yearTdData ?? []);
+    
     // Monthly Complaints Chart
     const ctx = document.getElementById('monthlyComplaintsChart').getContext('2d');
     const monthlyComplaintsChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+            labels: monthLabels,
             datasets: [{
                 label: 'Complaints',
-                data: [45, 52, 38, 65, 58, 72, 68, 55, 62],
+                data: monthlyData,
                 backgroundColor: [
+                    '#FF6B35', // Orange
+                    '#3B82F6', // Blue
+                    '#10B981', // Green
                     '#FF6B35', // Orange
                     '#3B82F6', // Blue
                     '#10B981', // Green
@@ -142,6 +215,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     bodyFont: {
                         size: 12
+                    }
+                },
+                datalabels: {
+                    color: '#ffffff',
+                    font: {
+                        weight: 'bold',
+                        size: 12
+                    },
+                    anchor: 'center',
+                    align: 'center',
+                    formatter: function(value) {
+                        return value;
                     }
                 }
             },
@@ -176,23 +261,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const resolvedVsEdChart = new Chart(ctx2, {
         type: 'bar',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+            labels: monthLabels,
             datasets: [
                 {
                     label: 'Recent Ed',
-                    data: [25, 30, 22, 35, 28, 40, 38, 32, 35],
+                    data: recentEdData,
                     backgroundColor: '#FF6B35', // Orange
                     borderRadius: 4,
                 },
                 {
                     label: 'Resolved',
-                    data: [20, 22, 16, 30, 30, 32, 30, 23, 27],
+                    data: resolvedVsEdData,
                     backgroundColor: '#EC4899', // Pink
                     borderRadius: 4,
                 },
                 {
                     label: 'Year TD',
-                    data: [15, 18, 12, 20, 18, 22, 20, 15, 18],
+                    data: yearTdData,
                     backgroundColor: '#9333EA', // Purple
                     borderRadius: 4,
                 }
@@ -252,22 +337,104 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Complaints by Status Chart (Donut Chart)
+    // Complaints by Status Chart (Donut Chart) - Using same colors as admin side
+    const statusMap = {
+        'assigned': { label: 'Assigned', color: '#3b82f6' }, // Blue
+        'in_progress': { label: 'In Progress', color: '#dc2626' }, // Red
+        'resolved': { label: 'Addressed', color: '#16a34a' }, // Green
+        'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
+        'maint_performa': { label: 'Maintenance Performa', color: '#eab308' }, // Yellow
+        'work_priced_performa': { label: 'Work Performa Priced', color: '#9333ea' }, // Purple
+        'maint_priced_performa': { label: 'Maintenance Performa Priced', color: '#ea580c' }, // Orange Red
+        'product_na': { label: 'Product N/A', color: '#000000' }, // Black
+        'un_authorized': { label: 'Un-Authorized', color: '#ec4899' }, // Pink
+        'pertains_to_ge_const_isld': { label: 'Pertains to GE(N) Const Isld', color: '#06b6d4' }, // Aqua/Cyan
+        'closed': { label: 'Closed', color: '#06b6d4' }, // Aqua/Cyan (same as pertains_to_ge_const_isld)
+        'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
+    };
+    
+    const statusKeys = Object.keys(complaintsByStatus);
+    const statusLabels = statusKeys.map(key => {
+        if (statusMap[key] && statusMap[key].label) {
+            return statusMap[key].label;
+        }
+        // Fallback: format the key nicely
+        return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    });
+    const statusData = Object.values(complaintsByStatus);
+    const statusColors = statusKeys.map(key => {
+        if (statusMap[key] && statusMap[key].color) {
+            return statusMap[key].color;
+        }
+        // Default color from admin side if status not found
+        return '#64748b';
+    });
+    
     const ctx3 = document.getElementById('complaintsByStatusChart').getContext('2d');
+    
+    // Calculate total for percentage
+    const totalComplaints = statusData.reduce((a, b) => a + b, 0);
+    
+    // Center text plugin for Chart.js
+    const centerTextPlugin = {
+        id: 'centerText',
+        beforeDraw: function(chart) {
+            const ctx = chart.ctx;
+            const centerX = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+            const centerY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+            
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Get hovered segment
+            const activeElements = chart.getActiveElements();
+            if (activeElements.length > 0) {
+                const activeIndex = activeElements[0].index;
+                const value = statusData[activeIndex];
+                const percentage = totalComplaints > 0 ? ((value / totalComplaints) * 100).toFixed(1) : 0;
+                const label = statusLabels[activeIndex];
+                
+                // Show status name
+                ctx.font = 'bold 14px Arial';
+                ctx.fillStyle = '#1f2937';
+                ctx.fillText(label, centerX, centerY - 10);
+                
+                // Show percentage
+                ctx.font = 'bold 20px Arial';
+                ctx.fillStyle = statusColors[activeIndex];
+                ctx.fillText(percentage + '%', centerX, centerY + 15);
+                
+                // Show count
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#6b7280';
+                ctx.fillText(value + ' complaints', centerX, centerY + 35);
+            } else {
+                // Show total when not hovering
+                ctx.font = 'bold 14px Arial';
+                ctx.fillStyle = '#1f2937';
+                ctx.fillText('Total', centerX, centerY - 10);
+                
+                ctx.font = 'bold 20px Arial';
+                ctx.fillStyle = '#3b82f6';
+                ctx.fillText(totalComplaints, centerX, centerY + 15);
+                
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#6b7280';
+                ctx.fillText('Complaints', centerX, centerY + 35);
+            }
+            ctx.restore();
+        }
+    };
+    
     const complaintsByStatusChart = new Chart(ctx3, {
         type: 'doughnut',
         data: {
-            labels: ['Assigned', 'In Progress', 'Addressed', 'Work Performa', 'Maintenance Performa'],
+            labels: statusLabels,
             datasets: [{
                 label: 'Complaints',
-                data: [120, 88, 350, 45, 32],
-                backgroundColor: [
-                    '#3b82f6', // Blue - Assigned
-                    '#dc2626', // Red - In Progress
-                    '#16a34a', // Green - Addressed
-                    '#60a5fa', // Light Blue - Work Performa
-                    '#eab308'  // Yellow - Maintenance Performa
-                ],
+                data: statusData,
+                backgroundColor: statusColors,
                 borderWidth: 2,
                 borderColor: '#ffffff'
             }]
@@ -276,6 +443,14 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '60%',
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: false
+            },
             plugins: {
                 legend: {
                     display: true,
@@ -300,17 +475,83 @@ document.addEventListener('DOMContentLoaded', function() {
                     callbacks: {
                         label: function(context) {
                             let label = context.label || '';
+                            const value = context.parsed;
+                            const percentage = totalComplaints > 0 ? ((value / totalComplaints) * 100).toFixed(1) : 0;
                             if (label) {
                                 label += ': ';
                             }
-                            label += context.parsed;
+                            label += value + ' (' + percentage + '%)';
                             return label;
                         }
                     }
+                },
+                datalabels: {
+                    color: '#ffffff',
+                    font: {
+                        weight: 'bold',
+                        size: 12
+                    },
+                    formatter: function(value, context) {
+                        const percentage = totalComplaints > 0 ? ((value / totalComplaints) * 100).toFixed(1) : 0;
+                        return percentage + '%';
+                    },
+                    textAlign: 'center',
+                    textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                    textStrokeWidth: 2
                 }
             }
-        }
+        },
+        plugins: [centerTextPlugin]
     });
+    
+    // Add event listener for hover to update chart center text
+    const chartCanvas = document.getElementById('complaintsByStatusChart');
+    chartCanvas.addEventListener('mousemove', function() {
+        complaintsByStatusChart.update('none');
+    });
+    chartCanvas.addEventListener('mouseleave', function() {
+        complaintsByStatusChart.update('none');
+    });
+    
+    // Filter functionality
+    const filterSelects = document.querySelectorAll('.filter-select');
+    const resetBtn = document.getElementById('resetFilters');
+    
+    // Handle filter changes
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            applyFilters();
+        });
+    });
+    
+    // Handle GE change to update GE Nodes
+    document.getElementById('filterCity').addEventListener('change', function() {
+        const cityId = this.value;
+        // Reload page with new city filter to get updated GE Nodes
+        applyFilters();
+    });
+    
+    // Reset filters
+    resetBtn.addEventListener('click', function() {
+        window.location.href = '{{ route("frontend.dashboard") }}';
+    });
+    
+    function applyFilters() {
+        const cityId = document.getElementById('filterCity').value;
+        const sectorId = document.getElementById('filterSector').value;
+        const category = document.getElementById('filterCategory').value;
+        const status = document.getElementById('filterStatus').value;
+        const dateRange = document.getElementById('filterDateRange').value;
+        
+        const params = new URLSearchParams();
+        if (cityId) params.append('city_id', cityId);
+        if (sectorId) params.append('sector_id', sectorId);
+        if (category && category !== 'all') params.append('category', category);
+        if (status && status !== 'all') params.append('status', status);
+        if (dateRange) params.append('date_range', dateRange);
+        
+        window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+    }
 });
 </script>
 @endpush
