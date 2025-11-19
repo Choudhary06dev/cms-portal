@@ -135,7 +135,7 @@
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Addressed</span>
         </div>
         <!-- Work Performa -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg,rgb(69, 20, 247) 0%, #7c3aed 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-work-performa" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['work_performa'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Work Performa</span>
         </div>
@@ -150,7 +150,7 @@
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Un Authorized</span>
         </div>
         <!-- Product N/A -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-product" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['product'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Product N/A</span>
         </div>
@@ -164,10 +164,10 @@
             <span id="stat-pertains-ge" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Pertains to GE/Const/Isld</span>
         </div>
-        <!-- Closed Complaints -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); min-height: 120px; padding: 1rem 0.75rem;">
-            <span id="stat-closed" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['closed'] ?? 0 }}</span>
-            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Closed</span>
+        <!-- Assigned Complaints -->
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-assigned" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['assigned'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Assigned</span>
         </div>
         </div>
     </div>
@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Complaints by Status Chart (Donut Chart) - Using same colors as admin side
     const statusMap = {
-        'assigned': { label: 'Assigned', color: '#3b82f6' }, // Blue
+        'assigned': { label: 'Assigned', color: '#475569' }, // Gray
         'in_progress': { label: 'In Progress', color: '#dc2626' }, // Red
         'resolved': { label: 'Addressed', color: '#16a34a' }, // Green
         'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue

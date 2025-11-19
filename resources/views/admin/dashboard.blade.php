@@ -706,7 +706,7 @@
   @php
     // Status colors mapping (same as in approvals view)
     $statusColorMap = [
-      'assigned' => '#3b82f6', // Blue
+      'assigned' => '#475569', // Blue
       'in_progress' => '#dc2626', // Red
       'resolved' => '#16a34a', // Green
       'work_performa' => '#60a5fa', // Light Blue
