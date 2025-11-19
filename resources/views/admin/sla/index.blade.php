@@ -71,7 +71,7 @@
             <div class="text-muted small">{{ $rule->complaint_type_display ?? ucfirst($rule->complaint_type) }}</div>
               </td>
               <td>
-            <span class="priority-badge priority-{{ $rule->priority ?? 'medium' }}">
+            <span class="priority-badge priority-{{ $rule->priority ?? 'medium' }}" style="color: #ffffff !important;">
               {{ ucfirst($rule->priority ?? 'medium') }}
                 </span>
               </td>
@@ -79,7 +79,7 @@
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
           <td >{{ $rule->notifyTo->name ?? 'N/A' }}</td>
           <td>
-            <span class="status-badge status-{{ $rule->status ?? 'active' }}">
+            <span class="status-badge status-{{ $rule->status ?? 'active' }}" style="color: #ffffff !important;">
               {{ ucfirst($rule->status ?? 'active') }}
                 </span>
               </td>

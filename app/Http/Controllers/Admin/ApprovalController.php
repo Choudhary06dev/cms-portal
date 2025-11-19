@@ -231,7 +231,7 @@ class ApprovalController extends Controller
             // Define all possible status labels - show all these in dropdown
             $statusLabels = [
                 'assigned' => 'Assigned',
-                'in_progress' => 'In-Process',
+                'in_progress' => 'In-Progress',
                 'resolved' => 'Addressed',
                 'work_performa' => 'Work Performa',
                 'maint_performa' => 'Maintenance Performa',
@@ -254,7 +254,7 @@ class ApprovalController extends Controller
             });
 
             // Build statuses collection for FILTER (includes performa options)
-            // 1. Assigned, 2. In-Process, 3. Addressed, 
+            // 1. Assigned, 2. In Progress, 3. Addressed, 
             // 4-5. Work/Maintenance Performa Required (after Addressed),
             // 6+. Rest of the statuses
             $orderedStatusesForFilter = [

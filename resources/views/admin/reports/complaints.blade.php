@@ -68,7 +68,7 @@
             // Status display names mapping
             $statusDisplayNames = [
               'assigned' => 'Assigned',
-              'in_progress' => 'In-Process',
+              'in_progress' => 'In-Progress',
               'resolved' => 'Addressed',
               'work' => 'Work',
               'maintenance' => 'Maintenance',

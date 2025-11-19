@@ -132,7 +132,7 @@ class DashboardController extends Controller
         // Get complaint statuses for filter (same as approvals page)
         $complaintStatuses = [
             'assigned' => 'Assigned',
-            'in_progress' => 'In-Process',
+            'in_progress' => 'In-Progress',
             'resolved' => 'Addressed',
             'work_performa' => 'Work Performa',
             'maint_performa' => 'Maintenance Performa',

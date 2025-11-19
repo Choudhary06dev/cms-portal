@@ -162,7 +162,7 @@
                                     $priority = $complaint->priority ?? 'medium';
                                     $priorityColors = [
                                         'low' => ['bg' => '#15803d', 'text' => '#ffffff', 'border' => '#166534'],
-                                        'medium' => ['bg' => '#b45309', 'text' => '#ffffff', 'border' => '#92400e'],
+                                        'medium' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'],
                                         'high' => ['bg' => '#c2410c', 'text' => '#ffffff', 'border' => '#9a3412'],
                                         'urgent' => ['bg' => '#991b1b', 'text' => '#ffffff', 'border' => '#7f1d1d'],
                                         'emergency' => ['bg' => '#991b1b', 'text' => '#ffffff', 'border' => '#7f1d1d'],

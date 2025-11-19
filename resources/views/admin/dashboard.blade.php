@@ -569,7 +569,7 @@
                 @elseif($complaint->priority === 'high')
                   <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #c2410c !important; color: #ffffff !important; border-color: #9a3412 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @elseif($complaint->priority === 'medium')
-                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #b45309 !important; color: #ffffff !important; border-color: #92400e !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @elseif($complaint->priority === 'low')
                   <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @else
