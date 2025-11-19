@@ -403,11 +403,11 @@ document.addEventListener('DOMContentLoaded', function() {
         'resolved': { label: 'Addressed', color: '#16a34a' }, // Green
         'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
         'maint_performa': { label: 'Maintenance Performa', color: '#eab308' }, // Yellow
-        'work_priced_performa': { label: 'Work Performa Priced', color: '#9333ea' }, // Purple
-        'maint_priced_performa': { label: 'Maintenance Performa Priced', color: '#ea580c' }, // Orange Red
+        'work_priced_performa': { label: 'Work Priced', color: '#9333ea' }, // Purple
+        'maint_priced_performa': { label: 'Maint Priced', color: '#ea580c' }, // Orange Red
         'product_na': { label: 'Product N/A', color: '#000000' }, // Black
         'un_authorized': { label: 'Un-Authorized', color: '#ec4899' }, // Pink
-        'pertains_to_ge_const_isld': { label: 'Pertains to GE(N) Const Isld', color: '#06b6d4' }, // Aqua/Cyan
+        'pertains_to_ge_const_isld': { label: 'Pertains to GE(N)', color: '#06b6d4' }, // Aqua/Cyan
         'closed': { label: 'Closed', color: '#06b6d4' }, // Aqua/Cyan (same as pertains_to_ge_const_isld)
         'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
     };
