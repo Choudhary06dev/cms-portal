@@ -569,8 +569,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle GE change to update GE Nodes
     document.getElementById('filterCity').addEventListener('change', function() {
         const cityId = this.value;
-        // Reload page with new city filter to get updated GE Nodes
-        applyFilters();
+        const sectorSelect = document.getElementById('filterSector');
+        const category = document.getElementById('filterCategory').value;
+        const status = document.getElementById('filterStatus').value;
+        const dateRange = document.getElementById('filterDateRange').value;
+        
+        // Clear GE Nodes selection when GE Group changes
+        if (sectorSelect) {
+            sectorSelect.value = '';
+        }
+        
+        // Build params for reload
+        const params = new URLSearchParams();
+        if (cityId) params.append('city_id', cityId);
+        // Don't include sector_id when city changes
+        if (category && category !== 'all') params.append('category', category);
+        if (status && status !== 'all') params.append('status', status);
+        if (dateRange) params.append('date_range', dateRange);
+        
+        // Reload page with new city filter to get updated GE Nodes dropdown
+        window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
     });
 
     // Reset filters
