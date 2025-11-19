@@ -1,11 +1,17 @@
+<!-- Logo - Separate from Navbar -->
+<div class="logo-container">
+  <a href="{{ url('/') }}" class="logo-link">
+    <div class="logo-wrapper">
+      <img src="{{ asset('assests/logo.png') }}" alt="Logo" class="main-logo">
+    </div>
+  </a>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-dark" style="background: transparent !important; background-color: transparent !important; box-shadow: none !important;">
-  <div class="container-fluid px-4">
-    <!-- Logo & Brand -->
+  <div class="container-fluid px-1">
+    <!-- Brand Text Only -->
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
-      <div class="logo-wrapper me-2">
-        <img src="{{ asset('assests/logo.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
-      </div>
-      <span class="fw-bold fs-5 text-white ms-2">MES Complaint Management System</span>
+      <span class="fw-bold fs-5 text-white">MES Complaint Management System</span>
     </a>
 
     <!-- Mobile Toggle -->
@@ -65,6 +71,43 @@
 </nav>
 
 <style>
+  /* Logo Container - Separate from Navbar */
+  .logo-container {
+    position: absolute;
+    top: -10px;
+    left: 0;
+    z-index: 1040;
+    padding: 0px 15px;
+  }
+
+  .logo-link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .logo-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+  }
+
+  .main-logo {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    animation: pageFlip 6s ease-in-out infinite;
+    transform-origin: center center;
+    transform-style: preserve-3d;
+    backface-visibility: visible;
+    transition: transform 0.3s ease;
+  }
+
+  .main-logo:hover {
+    transform: scale(1.1);
+  }
+
   .navbar,
   .navbar.navbar-dark,
   .navbar.navbar-expand-lg {
@@ -72,6 +115,7 @@
     z-index: 1030;
     margin: 0 !important;
     padding: 0.75rem 0;
+    padding-left: 130px !important; /* Space for logo */
     background-image: url('https://img.freepik.com/premium-photo/dark-blue-ocean-surface-seen-from-underwater_629685-6504.jpg') !important;
     background-size: cover !important;
     background-position: center !important;
@@ -79,7 +123,7 @@
     background-color: transparent !important;
     border-bottom: none !important;
     position: absolute !important;
-    top: 0;
+    top: 10px;
     left: 0;
     right: 0;
     width: 100%;
@@ -98,26 +142,21 @@
     transform: scale(1.05);
   }
 
-  .logo-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .logo-wrapper img {
-    animation: rotateLeftRight 3s ease-in-out infinite;
-    transform-origin: center center;
-  }
-
-  @keyframes rotateLeftRight {
+  @keyframes pageFlip {
     0% {
-      transform: rotate(-15deg);
+      transform: perspective(1000px) rotateY(0deg);
+    }
+    25% {
+      transform: perspective(1000px) rotateY(90deg);
     }
     50% {
-      transform: rotate(15deg);
+      transform: perspective(1000px) rotateY(180deg);
+    }
+    75% {
+      transform: perspective(1000px) rotateY(90deg);
     }
     100% {
-      transform: rotate(-15deg);
+      transform: perspective(1000px) rotateY(0deg);
     }
   }
 
@@ -212,6 +251,19 @@
   }
 
   @media (max-width: 991px) {
+    .logo-container {
+      padding: 5px 10px;
+    }
+
+    .main-logo {
+      width: 80px;
+      height: 80px;
+    }
+
+    .navbar {
+      padding-left: 90px !important; /* Less space for smaller logo */
+    }
+
     .nav-link::after {
       display: none;
     }
