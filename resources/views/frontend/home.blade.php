@@ -10,7 +10,9 @@
     background: url('https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg') no-repeat center center/cover;
     background-attachment: fixed;
     position: relative;
-    min-height: 80vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
   
   /* Overlay for people saluting flag */
@@ -45,9 +47,36 @@
     display: none !important;
   }
 
-  /* Hide default footer from layout */
-  body > footer:not(.home-footer) {
-    display: none !important;
+  /* Footer styling for home page */
+  footer {
+    text-align: center !important;
+    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    margin-top: auto !important;
+    margin-bottom: 0 !important;
+    z-index: 10;
+  }
+
+  footer .container {
+    text-align: center !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+
+  footer .text-center {
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  footer p {
+    text-align: center !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    display: block !important;
   }
 
   main {
@@ -56,7 +85,7 @@
     padding-top: 25px !important;
     position: relative;
     z-index: 2;
-    min-height: 80vh;
+    flex: 1;
   }
 
   /* Custom navbar for home page */
@@ -386,7 +415,7 @@
 @endpush
 
 @section('content')
-
+<div style="display: flex; flex-direction: column; min-height: calc(100vh - 100px);">
 
   <div class="container">                                                                                                            
     <div class="left-section" id="leftSection">
@@ -437,11 +466,7 @@
         </form>
     </div>
   </div>
-
-
-<footer class="home-footer">
-    © 2025 MES All Rights Reserved
-</footer>
+</div>
 
 @push('scripts')
 <script>

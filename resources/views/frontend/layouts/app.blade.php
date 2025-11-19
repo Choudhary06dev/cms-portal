@@ -21,6 +21,21 @@
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
       }
+      /* Global Footer Styling - Same for all pages */
+      footer {
+        text-align: center !important;
+        width: 100% !important;
+        display: block !important;
+        position: relative !important;
+      }
+      footer .container {
+        text-align: center !important;
+        margin: 0 auto !important;
+      }
+      footer p {
+        text-align: center !important;
+        margin: 0 auto !important;
+      }
     </style>
   @stack('styles')
 </head>
