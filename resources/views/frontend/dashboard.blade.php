@@ -174,7 +174,6 @@
 </div>
 
 <!-- Footer -->
-@include('frontend.layouts.footer')
 
 @endsection
 

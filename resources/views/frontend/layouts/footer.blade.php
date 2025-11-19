@@ -1,8 +1,8 @@
-<footer style="background: #001f3f !important; color: white; margin-top: 0;">
-  <div class="container py-4">
-    <div class="text-center">
-      <p class="mb-0" style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">
-        © 2025 Navy All Rights Reserved
+<footer style="background: #001f3f !important; color: #94a3b8; margin-top: 5% !important; text-align: center !important; width: 100%; position: relative; bottom: 0;">
+  <div class="container py-2" style="background: transparent !important; text-align: center !important; margin: 0 auto !important; width: 100%; max-width: 100%;">
+    <div class="text-center" style="text-align: center !important; width: 100%;">
+      <p class="mb-0" style="color: #94a3b8; font-size: 0.85rem; text-align: center !important; margin: 0 auto !important; width: 100%; display: block;">
+        © {{ date('Y') }} Navy All Rights Reserved
       </p>
     </div>
   </div>
