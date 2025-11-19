@@ -174,7 +174,7 @@
 </div>
 
 <!-- Footer -->
-
+@include('frontend.layouts.footer')
 
 @endsection
 
@@ -290,8 +290,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     ticks: {
                         font: {
-                            size: 11
-                        }
+                            size: 11,
+                            weight: 'bold',
+                            family: 'Arial, sans-serif'
+                        },
+                        color: '#1f2937'
                     }
                 }
             }
@@ -366,8 +369,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     ticks: {
                         font: {
-                            size: 11
-                        }
+                            size: 11,
+                            weight: 'bold',
+                            family: 'Arial, sans-serif'
+                        },
+                        color: '#1f2937'
                     }
                 },
                 y: {
@@ -539,18 +545,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     ctx.fillText('Complaints', centerX, centerY + 35);
                 }
             } else {
-                // Show total when not hovering and no filter
-                ctx.font = 'bold 14px Arial';
+                // Show total when not hovering - smaller but bold and clear
+                ctx.font = 'bold 13px Arial';
                 ctx.fillStyle = '#1f2937';
-                ctx.fillText('Total', centerX, centerY - 10);
+                ctx.fillText('Total', centerX, centerY - 12);
 
-                ctx.font = 'bold 20px Arial';
-                ctx.fillStyle = '#3b82f6';
-                ctx.fillText(currentTotal, centerX, centerY + 15);
+                ctx.font = 'bold 18px Arial';
+                ctx.fillStyle = '#2563eb';
+                ctx.fillText(totalComplaints, centerX, centerY + 8);
 
-                ctx.font = '12px Arial';
-                ctx.fillStyle = '#6b7280';
-                ctx.fillText('Complaints', centerX, centerY + 35);
+                ctx.font = 'bold 11px Arial';
+                ctx.fillStyle = '#475569';
+                ctx.fillText('Complaints', centerX, centerY + 28);
             }
             ctx.restore();
         }
@@ -586,10 +592,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'bottom',
                     labels: {
                         font: {
-                            size: 10
+                            size: 12,
+                            weight: 'bold',
+                            family: 'Arial, sans-serif'
                         },
-                        padding: 8,
-                        usePointStyle: true
+                        padding: 10,
+                        usePointStyle: true,
+                        color: '#1f2937'
                     }
                 },
                 tooltip: {
