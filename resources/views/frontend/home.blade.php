@@ -117,7 +117,7 @@
     width: 90%;
     max-width: 1100px;
     margin: 15px auto;
-    margin-top: 60px;
+    margin-top: 75px;
     padding: 0;
     display: flex;
     background: rgba(255, 255, 255, 0.95);

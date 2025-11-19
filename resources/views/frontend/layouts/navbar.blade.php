@@ -11,7 +11,7 @@
   <div class="container-fluid px-1">
     <!-- Brand Text Only -->
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
-      <span class="fw-bold text-white" style="font-size: 2.5rem !important; font-weight: 700 !important; letter-spacing: 0.5px;">MES Complaint Management System</span>
+      <span class="fw-bold text-white" style="font-size: 2.0rem !important; font-weight: 700 !important; letter-spacing: 0.5px;">MES Complaint Management System</span>
     </a>
 
     <!-- Mobile Toggle -->
