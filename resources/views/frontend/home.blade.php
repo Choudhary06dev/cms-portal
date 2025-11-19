@@ -10,7 +10,9 @@
     background: url('https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg') no-repeat center center/cover;
     background-attachment: fixed;
     position: relative;
-    min-height: 80vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
   
   /* Overlay for people saluting flag */
@@ -22,7 +24,7 @@
     right: 0;
     bottom: 0;
     background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAgd66m-skOO1rxIMOQv3bmjsuWKbZReg92AnJJmIjx9pMU5IQQ3qKRxR4-JaynxF0bQQ&usqp=CAU') no-repeat center left/cover;
-    opacity: 0.3;
+    opacity: 0.15;
     z-index: 0;
     pointer-events: none;
   }
@@ -35,7 +37,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 31, 63, 0.7) 0%, rgba(0, 51, 102, 0.75) 50%, rgba(0, 77, 153, 0.7) 100%);
+    background: linear-gradient(135deg, rgba(0, 31, 63, 0.3) 0%, rgba(0, 51, 102, 0.35) 50%, rgba(0, 77, 153, 0.3) 100%);
     z-index: 1;
     pointer-events: none;
   }
@@ -45,9 +47,36 @@
     display: none !important;
   }
 
-  /* Hide default footer from layout */
-  body > footer:not(.home-footer) {
-    display: none !important;
+  /* Footer styling for home page */
+  footer {
+    text-align: center !important;
+    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    margin-top: auto !important;
+    margin-bottom: 0 !important;
+    z-index: 10;
+  }
+
+  footer .container {
+    text-align: center !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+
+  footer .text-center {
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  footer p {
+    text-align: center !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    display: block !important;
   }
 
   main {
@@ -56,7 +85,7 @@
     padding-top: 25px !important;
     position: relative;
     z-index: 2;
-    min-height: 80vh;
+    flex: 1;
   }
 
   /* Custom navbar for home page */
@@ -89,7 +118,7 @@
     max-width: 1100px;
     margin: 15px auto;
     margin-top: 80px;
-    padding-top: 20px;
+    padding: 0;
     display: flex;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -104,11 +133,18 @@
     flex: 1.3;
     min-height: 420px;
     background: url('https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg') no-repeat center center/cover;
+    background-size: cover;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    transition: background-image 0.5s ease;
+    border-radius: 20px 0 0 20px;
+  }
+
+  .left-section.default-bg {
+    background: url('https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg') no-repeat center center/cover;
   }
 
   .left-section::before {
@@ -118,7 +154,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom, rgba(0, 31, 63, 0.3), rgba(0, 51, 102, 0.2));
+    background: linear-gradient(to bottom, rgba(0, 31, 63, 0.15), rgba(0, 51, 102, 0.1));
     z-index: 1;
   }
 
@@ -142,6 +178,18 @@
     border-radius: 10px;
     object-fit: cover;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .image-slider img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .image-slider img.active {
+    border: 3px solid #2563eb;
+    transform: scale(1.05);
   }
 
   .right-section {
@@ -152,7 +200,9 @@
     flex-direction: column;
     justify-content: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 0 20px 20px 0;
   }
+
 
   .logo {
     text-align: center;
@@ -365,14 +415,14 @@
 @endpush
 
 @section('content')
-
+<div style="display: flex; flex-direction: column; min-height: calc(100vh - 100px);">
 
   <div class="container">                                                                                                            
-    <div class="left-section">
-        <div class="image-slider">
-            <img src="https://i.ytimg.com/vi/LAhXlh5XfmE/hqdefault.jpg" alt="Navy Image 1" />
-            <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" />
-            <img src="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" alt="Navy Image 3" />
+    <div class="left-section" id="leftSection">
+        <div class="image-slider" id="imageSlider">
+            <img src="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" alt="Navy Image 1" data-bg="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" class="slider-img" />
+            <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" data-bg="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" class="slider-img" />
+            <img src="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" alt="Navy Image 3" data-bg="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" class="slider-img" />
         </div>
     </div>
 
@@ -380,8 +430,8 @@
         <div class="logo">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Pakistan_Navy_emblem.svg/200px-Pakistan_Navy_emblem.svg.png" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
-        <div class="heading">MES COMPLAINT MANAGEMENT SYSTEM</div>
-        <!-- <p class="subtitle">Nice to see you again</p> -->
+        <div class="heading">NAVY COMPLAINT MANAGEMENT SYSTEM</div>
+        <p class="subtitle">Nice to see you again</p>
 
         <form method="POST" action="{{ route('frontend.login.post') }}" class="form">
             @csrf
@@ -416,10 +466,7 @@
         </form>
     </div>
   </div>
-
-<footer class="home-footer">
-    © 2025 MES All Rights Reserved
-</footer>
+</div>
 
 @push('scripts')
 <script>
@@ -444,7 +491,54 @@
     if (typeof feather !== 'undefined') {
       feather.replace();
     }
+
+    // Image slider functionality
+    const sliderImages = document.querySelectorAll('.slider-img');
+    const leftSection = document.getElementById('leftSection');
+    const defaultBg = 'https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg';
+    let isClicked = false;
+
+    // Reset to default background when mouse leaves slider area
+    const imageSlider = document.getElementById('imageSlider');
+    imageSlider.addEventListener('mouseleave', function() {
+      if (!isClicked) {
+        leftSection.style.backgroundImage = `url('${defaultBg}')`;
+        sliderImages.forEach(img => img.classList.remove('active'));
+      }
+    });
+
+    // Hover functionality for background change (temporary)
+    sliderImages.forEach((img, index) => {
+      img.addEventListener('mouseenter', function() {
+        if (!isClicked) {
+          const bgImage = this.getAttribute('data-bg');
+          leftSection.style.backgroundImage = `url('${bgImage}')`;
+        }
+      });
+    });
+
+    // Click on image to change background permanently
+    sliderImages.forEach((img, index) => {
+      img.addEventListener('click', function() {
+        isClicked = true;
+        const bgImage = this.getAttribute('data-bg');
+        leftSection.style.backgroundImage = `url('${bgImage}')`;
+        
+        // Update active class
+        sliderImages.forEach(sliderImg => sliderImg.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Reset button functionality (optional - can add a reset button)
+    // Or reset when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!imageSlider.contains(event.target) && !leftSection.contains(event.target)) {
+        // Don't reset on outside click - keep clicked state
+      }
+    });
   });
+
 </script>
 @endpush
 @endsection

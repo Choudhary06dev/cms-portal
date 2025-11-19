@@ -12,9 +12,45 @@ use App\Models\ComplaintCategory;
 use App\Models\City;
 use App\Models\Sector;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\LocationFilterTrait;
 
 class HomeController extends Controller
 {
+    use LocationFilterTrait;
+    
+    /**
+     * Apply location-based filtering to complaints query for frontend
+     * Filters directly on complaint's city_id and sector_id fields
+     * 
+     * Logic:
+     * - If user's city_id and sector_id both are null → show all data (no filter)
+     * - If user's city_id exists but sector_id is null → show only that city's data
+     * - If user's sector_id exists → show only that sector's data
+     */
+    protected function filterComplaintsByLocationForFrontend($query, $user)
+    {
+        if (!$user) {
+            return $query;
+        }
+
+        // If both city_id and sector_id are null → show all data (no filter)
+        if (!$user->city_id && !$user->sector_id) {
+            return $query; // No filtering, show all data
+        }
+
+        // If sector_id exists → filter by sector (priority)
+        if ($user->sector_id) {
+            $query->where('sector_id', $user->sector_id);
+        }
+        // If only city_id exists (sector_id is null) → filter by city
+        elseif ($user->city_id) {
+            $query->where('city_id', $user->city_id);
+        }
+
+        return $query;
+    }
+    
     public function index()
     {
         return view('frontend.home');
@@ -27,6 +63,9 @@ class HomeController extends Controller
 
     public function dashboard(Request $request)
     {
+        // Get logged-in user
+        $user = Auth::user();
+        
         // Get filter parameters
         $cityId = $request->get('city_id');
         $sectorId = $request->get('sector_id');
@@ -37,12 +76,61 @@ class HomeController extends Controller
         // Build base query with filters
         $complaintsQuery = Complaint::query();
         
+        // Apply location filtering based on GE Group (city_id) and GE Node (sector_id) selections
+        // Priority: Selected filters > User location restrictions
+        
+        // If GE Group (city_id) is selected, filter by that city
         if ($cityId) {
             $complaintsQuery->where('city_id', $cityId);
+            
+            // If GE Node (sector_id) is also selected, filter by that sector within the selected city
+            if ($sectorId) {
+                $complaintsQuery->where('sector_id', $sectorId);
+            }
+        } 
+        // If only GE Node (sector_id) is selected (without city)
+        elseif ($sectorId) {
+            $complaintsQuery->where('sector_id', $sectorId);
+        }
+        // If no filters selected, apply user's default location restrictions
+        else {
+            $this->filterComplaintsByLocationForFrontend($complaintsQuery, $user);
         }
         
-        if ($sectorId) {
-            $complaintsQuery->where('sector_id', $sectorId);
+        // Validate that selected filters are within user's allowed scope
+        // If user's city_id and sector_id both are null → no validation needed (can access all)
+        // If user's city_id exists → selected city_id must match user's city_id
+        // If user's sector_id exists → selected sector_id must match user's sector_id
+        if ($user) {
+            // If user has sector_id, validate selected sector_id
+            if ($user->sector_id) {
+                if ($sectorId && $sectorId != $user->sector_id) {
+                    // User trying to access sector outside their scope - show nothing
+                    $complaintsQuery->whereRaw('1 = 0');
+                }
+                // Also validate city_id if selected (should match sector's city)
+                if ($cityId) {
+                    $sector = Sector::find($user->sector_id);
+                    if ($sector && $sector->city_id != $cityId) {
+                        $complaintsQuery->whereRaw('1 = 0');
+                    }
+                }
+            }
+            // If user has city_id but no sector_id, validate selected city_id
+            elseif ($user->city_id) {
+                if ($cityId && $cityId != $user->city_id) {
+                    // User trying to access city outside their scope - show nothing
+                    $complaintsQuery->whereRaw('1 = 0');
+                }
+                // Validate sector_id if selected (should belong to user's city)
+                if ($sectorId) {
+                    $sector = Sector::find($sectorId);
+                    if ($sector && $sector->city_id != $user->city_id) {
+                        $complaintsQuery->whereRaw('1 = 0');
+                    }
+                }
+            }
+            // If both are null, no validation needed (user can access all)
         }
         
         if ($category && $category !== 'all') {
@@ -83,21 +171,48 @@ class HomeController extends Controller
             }
         }
         
-        // Get filter options
-        $geGroups = City::where(function($q) {
+        // Get filter options - filter based on user's location access
+        $geGroupsQuery = City::where(function($q) {
                 $q->where('name', 'LIKE', '%GE%')
                   ->orWhere('name', 'LIKE', '%AGE%')
                   ->orWhere('name', 'LIKE', '%ge%')
                   ->orWhere('name', 'LIKE', '%age%');
             })
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get();
+            ->where('status', 'active');
+        
+        // Apply location filter to GE Groups dropdown based on user's city_id
+        // If user's city_id and sector_id both are null → show all GE Groups
+        // If user's city_id exists → show only that city's GE Group
+        if ($user && $user->city_id) {
+            $geGroupsQuery->where('id', $user->city_id);
+        }
+        // If user's sector_id exists (but city_id might be null), show all GE Groups
+        // (because sector belongs to a city, but we want to show all cities in dropdown)
+        
+        $geGroups = $geGroupsQuery->orderBy('name')->get();
         
         $geNodes = Sector::where('status', 'active');
+        
+        // Apply location filter to GE Nodes dropdown based on user's location
+        // If user's city_id and sector_id both are null → show all GE Nodes
+        // If user's city_id exists but sector_id is null → show only that city's sectors
+        // If user's sector_id exists → show only that sector
+        if ($user) {
+            if ($user->sector_id) {
+                // If user has sector_id, show only that sector
+                $geNodes->where('id', $user->sector_id);
+            } elseif ($user->city_id) {
+                // If user has city_id but no sector_id, show sectors for that city
+                $geNodes->where('city_id', $user->city_id);
+            }
+            // If both are null, show all sectors (no filter)
+        }
+        
+        // Apply manual city filter if provided (for when user selects a GE Group)
         if ($cityId) {
             $geNodes->where('city_id', $cityId);
         }
+        
         $geNodes = $geNodes->orderBy('name')->get();
         
         $categories = ComplaintCategory::all();
@@ -178,12 +293,17 @@ class HomeController extends Controller
 
         $page = request()->get('page', 1);
         $perPage = 5;
-        $recentComplaints = Complaint::with(['client', 'assignedEmployee'])
-            ->orderBy('created_at', 'desc')
+        $recentComplaintsQuery = Complaint::with(['client', 'assignedEmployee']);
+        $this->filterComplaintsByLocationForFrontend($recentComplaintsQuery, $user);
+        $recentComplaints = $recentComplaintsQuery->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
+        $self = $this; // Store reference for use in closure
         $pendingApprovals = class_exists(\App\Models\SpareApprovalPerforma::class)
             ? \App\Models\SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare'])
+                ->whereHas('complaint', function($q) use ($user, $self) {
+                    $self->filterComplaintsByLocationForFrontend($q, $user);
+                })
                 ->where('status', 'pending')
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
@@ -194,9 +314,10 @@ class HomeController extends Controller
             ? Spare::lowStock()->orderBy('stock_quantity', 'asc')->limit(10)->get()
             : collect();
 
-        $overdueComplaints = Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->with(['client', 'assignedEmployee'])
-            ->orderBy('created_at', 'asc')
+        $overdueComplaintsQuery = Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])
+            ->with(['client', 'assignedEmployee']);
+        $this->filterComplaintsByLocationForFrontend($overdueComplaintsQuery, $user);
+        $overdueComplaints = $overdueComplaintsQuery->orderBy('created_at', 'asc')
             ->limit(10)
             ->get();
 
@@ -243,9 +364,13 @@ class HomeController extends Controller
             $yearTdData[] = $yearTdQuery->count();
         }
 
-        $employeePerformance = Employee::query()
-            ->withCount(['assignedComplaints' => function($query) {
+        $employeePerformanceQuery = Employee::query();
+        $this->filterEmployeesByLocation($employeePerformanceQuery, $user);
+        $employeePerformance = $employeePerformanceQuery
+            ->withCount(['assignedComplaints' => function($query) use ($user, $self) {
                 $query->where('created_at', '>=', now()->subDays(30));
+                // Apply location filter to assigned complaints count
+                $self->filterComplaintsByLocationForFrontend($query, $user);
             }])
             ->orderBy('assigned_complaints_count', 'desc')
             ->limit(5)

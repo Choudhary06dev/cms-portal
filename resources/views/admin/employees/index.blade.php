@@ -143,11 +143,11 @@
 <div class="modal fade" id="viewEmployeeModal" tabindex="-1" aria-labelledby="viewEmployeeModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-      <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+      <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); position: relative;">
         <h5 class="modal-title text-white" id="viewEmployeeModalLabel">
           <i data-feather="user" class="me-2"></i>Employee Details
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1); opacity: 1; background-size: 1.5em; padding: 0.5em;"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1) grayscale(100%) brightness(200%); opacity: 1 !important; background-size: 1.5em; padding: 0.5em; background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; width: 2em; height: 2em; display: block !important; visibility: visible !important;"></button>
       </div>
       <div class="modal-body" id="viewEmployeeModalBody">
         <div class="text-center py-5">

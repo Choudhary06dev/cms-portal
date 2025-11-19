@@ -557,11 +557,25 @@
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @elseif($displayStatus === 'product_na')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                @elseif($displayStatus === 'closed')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #6b7280 !important; color: #ffffff !important; border-color: #4b5563 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @else
                   <span class="status-badge status-{{ $displayStatus }}" style="color: #ffffff !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @endif
               </td>
-              <td><span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span></td>
+              <td>
+                @if($complaint->priority === 'urgent')
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #991b1b !important; color: #ffffff !important; border-color: #7f1d1d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                @elseif($complaint->priority === 'high')
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #c2410c !important; color: #ffffff !important; border-color: #9a3412 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                @elseif($complaint->priority === 'medium')
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                @elseif($complaint->priority === 'low')
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                @else
+                  <span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                @endif
+              </td>
             </tr>
             @empty
             <tr>
@@ -706,7 +720,7 @@
   @php
     // Status colors mapping (same as in approvals view)
     $statusColorMap = [
-      'assigned' => '#3b82f6', // Blue
+      'assigned' => '#475569', // Blue
       'in_progress' => '#dc2626', // Red
       'resolved' => '#16a34a', // Green
       'work_performa' => '#60a5fa', // Light Blue

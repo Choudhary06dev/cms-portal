@@ -48,7 +48,7 @@
       <table class="table table-bordered table-dark" style="font-size: 0.65rem; width: 100%; table-layout: fixed;">
         <thead>
           <tr class="table-header-row">
-            <th rowspan="2" class="align-middle text-left" style="width: 12%; color: #000000 !important; font-weight: 700 !important; text-align: left !important; font-size: 0.65rem !important; padding: 0.3rem 0.2rem !important;">Description</th>
+            <th rowspan="2" class="align-middle text-left" style="width: 12%; color: #000000 !important; font-weight: 700 !important; text-align: left !important; font-size: 0.65rem !important; padding: 0.3rem 0.2rem !important;">Status</th>
             @foreach($categories as $catKey => $catName)
               <th colspan="2" class="text-center" style="color: #000000 !important; font-weight: 700 !important; font-size: 0.6rem !important; white-space: nowrap !important; padding: 0.3rem 0.15rem !important; width: {{ 88 / (count($categories) * 2 + 2) }}% !important;">{{ $catName }}</th>
             @endforeach
@@ -68,7 +68,7 @@
             // Status display names mapping
             $statusDisplayNames = [
               'assigned' => 'Assigned',
-              'in_progress' => 'In-Process',
+              'in_progress' => 'In-Progress',
               'resolved' => 'Addressed',
               'work' => 'Work',
               'maintenance' => 'Maintenance',

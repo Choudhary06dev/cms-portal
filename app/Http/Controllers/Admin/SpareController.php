@@ -77,7 +77,7 @@ class SpareController extends Controller
             $query->where('unit_price', '<=', $request->price_to);
         }
 
-        $spares = $query->with(['stockLogs', 'city', 'sector'])->orderBy('id', 'desc')->paginate(15);
+        $spares = $query->with(['stockLogs', 'city', 'sector'])->orderBy('id', 'asc')->paginate(15);
         
         // Get categories from complaint_categories table
         $dbCategories = Schema::hasTable('complaint_categories')
