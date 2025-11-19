@@ -161,16 +161,16 @@
                                 @php
                                     $priority = $complaint->priority ?? 'medium';
                                     $priorityColors = [
-                                        'low' => ['bg' => 'rgba(34, 197, 94, 0.2)', 'text' => '#22c55e'],
-                                        'medium' => ['bg' => 'rgba(245, 158, 11, 0.2)', 'text' => '#f59e0b'],
-                                        'high' => ['bg' => 'rgba(239, 68, 68, 0.2)', 'text' => '#ef4444'],
-                                        'urgent' => ['bg' => 'rgba(139, 92, 246, 0.2)', 'text' => '#8b5cf6'],
-                                        'emergency' => ['bg' => 'rgba(220, 38, 38, 0.3)', 'text' => '#dc2626'],
+                                        'low' => ['bg' => '#15803d', 'text' => '#ffffff', 'border' => '#166534'],
+                                        'medium' => ['bg' => '#b45309', 'text' => '#ffffff', 'border' => '#92400e'],
+                                        'high' => ['bg' => '#c2410c', 'text' => '#ffffff', 'border' => '#9a3412'],
+                                        'urgent' => ['bg' => '#991b1b', 'text' => '#ffffff', 'border' => '#7f1d1d'],
+                                        'emergency' => ['bg' => '#991b1b', 'text' => '#ffffff', 'border' => '#7f1d1d'],
                                     ];
                                     $priorityColor = $priorityColors[$priority] ?? $priorityColors['medium'];
                                     $priorityDisplay = ucfirst($priority);
                                 @endphp
-                                <span class="badge" style="background-color: {{ $priorityColor['bg'] }}; color: {{ $priorityColor['text'] }}; padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 12px;">
+                                <span class="badge" style="background-color: {{ $priorityColor['bg'] }} !important; color: {{ $priorityColor['text'] }} !important; border: 1px solid {{ $priorityColor['border'] }} !important; padding: 3px 6px !important; font-size: 10px !important; font-weight: 600 !important; border-radius: 6px !important;">
                                     {{ $priorityDisplay }}
                                 </span>
                             </td>

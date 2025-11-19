@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthLabels = @json($monthLabels ?? $defaultMonthLabels);
     const monthlyComplaintsReceived = @json($monthlyComplaintsData);
     const monthlyComplaintsResolved = @json($monthlyResolvedData);
-    const complaintsByStatus = @json($complaintsByStatus ?? []);
+    let complaintsByStatus = @json($complaintsByStatus ?? []);
     const resolvedVsEdData = @json($resolvedVsEdData ?? []);
     const recentEdData = @json($recentEdData ?? []);
     const yearTdData = @json($yearTdData ?? []);
@@ -440,13 +440,23 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
+            // Get current chart data
+            const currentLabels = chart.data.labels || [];
+            const currentData = chart.data.datasets[0]?.data || [];
+            const currentColors = chart.data.datasets[0]?.backgroundColor || [];
+            const currentTotal = currentData.reduce((a, b) => a + b, 0);
+            
+            // Check if status filter is active
+            const statusFilter = document.getElementById('filterStatus')?.value;
+            const isStatusFiltered = statusFilter && statusFilter !== 'all';
+            
             // Get hovered segment
             const activeElements = chart.getActiveElements();
             if (activeElements.length > 0) {
                 const activeIndex = activeElements[0].index;
-                const value = statusData[activeIndex];
-                const percentage = totalComplaints > 0 ? ((value / totalComplaints) * 100).toFixed(1) : 0;
-                const label = statusLabels[activeIndex];
+                const value = currentData[activeIndex];
+                const percentage = currentTotal > 0 ? ((value / currentTotal) * 100).toFixed(1) : 0;
+                const label = currentLabels[activeIndex];
 
                 // Show status name
                 ctx.font = 'bold 14px Arial';
@@ -455,22 +465,88 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Show percentage
                 ctx.font = 'bold 20px Arial';
-                ctx.fillStyle = statusColors[activeIndex];
+                ctx.fillStyle = currentColors[activeIndex] || '#3b82f6';
                 ctx.fillText(percentage + '%', centerX, centerY + 15);
 
                 // Show count
                 ctx.font = '12px Arial';
                 ctx.fillStyle = '#6b7280';
                 ctx.fillText(value + ' complaints', centerX, centerY + 35);
+            } else if (isStatusFiltered) {
+                // Show filtered status when status filter is active
+                // Find the status in the chart data
+                let filteredIndex = -1;
+                let filteredValue = 0;
+                let filteredLabel = '';
+                let filteredColor = '#3b82f6';
+                
+                // Get the expected label for the filtered status
+                const expectedLabel = statusMap[statusFilter]?.label;
+                
+                // Find matching status in chart data
+                for (let i = 0; i < currentLabels.length; i++) {
+                    const label = currentLabels[i];
+                    // Match by label (case insensitive)
+                    if (expectedLabel && label.toLowerCase() === expectedLabel.toLowerCase()) {
+                        filteredIndex = i;
+                        filteredValue = currentData[i];
+                        filteredLabel = label;
+                        filteredColor = currentColors[i] || statusMap[statusFilter]?.color || '#3b82f6';
+                        break;
+                    }
+                }
+                
+                // If not found by label, try to find by status key in the original data
+                if (filteredIndex === -1 && complaintsByStatus && complaintsByStatus[statusFilter] !== undefined) {
+                    // Find the index in the current chart data that corresponds to this status
+                    const statusKeys = Object.keys(complaintsByStatus);
+                    const statusIndex = statusKeys.indexOf(statusFilter);
+                    if (statusIndex !== -1 && statusIndex < currentData.length) {
+                        filteredIndex = statusIndex;
+                        filteredValue = currentData[statusIndex];
+                        filteredLabel = currentLabels[statusIndex] || expectedLabel || statusFilter;
+                        filteredColor = currentColors[statusIndex] || statusMap[statusFilter]?.color || '#3b82f6';
+                    }
+                }
+                
+                if (filteredIndex !== -1 && filteredValue !== undefined) {
+                    // Show filtered status name
+                    ctx.font = 'bold 14px Arial';
+                    ctx.fillStyle = '#1f2937';
+                    ctx.fillText(filteredLabel, centerX, centerY - 10);
+
+                    // Show filtered status count
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillStyle = filteredColor;
+                    ctx.fillText(filteredValue, centerX, centerY + 15);
+
+                    // Show label
+                    ctx.font = '12px Arial';
+                    ctx.fillStyle = '#6b7280';
+                    ctx.fillText('Complaints', centerX, centerY + 35);
+                } else {
+                    // Fallback to total if filtered status not found
+                    ctx.font = 'bold 14px Arial';
+                    ctx.fillStyle = '#1f2937';
+                    ctx.fillText('Total', centerX, centerY - 10);
+
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.fillText(currentTotal, centerX, centerY + 15);
+
+                    ctx.font = '12px Arial';
+                    ctx.fillStyle = '#6b7280';
+                    ctx.fillText('Complaints', centerX, centerY + 35);
+                }
             } else {
-                // Show total when not hovering
+                // Show total when not hovering and no filter
                 ctx.font = 'bold 14px Arial';
                 ctx.fillStyle = '#1f2937';
                 ctx.fillText('Total', centerX, centerY - 10);
 
                 ctx.font = 'bold 20px Arial';
                 ctx.fillStyle = '#3b82f6';
-                ctx.fillText(totalComplaints, centerX, centerY + 15);
+                ctx.fillText(currentTotal, centerX, centerY + 15);
 
                 ctx.font = '12px Arial';
                 ctx.fillStyle = '#6b7280';
@@ -714,7 +790,9 @@ document.addEventListener('DOMContentLoaded', function() {
             complaintsByStatusChart.data.labels = statusLabels;
             complaintsByStatusChart.data.datasets[0].data = statusData;
             complaintsByStatusChart.data.datasets[0].backgroundColor = statusColors;
-            complaintsByStatusChart.update();
+            // Update the global complaintsByStatus for the plugin
+            complaintsByStatus = data.complaintsByStatus;
+            complaintsByStatusChart.update('none');
         }
 
         // Update Resolution Trend Chart
