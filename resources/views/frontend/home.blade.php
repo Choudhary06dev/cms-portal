@@ -117,7 +117,7 @@
     width: 90%;
     max-width: 1100px;
     margin: 15px auto;
-    margin-top: 80px;
+    margin-top: 60px;
     padding: 0;
     display: flex;
     background: rgba(255, 255, 255, 0.95);
@@ -207,6 +207,7 @@
   .logo {
     text-align: center;
     margin-bottom: 20px;
+    margin-top: -10px;
   }
 
   .logo img {
@@ -225,8 +226,8 @@
 
   .heading {
     text-align: center;
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 28px !important;
+    font-weight: 700 !important;
     margin-top: 15px;
     margin-bottom: 5px;
     color: #003366;
@@ -398,7 +399,7 @@
     }
 
     .heading {
-      font-size: 16px;
+      font-size: 22px !important;
     }
 
     .image-slider {
