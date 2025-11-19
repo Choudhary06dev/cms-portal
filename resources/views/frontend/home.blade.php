@@ -24,7 +24,7 @@
     right: 0;
     bottom: 0;
     background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAgd66m-skOO1rxIMOQv3bmjsuWKbZReg92AnJJmIjx9pMU5IQQ3qKRxR4-JaynxF0bQQ&usqp=CAU') no-repeat center left/cover;
-    opacity: 0.3;
+    opacity: 0.15;
     z-index: 0;
     pointer-events: none;
   }
@@ -37,7 +37,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 31, 63, 0.7) 0%, rgba(0, 51, 102, 0.75) 50%, rgba(0, 77, 153, 0.7) 100%);
+    background: linear-gradient(135deg, rgba(0, 31, 63, 0.3) 0%, rgba(0, 51, 102, 0.35) 50%, rgba(0, 77, 153, 0.3) 100%);
     z-index: 1;
     pointer-events: none;
   }
@@ -154,7 +154,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom, rgba(0, 31, 63, 0.3), rgba(0, 51, 102, 0.2));
+    background: linear-gradient(to bottom, rgba(0, 31, 63, 0.15), rgba(0, 51, 102, 0.1));
     z-index: 1;
   }
 
@@ -422,7 +422,7 @@
         <div class="image-slider" id="imageSlider">
             <img src="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" alt="Navy Image 1" data-bg="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" class="slider-img" />
             <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" data-bg="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" class="slider-img" />
-            <img src="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" alt="Navy Image 3" data-bg="https://tse3.mm.bing.net/th/id/OIP.zrBp5VO1HlTacw37tHVnrwHaEK?pid=Api&h=220&P=0" class="slider-img" />
+            <img src="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" alt="Navy Image 3" data-bg="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" class="slider-img" />
         </div>
     </div>
 
