@@ -121,7 +121,7 @@ class SlaController extends Controller
         
         $validator = Validator::make($request->all(), [
             'complaint_type' => $categoryRule,
-            'priority' => 'required|in:low,medium,high,urgent,emergency',
+            'priority' => 'required|in:low,medium,high,urgent',
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
             'notify_to' => 'required|exists:users,id',
@@ -221,7 +221,7 @@ class SlaController extends Controller
         
         $validator = Validator::make($request->all(), [
             'complaint_type' => $categoryRule,
-            'priority' => 'required|in:low,medium,high,urgent,emergency',
+            'priority' => 'required|in:low,medium,high,urgent',
             'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
             'notify_to' => 'required|exists:users,id',

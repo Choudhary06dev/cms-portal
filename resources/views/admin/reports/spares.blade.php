@@ -93,38 +93,38 @@
     </div>
     
     <div class="table-responsive">
-      <table class="table table-bordered table-dark" style="font-size: 0.875rem;">
+      <table class="table table-bordered table-dark" style="font-size: 0.75rem; width: 100%; table-layout: fixed; border: 1px solid #dee2e6 !important;">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Item Name</th>
-            <th>Category</th>
-            <th class="text-end">Total Received</th>
-            <th class="text-end">Issued Quantity</th>
-            <th class="text-end">Balance Quantity</th>
-            <th class="text-end">%age Utilized</th>
-            <th class="text-end">Usage Count</th>
-            <th>Stock Status</th>
+            <th style="width: 4%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">#</th>
+            <th style="width: 18%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Item Name</th>
+            <th style="width: 12%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Category</th>
+            <th style="width: 12%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Total Received</th>
+            <th style="width: 12%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Issued Quantity</th>
+            <th style="width: 12%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Balance Quantity</th>
+            <th style="width: 10%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">%age Utilized</th>
+            <th style="width: 10%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Usage Count</th>
+            <th style="width: 10%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Stock Status</th>
           </tr>
         </thead>
         <tbody>
           @forelse($spares as $spare)
           <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $spare['spare']->item_name ?? 'N/A' }}</td>
-            <td><span class="badge bg-info">{{ ucfirst($spare['spare']->category ?? 'N/A') }}</span></td>
-            <td class="text-end"><span class="text-success">{{ number_format($spare['spare']->total_received_quantity ?? 0, 0) }}</span></td>
-            <td class="text-end"><span class="text-danger">{{ number_format($spare['total_used'] ?? 0, 0) }}</span></td>
-            <td class="text-end">{{ number_format($spare['current_stock'] ?? 0, 0) }}</td>
-            <td class="text-end">
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $loop->iteration }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $spare['spare']->item_name ?? 'N/A' }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;"><span class="badge bg-info">{{ ucfirst($spare['spare']->category ?? 'N/A') }}</span></td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;"><span class="text-success">{{ number_format($spare['spare']->total_received_quantity ?? 0, 0) }}</span></td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;"><span class="text-danger">{{ number_format($spare['total_used'] ?? 0, 0) }}</span></td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($spare['current_stock'] ?? 0, 0) }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">
               @php
                 $totalReceived = $spare['spare']->total_received_quantity ?? 0;
                 $utilized = $totalReceived > 0 ? round((($totalReceived - ($spare['current_stock'] ?? 0)) / $totalReceived) * 100, 1) : 0;
               @endphp
               {{ number_format($utilized, 1) }}%
             </td>
-            <td class="text-end">{{ number_format($spare['usage_count'] ?? 0, 0) }}</td>
-            <td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($spare['usage_count'] ?? 0, 0) }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">
               @if(($spare['current_stock'] ?? 0) <= 0)
                 <span class="badge bg-danger" style="color: #ffffff !important;">Out of Stock</span>
               @elseif(($spare['current_stock'] ?? 0) <= ($spare['spare']->threshold_level ?? 0))
@@ -136,7 +136,7 @@
           </tr>
           @empty
           <tr>
-            <td colspan="9" class="text-center py-4">
+            <td colspan="9" class="text-center py-4" style="border: 1px solid #dee2e6 !important;">
               <i data-feather="package" class="feather-lg mb-2"></i>
               <div>No spare parts found</div>
             </td>
@@ -150,6 +150,24 @@
 
 @push('styles')
 <style>
+  #sparesReportContent table {
+    border-collapse: collapse !important;
+  }
+  #sparesReportContent table th,
+  #sparesReportContent table td {
+    border-left: 1px solid #dee2e6 !important;
+    border-right: 1px solid #dee2e6 !important;
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+  #sparesReportContent table th:first-child,
+  #sparesReportContent table td:first-child {
+    border-left: 1px solid #dee2e6 !important;
+  }
+  #sparesReportContent table th:last-child,
+  #sparesReportContent table td:last-child {
+    border-right: 1px solid #dee2e6 !important;
+  }
   @media print {
     body * {
       visibility: hidden;

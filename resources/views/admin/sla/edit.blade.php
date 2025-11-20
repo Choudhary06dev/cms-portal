@@ -99,7 +99,6 @@
                     <option value="medium" {{ old('priority', $sla->priority ?? 'medium') == 'medium' ? 'selected' : '' }}>Medium - Normal</option>
                     <option value="high" {{ old('priority', $sla->priority ?? 'medium') == 'high' ? 'selected' : '' }}>High - Important</option>
                     <option value="urgent" {{ old('priority', $sla->priority ?? 'medium') == 'urgent' ? 'selected' : '' }}>Urgent - Critical</option>
-                    <option value="emergency" {{ old('priority', $sla->priority ?? 'medium') == 'emergency' ? 'selected' : '' }}>Emergency - Immediate</option>
                   </select>
                   @error('priority')
                     <div class="invalid-feedback">{{ $message }}</div>

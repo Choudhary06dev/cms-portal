@@ -536,44 +536,56 @@
                 @php
                   // Map 'new' status to 'assigned' for display
                   $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
+                  $fullStatusText = $complaint->getStatusDisplayAttribute();
+                  $shortStatusText = $fullStatusText;
+                  $hoverText = $fullStatusText;
+                  
+                  // Set short text and hover text for specific statuses
+                  if($displayStatus === 'pertains_to_ge_const_isld') {
+                    $shortStatusText = 'Pertains to GE';
+                    $hoverText = $fullStatusText;
+                  } elseif($displayStatus === 'maint_priced_performa') {
+                    $shortStatusText = 'Maint Priced';
+                    $hoverText = $fullStatusText;
+                  }
                 @endphp
                 @if($displayStatus === 'resolved')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">Addressed</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">Addressed</span>
                 @elseif($displayStatus === 'in_progress')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">In Progress</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
                 @elseif($displayStatus === 'assigned')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'work_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #60a5fa !important; color: #ffffff !important; border-color: #3b82f6 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #60a5fa !important; color: #ffffff !important; border-color: #3b82f6 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'maint_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'work_priced_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #9333ea !important; color: #ffffff !important; border-color: #7e22ce !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #9333ea !important; color: #ffffff !important; border-color: #7e22ce !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'maint_priced_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ea580c !important; color: #ffffff !important; border-color: #c2410c !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ea580c !important; color: #ffffff !important; border-color: #c2410c !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $hoverText }}">{{ $shortStatusText }}</span>
                 @elseif($displayStatus === 'un_authorized')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'pertains_to_ge_const_isld')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $hoverText }}">{{ $shortStatusText }}</span>
                 @elseif($displayStatus === 'product_na')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'closed')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #6b7280 !important; color: #ffffff !important; border-color: #4b5563 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #6b7280 !important; color: #ffffff !important; border-color: #4b5563 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @else
-                  <span class="status-badge status-{{ $displayStatus }}" style="color: #ffffff !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="color: #ffffff !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @endif
               </td>
               <td>
                 @if($complaint->priority === 'urgent')
-                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #991b1b !important; color: #ffffff !important; border-color: #7f1d1d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #991b1b !important; color: #ffffff !important; border-color: #7f1d1d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; min-width: 70px !important; text-align: center !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @elseif($complaint->priority === 'high')
-                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #c2410c !important; color: #ffffff !important; border-color: #9a3412 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #c2410c !important; color: #ffffff !important; border-color: #9a3412 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; min-width: 70px !important; text-align: center !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @elseif($complaint->priority === 'medium')
-                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; min-width: 70px !important; text-align: center !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @elseif($complaint->priority === 'low')
-                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; min-width: 70px !important; text-align: center !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @else
-                  <span class="priority-badge priority-{{ $complaint->priority }}">{{ $complaint->getPriorityDisplayAttribute() }}</span>
+                  <span class="priority-badge priority-{{ $complaint->priority }}" style="display: inline-block !important; min-width: 70px !important; text-align: center !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @endif
               </td>
             </tr>

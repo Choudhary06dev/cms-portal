@@ -31,7 +31,6 @@
             <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
             <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High</option>
             <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-            <option value="emergency" {{ request('priority') == 'emergency' ? 'selected' : '' }}>Emergency</option>
           </select>
     </div>
     <div class="col-6 col-md-3">
@@ -71,9 +70,15 @@
             <div class="text-muted small">{{ $rule->complaint_type_display ?? ucfirst($rule->complaint_type) }}</div>
               </td>
               <td>
-            <span class="priority-badge priority-{{ $rule->priority ?? 'medium' }}" style="color: #ffffff !important;">
-              {{ ucfirst($rule->priority ?? 'medium') }}
-                </span>
+            @if(($rule->priority ?? 'medium') === 'urgent')
+              <span class="priority-badge priority-{{ $rule->priority ?? 'medium' }}" style="background-color: #991b1b !important; color: #ffffff !important; border: 1px solid #7f1d1d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important;">
+                {{ ucfirst($rule->priority ?? 'medium') }}
+              </span>
+            @else
+              <span class="priority-badge priority-{{ $rule->priority ?? 'medium' }}" style="color: #ffffff !important;">
+                {{ ucfirst($rule->priority ?? 'medium') }}
+              </span>
+            @endif
               </td>
           <td >{{ $rule->max_response_time }} hours</td>
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>

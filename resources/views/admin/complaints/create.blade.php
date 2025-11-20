@@ -163,7 +163,7 @@
 
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="title" class="form-label text-white">Complaint Title <span
+                                <label for="title" class="form-label text-white">Complaint Type <span
                                         class="text-danger">*</span></label>
                                 <select class="form-select @error('title') is-invalid @enderror" id="title"
                                     name="title" autocomplete="off" required>
