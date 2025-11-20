@@ -153,7 +153,7 @@
   </div>
   
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['addressed_complaints'] ?? 0 }}</div>
@@ -209,7 +209,7 @@
   </div>
   
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['product_na'] ?? 0 }}</div>
@@ -538,11 +538,11 @@
                   $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
                 @endphp
                 @if($displayStatus === 'resolved')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #15803d !important; color: #ffffff !important; border-color: #166534 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">Addressed</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">Addressed</span>
                 @elseif($displayStatus === 'in_progress')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">In Progress</span>
                 @elseif($displayStatus === 'assigned')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @elseif($displayStatus === 'work_performa')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #60a5fa !important; color: #ffffff !important; border-color: #3b82f6 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">{{ $complaint->getStatusDisplayAttribute() }}</span>
                 @elseif($displayStatus === 'maint_performa')
@@ -720,9 +720,9 @@
   @php
     // Status colors mapping (same as in approvals view)
     $statusColorMap = [
-      'assigned' => '#475569', // Blue
+      'assigned' => '#16a34a', // Green (swapped from grey)
       'in_progress' => '#dc2626', // Red
-      'resolved' => '#16a34a', // Green
+      'resolved' => '#64748b', // Grey (swapped from green)
       'work_performa' => '#60a5fa', // Light Blue
       'maint_performa' => '#eab308', // Yellow
       'work_priced_performa' => '#9333ea', // Purple

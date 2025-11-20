@@ -130,7 +130,7 @@
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">In Progress</span>
         </div>
         <!-- Addressed -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-addressed" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['addressed'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Addressed</span>
         </div>
@@ -165,7 +165,7 @@
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Pertains to GE/Const/Isld</span>
         </div>
         <!-- Assigned Complaints -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-assigned" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['assigned'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Assigned</span>
         </div>
@@ -397,9 +397,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Complaints by Status Chart (Donut Chart) - Using same colors as admin side
     const statusMap = {
-        'assigned': { label: 'Assigned', color: '#475569' }, // Gray
+        'assigned': { label: 'Assigned', color: '#16a34a' }, // Green (swapped from grey)
         'in_progress': { label: 'In Progress', color: '#dc2626' }, // Red
-        'resolved': { label: 'Addressed', color: '#16a34a' }, // Green
+        'resolved': { label: 'Addressed', color: '#64748b' }, // Grey (swapped from green)
         'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
         'maint_performa': { label: 'Maintenance Performa', color: '#eab308' }, // Yellow
         'work_priced_performa': { label: 'Work Priced', color: '#9333ea' }, // Purple

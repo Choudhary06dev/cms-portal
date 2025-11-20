@@ -22,7 +22,7 @@
   <div class="row g-2 align-items-end">
     <div class="col-auto">
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
-      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..." 
+      <input type="text" class="form-control" id="searchInput" name="search" placeholder="Search..."
              value="{{ request('search') }}" oninput="handleUsersSearchInput()" style="font-size: 0.9rem; width: 180px;">
     </div>
     <div class="col-auto">
@@ -143,14 +143,14 @@
       </tbody>
     </table>
   </div>
-  
+
   <!-- TOTAL RECORDS -->
   <div id="usersTableFooter" class="text-center py-2 mt-2" style="background-color: rgba(59, 130, 246, 0.2); border-top: 2px solid #3b82f6; border-radius: 0 0 8px 8px;">
     <strong style="color: #ffffff; font-size: 14px;">
       Total Records: {{ $users->total() }}
     </strong>
   </div>
-  
+
   <!-- PAGINATION -->
   <div class="d-flex justify-content-center mt-3" id="usersPagination">
     <div>
@@ -188,27 +188,27 @@
 @push('scripts')
 <script>
   feather.replace();
-  
+
   // User Functions
   let currentUserId = null;
-  
+
   function viewUser(userId) {
     if (!userId) {
       alert('Invalid user ID');
       return;
     }
-    
+
     currentUserId = userId;
-    
+
     const modalElement = document.getElementById('userModal');
     const modalBody = document.getElementById('userModalBody');
-    
+
     // Show loading state
     modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-    
+
     // Add blur effect to background first
     document.body.classList.add('modal-open-blur');
-    
+
     // Show modal WITHOUT backdrop so we can see the blurred background
     const modal = new bootstrap.Modal(modalElement, {
       backdrop: false, // Disable Bootstrap backdrop completely
@@ -216,7 +216,7 @@
       focus: true
     });
     modal.show();
-    
+
     // Ensure any backdrop that might be created is removed
     const removeBackdrop = () => {
       const backdrops = document.querySelectorAll('.modal-backdrop');
@@ -224,7 +224,7 @@
         backdrop.remove(); // Remove from DOM
       });
     };
-    
+
     // Use MutationObserver to catch and remove any backdrop creation
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -236,24 +236,24 @@
       });
       removeBackdrop();
     });
-    
+
     observer.observe(document.body, {
       childList: true,
       subtree: true
     });
-    
+
     // Remove any existing backdrops
     removeBackdrop();
     setTimeout(removeBackdrop, 10);
     setTimeout(removeBackdrop, 50);
     setTimeout(removeBackdrop, 100);
-    
+
     // Clean up observer when modal is hidden
     modalElement.addEventListener('hidden.bs.modal', function() {
       observer.disconnect();
       removeBackdrop();
     }, { once: true });
-    
+
     // Load user details via AJAX - force HTML response
     fetch(`/admin/users/${userId}?format=html`, {
       method: 'GET',
@@ -282,11 +282,11 @@
         modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Server returned JSON instead of HTML. Please check the route configuration.</div>';
         return;
       }
-      
+
       // Extract the content from the show page
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
-      
+
       // Get the content section - try multiple selectors
       let contentSection = doc.querySelector('section.content');
       if (!contentSection) {
@@ -301,21 +301,21 @@
           contentSection = doc.body;
         }
       }
-      
+
       // Extract the user details sections
       let userContent = '';
-      
+
       // Get all rows that contain user information (skip page header)
       const allRows = contentSection.querySelectorAll('.row');
       const seenRows = new Set();
-      
+
       allRows.forEach(row => {
         // Skip rows that are in page headers
         const isInHeader = row.closest('.mb-4') && row.closest('.mb-4').querySelector('h2');
-        
+
         // Check if this row contains card-glass elements
         const hasCardGlass = row.querySelector('.card-glass');
-        
+
         if (!isInHeader && hasCardGlass) {
           const rowHTML = row.outerHTML;
           // Use a simple hash to avoid duplicates
@@ -326,20 +326,20 @@
           }
         }
       });
-      
+
       // Also extract standalone card-glass elements
       const allCards = contentSection.querySelectorAll('.card-glass');
       const seenCards = new Set();
-      
+
       allCards.forEach(card => {
         // Skip cards that are in page headers
         const parentRow = card.closest('.row');
         const isInHeader = parentRow && parentRow.closest('.mb-4') && parentRow.closest('.mb-4').querySelector('h2');
-        
+
         // Skip if already added from rows
         const cardHTML = card.outerHTML;
         const cardId = cardHTML.substring(0, 300);
-        
+
         if (!isInHeader && !seenCards.has(cardId) && !userContent.includes(cardHTML.substring(0, 100))) {
           seenCards.add(cardId);
           // Check if it's already in a row that was added
@@ -349,7 +349,7 @@
           }
         }
       });
-      
+
       if (userContent) {
         modalBody.innerHTML = userContent;
         // Function to apply table column borders
@@ -358,13 +358,13 @@
           modalTables.forEach((table) => {
             const ths = table.querySelectorAll('th');
             const tds = table.querySelectorAll('td');
-            
+
             ths.forEach((th) => {
               const row = th.parentElement;
               const cellsInRow = Array.from(row.querySelectorAll('th'));
               const cellIndex = cellsInRow.indexOf(th);
               const isLast = cellIndex === cellsInRow.length - 1;
-              
+
               if (!isLast) {
                 th.setAttribute('style', (th.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
                 th.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
@@ -375,13 +375,13 @@
                 th.style.setProperty('border-right', 'none', 'important');
               }
             });
-            
+
             tds.forEach((td) => {
               const row = td.parentElement;
               const cellsInRow = Array.from(row.querySelectorAll('td'));
               const cellIndex = cellsInRow.indexOf(td);
               const isLast = cellIndex === cellsInRow.length - 1;
-              
+
               if (!isLast) {
                 td.setAttribute('style', (td.getAttribute('style') || '') + ' border-right: 1px solid rgba(201, 160, 160, 0.3) !important;');
                 td.style.borderRight = '1px solid rgba(201, 160, 160, 0.3)';
@@ -394,7 +394,7 @@
             });
           });
         };
-        
+
         // Replace feather icons after content is loaded
         setTimeout(() => {
           feather.replace();
@@ -405,7 +405,7 @@
           setTimeout(applyTableBorders, 500);
           setTimeout(applyTableBorders, 1000);
         }, 50);
-        
+
         // Also apply when modal is fully shown
         setTimeout(() => {
           const modalElement = document.getElementById('userModal');
@@ -433,19 +433,19 @@
       console.error('Error loading user:', error);
       modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading user details: ' + error.message + '. Please try again.</div>';
     });
-    
+
     // Replace feather icons when modal is shown
     modalElement.addEventListener('shown.bs.modal', function() {
       feather.replace();
     });
-    
+
     // Remove blur when modal is hidden
     modalElement.addEventListener('hidden.bs.modal', function() {
       document.body.classList.remove('modal-open-blur');
       feather.replace();
     }, { once: true });
   }
-  
+
   function closeUserModal() {
     const modalElement = document.getElementById('userModal');
     if (modalElement) {
@@ -475,7 +475,7 @@
   function resetUsersFilters() {
     const form = document.getElementById('usersFiltersForm');
     if (!form) return;
-    
+
     // Clear all form inputs
     form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
       if (input.type === 'select-one') {
@@ -484,7 +484,7 @@
         input.value = '';
       }
     });
-    
+
     // Reset URL to base route
     window.location.href = '{{ route('admin.users.index') }}';
   }
@@ -493,10 +493,10 @@
   function loadUsers(url = null) {
     const form = document.getElementById('usersFiltersForm');
     if (!form) return;
-    
+
     const formData = new FormData(form);
     const params = new URLSearchParams();
-    
+
     if (url) {
       const urlObj = new URL(url, window.location.origin);
       urlObj.searchParams.forEach((value, key) => {
@@ -512,7 +512,7 @@
 
     const tbody = document.getElementById('usersTableBody');
     const paginationContainer = document.getElementById('usersPagination');
-    
+
     if (tbody) {
       tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
@@ -529,33 +529,33 @@
     .then(html => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
-      
+
       const newTbody = doc.querySelector('#usersTableBody');
       const newPagination = doc.querySelector('#usersPagination');
       const newTfoot = doc.querySelector('#usersTableFooter');
-      
+
       if (newTbody && tbody) {
         tbody.innerHTML = newTbody.innerHTML;
         feather.replace();
       }
-      
+
       // Update table footer (total records)
       const tfoot = document.querySelector('#usersTableFooter');
       if (newTfoot && tfoot) {
         tfoot.innerHTML = newTfoot.innerHTML;
       } else if (tfoot) {
-        const extractedTfoot = doc.querySelector('#usersTableFooter') || 
+        const extractedTfoot = doc.querySelector('#usersTableFooter') ||
           (html.includes('usersTableFooter') ? (() => {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             return tempDiv.querySelector('#usersTableFooter');
           })() : null);
-        
+
         if (extractedTfoot) {
           tfoot.innerHTML = extractedTfoot.innerHTML;
         }
       }
-      
+
       if (newPagination && paginationContainer) {
         paginationContainer.innerHTML = newPagination.innerHTML;
         // Re-initialize feather icons after pagination update
@@ -592,7 +592,7 @@
   });
 
   // Export functionality
-  
+
 
   // Delete user function
   function deleteUser(userId) {

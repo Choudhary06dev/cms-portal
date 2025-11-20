@@ -105,8 +105,8 @@
           <th>Address</th>
           <th>Complaint Nature & Type</th>
           <th>Phone No.</th>
-          <th>Performa Required</th>
-          <th>Status</th>
+          <th style="text-align: center;">Performa Required</th>
+          <th style="text-align: center;">Status</th>
           <th>Actions|Feedback</th>
         </tr>
       </thead>
@@ -176,7 +176,7 @@
           // Status column colors (red for performa types in status column, like product_na)
           $statusColors = [
             'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
-            'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Darker Green
+            'resolved' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Grey (swapped from green)
             'work_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
             'maint_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
             'work_priced_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
@@ -184,7 +184,7 @@
             'product_na' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
             'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'], // Pink
             'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'], // Aqua/Cyan
-            'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Default Gray
+            'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green (swapped from grey)
           ];
           
           // Get current status color or default
@@ -269,7 +269,7 @@
               @endif
             @endif
           </td>
-          <td>
+          <td style="text-align: center;">
             @php
               // Get product and price information
               $complaintSpare = $complaint->spareParts->first();
@@ -3636,7 +3636,7 @@
   // Status colors mapping for JavaScript
   const statusColors = {
     'in_progress': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Darker Red
-    'resolved': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Darker Green
+    'resolved': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Grey (swapped from green)
     'work_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
     'maint_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
     'work_priced_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
@@ -3644,7 +3644,7 @@
     'product_na': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red
     'un_authorized': { bg: '#ec4899', text: '#ffffff', border: '#db2777' }, // Pink
     'pertains_to_ge_const_isld': { bg: '#06b6d4', text: '#ffffff', border: '#0891b2' }, // Aqua/Cyan
-    'assigned': { bg: '#64748b', text: '#ffffff', border: '#475569' }, // Default Gray
+    'assigned': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Green (swapped from grey)
   };
 
   // Function to update status select box colors
@@ -4106,18 +4106,64 @@
           }
         }
         
-        if (updated && updated.closed_at && newStatus === 'resolved') {
+        // Handle resolved status - hide performa badge and update UI
+        if (newStatus === 'resolved') {
+          // Update addressed date cell
           const addressedDateCell = row?.querySelector('td:nth-child(3)');
           if (addressedDateCell) {
-            addressedDateCell.textContent = updated.closed_at;
-            addressedDateCell.style.textAlign = 'left';
+            if (updated && updated.closed_at) {
+              addressedDateCell.textContent = updated.closed_at;
+              addressedDateCell.style.textAlign = 'left';
+            } else {
+              addressedDateCell.innerHTML = '<span style="display: block; text-align: center;">-</span>';
+            }
           }
-        } else if (newStatus === 'resolved' && (!updated || !updated.closed_at)) {
-          // If status is resolved but no closed_at, show centered "-"
-          const addressedDateCell = row?.querySelector('td:nth-child(3)');
-          if (addressedDateCell) {
-            addressedDateCell.innerHTML = '<span style="display: block; text-align: center;">-</span>';
+          
+          // Hide performa badge immediately (without reload)
+          const performaBadgeInRow = row?.querySelector('.performa-badge');
+          if (performaBadgeInRow) {
+            performaBadgeInRow.style.display = 'none';
+            performaBadgeInRow.textContent = '';
           }
+          
+          // Clear performa_type from approval record
+          const addStockBtn = row?.querySelector('button[data-approval-id]');
+          const approvalId = addStockBtn ? addStockBtn.getAttribute('data-approval-id') : null;
+          if (approvalId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken) {
+              fetch(`/admin/approvals/${approvalId}/save-performa`, {
+                method: 'POST',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                  performa_type: null,
+                  remarks: `Performa type cleared - status changed to addressed`
+                }),
+                credentials: 'same-origin'
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  console.log('Performa type cleared from approval for addressed status');
+                }
+              })
+              .catch(error => {
+                console.error('Error clearing performa type:', error);
+              });
+            }
+          }
+          
+          // Clear localStorage
+          if (complaintId) {
+            try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+          }
+          
+          // Update status display - replace select with Addressed badge
           const statusCell = select.closest('td');
           // Remove arrow and circle if they exist
           const arrow = statusCell?.querySelector('i[data-feather="chevron-down"]');
@@ -4131,12 +4177,6 @@
           badge.style.cssText = `background-color: ${resolvedColor.bg}; color: #ffffff !important; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid ${resolvedColor.border}; width: 140px; height: 28px; display: inline-flex; align-items: center; justify-content: center;`;
           badge.style.setProperty('color', '#ffffff', 'important');
           badge.textContent = 'Addressed';
-          // Clear performa badge
-          const performaBadgeInRow = row?.querySelector('.performa-badge');
-          if (performaBadgeInRow) {
-            performaBadgeInRow.style.display = 'none';
-            performaBadgeInRow.textContent = '';
-          }
           // Replace select with badge
           const statusChip = select.closest('.status-chip');
           if (statusChip) {
@@ -4152,34 +4192,21 @@
           if (actionsCell) {
             const btnGroup = actionsCell.querySelector('.btn-group');
             if (btnGroup) {
-              // Check if feedback button already exists
-              const existingFeedbackBtn = btnGroup.querySelector('a[href*="/feedback/"]');
-              if (!existingFeedbackBtn) {
-                // Get complaint ID from the row - it's in the 4th column (Complaint ID)
-                const complaintIdLink = row?.querySelector('td:nth-child(4) a');
-                let complaintId = null;
-                if (complaintIdLink) {
-                  const href = complaintIdLink.getAttribute('href');
-                  const match = href?.match(/\/(\d+)$/);
-                  complaintId = match ? match[1] : null;
-                }
-                // Alternative: get from data attribute if available
-                if (!complaintId && row) {
-                  complaintId = row.getAttribute('data-complaint-id');
-                }
-                if (complaintId) {
-                  // Create "Add Feedback" button
-                  const feedbackBtn = document.createElement('a');
-                  feedbackBtn.href = `/admin/complaints/${complaintId}/feedback/create`;
-                  feedbackBtn.className = 'btn btn-outline-warning btn-sm';
-                  feedbackBtn.title = 'Add Feedback';
-                  feedbackBtn.style.cssText = 'padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;';
-                  feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>';
-                  btnGroup.appendChild(feedbackBtn);
-                  // Reinitialize feather icons
-                  if (typeof feather !== 'undefined') {
-                    feather.replace();
-                  }
+              // Check if feedback button already exists (check for onclick with viewFeedbackCreate or viewFeedbackEdit)
+              const existingFeedbackBtn = btnGroup.querySelector('a[onclick*="viewFeedback"]');
+              if (!existingFeedbackBtn && complaintId) {
+                // Create "Add Feedback" button with same structure as existing buttons
+                const feedbackBtn = document.createElement('a');
+                feedbackBtn.href = 'javascript:void(0)';
+                feedbackBtn.setAttribute('onclick', `viewFeedbackCreate(${complaintId})`);
+                feedbackBtn.className = 'btn btn-outline-warning btn-sm';
+                feedbackBtn.title = 'Add Feedback';
+                feedbackBtn.style.cssText = 'padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;';
+                feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>';
+                btnGroup.appendChild(feedbackBtn);
+                // Reinitialize feather icons
+                if (typeof feather !== 'undefined') {
+                  feather.replace();
                 }
               }
             }
