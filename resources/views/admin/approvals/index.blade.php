@@ -604,6 +604,11 @@
                     </div>
                 </div>
             </div>
+            <div class="modal-footer" style="border-top: 2px solid rgba(59, 130, 246, 0.2);">
+                <a href="#" id="approvalPrintBtn" class="btn btn-outline-primary" target="_blank" style="display: none;">
+                    <i data-feather="printer" class="me-2" style="width: 16px; height: 16px;"></i>Print Slip
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -1552,6 +1557,12 @@
     
     const modalElement = document.getElementById('approvalModal');
     const modalBody = document.getElementById('approvalModalBody');
+    const printBtn = document.getElementById('approvalPrintBtn');
+    
+    // Hide print button initially
+    if (printBtn) {
+      printBtn.style.display = 'none';
+    }
     
     // Show loading state
     modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
@@ -1702,6 +1713,46 @@
       
       if (approvalContent) {
         modalBody.innerHTML = approvalContent;
+        
+        // Extract complaint ID from the loaded content
+        let complaintId = null;
+        // Try to find complaint ID from links
+        const complaintLink = modalBody.querySelector('a[href*="/admin/complaints/"]');
+        if (complaintLink) {
+          const href = complaintLink.getAttribute('href');
+          const match = href.match(/\/admin\/complaints\/(\d+)/);
+          if (match) {
+            complaintId = match[1];
+          }
+        }
+        // If not found in link, try to find in text content (Complaint ID section)
+        if (!complaintId) {
+          const complaintIdElements = modalBody.querySelectorAll('*');
+          for (let el of complaintIdElements) {
+            const text = el.textContent || '';
+            if (text.includes('Complaint ID') || text.includes('Complaint Id')) {
+              // Try to find number after "Complaint ID"
+              const idMatch = text.match(/Complaint\s+ID[:\s]*(\d+)/i);
+              if (idMatch) {
+                complaintId = idMatch[1];
+                break;
+              }
+            }
+          }
+        }
+        
+        // Show/hide print button based on complaint ID availability
+        const printBtn = document.getElementById('approvalPrintBtn');
+        if (printBtn) {
+          if (complaintId) {
+            printBtn.href = `/admin/complaints/${complaintId}/print-slip`;
+            printBtn.style.display = 'inline-block';
+          } else {
+            printBtn.style.display = 'none';
+            printBtn.href = '#';
+          }
+        }
+        
         // Function to apply table column borders - VERY AGGRESSIVE
         const applyTableBorders = () => {
           // Find all tables in modal body

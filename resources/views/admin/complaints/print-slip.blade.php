@@ -103,7 +103,48 @@
         <p>Generated on: {{ now()->format('M d, Y H:i') }}</p>
     </div>
 
+    <!-- Complainant Information -->
+    <div class="complaint-info" style="margin-bottom: 30px;">
+        <h3 style="color: #333; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 8px;">Complainant Information</h3>
+        
+        <div class="info-row">
+            <div class="info-label">Name:</div>
+            <div class="info-value">{{ $complaint->client->client_name ?? 'N/A' }}</div>
+        </div>
+        
+        @if($complaint->client && $complaint->client->phone)
+        <div class="info-row">
+            <div class="info-label">Phone:</div>
+            <div class="info-value">{{ $complaint->client->phone }}</div>
+        </div>
+        @endif
+        
+        @if($complaint->client && $complaint->client->address)
+        <div class="info-row">
+            <div class="info-label">Address:</div>
+            <div class="info-value">{{ $complaint->client->address }}</div>
+        </div>
+        @endif
+        
+        @if($complaint->city_id && $complaint->city)
+        <div class="info-row">
+            <div class="info-label">GE Groups:</div>
+            <div class="info-value">{{ $complaint->city->name }}</div>
+        </div>
+        @endif
+        
+        @if($complaint->sector_id && $complaint->sector)
+        <div class="info-row">
+            <div class="info-label">GE Nodes:</div>
+            <div class="info-value">{{ $complaint->sector->name }}</div>
+        </div>
+        @endif
+    </div>
+
+    <!-- Complaint Information -->
     <div class="complaint-info">
+        <h3 style="color: #333; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 8px;">Complaint Information</h3>
+        
         <div class="info-row">
             <div class="info-label">Complaint ID:</div>
             <div class="info-value">#{{ $complaint->id }}</div>
@@ -112,11 +153,6 @@
         <div class="info-row">
             <div class="info-label">Title:</div>
             <div class="info-value">{{ $complaint->title }}</div>
-        </div>
-        
-        <div class="info-row">
-            <div class="info-label">Client:</div>
-            <div class="info-value">{{ $complaint->client->client_name ?? 'N/A' }}</div>
         </div>
         
         <div class="info-row">

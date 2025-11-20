@@ -165,6 +165,11 @@
                     </div>
                 </div>
             </div>
+            <div class="modal-footer" style="border-top: 2px solid rgba(59, 130, 246, 0.2);">
+                <a href="#" id="sparePrintBtn" class="btn btn-outline-primary" target="_blank" style="display: none;">
+                    <i data-feather="printer" class="me-2" style="width: 16px; height: 16px;"></i>Print Slip
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -315,6 +320,12 @@
     
     const modalElement = document.getElementById('spareModal');
     const modalBody = document.getElementById('spareModalBody');
+    const printBtn = document.getElementById('sparePrintBtn');
+    
+    // Hide print button initially
+    if (printBtn) {
+      printBtn.style.display = 'none';
+    }
     
     // Show loading state
     modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
@@ -463,6 +474,14 @@
       
       if (spareContent) {
         modalBody.innerHTML = spareContent;
+        
+        // Setup print button with spare ID
+        const printBtn = document.getElementById('sparePrintBtn');
+        if (printBtn && spareId) {
+          printBtn.href = `/admin/spares/${spareId}/print-slip`;
+          printBtn.style.display = 'inline-block';
+        }
+        
         // Function to apply table column borders
         const applyTableBorders = () => {
           const modalTables = modalBody.querySelectorAll('table');
