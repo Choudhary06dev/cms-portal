@@ -200,11 +200,14 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // Routes without parameters must come BEFORE routes with parameters
     Route::get('spares/get-categories', [AdminSpareController::class, 'getCategories'])->middleware(['permission:spares.view'])->name('spares.get-categories');
     Route::get('spares/get-products-by-category', [AdminSpareController::class, 'getProductsByCategory'])->middleware(['permission:spares.view'])->name('spares.get-products-by-category');
+    Route::get('spares/get-product-brands', [AdminSpareController::class, 'getProductBrands'])->middleware(['permission:spares.view'])->name('spares.get-product-brands');
+    Route::get('spares/old-brand-history/{itemName}/{brandName}', [AdminSpareController::class, 'showOldBrandHistory'])->middleware(['permission:spares.view'])->name('spares.old-brand-history');
     
     // Resource routes and routes with parameters
     Route::resource('spares', AdminSpareController::class)->middleware(['permission:spares.view']);
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::get('spares/{spare}/print-slip', [AdminSpareController::class, 'printSlip'])->middleware(['permission:spares.view'])->name('spares.print-slip');
+    Route::get('spares/{spare}/history', [AdminSpareController::class, 'getProductHistory'])->middleware(['permission:spares.view'])->name('spares.history');
     Route::post('spares/{spare}/add-stock', [AdminSpareController::class, 'addStock'])->middleware(['permission:spares.view'])->name('spares.add-stock');
     Route::post('spares/{spare}/issue-stock', [AdminSpareController::class, 'issueStock'])->middleware(['permission:spares.view'])->name('spares.issue-stock');
     Route::resource('approvals', AdminApprovalController::class)->except(['create', 'store'])->middleware(['permission:approvals.view']);

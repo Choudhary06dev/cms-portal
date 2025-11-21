@@ -281,10 +281,11 @@ class Spare extends Model
         $this->last_updated = now();
         $this->save();
 
-        // Log the stock change
+        // Log the stock change with brand name
         $this->stockLogs()->create([
             'change_type' => 'in',
             'quantity' => $quantity,
+            'brand_name' => $this->brand_name,
             'reference_id' => $referenceId,
             'remarks' => $remarks,
         ]);
@@ -304,22 +305,121 @@ class Spare extends Model
         $this->last_updated = now();
         $this->save();
 
-        // Log the stock change
+        // Log the stock change with brand name
         $this->stockLogs()->create([
             'change_type' => 'in',
             'quantity' => $quantity,
+            'brand_name' => $this->brand_name,
             'reference_id' => $referenceId,
             'remarks' => $remarks ?? 'Returned to stock',
         ]);
     }
 
     /**
-     * Remove stock
+     * Get available stock by brand (FIFO calculation)
+     * Returns array of brands with their available stock, sorted by oldest first
+     */
+    public function getAvailableStockByBrand(): array
+    {
+        $inLogs = $this->stockLogs()
+            ->where('change_type', 'in')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        
+        $outLogs = $this->stockLogs()
+            ->where('change_type', 'out')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        
+        // Calculate net stock by brand (FIFO)
+        $stockByBrand = [];
+        
+        // First, process all 'in' logs to build available stock
+        foreach ($inLogs as $inLog) {
+            $brandName = $inLog->brand_name ?? $this->brand_name ?? 'N/A';
+            if (!isset($stockByBrand[$brandName])) {
+                $stockByBrand[$brandName] = [
+                    'brand_name' => $brandName,
+                    'available' => 0,
+                    'first_in_date' => $inLog->created_at,
+                ];
+            }
+            $stockByBrand[$brandName]['available'] += $inLog->quantity;
+        }
+        
+        // Then, process all 'out' logs to deduct stock (FIFO - oldest first)
+        foreach ($outLogs as $outLog) {
+            $remainingToDeduct = $outLog->quantity;
+            
+            // Deduct from oldest brand first
+            foreach ($stockByBrand as $brandName => &$brandData) {
+                if ($remainingToDeduct <= 0) break;
+                
+                if ($brandData['available'] > 0) {
+                    $deducted = min($brandData['available'], $remainingToDeduct);
+                    $brandData['available'] -= $deducted;
+                    $remainingToDeduct -= $deducted;
+                }
+            }
+        }
+        
+        // Filter out brands with zero or negative stock and sort by oldest first
+        $availableBrands = array_filter($stockByBrand, function($brand) {
+            return $brand['available'] > 0;
+        });
+        
+        // Sort by first_in_date (oldest first)
+        usort($availableBrands, function($a, $b) {
+            return $a['first_in_date'] <=> $b['first_in_date'];
+        });
+        
+        return array_values($availableBrands);
+    }
+
+    /**
+     * Remove stock using FIFO (First In First Out) - issues from oldest brand first
      */
     public function removeStock(int $quantity, string $remarks = null, int $referenceId = null): bool
     {
         if (!$this->isStockSufficient($quantity)) {
             return false;
+        }
+
+        // Get available stock by brand (FIFO)
+        $availableStockByBrand = $this->getAvailableStockByBrand();
+        
+        // If no brand-specific stock available, use current brand
+        $brandToIssue = $this->brand_name ?? 'N/A';
+        
+        // Determine which brand(s) to issue from (FIFO)
+        $remainingToIssue = $quantity;
+        $brandsToLog = [];
+        
+        foreach ($availableStockByBrand as $brandData) {
+            if ($remainingToIssue <= 0) break;
+            
+            $availableFromBrand = $brandData['available'];
+            if ($availableFromBrand > 0) {
+                $toIssueFromBrand = min($availableFromBrand, $remainingToIssue);
+                $brandsToLog[] = [
+                    'brand_name' => $brandData['brand_name'],
+                    'quantity' => $toIssueFromBrand,
+                ];
+                $remainingToIssue -= $toIssueFromBrand;
+                
+                // Use the first brand for primary tracking
+                if ($brandToIssue === ($this->brand_name ?? 'N/A')) {
+                    $brandToIssue = $brandData['brand_name'];
+                }
+            }
+        }
+        
+        // If no brand-specific stock found, use current brand
+        if (empty($brandsToLog)) {
+            $brandsToLog[] = [
+                'brand_name' => $brandToIssue,
+                'quantity' => $quantity,
+            ];
         }
 
         $this->stock_quantity -= $quantity;
@@ -337,14 +437,29 @@ class Spare extends Model
             return false;
         }
 
-        // Log the stock change
+        // Log the stock change(s) with brand name(s)
         try {
-            $this->stockLogs()->create([
-                'change_type' => 'out',
-                'quantity' => $quantity,
-                'reference_id' => $referenceId,
-                'remarks' => $remarks,
-            ]);
+            // If issuing from multiple brands, create separate logs
+            if (count($brandsToLog) > 1) {
+                foreach ($brandsToLog as $brandLog) {
+                    $this->stockLogs()->create([
+                        'change_type' => 'out',
+                        'quantity' => $brandLog['quantity'],
+                        'brand_name' => $brandLog['brand_name'],
+                        'reference_id' => $referenceId,
+                        'remarks' => $remarks . (count($brandsToLog) > 1 ? ' (FIFO: ' . $brandLog['brand_name'] . ')' : ''),
+                    ]);
+                }
+            } else {
+                // Single brand issue
+                $this->stockLogs()->create([
+                    'change_type' => 'out',
+                    'quantity' => $quantity,
+                    'brand_name' => $brandsToLog[0]['brand_name'],
+                    'reference_id' => $referenceId,
+                    'remarks' => $remarks,
+                ]);
+            }
         } catch (\Exception $e) {
             \Log::error('Failed to create stock log', [
                 'spare_id' => $this->id,
