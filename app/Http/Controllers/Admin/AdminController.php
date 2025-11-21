@@ -8,15 +8,20 @@ use App\Models\Employee;
 use App\Models\Client;
 use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
+use App\Traits\LocationFilterTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
+    use LocationFilterTrait;
+    
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('role:admin');
+        // Remove role:admin middleware as it may conflict with other roles
+        // Individual methods can check permissions as needed
     }
 
     /**
@@ -276,21 +281,208 @@ class AdminController extends Controller
     }
 
     /**
+     * Display all notifications page
+     */
+    public function notificationsIndex()
+    {
+        $user = Auth::user();
+        
+        // Get all notifications (not limited to 10)
+        $notifications = collect();
+
+        // 1) New complaints today
+        try {
+            $newComplaintsQuery = Complaint::with(['client'])
+                ->orderBy('created_at', 'desc')
+                ->whereDate('created_at', today());
+            
+            if ($user && !$this->canViewAllData($user)) {
+                $this->filterComplaintsByLocation($newComplaintsQuery, $user);
+            }
+            
+            $newComplaints = $newComplaintsQuery->get()
+                ->filter(function($c) {
+                    return $c->client !== null;
+                })
+                ->map(function($c) {
+                    try {
+                        return [
+                            'id' => 'complaint-'.$c->id,
+                            'title' => 'New Complaint',
+                            'message' => ($c->client && $c->client->client_name ? $c->client->client_name : 'Client').': '.($c->title ?? 'N/A'),
+                            'type' => 'info',
+                            'icon' => 'alert-circle',
+                            'time' => $c->created_at ? $c->created_at->diffForHumans() : 'Just now',
+                            'timestamp' => $c->created_at ? $c->created_at->timestamp : time(),
+                            'read' => false,
+                            'url' => route('admin.complaints.show', $c->id),
+                        ];
+                    } catch (\Exception $e) {
+                        return null;
+                    }
+                })
+                ->filter();
+        } catch (\Exception $e) {
+            $newComplaints = collect();
+        }
+
+        // 2) Pending approvals
+        try {
+            $pendingApprovalsQuery = SpareApprovalPerforma::with(['complaint'])
+                ->where('status', 'pending')
+                ->orderBy('created_at', 'desc');
+            
+            if ($user && !$this->canViewAllData($user)) {
+                $pendingApprovalsQuery->whereHas('complaint', function($q) use ($user) {
+                    $this->filterComplaintsByLocation($q, $user);
+                });
+            }
+            
+            $pendingApprovals = $pendingApprovalsQuery->get()
+                ->filter(function($a) {
+                    return $a->complaint !== null;
+                })
+                ->map(function($a) {
+                    try {
+                        return [
+                            'id' => 'approval-'.$a->id,
+                            'title' => 'Approval Pending',
+                            'message' => 'Performa #'.$a->id.' awaiting action',
+                            'type' => 'warning',
+                            'icon' => 'check-circle',
+                            'time' => $a->created_at ? $a->created_at->diffForHumans() : 'Just now',
+                            'timestamp' => $a->created_at ? $a->created_at->timestamp : time(),
+                            'read' => false,
+                            'url' => route('admin.approvals.show', $a->id),
+                        ];
+                    } catch (\Exception $e) {
+                        return null;
+                    }
+                })
+                ->filter();
+        } catch (\Exception $e) {
+            $pendingApprovals = collect();
+        }
+
+        // 3) Low stock spares
+        try {
+            if (method_exists(Spare::class, 'lowStock')) {
+                $lowStockQuery = Spare::lowStock()->orderBy('stock_quantity', 'asc');
+            } else {
+                $lowStockQuery = Spare::whereColumn('stock_quantity', '<=', 'threshold_level')
+                    ->orderBy('stock_quantity', 'asc');
+            }
+            
+            if ($user && !$this->canViewAllData($user)) {
+                $this->filterSparesByLocation($lowStockQuery, $user);
+            }
+            
+            $lowStock = $lowStockQuery->get()
+                ->map(function($s) {
+                    try {
+                        return [
+                            'id' => 'spare-'.$s->id,
+                            'title' => 'Low Stock',
+                            'message' => ($s->item_name ?? 'Item').' stock at '.($s->stock_quantity ?? 0),
+                            'type' => 'danger',
+                            'icon' => 'package',
+                            'time' => now()->diffForHumans(),
+                            'timestamp' => time(),
+                            'read' => false,
+                            'url' => route('admin.spares.show', $s->id),
+                        ];
+                    } catch (\Exception $e) {
+                        return null;
+                    }
+                })
+                ->filter();
+        } catch (\Exception $e) {
+            $lowStock = collect();
+        }
+
+        // 4) Overdue complaints
+        try {
+            if (method_exists(Complaint::class, 'overdue')) {
+                $overdueQuery = Complaint::overdue()->with(['client'])->orderBy('created_at', 'asc');
+            } else {
+                $overdueQuery = Complaint::with(['client'])
+                    ->where('status', '!=', 'resolved')
+                    ->where('created_at', '<', now()->subDays(7))
+                    ->orderBy('created_at', 'asc');
+            }
+            
+            if ($user && !$this->canViewAllData($user)) {
+                $this->filterComplaintsByLocation($overdueQuery, $user);
+            }
+            
+            $overdue = $overdueQuery->get()
+                ->filter(function($c) {
+                    return $c->client !== null;
+                })
+                ->map(function($c) {
+                    try {
+                        return [
+                            'id' => 'overdue-'.$c->id,
+                            'title' => 'Overdue Complaint',
+                            'message' => ($c->client && $c->client->client_name ? $c->client->client_name : 'Client').': '.($c->title ?? 'N/A'),
+                            'type' => 'danger',
+                            'icon' => 'clock',
+                            'time' => $c->created_at ? $c->created_at->diffForHumans() : 'Just now',
+                            'timestamp' => $c->created_at ? $c->created_at->timestamp : time(),
+                            'read' => false,
+                            'url' => route('admin.complaints.show', $c->id),
+                        ];
+                    } catch (\Exception $e) {
+                        return null;
+                    }
+                })
+                ->filter();
+        } catch (\Exception $e) {
+            $overdue = collect();
+        }
+
+        $notifications = $notifications
+            ->merge($newComplaints)
+            ->merge($pendingApprovals)
+            ->merge($lowStock)
+            ->merge($overdue)
+            ->filter(function($n) {
+                return isset($n['id']) && isset($n['time']);
+            })
+            ->sortByDesc(function($n) {
+                return $n['timestamp'] ?? time();
+            })
+            ->values();
+
+        return view('admin.notifications.index', [
+            'notifications' => $notifications,
+            'totalCount' => $notifications->count(),
+        ]);
+    }
+
+    /**
      * Get latest notifications for the topbar dropdown
      */
     public function getNotifications(Request $request)
     {
         try {
+            $user = Auth::user();
+            
             // Build a simple aggregated notification feed (max 10)
             $notifications = collect();
 
             // 1) New complaints today
             try {
-                $newComplaints = Complaint::with(['client'])
+                $newComplaintsQuery = Complaint::with(['client'])
                     ->orderBy('created_at', 'desc')
-                    ->whereDate('created_at', today())
-                    ->limit(5)
-                    ->get()
+                    ->whereDate('created_at', today());
+                
+                // Apply location filtering if user is not admin/director
+                if ($user && !$this->canViewAllData($user)) {
+                    $this->filterComplaintsByLocation($newComplaintsQuery, $user);
+                }
+                
+                $newComplaints = $newComplaintsQuery->limit(5)->get()
                     ->filter(function($c) {
                         return $c->client !== null; // Filter out complaints with deleted clients
                     })
@@ -322,11 +514,18 @@ class AdminController extends Controller
 
             // 2) Pending approvals
             try {
-                $pendingApprovals = SpareApprovalPerforma::with(['complaint'])
+                $pendingApprovalsQuery = SpareApprovalPerforma::with(['complaint'])
                     ->where('status', 'pending')
-                    ->orderBy('created_at', 'desc')
-                    ->limit(5)
-                    ->get()
+                    ->orderBy('created_at', 'desc');
+                
+                // Apply location filtering if user is not admin/director
+                if ($user && !$this->canViewAllData($user)) {
+                    $pendingApprovalsQuery->whereHas('complaint', function($q) use ($user) {
+                        $this->filterComplaintsByLocation($q, $user);
+                    });
+                }
+                
+                $pendingApprovals = $pendingApprovalsQuery->limit(5)->get()
                     ->filter(function($a) {
                         return $a->complaint !== null; // Filter out approvals with deleted complaints
                     })
@@ -360,17 +559,19 @@ class AdminController extends Controller
             try {
                 // Check if lowStock() method exists, otherwise use manual query
                 if (method_exists(Spare::class, 'lowStock')) {
-                    $lowStock = Spare::lowStock()
-                        ->orderBy('stock_quantity', 'asc')
-                        ->limit(5)
-                        ->get();
+                    $lowStockQuery = Spare::lowStock()->orderBy('stock_quantity', 'asc');
                 } else {
                     // Fallback: manually query low stock items
-                    $lowStock = Spare::whereColumn('stock_quantity', '<=', 'threshold_level')
-                        ->orderBy('stock_quantity', 'asc')
-                        ->limit(5)
-                        ->get();
+                    $lowStockQuery = Spare::whereColumn('stock_quantity', '<=', 'threshold_level')
+                        ->orderBy('stock_quantity', 'asc');
                 }
+                
+                // Apply location filtering if user is not admin/director
+                if ($user && !$this->canViewAllData($user)) {
+                    $this->filterSparesByLocation($lowStockQuery, $user);
+                }
+                
+                $lowStock = $lowStockQuery->limit(5)->get();
                 
                 $lowStock = $lowStock->map(function($s) {
                     try {
@@ -399,20 +600,21 @@ class AdminController extends Controller
             try {
                 // Check if overdue() method exists, otherwise use manual query
                 if (method_exists(Complaint::class, 'overdue')) {
-                    $overdue = Complaint::overdue()
-                        ->with(['client'])
-                        ->orderBy('created_at', 'asc')
-                        ->limit(5)
-                        ->get();
+                    $overdueQuery = Complaint::overdue()->with(['client'])->orderBy('created_at', 'asc');
                 } else {
                     // Fallback: manually query overdue complaints
-                    $overdue = Complaint::with(['client'])
+                    $overdueQuery = Complaint::with(['client'])
                         ->where('status', '!=', 'resolved')
                         ->where('created_at', '<', now()->subDays(7))
-                        ->orderBy('created_at', 'asc')
-                        ->limit(5)
-                        ->get();
+                        ->orderBy('created_at', 'asc');
                 }
+                
+                // Apply location filtering if user is not admin/director
+                if ($user && !$this->canViewAllData($user)) {
+                    $this->filterComplaintsByLocation($overdueQuery, $user);
+                }
+                
+                $overdue = $overdueQuery->limit(5)->get();
                 
                 $overdue = $overdue->filter(function($c) {
                     return $c->client !== null; // Filter out complaints with deleted clients

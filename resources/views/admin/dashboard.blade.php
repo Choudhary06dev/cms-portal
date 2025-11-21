@@ -5,6 +5,97 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+<style>
+  /* Enhanced matte finish for stat cards */
+  .stat-card {
+    position: relative;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    opacity: 0.85;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 3px !important;
+    transition: all 0.3s ease;
+    filter: saturate(0.9) brightness(0.95);
+  }
+  
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.02) 100%);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .stat-card > * {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .stat-card:hover {
+    opacity: 0.92;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+    transform: translateY(-2px);
+    filter: saturate(0.95) brightness(0.98);
+  }
+  
+  /* Reduce gradient intensity for matte look */
+  .stat-card[style*="linear-gradient"] {
+    background-blend-mode: overlay !important;
+  }
+  
+  /* Matte finish for chart containers */
+  .card-glass.chart-container {
+    position: relative;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    opacity: 0.88;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    filter: saturate(0.9) brightness(0.95);
+  }
+  
+  .card-glass.chart-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .card-glass.chart-container > * {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .card-glass.chart-container:hover {
+    opacity: 0.93;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+  }
+</style>
 @endpush
 
 @section('content')

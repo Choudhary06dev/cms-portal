@@ -505,3 +505,16 @@
     </div>
   </div>
 </div>
+
+<script>
+  // View all notifications link
+  document.addEventListener('DOMContentLoaded', function() {
+    const viewAllNotifications = document.getElementById('viewAllNotifications');
+    if (viewAllNotifications) {
+      viewAllNotifications.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '{{ route("admin.notifications.index") }}';
+      });
+    }
+  });
+</script>

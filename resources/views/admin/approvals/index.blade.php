@@ -503,11 +503,26 @@
                     $hasFeedback = false;
                     $feedbackId = null;
                   }
+                  
+                  // Check if current user is GE (Garrison Engineer)
+                  $isGE = false;
+                  if (Auth::check() && Auth::user()->role) {
+                    $roleName = strtolower(Auth::user()->role->role_name ?? '');
+                    $isGE = in_array($roleName, ['garrison_engineer', 'garrison engineer']) || 
+                            strpos(strtolower($roleName), 'garrison') !== false ||
+                            strpos(strtolower($roleName), 'ge') !== false;
+                  }
                 @endphp
                 @if($hasFeedback && $feedbackId)
-                  <a href="javascript:void(0)" onclick="viewFeedbackEdit({{ $feedbackId }})" class="btn btn-success btn-sm" title="Edit Feedback" style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important;">
-                    <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
-                  </a>
+                  @if($isGE)
+                    <a href="javascript:void(0)" onclick="viewFeedbackEdit({{ $feedbackId }})" class="btn btn-success btn-sm" title="Edit Feedback" style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important;">
+                      <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                    </a>
+                  @else
+                    <span class="btn btn-success btn-sm" title="Feedback (View Only - Only GE can edit)" style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important; cursor: default; opacity: 0.7;">
+                      <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                    </span>
+                  @endif
                 @else
                   <a href="javascript:void(0)" onclick="viewFeedbackCreate({{ $complaint->id }})" class="btn btn-outline-warning btn-sm" title="Add Feedback" style="padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;">
                     <i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>

@@ -178,6 +178,28 @@ class FeedbackController extends Controller
      */
     public function edit(ComplaintFeedback $feedback)
     {
+        $user = Auth::user();
+        
+        // Check if user is GE (Garrison Engineer)
+        $isGE = false;
+        if ($user && $user->role) {
+            $roleName = strtolower($user->role->role_name ?? '');
+            $isGE = in_array($roleName, ['garrison_engineer', 'garrison engineer']) || 
+                    strpos(strtolower($roleName), 'garrison') !== false ||
+                    strpos(strtolower($roleName), 'ge') !== false;
+        }
+        
+        // Only GE can edit feedback
+        if (!$isGE) {
+            if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
+                return response()->json([
+                    'error' => 'Only Garrison Engineer (GE) can edit feedback.'
+                ], 403);
+            }
+            return redirect()->back()
+                ->with('error', 'Only Garrison Engineer (GE) can edit feedback.');
+        }
+        
         $feedback->load(['complaint', 'client']);
         
         // Return full view content for modal (JS extracts content)
@@ -193,6 +215,29 @@ class FeedbackController extends Controller
      */
     public function update(Request $request, ComplaintFeedback $feedback)
     {
+        $user = Auth::user();
+        
+        // Check if user is GE (Garrison Engineer)
+        $isGE = false;
+        if ($user && $user->role) {
+            $roleName = strtolower($user->role->role_name ?? '');
+            $isGE = in_array($roleName, ['garrison_engineer', 'garrison engineer']) || 
+                    strpos(strtolower($roleName), 'garrison') !== false ||
+                    strpos(strtolower($roleName), 'ge') !== false;
+        }
+        
+        // Only GE can update feedback
+        if (!$isGE) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only Garrison Engineer (GE) can update feedback.'
+                ], 403);
+            }
+            return redirect()->back()
+                ->with('error', 'Only Garrison Engineer (GE) can update feedback.');
+        }
+        
         $validator = Validator::make($request->all(), [
             'overall_rating' => 'required|in:excellent,good,average,poor',
             'rating_score' => 'nullable|integer|min:1|max:5',
