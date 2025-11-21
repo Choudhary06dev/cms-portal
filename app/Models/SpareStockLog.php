@@ -13,6 +13,7 @@ class SpareStockLog extends Model
 
     protected $fillable = [
         'spare_id',
+        'brand_name',
         'change_type',
         'quantity',
         'reference_id',

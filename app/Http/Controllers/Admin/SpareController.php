@@ -192,43 +192,135 @@ class SpareController extends Controller
         // Since category is now a string column, we can save any value directly
         $normalizedCategory = $request->category;
 
-        $spare = Spare::create([
-            'item_name' => $request->item_name,
-            'product_code' => $request->product_code,
-            'brand_name' => $request->brand_name,
-            'category' => $request->category,
-            'city_id' => $request->city_id,
-            'sector_id' => $request->sector_id,
-            'unit_price' => $request->unit_price,
-            'total_received_quantity' => (int)($request->total_received_quantity ?? $request->stock_quantity ?? 0),
-            'issued_quantity' => (int)($request->issued_quantity ?? 0),
-            'stock_quantity' => (int)($request->stock_quantity ?? 0),
-            'threshold_level' => (int)($request->threshold_level ?? 0),
-            'supplier' => $request->supplier,
-            'description' => $request->description,
-            'last_stock_in_at' => $request->last_stock_in_at,
-        ]);
+        // Check if same product (item_name) exists (any brand)
+        // If exists, update it; if brand different, update brand and track old brand
+        $user = Auth::user();
+        $existingSpareQuery = Spare::where('item_name', $request->item_name);
+        
+        // Apply location filtering
+        $this->filterSparesByLocation($existingSpareQuery, $user);
+        
+        $existingSpare = $existingSpareQuery->first();
 
-        // Log initial stock
-        if ($request->stock_quantity > 0) {
-            SpareStockLog::create([
-                'spare_id' => $spare->id,
-                'change_type' => 'in',
-                'quantity' => $request->stock_quantity,
-                'remarks' => 'Initial stock',
+        if ($existingSpare) {
+            // Same product exists, update it (even if brand is different)
+            $newStockQty = (int)($request->stock_quantity ?? 0);
+            $oldBrandName = $existingSpare->brand_name;
+            $newBrandName = $request->brand_name;
+            $brandChanged = !empty($oldBrandName) && !empty($newBrandName) && $oldBrandName !== $newBrandName;
+            
+            // If brand changed, log the old brand summary before updating
+            if ($brandChanged) {
+                // Get old brand history summary
+                $oldBrandInLogs = $existingSpare->stockLogs()
+                    ->where('change_type', 'in')
+                    ->where('brand_name', $oldBrandName)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+                
+                $oldBrandTotalReceived = $oldBrandInLogs->sum('quantity');
+                $oldBrandStartDate = $oldBrandInLogs->first() ? $oldBrandInLogs->first()->created_at : $existingSpare->created_at;
+                $oldBrandEndDate = $oldBrandInLogs->last() ? $oldBrandInLogs->last()->created_at : now();
+                
+                // Calculate used quantity during old brand period
+                $oldBrandOutLogs = $existingSpare->stockLogs()
+                    ->where('change_type', 'out')
+                    ->whereBetween('created_at', [$oldBrandStartDate, $oldBrandEndDate])
+                    ->get();
+                $oldBrandUsed = $oldBrandOutLogs->sum('quantity');
+                
+                // Get supplier
+                $oldSupplier = $existingSpare->supplier ?? 'N/A';
+                
+                // Log brand change with old brand summary
+                SpareStockLog::create([
+                    'spare_id' => $existingSpare->id,
+                    'change_type' => 'in',
+                    'quantity' => 0, // No quantity change, just brand change
+                    'brand_name' => $oldBrandName,
+                    'remarks' => "Brand Changed: Old Brand '{$oldBrandName}' Summary - Total Received: {$oldBrandTotalReceived}, Used: {$oldBrandUsed}, Start: {$oldBrandStartDate->format('d M Y, h:i A')}, End: {$oldBrandEndDate->format('d M Y, h:i A')}, Supplier: {$oldSupplier}",
+                ]);
+            }
+            
+            // If brand changed, reset issued_quantity to 0 for new brand
+            $updateData = [
+                'product_code' => $request->product_code ?? $existingSpare->product_code,
+                'brand_name' => $newBrandName ?? $existingSpare->brand_name, // Update brand if changed
+                'category' => $request->category,
+                'city_id' => $request->city_id ?? $existingSpare->city_id,
+                'sector_id' => $request->sector_id ?? $existingSpare->sector_id,
+                'unit_price' => $request->unit_price ?? $existingSpare->unit_price,
+                'total_received_quantity' => $existingSpare->total_received_quantity + $newStockQty,
+                'stock_quantity' => $existingSpare->stock_quantity + $newStockQty,
+                'threshold_level' => $request->threshold_level ?? $existingSpare->threshold_level,
+                'supplier' => $request->supplier ?? $existingSpare->supplier,
+                'description' => $request->description ?? $existingSpare->description,
+                'last_stock_in_at' => now(),
+            ];
+            
+            // Reset issued_quantity to 0 when brand changes
+            if ($brandChanged) {
+                $updateData['issued_quantity'] = 0;
+            }
+            
+            $existingSpare->update($updateData);
+
+            // Log the stock addition with new brand
+            if ($newStockQty > 0) {
+                SpareStockLog::create([
+                    'spare_id' => $existingSpare->id,
+                    'change_type' => 'in',
+                    'quantity' => $newStockQty,
+                    'brand_name' => $newBrandName ?? $existingSpare->brand_name,
+                    'remarks' => $brandChanged ? "New brand '{$newBrandName}' stock added" : 'Stock added to existing product',
+                ]);
+            }
+
+            $spare = $existingSpare;
+            $message = $brandChanged ? "Product updated with new brand '{$newBrandName}'. Old brand '{$oldBrandName}' history preserved." : 'Stock added to existing product successfully.';
+        } else {
+            // Different brand or new product, create new record
+            $spare = Spare::create([
+                'item_name' => $request->item_name,
+                'product_code' => $request->product_code,
+                'brand_name' => $request->brand_name,
+                'category' => $request->category,
+                'city_id' => $request->city_id,
+                'sector_id' => $request->sector_id,
+                'unit_price' => $request->unit_price,
+                'total_received_quantity' => (int)($request->total_received_quantity ?? $request->stock_quantity ?? 0),
+                'issued_quantity' => (int)($request->issued_quantity ?? 0),
+                'stock_quantity' => (int)($request->stock_quantity ?? 0),
+                'threshold_level' => (int)($request->threshold_level ?? 0),
+                'supplier' => $request->supplier,
+                'description' => $request->description,
+                'last_stock_in_at' => $request->last_stock_in_at,
             ]);
+
+            // Log initial stock with brand name
+            if ($request->stock_quantity > 0) {
+                SpareStockLog::create([
+                    'spare_id' => $spare->id,
+                    'change_type' => 'in',
+                    'quantity' => $request->stock_quantity,
+                    'brand_name' => $request->brand_name ?? $spare->brand_name,
+                    'remarks' => 'Initial stock',
+                ]);
+            }
+
+            $message = 'Spare part created successfully.';
         }
 
         if (request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Spare part created successfully.',
+                'message' => $message,
                 'spare' => $spare
             ]);
         }
 
         return redirect()->route('admin.spares.index')
-            ->with('success', 'Spare part created successfully.');
+            ->with('success', $message);
     }
 
     /**
@@ -1121,6 +1213,329 @@ class SpareController extends Controller
                 'success' => false,
                 'message' => 'Error loading products: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Get product stock history grouped by brand
+     */
+    public function getProductHistory(Spare $spare)
+    {
+        try {
+            // Get all stock in logs for this product, ordered by date
+            $stockLogs = $spare->stockLogs()
+                ->where('change_type', 'in')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Group by brand and prepare history data
+            $historyByBrand = [];
+            $allHistory = [];
+
+            foreach ($stockLogs as $log) {
+                // Use log's brand_name if available, otherwise use spare's current brand_name, or 'N/A'
+                $brandName = $log->brand_name;
+                if (empty($brandName)) {
+                    $brandName = $spare->brand_name ?? 'N/A';
+                }
+                $date = $log->created_at->format('Y-m-d H:i:s');
+                $quantity = $log->quantity;
+                $remarks = $log->remarks ?? '';
+
+                // Add to all history
+                $allHistory[] = [
+                    'id' => $log->id,
+                    'brand_name' => $brandName,
+                    'quantity' => $quantity,
+                    'date' => $date,
+                    'formatted_date' => $log->created_at->format('d M Y, h:i A'),
+                    'remarks' => $remarks,
+                ];
+
+                // Group by brand
+                if (!isset($historyByBrand[$brandName])) {
+                    $historyByBrand[$brandName] = [
+                        'brand_name' => $brandName,
+                        'total_quantity' => 0,
+                        'entries' => [],
+                        'first_entry_date' => $date,
+                        'last_entry_date' => $date,
+                    ];
+                }
+
+                $historyByBrand[$brandName]['total_quantity'] += $quantity;
+                $historyByBrand[$brandName]['entries'][] = [
+                    'id' => $log->id,
+                    'quantity' => $quantity,
+                    'date' => $date,
+                    'formatted_date' => $log->created_at->format('d M Y, h:i A'),
+                    'remarks' => $remarks,
+                ];
+
+                // Update dates
+                if ($date < $historyByBrand[$brandName]['first_entry_date']) {
+                    $historyByBrand[$brandName]['first_entry_date'] = $date;
+                }
+                if ($date > $historyByBrand[$brandName]['last_entry_date']) {
+                    $historyByBrand[$brandName]['last_entry_date'] = $date;
+                }
+            }
+
+            // Convert to array and sort by last entry date (most recent first)
+            $historyByBrand = array_values($historyByBrand);
+            usort($historyByBrand, function($a, $b) {
+                return strtotime($b['last_entry_date']) - strtotime($a['last_entry_date']);
+            });
+
+            // Get old brand summaries (brands that are no longer current)
+            $oldBrandSummaries = [];
+            $currentBrand = $spare->brand_name ?? '';
+            
+            // Get all unique brands from stock logs
+            $allBrandsInLogs = $spare->stockLogs()
+                ->where('change_type', 'in')
+                ->whereNotNull('brand_name')
+                ->where('brand_name', '!=', '')
+                ->distinct()
+                ->pluck('brand_name')
+                ->toArray();
+            
+            foreach ($allBrandsInLogs as $oldBrandName) {
+                // Skip if this is the current brand
+                if (!empty($currentBrand) && $oldBrandName === $currentBrand) {
+                    continue;
+                }
+                
+                // Skip if already processed in historyByBrand
+                $alreadyInHistory = false;
+                foreach ($historyByBrand as $brandData) {
+                    if ($brandData['brand_name'] === $oldBrandName) {
+                        $alreadyInHistory = true;
+                        break;
+                    }
+                }
+                
+                // Get all logs for this old brand
+                $oldBrandInLogs = $spare->stockLogs()
+                    ->where('change_type', 'in')
+                    ->where('brand_name', $oldBrandName)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+                
+                if ($oldBrandInLogs->isEmpty()) {
+                    continue;
+                }
+                
+                // Calculate used quantity - get all out logs that happened during old brand period
+                $oldBrandStartDate = $oldBrandInLogs->first()->created_at;
+                $oldBrandEndDate = $oldBrandInLogs->last()->created_at;
+                
+                // Get out logs between start and end date (approximate - all out logs during this period)
+                $oldBrandOutLogs = $spare->stockLogs()
+                    ->where('change_type', 'out')
+                    ->whereBetween('created_at', [$oldBrandStartDate, $oldBrandEndDate])
+                    ->get();
+                
+                $totalReceived = $oldBrandInLogs->sum('quantity');
+                $totalUsed = $oldBrandOutLogs->sum('quantity');
+                $startDate = $oldBrandInLogs->first()->created_at;
+                $endDate = $oldBrandInLogs->last()->created_at;
+                
+                // Get supplier from spare (or from first log remarks if available)
+                $supplier = $spare->supplier ?? 'N/A';
+                // Try to extract supplier from remarks if available
+                $firstLogRemarks = $oldBrandInLogs->first()->remarks ?? '';
+                if (stripos($firstLogRemarks, 'Supplier:') !== false) {
+                    preg_match('/Supplier:\s*([^,]+)/i', $firstLogRemarks, $matches);
+                    if (!empty($matches[1])) {
+                        $supplier = trim($matches[1]);
+                    }
+                }
+                
+                $oldBrandSummaries[] = [
+                    'brand_name' => $oldBrandName,
+                    'total_quantity_received' => $totalReceived,
+                    'total_quantity_used' => $totalUsed,
+                    'start_date' => $startDate->format('Y-m-d H:i:s'),
+                    'start_date_formatted' => $startDate->format('d M Y, h:i A'),
+                    'end_date' => $endDate->format('Y-m-d H:i:s'),
+                    'end_date_formatted' => $endDate->format('d M Y, h:i A'),
+                    'supplier' => $supplier,
+                ];
+            }
+
+            // Get related brands (same item_name, different brands)
+            $user = Auth::user();
+            $relatedSparesQuery = Spare::where('item_name', $spare->item_name)
+                ->where('id', '!=', $spare->id);
+            $this->filterSparesByLocation($relatedSparesQuery, $user);
+            $relatedSpares = $relatedSparesQuery->get();
+
+            return response()->json([
+                'success' => true,
+                'product' => [
+                    'id' => $spare->id,
+                    'item_name' => $spare->item_name,
+                    'product_code' => $spare->product_code,
+                    'current_brand' => $spare->brand_name,
+                    'category' => $spare->category,
+                ],
+                'history_by_brand' => $historyByBrand,
+                'all_history' => $allHistory,
+                'old_brand_summaries' => $oldBrandSummaries,
+                'related_brands' => $relatedSpares->map(function($relatedSpare) {
+                    return [
+                        'id' => $relatedSpare->id,
+                        'brand_name' => $relatedSpare->brand_name,
+                        'product_code' => $relatedSpare->product_code,
+                        'stock_quantity' => $relatedSpare->stock_quantity,
+                        'total_received_quantity' => $relatedSpare->total_received_quantity,
+                    ];
+                })->values(),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting product history', [
+                'spare_id' => $spare->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading product history: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all brands for same product name (item_name)
+     */
+    public function getProductBrands(Request $request)
+    {
+        try {
+            $itemName = $request->get('item_name');
+            $currentSpareId = $request->get('spare_id');
+            
+            if (!$itemName) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product name is required'
+                ], 400);
+            }
+
+            $user = Auth::user();
+            $query = Spare::where('item_name', $itemName);
+            
+            // Apply location filtering
+            $this->filterSparesByLocation($query, $user);
+            
+            $brands = $query->whereNotNull('brand_name')
+                ->where('brand_name', '!=', '')
+                ->distinct()
+                ->orderBy('brand_name')
+                ->pluck('brand_name')
+                ->toArray();
+
+            // Get all spares with same item_name but different brands
+            $relatedSpares = $query->get();
+
+            return response()->json([
+                'success' => true,
+                'brands' => $brands,
+                'related_spares' => $relatedSpares->map(function($spare) use ($currentSpareId) {
+                    return [
+                        'id' => $spare->id,
+                        'item_name' => $spare->item_name,
+                        'brand_name' => $spare->brand_name,
+                        'product_code' => $spare->product_code,
+                        'stock_quantity' => $spare->stock_quantity,
+                        'total_received_quantity' => $spare->total_received_quantity,
+                        'issued_quantity' => $spare->issued_quantity,
+                        'is_current' => $spare->id == $currentSpareId,
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting product brands', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading product brands: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show old brand history page
+     */
+    public function showOldBrandHistory(Request $request, $itemName, $brandName)
+    {
+        try {
+            $user = Auth::user();
+            
+            // Get all spares with same item_name
+            $query = Spare::where('item_name', $itemName);
+            $this->filterSparesByLocation($query, $user);
+            
+            $allSpares = $query->get();
+            
+            // Get the specific brand's spare
+            $spare = $allSpares->where('brand_name', $brandName)->first();
+            
+            if (!$spare) {
+                return redirect()->route('admin.spares.index')
+                    ->with('error', 'Product with this brand not found.');
+            }
+
+            // Get all related brands (same item_name, different brands)
+            $relatedSpares = $allSpares->where('brand_name', '!=', $brandName)->values();
+
+            // Get stock history for this brand
+            $stockLogs = $spare->stockLogs()
+                ->where('change_type', 'in')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Group by brand
+            $historyByBrand = [];
+            foreach ($stockLogs as $log) {
+                $logBrandName = $log->brand_name ?? $spare->brand_name ?? 'N/A';
+                
+                if (!isset($historyByBrand[$logBrandName])) {
+                    $historyByBrand[$logBrandName] = [
+                        'brand_name' => $logBrandName,
+                        'total_quantity' => 0,
+                        'entries' => [],
+                    ];
+                }
+                
+                $historyByBrand[$logBrandName]['total_quantity'] += $log->quantity;
+                $historyByBrand[$logBrandName]['entries'][] = [
+                    'id' => $log->id,
+                    'quantity' => $log->quantity,
+                    'date' => $log->created_at->format('Y-m-d H:i:s'),
+                    'formatted_date' => $log->created_at->format('d M Y, h:i A'),
+                    'remarks' => $log->remarks ?? '',
+                ];
+            }
+
+            return view('admin.spares.old-brand-history', compact(
+                'spare',
+                'relatedSpares',
+                'historyByBrand',
+                'itemName',
+                'brandName'
+            ));
+        } catch (\Exception $e) {
+            \Log::error('Error showing old brand history', [
+                'item_name' => $itemName,
+                'brand_name' => $brandName,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->route('admin.spares.index')
+                ->with('error', 'Error loading brand history: ' . $e->getMessage());
         }
     }
 }
