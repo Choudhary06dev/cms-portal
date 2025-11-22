@@ -32,7 +32,7 @@
   $statusDisplay = $statusLabels[$complaintStatus] ?? ucfirst(str_replace('_', ' ', $complaintStatus));
   $statusColors = [
     'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'],
-    'resolved' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'],
+    'resolved' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Grey (swapped from green)
     'work_performa' => ['bg' => '#60a5fa', 'text' => '#ffffff', 'border' => '#3b82f6'],
     'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'],
     'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'],
@@ -40,7 +40,7 @@
     'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'],
     'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'],
     'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'],
-    'assigned' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'],
+    'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green (swapped from grey)
   ];
   $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
   
@@ -294,23 +294,26 @@
         <h5 class="card-title mb-0 text-white">
           <i data-feather="message-circle" class="me-2"></i>Complainant Feedback
         </h5>
+        @php
+          // Check if current user is GE (Garrison Engineer)
+          $isGE = false;
+          if (Auth::check() && Auth::user()->role) {
+            $roleName = strtolower(Auth::user()->role->role_name ?? '');
+            $isGE = in_array($roleName, ['garrison_engineer', 'garrison engineer']) || 
+                    strpos(strtolower($roleName), 'garrison') !== false ||
+                    strpos(strtolower($roleName), 'ge') !== false;
+          }
+        @endphp
         @if(!$complaint->feedback)
           <a href="{{ route('admin.feedback.create', $complaint->id) }}" class="btn btn-outline-secondary btn-sm" title="Add Feedback" style="padding: 3px 8px;">
             <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
           </a>
         @else
-          <div class="d-flex gap-2">
+          @if($isGE)
             <a href="{{ route('admin.feedback.edit', $complaint->feedback->id) }}" class="btn btn-outline-primary btn-sm" title="Edit Feedback" style="padding: 6px 10px; border: 1px solid #3b82f6 !important; color: #3b82f6 !important; background-color: transparent !important; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px;">
               <i data-feather="edit" style="width: 16px; height: 16px; color: #3b82f6;"></i>
             </a>
-            <form action="{{ route('admin.feedback.destroy', $complaint->feedback->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
-              @csrf
-              @method('DELETE')
-              <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Feedback" style="padding: 6px 10px; border: 1px solid #ef4444 !important; color: #ef4444 !important; background-color: transparent !important; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px;">
-                <i data-feather="trash-2" style="width: 16px; height: 16px; color: #ef4444;"></i>
-              </button>
-            </form>
-          </div>
+          @endif
         @endif
       </div>
       <div class="card-body">

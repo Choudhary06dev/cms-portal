@@ -46,7 +46,7 @@ class UserController extends Controller
             $query->where('status', $request->status);
         }
 
-        $users = $query->orderBy('id', 'desc')->paginate(15);
+        $users = $query->orderBy('id', 'asc')->paginate(15);
         $roles = Role::all();
 
         return view('admin.users.index', compact('users', 'roles'));

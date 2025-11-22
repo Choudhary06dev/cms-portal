@@ -85,32 +85,32 @@
     </div>
     
     <div class="table-responsive">
-      <table class="table table-bordered table-dark" style="font-size: 0.875rem;">
+      <table class="table table-bordered table-dark" style="font-size: 0.75rem; width: 100%; table-layout: fixed; border: 1px solid #dee2e6 !important;">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Employee Name</th>
-            <th>Category</th>
-            <th>Designation</th>
-            <th class="text-end">Total Complaints</th>
-            <th class="text-end">Resolved</th>
-            <th class="text-end">Resolution Rate</th>
+            <th style="width: 4%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">#</th>
+            <th style="width: 10%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Employee Name</th>
+            <th style="width: 12%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Category</th>
+            <th style="width: 10%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Designation</th>
+            <th style="width: 5%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Total Complaints</th>
+            <th style="width: 5%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Resolved</th>
+            <th style="width: 5%; text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">Resolution Rate</th>
           </tr>
         </thead>
         <tbody>
           @forelse($employees as $emp)
           <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $emp['employee']->name ?? 'N/A' }}</td>
-            <td>{{ $emp['employee']->category ?? 'N/A' }}</td>
-            <td>{{ $emp['employee']->designation ?? '' }}</td>
-            <td class="text-end">{{ number_format($emp['total_complaints']) }}</td>
-            <td class="text-end">{{ number_format($emp['resolved_complaints']) }}</td>
-            <td class="text-end">{{ number_format($emp['resolution_rate'], 1) }}%</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $loop->iteration }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->name ?? 'N/A' }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->category ?? 'N/A' }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->designation ?? '' }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($emp['total_complaints']) }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($emp['resolved_complaints']) }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($emp['resolution_rate'], 1) }}%</td>
           </tr>
           @empty
           <tr>
-            <td colspan="7" class="text-center py-4">
+            <td colspan="7" class="text-center py-4" style="border: 1px solid #dee2e6 !important;">
               <i data-feather="users" class="feather-lg mb-2"></i>
               <div>No employees found</div>
             </td>
@@ -124,6 +124,24 @@
 
 @push('styles')
 <style>
+  #employeesReportContent table {
+    border-collapse: collapse !important;
+  }
+  #employeesReportContent table th,
+  #employeesReportContent table td {
+    border-left: 1px solid #dee2e6 !important;
+    border-right: 1px solid #dee2e6 !important;
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+  #employeesReportContent table th:first-child,
+  #employeesReportContent table td:first-child {
+    border-left: 1px solid #dee2e6 !important;
+  }
+  #employeesReportContent table th:last-child,
+  #employeesReportContent table td:last-child {
+    border-right: 1px solid #dee2e6 !important;
+  }
   @media print {
     body * {
       visibility: hidden;

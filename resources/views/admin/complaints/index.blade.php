@@ -235,6 +235,11 @@
                     </div>
                 </div>
             </div>
+            <div class="modal-footer" style="border-top: 2px solid rgba(59, 130, 246, 0.2);">
+                <a href="#" id="printSlipBtn" class="btn btn-outline-primary" target="_blank" style="display: none;">
+                    <i data-feather="printer" class="me-2" style="width: 16px; height: 16px;"></i>Print Slip
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -405,6 +410,12 @@
             
             // Show loading state
             modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            
+            // Hide print slip button initially
+            const printSlipBtn = document.getElementById('printSlipBtn');
+            if (printSlipBtn) {
+                printSlipBtn.style.display = 'none';
+            }
             
             // Add blur effect to background first
             document.body.classList.add('modal-open-blur');
@@ -602,6 +613,14 @@
                     complaintContent = tempDiv.innerHTML;
                     
                     modalBody.innerHTML = complaintContent;
+                    
+                    // Update print slip button
+                    const printSlipBtn = document.getElementById('printSlipBtn');
+                    if (printSlipBtn && complaintId) {
+                        printSlipBtn.href = `/admin/complaints/${complaintId}/print-slip`;
+                        printSlipBtn.style.display = 'inline-block';
+                    }
+                    
                     // Function to apply table column borders
                     const applyTableBorders = () => {
                         const modalTables = modalBody.querySelectorAll('.table');

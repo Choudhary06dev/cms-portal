@@ -117,7 +117,7 @@
     width: 90%;
     max-width: 1100px;
     margin: 15px auto;
-    margin-top: 80px;
+    margin-top: 75px;
     padding: 0;
     display: flex;
     background: rgba(255, 255, 255, 0.95);
@@ -207,6 +207,7 @@
   .logo {
     text-align: center;
     margin-bottom: 20px;
+    margin-top: -10px;
   }
 
   .logo img {
@@ -225,8 +226,8 @@
 
   .heading {
     text-align: center;
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 28px !important;
+    font-weight: 700 !important;
     margin-top: 15px;
     margin-bottom: 5px;
     color: #003366;
@@ -398,7 +399,7 @@
     }
 
     .heading {
-      font-size: 16px;
+      font-size: 22px !important;
     }
 
     .image-slider {
@@ -430,7 +431,7 @@
         <div class="logo">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Pakistan_Navy_emblem.svg/200px-Pakistan_Navy_emblem.svg.png" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
-        <div class="heading">NAVY COMPLAINT MANAGEMENT SYSTEM</div>
+        <div class="heading">MES COMPLAINT MANAGEMENT SYSTEM</div>
         <p class="subtitle">Nice to see you again</p>
 
         <form method="POST" action="{{ route('frontend.login.post') }}" class="form">

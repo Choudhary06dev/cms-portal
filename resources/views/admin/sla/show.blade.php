@@ -55,9 +55,15 @@
                   <tr>
                     <td class="text-white"><strong>Priority:</strong></td>
                     <td>
-                      <span class="badge bg-{{ $sla->priority == 'low' ? 'success' : ($sla->priority == 'medium' ? 'warning' : ($sla->priority == 'high' ? 'info' : ($sla->priority == 'urgent' ? 'danger' : 'danger'))) }}">
-                        {{ ucfirst($sla->priority ?? 'medium') }}
-                      </span>
+                      @if($sla->priority == 'urgent')
+                        <span class="badge" style="background-color: #991b1b !important; color: #ffffff !important; border: 1px solid #7f1d1d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important;">
+                          {{ ucfirst($sla->priority ?? 'medium') }}
+                        </span>
+                      @else
+                        <span class="badge bg-{{ $sla->priority == 'low' ? 'success' : ($sla->priority == 'medium' ? 'warning' : ($sla->priority == 'high' ? 'info' : 'danger')) }}">
+                          {{ ucfirst($sla->priority ?? 'medium') }}
+                        </span>
+                      @endif
                     </td>
                   </tr>
                   <tr>

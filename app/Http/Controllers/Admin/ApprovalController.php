@@ -1234,8 +1234,9 @@ class ApprovalController extends Controller
         $approval = $complaint->spareApprovals()->first() ?? null;
         $statusToUse = $request->status;
         
-        // If status is resolved, work_priced_performa or maint_priced_performa, use it directly without checking performa_type
-        if (!in_array($request->status, ['resolved', 'work_priced_performa', 'maint_priced_performa'])) {
+        // If status is resolved, work_priced_performa, maint_priced_performa, un_authorized, or pertains_to_ge_const_isld, 
+        // use it directly without checking performa_type
+        if (!in_array($request->status, ['resolved', 'work_priced_performa', 'maint_priced_performa', 'un_authorized', 'pertains_to_ge_const_isld'])) {
             if ($approval && $approval->performa_type) {
                 // If performa_type is set, use it to determine status (ID format)
                 if ($approval->performa_type === 'work_performa') {

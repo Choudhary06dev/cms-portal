@@ -12,7 +12,7 @@
   <link href="{{ asset('css/themes.css') }}" rel="stylesheet">
   <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
   
-  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.2/dist/feather.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
   <!-- Error handling for missing scripts -->
@@ -607,7 +607,7 @@
       if (viewAllNotifications) {
         viewAllNotifications.addEventListener('click', function(e) {
           e.preventDefault();
-          alert('View all notifications functionality coming soon!');
+          window.location.href = '{{ route("admin.notifications.index") }}';
         });
       }
     });

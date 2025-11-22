@@ -139,6 +139,8 @@ class DashboardController extends Controller
             'work_priced_performa' => 'Work Performa Priced',
             'maint_priced_performa' => 'Maintenance Performa Priced',
             'product_na' => 'Product N/A',
+            'un_authorized' => 'Un-Authorized',
+            'pertains_to_ge_const_isld' => 'Pertains to GE(N) Const Isld',
         ];
         
         // Get dashboard statistics with filters
@@ -501,24 +503,14 @@ class DashboardController extends Controller
      */
     private function applyFilters($query, $cityId = null, $sectorId = null, $category = null, $approvalStatus = null, $complaintStatus = null, $dateRange = null)
     {
-        // Filter by city
+        // Filter by city - use direct city_id field on complaints table
         if ($cityId) {
-            $city = City::find($cityId);
-            if ($city) {
-                $query->whereHas('client', function($q) use ($city) {
-                    $q->where('city', $city->name);
-                });
-            }
+            $query->where('city_id', $cityId);
         }
         
-        // Filter by sector
+        // Filter by sector - use direct sector_id field on complaints table
         if ($sectorId) {
-            $sector = Sector::find($sectorId);
-            if ($sector) {
-                $query->whereHas('client', function($q) use ($sector) {
-                    $q->where('sector', $sector->name);
-                });
-            }
+            $query->where('sector_id', $sectorId);
         }
         
         // Filter by category

@@ -38,6 +38,7 @@ return new class extends Migration
         Schema::create('spare_stock_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('spare_id');
+            $table->string('brand_name', 100)->nullable()->after('spare_id');
             $table->enum('change_type', ['in', 'out']);
             $table->integer('quantity');
             $table->integer('reference_id')->nullable(); // complaint_id or purchase_id
