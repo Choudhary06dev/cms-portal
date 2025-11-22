@@ -791,7 +791,7 @@
             <tr>
               <th style="width: 8%;">ID</th>
               <th style="width: 18%;">Complainant</th>
-              <th style="width: 12%;">Type</th>
+              <th style="width: 12%;">Category</th>
               <th style="width: 15%;">Assigned To</th>
               <th style="width: 18%;">Status</th>
               <th style="width: 12%;">Priority</th>
@@ -907,7 +907,7 @@
                 <tr>
                   <th style="width: 8%; padding: 0.4rem 0.5rem !important;">Complaint ID</th>
                   <th style="width: 15%; padding: 0.4rem 0.5rem !important;">Complainant</th>
-                  <th style="width: 12%; padding: 0.4rem 0.5rem !important;">Employee Assigned</th>
+                  <th style="width: 12%; padding: 0.4rem 0.5rem !important;">Assigned To</th>
                   <th style="width: 11%; padding: 0.4rem 0.5rem !important;">Category</th>
                   <th style="width: 10%; padding: 0.4rem 0.5rem !important;">Status</th>
                   <th style="width: 11%; padding: 0.4rem 0.5rem !important;">Priority</th>
