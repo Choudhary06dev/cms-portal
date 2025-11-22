@@ -95,6 +95,185 @@
     opacity: 0.93;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.18) !important;
   }
+  
+  /* Reduce column spacing in Recent Complaints table */
+  .table-responsive .table.table-dark th,
+  .table-responsive .table.table-dark td {
+    padding: 0.6rem 0.5rem !important;
+    white-space: nowrap;
+  }
+  
+  .table-responsive .table.table-dark th:first-child,
+  .table-responsive .table.table-dark td:first-child {
+    padding-left: 0.75rem !important;
+  }
+  
+  .table-responsive .table.table-dark th:last-child,
+  .table-responsive .table.table-dark td:last-child {
+    padding-right: 0.75rem !important;
+  }
+  
+  .table-responsive .table.table-dark th {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  
+  .table-responsive .table.table-dark td {
+    font-size: 0.875rem;
+  }
+  
+  /* Subtle matte finish for status badges */
+  .status-badge {
+    position: relative;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    filter: saturate(0.92) brightness(0.95);
+    transition: all 0.2s ease;
+  }
+  
+  .status-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .status-badge > * {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .status-badge:hover {
+    filter: saturate(0.95) brightness(0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  }
+  
+  /* Subtle matte finish for priority badges */
+  .priority-badge {
+    position: relative;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    filter: saturate(0.92) brightness(0.95);
+    transition: all 0.2s ease;
+  }
+  
+  .priority-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .priority-badge > * {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .priority-badge:hover {
+    filter: saturate(0.95) brightness(0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  }
+  
+  /* Force font size for filter labels */
+  .filter-box .form-label,
+  .filter-box .col-auto .form-label {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Matte finish for GE Feedback Overview section */
+  .card-glass:has(h5:contains("GE Feedback Overview")),
+  .card-glass:has([class*="ge-feedback"]) {
+    position: relative;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    filter: saturate(0.88) brightness(0.93);
+    transition: all 0.3s ease;
+  }
+  
+  /* Alternative selector for GE Feedback Overview */
+  .row.mt-5.mb-5 .card-glass {
+    position: relative;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    filter: saturate(0.88) brightness(0.93);
+    transition: all 0.3s ease;
+  }
+  
+  .row.mt-5.mb-5 .card-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .row.mt-5.mb-5 .card-glass:hover {
+    filter: saturate(0.92) brightness(0.96);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22), 0 3px 8px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  }
+  
+  /* Dropdown arrow for select boxes - High specificity */
+  .filter-box .form-select,
+  .filter-box select.form-select,
+  .filter-box #cityFilter,
+  .filter-box #sectorFilter,
+  .filter-box #categoryFilter,
+  .filter-box #complaintStatusFilter,
+  .filter-box #dateRangeFilter,
+  #cityFilter,
+  #sectorFilter,
+  #categoryFilter,
+  #complaintStatusFilter,
+  #dateRangeFilter {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+    padding-right: 2.5rem !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+  }
+  
+  /* Override dashboard.css for filter selects */
+  .theme-light .filter-box .form-select,
+  .theme-dark .filter-box .form-select,
+  .theme-night .filter-box .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+    padding-right: 2.5rem !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+  }
 </style>
 @endpush
 
@@ -126,8 +305,8 @@
       <div class="row g-3 align-items-end">
         @if($showCityFilter)
         <div class="col-auto" id="cityFilterContainer">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">GE</label>
-          <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px;">
+          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">GE</label>
+          <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
             <option value="">Select GE</option>
             @if($cities && $cities->count() > 0)
               @foreach($cities as $city)
@@ -151,8 +330,8 @@
         
         @if($showSectorFilter)
         <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">GE Nodes</label>
-          <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px;">
+          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">GE Nodes</label>
+          <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
             <option value="">All GE Nodes</option>
             @if($sectors && $sectors->count() > 0)
               @foreach($sectors as $sector)
@@ -164,8 +343,8 @@
         @endif
         
         <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Complaint Category</label>
-          <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px;">
+          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaint Category</label>
+          <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
             <option value="">All Categories</option>
             @if($categories && $categories->count() > 0)
               @foreach($categories as $cat)
@@ -177,8 +356,8 @@
         
         @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
         <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Complaints Status</label>
-          <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px;">
+          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaints Status</label>
+          <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
             <option value="">All Status</option>
             @foreach($complaintStatuses as $statusKey => $statusLabel)
               <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
@@ -188,8 +367,8 @@
         @endif
         
         <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #1e293b !important; font-weight: 600;">Date Range</label>
-          <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px;">
+          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Date Range</label>
+          <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
             <option value="">All Time</option>
             <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
             <option value="today" {{ (request('date_range') == 'today' || $dateRange == 'today') ? 'selected' : '' }}>Today</option>
@@ -607,22 +786,31 @@
         </a>
       </div>
       <div class="table-responsive">
-        <table class="table table-dark">
+        <table class="table table-dark" style="table-layout: auto; width: 100%;">
           <thead>
             <tr>
-              <th>Complaint ID</th>
-              <th>Complainant</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Priority</th>
+              <th style="width: 8%;">ID</th>
+              <th style="width: 18%;">Complainant</th>
+              <th style="width: 12%;">Type</th>
+              <th style="width: 15%;">Assigned To</th>
+              <th style="width: 18%;">Status</th>
+              <th style="width: 12%;">Priority</th>
+              <th style="width: 17%;">Registered Date</th>
             </tr>
           </thead>
           <tbody>
             @forelse($recentComplaints ?? [] as $complaint)
             <tr>
               <td><strong>{{ (int)$complaint->id }}</strong></td>
-              <td>{{ $complaint->client->client_name }}</td>
+              <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
               <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
+              <td>
+                @if($complaint->assignedEmployee)
+                  <span style="font-size: 0.875rem;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</span>
+                @else
+                  <span style="color: #94a3b8; font-style: italic; font-size: 0.875rem;">Unassigned</span>
+                @endif
+              </td>
               <td>
                 @php
                   // Map 'new' status to 'assigned' for display
@@ -679,10 +867,15 @@
                   <span class="priority-badge priority-{{ $complaint->priority }}" style="display: inline-block !important; min-width: 70px !important; text-align: center !important;">{{ $complaint->getPriorityDisplayAttribute() }}</span>
                 @endif
               </td>
+              <td>
+                <span style="font-size: 0.875rem;">
+                  {{ $complaint->created_at ? $complaint->created_at->format('d M Y') : 'N/A' }}
+                </span>
+              </td>
             </tr>
             @empty
             <tr>
-              <td colspan="5" class="text-center py-4" style="color: #64748b; font-style: italic;">No recent complaints</td>
+              <td colspan="7" class="text-center py-4" style="color: #64748b; font-style: italic;">No recent complaints</td>
             </tr>
             @endforelse
           </tbody>
@@ -739,7 +932,7 @@
                       ];
                       $statusColor = $statusColors[$approval->status] ?? ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'];
                     @endphp
-                    <span class="badge" style="background-color: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }} !important; border: 1px solid {{ $statusColor['border'] }}; padding: 3px 6px !important; font-size: 10px !important; font-weight: 600; line-height: 1.1; border-radius: 6px !important;">
+                    <span class="badge status-badge" style="background-color: {{ $statusColor['bg'] }}; color: {{ $statusColor['text'] }} !important; border: 1px solid {{ $statusColor['border'] }}; padding: 3px 6px !important; font-size: 10px !important; font-weight: 600; line-height: 1.1; border-radius: 6px !important;">
                       {{ $approval->getStatusDisplayAttribute() }}
                     </span>
                   </td>
@@ -1076,7 +1269,7 @@
         },
         offsetY: -20,
         style: {
-          fontSize: '11px',
+          fontSize: '13px',
           fontWeight: 700,
           colors: isLightTheme ? ['#1e293b'] : ['#ffffff']
         },
@@ -1152,7 +1345,7 @@
           text: 'Complaints',
           style: {
             color: '#3b82f6',
-            fontSize: '13px',
+            fontSize: '16px',
             fontWeight: 700
           }
         },
@@ -1172,7 +1365,7 @@
           text: 'Resolutions',
           style: {
             color: '#22c55e',
-            fontSize: '13px',
+            fontSize: '16px',
             fontWeight: 700
           }
         },

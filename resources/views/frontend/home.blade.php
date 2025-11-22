@@ -431,7 +431,7 @@
         <div class="logo">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Pakistan_Navy_emblem.svg/200px-Pakistan_Navy_emblem.svg.png" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
-        <div class="heading">NAVY COMPLAINT MANAGEMENT SYSTEM</div>
+        <div class="heading">MES COMPLAINT MANAGEMENT SYSTEM</div>
         <p class="subtitle">Nice to see you again</p>
 
         <form method="POST" action="{{ route('frontend.login.post') }}" class="form">

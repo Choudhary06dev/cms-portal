@@ -18,6 +18,158 @@
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
     }
+    
+    /* Matte finish for right stats boxes */
+    .w-96.grid > div {
+        position: relative;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        filter: saturate(0.9) brightness(0.95);
+        transition: all 0.3s ease;
+    }
+    
+    .w-96.grid > div::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .w-96.grid > div::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.02) 100%);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .w-96.grid > div > * {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .w-96.grid > div:hover {
+        opacity: 0.95;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        transform: translateY(-2px);
+        filter: saturate(0.95) brightness(0.98);
+    }
+    
+    /* Reduce gradient intensity for matte look */
+    .w-96.grid > div[style*="linear-gradient"] {
+        background-blend-mode: overlay !important;
+    }
+    
+    /* Matte finish for Complaints by Status chart */
+    .complaints-by-status-chart {
+        position: relative;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        filter: saturate(0.9) brightness(0.97);
+        transition: all 0.3s ease;
+    }
+    
+    .complaints-by-status-chart::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .complaints-by-status-chart::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.02) 100%);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .complaints-by-status-chart > * {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .complaints-by-status-chart:hover {
+        opacity: 0.96;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+        transform: translateY(-1px);
+        filter: saturate(0.93) brightness(0.99);
+    }
+    
+    /* Matte finish for Monthly Complaints chart */
+    .monthly-complaints-chart {
+        position: relative;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        filter: saturate(0.9) brightness(0.97);
+        transition: all 0.3s ease;
+    }
+    
+    .monthly-complaints-chart::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .monthly-complaints-chart::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.02) 100%);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .monthly-complaints-chart > * {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .monthly-complaints-chart:hover {
+        opacity: 0.96;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+        transform: translateY(-1px);
+        filter: saturate(0.93) brightness(0.99);
+    }
 </style>
 @endpush
 
@@ -32,7 +184,7 @@
     <!-- Filters -->
     <div class="absolute top-44 p-2 flex items-end justify-start gap-2 flex-wrap" style="left: 5%; max-width: calc(95% - 384px - 24px); background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); border-radius: 4px; overflow: hidden;">
         <div style="flex: 0 0 auto;">
-            <label for="filterCity" class="block text-sm font-bold text-white mb-1">GE</label>
+            <label for="filterCity" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">GE</label>
             <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE" title="Select GE">
                 <option value="">Select GE</option>
                 @foreach($geGroups as $ge)
@@ -41,7 +193,7 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterSector" class="block text-sm font-bold text-white mb-1">GE Nodes</label>
+            <label for="filterSector" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">GE Nodes</label>
             <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE Nodes" title="Select GE Nodes">
                 <option value="">All GE Nodes</option>
                 @foreach($geNodes as $node)
@@ -50,7 +202,7 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterCategory" class="block text-sm font-bold text-white mb-1">Complaints Category</label>
+            <label for="filterCategory" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">Complaints Category</label>
             <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Complaints Category" title="Select Complaints Category">
                 <option value="all">All Categories</option>
                 @foreach($categories as $cat)
@@ -59,7 +211,7 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterStatus" class="block text-sm font-bold text-white mb-1">Complaints Status</label>
+            <label for="filterStatus" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">Complaints Status</label>
             <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Complaints Status" title="Select Complaints Status">
                 <option value="all">All Status</option>
                 @foreach($statuses as $key => $label)
@@ -68,7 +220,7 @@
             </select>
         </div>
         <div style="flex: 0 0 auto;">
-            <label for="filterDateRange" class="block text-sm font-bold text-white mb-1">Date Range</label>
+            <label for="filterDateRange" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">Date Range</label>
             <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Date Range" title="Select Date Range">
                 <option value="">All Time</option>
                 <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
@@ -91,20 +243,20 @@
 <div class="mx-auto mb-8" style="max-width:90%; margin-top: -8rem; position: relative; z-index: 10;">
     <div class="flex gap-6">
         <!-- Left Graphs Section -->
-        <div class="flex-1 space-y-6" style="background: white; padding: 2rem 3rem; border-radius: 12px;">
+        <div class="flex-1 space-y-6" style="background: white; padding: 1rem 1.5rem; border-radius: 12px;">
         <!-- Monthly Complaints and TVRR Complaints Row -->
-        <div class="grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-2 gap-4">
             <!-- Monthly Complaints -->
-            <div class="bg-white p-6 rounded-xl shadow">
-                <h2 class="text-xl font-semibold mb-4">Monthly Complaints (2025)</h2>
-                <div class="h-48">
+            <div class="bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 0.5rem;">
+                <h2 class="text-xl font-semibold mb-2">Monthly Complaints (2025)</h2>
+                <div class="h-60">
                     <canvas id="monthlyComplaintsChart"></canvas>
                 </div>
             </div>
             <!-- Complaints by Status -->
-            <div class="bg-white p-6 rounded-xl shadow">
-                <h2 class="text-xl font-semibold mb-4">Complaints by Status</h2>
-                <div class="h-56 w-full">
+            <div class="bg-white rounded-xl shadow complaints-by-status-chart" style="position: relative; padding: 0.5rem;">
+                <h2 class="text-xl font-semibold mb-2">Complaints by Status</h2>
+                <div class="h-64 w-full">
                     <canvas id="complaintsByStatusChart"></canvas>
                 </div>
             </div>
@@ -342,7 +494,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'top',
                     labels: {
                         font: {
-                            size: 11
+                            size: 13,
+                            weight: 'bold',
+                            family: 'Arial, sans-serif'
                         },
                         padding: 8,
                         usePointStyle: true
@@ -359,6 +513,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     mode: 'index',
                     intersect: false
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    offset: -5,
+                    font: {
+                        size: 13,
+                        weight: 'bold',
+                        family: 'Arial, sans-serif'
+                    },
+                    color: function(context) {
+                        // Use the same color as the line
+                        return context.dataset.borderColor;
+                    },
+                    formatter: function(value) {
+                        return value;
+                    }
                 }
             },
             scales: {
@@ -401,17 +572,24 @@ document.addEventListener('DOMContentLoaded', function() {
         'in_progress': { label: 'In Progress', color: '#dc2626' }, // Red
         'resolved': { label: 'Addressed', color: '#64748b' }, // Grey (swapped from green)
         'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
-        'maint_performa': { label: 'Maintenance Performa', color: '#eab308' }, // Yellow
+        'maint_performa': { label: 'Maint Performa', color: '#eab308' }, // Yellow
         'work_priced_performa': { label: 'Work Priced', color: '#9333ea' }, // Purple
         'maint_priced_performa': { label: 'Maint Priced', color: '#ea580c' }, // Orange Red
         'product_na': { label: 'Product N/A', color: '#000000' }, // Black
         'un_authorized': { label: 'Un-Authorized', color: '#ec4899' }, // Pink
         'pertains_to_ge_const_isld': { label: 'Pertains to GE(N)', color: '#06b6d4' }, // Aqua/Cyan
-        'closed': { label: 'Closed', color: '#06b6d4' }, // Aqua/Cyan (same as pertains_to_ge_const_isld)
         'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
     };
 
-    const statusKeys = Object.keys(complaintsByStatus);
+    // Filter out 'closed' status from complaintsByStatus for graph display
+    const filteredComplaintsByStatus = {};
+    Object.keys(complaintsByStatus).forEach(key => {
+        if (key !== 'closed') {
+            filteredComplaintsByStatus[key] = complaintsByStatus[key];
+        }
+    });
+
+    const statusKeys = Object.keys(filteredComplaintsByStatus);
     const statusLabels = statusKeys.map(key => {
         if (statusMap[key] && statusMap[key].label) {
             return statusMap[key].label;
@@ -419,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Fallback: format the key nicely
         return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     });
-    const statusData = Object.values(complaintsByStatus);
+    const statusData = Object.values(filteredComplaintsByStatus);
     const statusColors = statusKeys.map(key => {
         if (statusMap[key] && statusMap[key].color) {
             return statusMap[key].color;
@@ -430,8 +608,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const ctx3 = document.getElementById('complaintsByStatusChart').getContext('2d');
 
-    // Calculate total for percentage
-    const totalComplaints = statusData.reduce((a, b) => a + b, 0);
+    // Calculate total from original data (including closed) for accurate total count
+    const totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
 
     // Center text plugin for Chart.js
     const centerTextPlugin = {
@@ -460,7 +638,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (activeElements.length > 0) {
                 const activeIndex = activeElements[0].index;
                 const value = currentData[activeIndex];
-                const percentage = currentTotal > 0 ? ((value / currentTotal) * 100).toFixed(1) : 0;
                 const label = currentLabels[activeIndex];
 
                 // Show status name
@@ -468,15 +645,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 ctx.fillStyle = '#1f2937';
                 ctx.fillText(label, centerX, centerY - 10);
 
-                // Show percentage
+                // Show total complaints count only (no percentage)
                 ctx.font = 'bold 20px Arial';
                 ctx.fillStyle = currentColors[activeIndex] || '#3b82f6';
-                ctx.fillText(percentage + '%', centerX, centerY + 15);
+                ctx.fillText(value, centerX, centerY + 15);
 
-                // Show count
+                // Show label
                 ctx.font = '12px Arial';
                 ctx.fillStyle = '#6b7280';
-                ctx.fillText(value + ' complaints', centerX, centerY + 35);
+                ctx.fillText('Complaints', centerX, centerY + 35);
             } else if (isStatusFiltered) {
                 // Show filtered status when status filter is active
                 // Find the status in the chart data
@@ -555,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 ctx.font = 'bold 11px Arial';
                 ctx.fillStyle = '#475569';
-                ctx.fillText('Complaints', centerX, centerY + 28);
+                // ctx.fillText('Complaints', centerX, centerY + 28);
             }
             ctx.restore();
         }
@@ -780,14 +957,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update Complaints by Status Chart
         if (data.complaintsByStatus && complaintsByStatusChart) {
-            const statusKeys = Object.keys(data.complaintsByStatus);
+            // Update global complaintsByStatus with original data (including closed for total calculation)
+            complaintsByStatus = data.complaintsByStatus;
+            
+            // Filter out 'closed' status for graph display only
+            const filteredComplaintsByStatus = {};
+            Object.keys(data.complaintsByStatus).forEach(key => {
+                if (key !== 'closed') {
+                    filteredComplaintsByStatus[key] = data.complaintsByStatus[key];
+                }
+            });
+            
+            const statusKeys = Object.keys(filteredComplaintsByStatus);
             const statusLabels = statusKeys.map(key => {
                 if (statusMap[key] && statusMap[key].label) {
                     return statusMap[key].label;
                 }
                 return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             });
-            const statusData = Object.values(data.complaintsByStatus);
+            const statusData = Object.values(filteredComplaintsByStatus);
             const statusColors = statusKeys.map(key => {
                 if (statusMap[key] && statusMap[key].color) {
                     return statusMap[key].color;
@@ -798,8 +986,6 @@ document.addEventListener('DOMContentLoaded', function() {
             complaintsByStatusChart.data.labels = statusLabels;
             complaintsByStatusChart.data.datasets[0].data = statusData;
             complaintsByStatusChart.data.datasets[0].backgroundColor = statusColors;
-            // Update the global complaintsByStatus for the plugin
-            complaintsByStatus = data.complaintsByStatus;
             complaintsByStatusChart.update('none');
         }
 
