@@ -965,7 +965,7 @@
                         ];
                         $priorityColor = $priorityColors[$priority] ?? ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'];
                       @endphp
-                      <span class="priority-badge" style="background-color: {{ $priorityColor['bg'] }} !important; color: {{ $priorityColor['text'] }} !important; border: 1px solid {{ $priorityColor['border'] }} !important; padding: 3px 6px !important; font-size: 10px !important; font-weight: 600; line-height: 1.1; border-radius: 6px !important; display: inline-block !important; min-width: 60px !important; text-align: center !important;">
+                      <span class="priority-badge" style="background-color: {{ $priorityColor['bg'] }} !important; color: {{ $priorityColor['text'] }} !important; border: 1px solid {{ $priorityColor['border'] }} !important; padding: 3px 6px !important; font-size: 10px !important; font-weight: 600; border-radius: 6px !important; display: inline-block !important; min-width: 70px !important; text-align: center !important;">
                         {{ $approval->complaint->getPriorityDisplayAttribute() ?? 'N/A' }}
                       </span>
                     @else
