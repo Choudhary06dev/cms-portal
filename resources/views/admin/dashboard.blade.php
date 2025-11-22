@@ -780,10 +780,7 @@
           <i data-feather="list" class="me-2" style="width: 24px; height: 24px;"></i>
           Recent Complaints
         </h5>
-        <a href="{{ route('admin.complaints.index') }}" class="btn btn-accent btn-sm">
-          <i data-feather="arrow-right" class="me-1" style="width: 16px; height: 16px;"></i>
-          View All
-        </a>
+        <a href="{{ route('admin.complaints.index') }}" class="btn btn-outline-warning btn-sm">View All</a>
       </div>
       <div class="table-responsive">
         <table class="table table-dark" style="table-layout: auto; width: 100%;">
