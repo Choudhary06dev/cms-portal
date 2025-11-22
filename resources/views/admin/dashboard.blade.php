@@ -795,7 +795,7 @@
               <th style="width: 15%;">Assigned To</th>
               <th style="width: 18%;">Status</th>
               <th style="width: 12%;">Priority</th>
-              <th style="width: 17%;">Registered Date</th>
+              <th style="width: 17%;">Registered Date/Time</th>
             </tr>
           </thead>
           <tbody>
@@ -869,7 +869,7 @@
               </td>
               <td>
                 <span style="font-size: 0.875rem;">
-                  {{ $complaint->created_at ? $complaint->created_at->format('d M Y') : 'N/A' }}
+                  {{ $complaint->created_at ? $complaint->created_at->format('M d, Y H:i') : 'N/A' }}
                 </span>
               </td>
             </tr>
@@ -902,28 +902,48 @@
             <a href="{{ route('admin.approvals.index') }}" class="btn btn-outline-warning btn-sm">View All</a>
           </div>
           <div class="table-responsive">
-            <table class="table table-dark">
+            <table class="table table-dark" style="font-size: 0.8rem;">
               <thead>
                 <tr>
-                  <th>Complaint ID</th>
-                  <th>Complainant</th>
-                  <th>Employee Assigned</th>
-                  <th>Items</th>
-                  <th>Registration Date/Time</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th style="width: 8%; padding: 0.4rem 0.5rem !important;">Complaint ID</th>
+                  <th style="width: 15%; padding: 0.4rem 0.5rem !important;">Complainant</th>
+                  <th style="width: 12%; padding: 0.4rem 0.5rem !important;">Employee Assigned</th>
+                  <th style="width: 11%; padding: 0.4rem 0.5rem !important;">Category</th>
+                  <th style="width: 10%; padding: 0.4rem 0.5rem !important;">Status</th>
+                  <th style="width: 11%; padding: 0.4rem 0.5rem !important;">Priority</th>
+                  <th style="width: 15%; padding: 0.4rem 0.5rem !important;">Registration Date/Time</th>
+                  <th style="width: 10%; padding: 0.4rem 0.5rem !important;">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @foreach($pendingApprovals as $approval)
                 <tr>
-                  <td>{{ $approval->complaint ? (int)$approval->complaint->id : 'N/A' }}</td>
-                  <td>{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
-                  <td>{{ $approval->requestedBy->name ?? 'N/A' }}</td>
-                 
-                  <td>{{ $approval->items ? $approval->items->count() : 0 }} items</td>
-                  <td>{{ $approval->created_at->format('M d, Y H:i') }}</td>
-                  <td>
+                  <td style="padding: 0.4rem 0.5rem !important;">{{ $approval->complaint ? (int)$approval->complaint->id : 'N/A' }}</td>
+                  <td style="padding: 0.4rem 0.5rem !important;">{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
+                  <td style="padding: 0.4rem 0.5rem !important;">{{ $approval->requestedBy->name ?? 'N/A' }}</td>
+                  <td style="padding: 0.4rem 0.5rem !important;">
+                    @if($approval->complaint)
+                      @php
+                        $category = $approval->complaint->category ?? 'N/A';
+                        $categoryDisplay = [
+                          'electric' => 'Electric',
+                          'technical' => 'Technical',
+                          'service' => 'Service',
+                          'billing' => 'Billing',
+                          'water' => 'Water Supply',
+                          'sanitary' => 'Sanitary',
+                          'plumbing' => 'Plumbing',
+                          'kitchen' => 'Kitchen',
+                          'other' => 'Other',
+                        ];
+                        $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                      @endphp
+                      <span style="font-size: 0.75rem;">{{ $catDisplay }}</span>
+                    @else
+                      <span style="font-size: 0.75rem;">N/A</span>
+                    @endif
+                  </td>
+                  <td style="padding: 0.4rem 0.5rem !important;">
                     @php
                       $statusColors = [
                         'pending' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#991b1b'],
@@ -936,7 +956,27 @@
                       {{ $approval->getStatusDisplayAttribute() }}
                     </span>
                   </td>
-                  <td>
+                  <td style="padding: 0.4rem 0.5rem !important;">
+                    @if($approval->complaint)
+                      @php
+                        $priority = $approval->complaint->priority ?? 'medium';
+                        $priorityColors = [
+                          'urgent' => ['bg' => '#991b1b', 'text' => '#ffffff', 'border' => '#7f1d1d'],
+                          'high' => ['bg' => '#c2410c', 'text' => '#ffffff', 'border' => '#9a3412'],
+                          'medium' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'],
+                          'low' => ['bg' => '#15803d', 'text' => '#ffffff', 'border' => '#166534'],
+                        ];
+                        $priorityColor = $priorityColors[$priority] ?? ['bg' => '#6b7280', 'text' => '#ffffff', 'border' => '#4b5563'];
+                      @endphp
+                      <span class="priority-badge" style="background-color: {{ $priorityColor['bg'] }} !important; color: {{ $priorityColor['text'] }} !important; border: 1px solid {{ $priorityColor['border'] }} !important; padding: 3px 6px !important; font-size: 10px !important; font-weight: 600; line-height: 1.1; border-radius: 6px !important; display: inline-block !important; min-width: 60px !important; text-align: center !important;">
+                        {{ $approval->complaint->getPriorityDisplayAttribute() ?? 'N/A' }}
+                      </span>
+                    @else
+                      <span style="font-size: 0.75rem;">N/A</span>
+                    @endif
+                  </td>
+                  <td style="padding: 0.4rem 0.5rem !important; font-size: 0.75rem;">{{ $approval->created_at->format('M d, Y H:i') }}</td>
+                  <td style="padding: 0.4rem 0.5rem !important;">
                     <a href="{{ route('admin.approvals.show', $approval->id) }}" class="btn btn-xs btn-outline-primary" style="padding: 0.15rem 0.4rem; font-size: 0.7rem; line-height: 1.2;">
                       <i data-feather="eye" class="me-1" style="width: 8px; height: 8px;"></i>View
                     </a>
