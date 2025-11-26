@@ -43,13 +43,28 @@
                     class="d-flex flex-wrap align-items-end gap-2">
                     @csrf
                     <div style="min-width: 200px; flex: 0 0 220px;">
+                        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">CMES
+                            <span class="text-danger">*</span></label>
+                        <select name="cme_id" id="createCmeId" class="form-select @error('cme_id') is-invalid @enderror" required>
+                            <option value="">Select CMES</option>
+                            @foreach(($cmes ?? collect()) as $cme)
+                                <option value="{{ $cme->id }}" {{ old('cme_id') == $cme->id ? 'selected' : '' }}>
+                                    {{ $cme->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('cme_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div style="min-width: 200px; flex: 0 0 220px;">
                         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">GE Groups
                             <span class="text-danger">*</span></label>
-                        <select name="city_id" class="form-select @error('city_id') is-invalid @enderror" required>
+                        <select name="city_id" id="createCityId" class="form-select @error('city_id') is-invalid @enderror" required>
                             <option value="">Select GE Groups</option>
                             @if (isset($cities) && $cities->count() > 0)
                                 @foreach ($cities as $city)
-                                    <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}"
+                                    <option value="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" data-cme-id="{{ $city->cme_id }}"
                                         {{ old('city_id') == $city->id ? 'selected' : '' }}>
                                         {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                                     </option>
@@ -99,6 +114,7 @@
                                 <th style="width:70px">#</th>
                                 <th>GE Nodes Name</th>
                                 <th>GE Groups</th>
+                                <th>CMES</th>
                                 <th style="width:140px">Status</th>
                                 <th style="width:180px">Actions</th>
                             </tr>
@@ -109,6 +125,7 @@
                                     <td>{{ $sector->id }}</td>
                                     <td>{{ $sector->name }}</td>
                                     <td>{{ $sector->city ? $sector->city->name : 'N/A' }}</td>
+                                    <td>{{ $sector->city && $sector->city->cme ? $sector->city->cme->name : 'N/A' }}</td>
                                     <td>
                                         <span class="badge {{ $sector->status === 'active' ? 'bg-success' : 'bg-danger' }}"
                                             style="color: #ffffff !important;">{{ ucfirst($sector->status) }}</span>
@@ -118,7 +135,8 @@
                                             <button type="button" class="btn btn-outline-primary btn-sm"
                                                 data-bs-toggle="modal" data-bs-target="#editSectorModal"
                                                 data-id="{{ $sector->id }}" data-city-id="{{ $sector->city_id }}"
-                                                data-name="{{ $sector->name }}" data-status="{{ $sector->status }}" title="Edit" style="padding: 3px 8px;">
+                                                data-name="{{ $sector->name }}" data-status="{{ $sector->status }}"
+                                                data-cme-id="{{ $sector->city->cme_id ?? '' }}" title="Edit" style="padding: 3px 8px;">
                                                 <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                                             </button>
                                             <form action="{{ route('admin.sector.destroy', $sector) }}" method="POST"
@@ -134,7 +152,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">No GE Nodes yet.</td>
+                                    <td colspan="6" class="text-center text-muted">No GE Nodes yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -169,13 +187,22 @@
                         @method('PUT')
                         <div class="modal-body">
                             <div class="mb-3">
+                                <label class="form-label">CMES <span class="text-danger">*</span></label>
+                                <select name="cme_id" id="editSectorCmeId" class="form-select" required>
+                                    <option value="">Select CMES</option>
+                                    @foreach(($cmes ?? collect()) as $cme)
+                                        <option value="{{ $cme->id }}">{{ $cme->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">GE Groups <span class="text-danger">*</span></label>
                                 <select name="city_id" id="editSectorCityId" class="form-select" required>
                                     <option value="">Select GE Groups</option>
                                     @if (isset($cities) && $cities->count() > 0)
                                         @foreach ($cities as $city)
                                             <option value="{{ $city->id }}"
-                                                data-province="{{ $city->province ?? '' }}">
+                                                data-province="{{ $city->province ?? '' }}" data-cme-id="{{ $city->cme_id }}">
                                                 {{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}
                                             </option>
                                         @endforeach
@@ -208,6 +235,35 @@
         @push('scripts')
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
+                    const filterCityOptions = (cmeSelect, citySelect) => {
+                        if (!cmeSelect || !citySelect) return;
+                        const selectedCme = cmeSelect.value;
+                        Array.from(citySelect.options).forEach(option => {
+                            if (!option.value) {
+                                option.hidden = false;
+                                return;
+                            }
+                            const optionCme = option.getAttribute('data-cme-id');
+                            const matches = !selectedCme || optionCme === selectedCme;
+                            option.hidden = !matches;
+                        });
+
+                        if (selectedCme) {
+                            const selectedOption = citySelect.options[citySelect.selectedIndex];
+                            if (!selectedOption || selectedOption.hidden) {
+                                citySelect.value = '';
+                            }
+                        }
+                    };
+
+                    // Create form cascading dropdowns
+                    const createCmeSelect = document.getElementById('createCmeId');
+                    const createCitySelect = document.getElementById('createCityId');
+                    if (createCmeSelect && createCitySelect) {
+                        filterCityOptions(createCmeSelect, createCitySelect);
+                        createCmeSelect.addEventListener('change', () => filterCityOptions(createCmeSelect, createCitySelect));
+                    }
+
                     // AJAX delete to remove only from table (not DB hard delete)
                     document.querySelectorAll('form.sector-delete-form').forEach(function(form) {
                         form.addEventListener('submit', function(e) {
@@ -252,19 +308,32 @@
                         const button = event.relatedTarget;
                         const id = button.getAttribute('data-id');
                         const cityId = button.getAttribute('data-city-id');
+                        const cmeId = button.getAttribute('data-cme-id');
                         const name = button.getAttribute('data-name');
                         const status = button.getAttribute('data-status');
                         const form = document.getElementById('editSectorForm');
                         const nameInput = document.getElementById('editSectorName');
                         const citySelect = document.getElementById('editSectorCityId');
                         const statusSelect = document.getElementById('editSectorStatus');
+                        const cmeSelect = document.getElementById('editSectorCmeId');
 
                         if (form && id) {
                             form.action = `${window.location.origin}/admin/sector/${id}`;
                         }
                         if (nameInput) nameInput.value = name || '';
-                        if (citySelect && cityId) citySelect.value = cityId;
                         if (statusSelect) statusSelect.value = status || 'active';
+                        if (cmeSelect) {
+                            cmeSelect.value = cmeId || '';
+                            cmeSelect.onchange = () => filterCityOptions(cmeSelect, citySelect);
+                            filterCityOptions(cmeSelect, citySelect);
+                        }
+                        if (citySelect && cityId) {
+                            citySelect.value = cityId;
+                            const selectedOption = citySelect.options[citySelect.selectedIndex];
+                            if (!selectedOption || selectedOption.hidden) {
+                                citySelect.value = '';
+                            }
+                        }
                     });
                 });
             </script>

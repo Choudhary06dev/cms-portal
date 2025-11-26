@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Complaint;
-use App\Models\User;
-use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Spare;
 use App\Models\ComplaintCategory;
@@ -20,35 +18,194 @@ class HomeController extends Controller
     use LocationFilterTrait;
     
     /**
-     * Apply location-based filtering to complaints query for frontend
-     * Filters directly on complaint's city_id and sector_id fields
-     * 
-     * Logic:
-     * - If user's city_id and sector_id both are null → show all data (no filter)
-     * - If user's city_id exists but sector_id is null → show only that city's data
-     * - If user's sector_id exists → show only that sector's data
+     * Apply location-based filtering to complaints query for frontend users
+     * using the GE Groups/Nodes assigned via frontend_user_locations records.
      */
-    protected function filterComplaintsByLocationForFrontend($query, $user)
+    protected function filterComplaintsByLocationForFrontend($query, $user, ?array $locationScope = null)
     {
+        $scope = $locationScope ?? $this->getFrontendUserLocationScope($user);
+
+        return $this->applyFrontendLocationScope($query, $scope);
+    }
+
+    /**
+     * Build location scope (cities and sectors) assigned to frontend user
+     */
+    protected function getFrontendUserLocationScope($user): array
+    {
+        $scope = [
+            'restricted' => false,
+            'city_ids' => [],
+            'sector_ids' => [],
+            'city_sector_map' => [],
+            'sector_city_map' => [],
+        ];
+
         if (!$user) {
+            return $scope;
+        }
+
+        if (!method_exists($user, 'locations')) {
+            return $scope;
+        }
+
+        $locations = $user->locations()->get();
+        if ($locations->isEmpty()) {
+            return $scope;
+        }
+
+        $scope['restricted'] = true;
+
+        foreach ($locations as $location) {
+            if ($location->sector_id) {
+                $scope['sector_ids'][] = $location->sector_id;
+                $scope['sector_city_map'][$location->sector_id] = $location->city_id;
+                if ($location->city_id) {
+                    $scope['city_sector_map'][$location->city_id][] = $location->sector_id;
+                }
+            } elseif ($location->city_id) {
+                $scope['city_ids'][] = $location->city_id;
+            }
+        }
+
+        $scope['city_ids'] = array_values(array_unique($scope['city_ids']));
+        $scope['sector_ids'] = array_values(array_unique($scope['sector_ids']));
+        foreach ($scope['city_sector_map'] as $cityId => $sectorIds) {
+            $scope['city_sector_map'][$cityId] = array_values(array_unique($sectorIds));
+        }
+
+        return $scope;
+    }
+
+    /**
+     * Apply location scope (cities/sectors) to a query builder
+     */
+    protected function applyFrontendLocationScope($query, array $scope, string $cityColumn = 'city_id', string $sectorColumn = 'sector_id')
+    {
+        if (empty($scope['restricted'])) {
             return $query;
         }
 
-        // If both city_id and sector_id are null → show all data (no filter)
-        if (!$user->city_id && !$user->sector_id) {
-            return $query; // No filtering, show all data
+        $cityIds = $scope['city_ids'] ?? [];
+        $sectorIds = $scope['sector_ids'] ?? [];
+
+        if (empty($cityIds) && empty($sectorIds)) {
+            return $query->whereRaw('1 = 0');
         }
 
-        // If sector_id exists → filter by sector (priority)
-        if ($user->sector_id) {
-            $query->where('sector_id', $user->sector_id);
-        }
-        // If only city_id exists (sector_id is null) → filter by city
-        elseif ($user->city_id) {
-            $query->where('city_id', $user->city_id);
+        return $query->where(function ($q) use ($cityIds, $sectorIds, $cityColumn, $sectorColumn) {
+            $applied = false;
+            if (!empty($sectorIds)) {
+                $q->whereIn($sectorColumn, $sectorIds);
+                $applied = true;
+            }
+            if (!empty($cityIds)) {
+                $method = $applied ? 'orWhereIn' : 'whereIn';
+                $q->{$method}($cityColumn, $cityIds);
+            }
+        });
+    }
+
+    /**
+     * Determine if selected city is accessible for frontend user
+     */
+    protected function canAccessCity(?int $cityId, array $scope): bool
+    {
+        if (!$cityId) {
+            return true;
         }
 
-        return $query;
+        if (empty($scope['restricted'])) {
+            return true;
+        }
+
+        if (!empty($scope['city_ids']) && in_array($cityId, $scope['city_ids'])) {
+            return true;
+        }
+
+        // City accessible through sector-level assignments (used for dropdown visibility)
+        if (!empty($scope['city_sector_map']) && array_key_exists($cityId, $scope['city_sector_map'])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if selected sector is accessible for frontend user
+     */
+    protected function canAccessSector(?int $sectorId, array $scope): bool
+    {
+        if (!$sectorId) {
+            return true;
+        }
+
+        if (empty($scope['restricted'])) {
+            return true;
+        }
+
+        if (!empty($scope['sector_ids']) && in_array($sectorId, $scope['sector_ids'])) {
+            return true;
+        }
+
+        if (!empty($scope['city_ids'])) {
+            $sectorCityId = $this->resolveSectorCity($sectorId, $scope);
+            if ($sectorCityId && in_array($sectorCityId, $scope['city_ids'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get sectors permitted within a specific city for the current scope
+     */
+    protected function getPermittedSectorsForCity(int $cityId, array $scope): array
+    {
+        if (!empty($scope['city_ids']) && in_array($cityId, $scope['city_ids'])) {
+            // Entire city is accessible
+            return [];
+        }
+
+        return $scope['city_sector_map'][$cityId] ?? [];
+    }
+
+    /**
+     * Resolve sector's city via cached data or database lookup
+     */
+    protected function resolveSectorCity(int $sectorId, array $scope): ?int
+    {
+        if (!empty($scope['sector_city_map']) && array_key_exists($sectorId, $scope['sector_city_map'])) {
+            return $scope['sector_city_map'][$sectorId];
+        }
+
+        static $sectorCityCache = [];
+        if (array_key_exists($sectorId, $sectorCityCache)) {
+            return $sectorCityCache[$sectorId];
+        }
+
+        $sector = Sector::find($sectorId);
+        $sectorCityCache[$sectorId] = $sector ? $sector->city_id : null;
+
+        return $sectorCityCache[$sectorId];
+    }
+
+    /**
+     * Return list of city IDs that should appear in GE Group dropdown
+     */
+    protected function getAccessibleCityIdsForDropdown(array $scope): ?array
+    {
+        if (empty($scope['restricted'])) {
+            return null;
+        }
+
+        $cityIds = $scope['city_ids'] ?? [];
+        $derivedCityIds = array_keys($scope['city_sector_map'] ?? []);
+
+        $combined = array_unique(array_merge($cityIds, $derivedCityIds));
+
+        return empty($combined) ? null : $combined;
     }
     
     public function index()
@@ -65,6 +222,7 @@ class HomeController extends Controller
     {
         // Get logged-in user
         $user = Auth::user();
+        $locationScope = $this->getFrontendUserLocationScope($user);
         
         // Get filter parameters
         $cityId = $request->get('city_id');
@@ -77,60 +235,39 @@ class HomeController extends Controller
         $complaintsQuery = Complaint::query();
         
         // Apply location filtering based on GE Group (city_id) and GE Node (sector_id) selections
-        // Priority: Selected filters > User location restrictions
-        
-        // If GE Group (city_id) is selected, filter by that city
+        $hasRestrictions = !empty($locationScope['restricted']);
+
         if ($cityId) {
-            $complaintsQuery->where('city_id', $cityId);
-            
-            // If GE Node (sector_id) is also selected, filter by that sector within the selected city
-            if ($sectorId) {
-                $complaintsQuery->where('sector_id', $sectorId);
-            }
-        } 
-        // If only GE Node (sector_id) is selected (without city)
-        elseif ($sectorId) {
-            $complaintsQuery->where('sector_id', $sectorId);
-        }
-        // If no filters selected, apply user's default location restrictions
-        else {
-            $this->filterComplaintsByLocationForFrontend($complaintsQuery, $user);
-        }
-        
-        // Validate that selected filters are within user's allowed scope
-        // If user's city_id and sector_id both are null → no validation needed (can access all)
-        // If user's city_id exists → selected city_id must match user's city_id
-        // If user's sector_id exists → selected sector_id must match user's sector_id
-        if ($user) {
-            // If user has sector_id, validate selected sector_id
-            if ($user->sector_id) {
-                if ($sectorId && $sectorId != $user->sector_id) {
-                    // User trying to access sector outside their scope - show nothing
-                    $complaintsQuery->whereRaw('1 = 0');
-                }
-                // Also validate city_id if selected (should match sector's city)
-                if ($cityId) {
-                    $sector = Sector::find($user->sector_id);
-                    if ($sector && $sector->city_id != $cityId) {
+            if ($this->canAccessCity((int) $cityId, $locationScope)) {
+                if (!empty($locationScope['city_ids']) && in_array((int) $cityId, $locationScope['city_ids'])) {
+                    $complaintsQuery->where('city_id', $cityId);
+                } else {
+                    $allowedSectors = $this->getPermittedSectorsForCity((int) $cityId, $locationScope);
+                    if (!empty($allowedSectors)) {
+                        $complaintsQuery->whereIn('sector_id', $allowedSectors);
+                    } else {
                         $complaintsQuery->whereRaw('1 = 0');
                     }
                 }
-            }
-            // If user has city_id but no sector_id, validate selected city_id
-            elseif ($user->city_id) {
-                if ($cityId && $cityId != $user->city_id) {
-                    // User trying to access city outside their scope - show nothing
-                    $complaintsQuery->whereRaw('1 = 0');
-                }
-                // Validate sector_id if selected (should belong to user's city)
+
                 if ($sectorId) {
-                    $sector = Sector::find($sectorId);
-                    if ($sector && $sector->city_id != $user->city_id) {
+                    if ($this->canAccessSector((int) $sectorId, $locationScope)) {
+                        $complaintsQuery->where('sector_id', $sectorId);
+                    } else {
                         $complaintsQuery->whereRaw('1 = 0');
                     }
                 }
+            } else {
+                $complaintsQuery->whereRaw('1 = 0');
             }
-            // If both are null, no validation needed (user can access all)
+        } elseif ($sectorId) {
+            if ($this->canAccessSector((int) $sectorId, $locationScope)) {
+                $complaintsQuery->where('sector_id', $sectorId);
+            } else {
+                $complaintsQuery->whereRaw('1 = 0');
+            }
+        } elseif ($hasRestrictions) {
+            $this->filterComplaintsByLocationForFrontend($complaintsQuery, $user, $locationScope);
         }
         
         if ($category && $category !== 'all') {
@@ -179,15 +316,11 @@ class HomeController extends Controller
                   ->orWhere('name', 'LIKE', '%age%');
             })
             ->where('status', 'active');
-        
-        // Apply location filter to GE Groups dropdown based on user's city_id
-        // If user's city_id and sector_id both are null → show all GE Groups
-        // If user's city_id exists → show only that city's GE Group
-        if ($user && $user->city_id) {
-            $geGroupsQuery->where('id', $user->city_id);
+
+        $accessibleCityIds = $this->getAccessibleCityIdsForDropdown($locationScope);
+        if (!empty($accessibleCityIds)) {
+            $geGroupsQuery->whereIn('id', $accessibleCityIds);
         }
-        // If user's sector_id exists (but city_id might be null), show all GE Groups
-        // (because sector belongs to a city, but we want to show all cities in dropdown)
         
         $geGroups = $geGroupsQuery->orderBy('name')->get();
         
@@ -197,15 +330,14 @@ class HomeController extends Controller
         // If user's city_id and sector_id both are null → show all GE Nodes
         // If user's city_id exists but sector_id is null → show only that city's sectors
         // If user's sector_id exists → show only that sector
-        if ($user) {
-            if ($user->sector_id) {
-                // If user has sector_id, show only that sector
-                $geNodes->where('id', $user->sector_id);
-            } elseif ($user->city_id) {
-                // If user has city_id but no sector_id, show sectors for that city
-                $geNodes->where('city_id', $user->city_id);
+        if (!empty($locationScope['restricted'])) {
+            if (!empty($locationScope['sector_ids'])) {
+                $geNodes->whereIn('id', $locationScope['sector_ids']);
+            } elseif (!empty($locationScope['city_ids'])) {
+                $geNodes->whereIn('city_id', $locationScope['city_ids']);
+            } elseif (!empty($locationScope['city_sector_map'])) {
+                $geNodes->whereIn('city_id', array_keys($locationScope['city_sector_map']));
             }
-            // If both are null, show all sectors (no filter)
         }
         
         // Apply manual city filter if provided (for when user selects a GE Group)
@@ -294,15 +426,15 @@ class HomeController extends Controller
         $page = request()->get('page', 1);
         $perPage = 5;
         $recentComplaintsQuery = Complaint::with(['client', 'assignedEmployee']);
-        $this->filterComplaintsByLocationForFrontend($recentComplaintsQuery, $user);
+        $this->filterComplaintsByLocationForFrontend($recentComplaintsQuery, $user, $locationScope);
         $recentComplaints = $recentComplaintsQuery->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
         $self = $this; // Store reference for use in closure
         $pendingApprovals = class_exists(\App\Models\SpareApprovalPerforma::class)
             ? \App\Models\SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare'])
-                ->whereHas('complaint', function($q) use ($user, $self) {
-                    $self->filterComplaintsByLocationForFrontend($q, $user);
+                ->whereHas('complaint', function($q) use ($user, $self, $locationScope) {
+                    $self->filterComplaintsByLocationForFrontend($q, $user, $locationScope);
                 })
                 ->where('status', 'pending')
                 ->orderBy('created_at', 'desc')
@@ -310,13 +442,19 @@ class HomeController extends Controller
                 ->get()
             : collect();
 
-        $lowStockItems = method_exists(Spare::class, 'lowStock')
-            ? Spare::lowStock()->orderBy('stock_quantity', 'asc')->limit(10)->get()
-            : collect();
+        $lowStockItems = collect();
+        if (method_exists(Spare::class, 'lowStock')) {
+            $lowStockItemsQuery = Spare::lowStock();
+            $this->applyFrontendLocationScope($lowStockItemsQuery, $locationScope);
+            $lowStockItems = $lowStockItemsQuery
+                ->orderBy('stock_quantity', 'asc')
+                ->limit(10)
+                ->get();
+        }
 
         $overdueComplaintsQuery = Complaint::whereIn('status', ['new', 'assigned', 'in_progress'])
             ->with(['client', 'assignedEmployee']);
-        $this->filterComplaintsByLocationForFrontend($overdueComplaintsQuery, $user);
+        $this->filterComplaintsByLocationForFrontend($overdueComplaintsQuery, $user, $locationScope);
         $overdueComplaints = $overdueComplaintsQuery->orderBy('created_at', 'asc')
             ->limit(10)
             ->get();
@@ -366,11 +504,12 @@ class HomeController extends Controller
 
         $employeePerformanceQuery = Employee::query();
         $this->filterEmployeesByLocation($employeePerformanceQuery, $user);
+        $this->applyFrontendLocationScope($employeePerformanceQuery, $locationScope);
         $employeePerformance = $employeePerformanceQuery
-            ->withCount(['assignedComplaints' => function($query) use ($user, $self) {
+            ->withCount(['assignedComplaints' => function($query) use ($user, $self, $locationScope) {
                 $query->where('created_at', '>=', now()->subDays(30));
                 // Apply location filter to assigned complaints count
-                $self->filterComplaintsByLocationForFrontend($query, $user);
+                $self->filterComplaintsByLocationForFrontend($query, $user, $locationScope);
             }])
             ->orderBy('assigned_complaints_count', 'desc')
             ->limit(5)

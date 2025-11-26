@@ -10,6 +10,7 @@ class Sector extends Model
     use HasFactory;
 
     protected $fillable = [
+        'cme_id',
         'city_id',
         'name',
         'status',
@@ -21,5 +22,13 @@ class Sector extends Model
     public function city()
     {
         return $this->belongsTo(City::class, 'city_id', 'id');
+    }
+
+    /**
+     * Get the CME that owns the sector.
+     */
+    public function cme()
+    {
+        return $this->belongsTo(Cme::class, 'cme_id', 'id');
     }
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\ComplaintTitleController as AdminComplaintTitleController;
 use App\Http\Controllers\Admin\SectorController as AdminSectorController;
 use App\Http\Controllers\Admin\CityController as AdminCityController;
+use App\Http\Controllers\Admin\CmeController as AdminCmeController;
 use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\SearchController;
@@ -196,6 +197,13 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     // 🏢 Cities
     // ===============================
     Route::resource('city', AdminCityController::class)
+        ->only(['index','store','update','destroy'])
+        ->middleware(['permission:city.view']);
+
+    // ===============================
+    // 🏢 CMES
+    // ===============================
+    Route::resource('cmes', AdminCmeController::class)
         ->only(['index','store','update','destroy'])
         ->middleware(['permission:city.view']);
 

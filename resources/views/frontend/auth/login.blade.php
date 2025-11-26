@@ -381,7 +381,7 @@
           @endif
         
           <div class="mb-3">
-          <label class="navy-form-label">Email or phone number</label>
+          <label class="navy-form-label">Username / Email / Phone</label>
           <input type="text" name="username" class="navy-form-control" value="{{ old('username') }}" required autofocus>
           </div>
         

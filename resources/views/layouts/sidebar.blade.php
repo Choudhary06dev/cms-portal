@@ -108,6 +108,11 @@
     </a>
     @endif
     @if($user && ($user->hasPermission('city') || $userRole === 'director' || $userRole === 'admin'))
+    <a href="{{ route('admin.cmes.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.cmes.*') ? 'active' : '' }}">
+      <i data-feather="layers" class="me-2"></i> CMES
+    </a>
+    @endif
+    @if($user && ($user->hasPermission('city') || $userRole === 'director' || $userRole === 'admin'))
     <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}">
       <i data-feather="map" class="me-2"></i> GE Groups
     </a>

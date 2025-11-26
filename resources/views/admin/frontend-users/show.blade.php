@@ -22,7 +22,7 @@
         <i data-feather="user" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
         <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Personal Information</h5>
       </div>
-      
+
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="user" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
@@ -32,7 +32,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="at-sign" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
@@ -42,7 +42,7 @@
           </div>
         </div>
       </div>
-      
+
       @if($frontend_user->email)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
@@ -54,7 +54,7 @@
         </div>
       </div>
       @endif
-      
+
       @if($frontend_user->phone)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
@@ -68,7 +68,7 @@
       @endif
     </div>
   </div>
-  
+
   <!-- Account Information -->
   <div class="col-md-6 mb-4">
     <div class="card-glass h-100">
@@ -76,7 +76,7 @@
         <i data-feather="shield" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
         <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Account Information</h5>
       </div>
-      
+
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="activity" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
@@ -95,7 +95,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="calendar" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
@@ -105,7 +105,7 @@
           </div>
         </div>
       </div>
-      
+
       @if($frontend_user->updated_at && $frontend_user->updated_at != $frontend_user->created_at)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
@@ -128,7 +128,7 @@
     <i data-feather="map-pin" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
     <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Assigned GE Groups & Nodes</h5>
   </div>
-  
+
   @php
     // Group locations by city
     $groupedLocations = [];
@@ -150,9 +150,9 @@
     <div class="mb-3 pb-3" style="border-bottom: 1px solid rgba(59, 130, 246, 0.1);">
       <div class="d-flex align-items-center mb-2">
         <i data-feather="map" class="me-2 text-info" style="width: 16px; height: 16px;"></i>
-        <span class="text-white fw-bold" style="font-size: 1rem;">{{ $location['city']->name ?? 'N/A' }}</span>
+        <span class="text-white fw-bold" style="font-size: 1rem;">{{ isset($location['city']) && $location['city'] ? $location['city']->name : 'N/A' }}</span>
       </div>
-      
+
       @if(count($location['sectors']) > 0)
         <div class="ms-4">
           @foreach($location['sectors'] as $sector)
@@ -182,6 +182,8 @@
   </div>
 </div>
 @endif
+
+
 @endsection
 
 @push('styles')
@@ -194,4 +196,3 @@
   });
 </script>
 @endpush
-

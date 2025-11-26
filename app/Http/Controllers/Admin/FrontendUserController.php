@@ -52,7 +52,18 @@ class FrontendUserController extends Controller
      */
     public function create()
     {
-        return view('admin.frontend-users.create');
+        // Get CMEs with their cities and sectors
+        $cmes = DB::table('cmes')
+            ->select('cmes.id', 'cmes.name as cme_name', 'cities.id as city_id', 'cities.name as city_name', 'sectors.id as sector_id', 'sectors.name as sector_name')
+            ->leftJoin('cities', 'cmes.id', '=', 'cities.cme_id')
+            ->leftJoin('sectors', 'cmes.id', '=', 'sectors.cme_id')
+            ->where('cmes.status', '=', 'active')
+            ->orderBy('cmes.name')
+            ->orderBy('cities.name')
+            ->orderBy('sectors.name')
+            ->get();
+
+        return view('admin.frontend-users.create', compact('cmes'));
     }
 
     /**
@@ -82,8 +93,32 @@ class FrontendUserController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'status' => $request->status,
-            // role_id, city_id, sector_id are not set - will be null
         ]);
+
+        // Handle "Grant all privileges" (Super Admin)
+        if ($request->has('is_super_admin') && $request->is_super_admin == 1) {
+            // Assign ALL CMEs
+            $allCmes = DB::table('cmes')->where('status', 'active')->pluck('id');
+            foreach ($allCmes as $cmeId) {
+                DB::table('frontend_user_cmes')->insert([
+                    'frontend_user_id' => $user->id,
+                    'cme_id' => $cmeId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Assign ALL Cities
+            $allCities = DB::table('cities')->where('status', 'active')->pluck('id');
+            foreach ($allCities as $cityId) {
+                DB::table('frontend_user_cities')->insert([
+                    'frontend_user_id' => $user->id,
+                    'city_id' => $cityId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
 
         return redirect()->route('admin.frontend-users.index')
             ->with('success', 'Frontend user created successfully.');
@@ -102,11 +137,33 @@ class FrontendUserController extends Controller
                 ->get();
         }
 
+        // Load CME and city privileges
+        $userCmeIds = DB::table('frontend_user_cmes')
+            ->where('frontend_user_id', $frontend_user->id)
+            ->pluck('cme_id')
+            ->toArray();
+
+        $userCityIds = DB::table('frontend_user_cities')
+            ->where('frontend_user_id', $frontend_user->id)
+            ->pluck('city_id')
+            ->toArray();
+
+        // Get all CMEs with their cities for display
+        $cmes = DB::table('cmes')
+            ->select('cmes.id', 'cmes.name as cme_name', 'cities.id as city_id', 'cities.name as city_name')
+            ->leftJoin('cities', 'cmes.id', '=', 'cities.cme_id')
+            ->where('cmes.status', '=', 'active')
+            ->orderBy('cmes.name')
+            ->orderBy('cities.name')
+            ->get();
+
+        $groupedCmes = $cmes->groupBy('cme_name');
+
         if (request()->get('format') === 'html') {
-            return view('admin.frontend-users.show', compact('frontend_user', 'assignedLocations'));
+            return view('admin.frontend-users.show', compact('frontend_user', 'assignedLocations', 'groupedCmes', 'userCmeIds', 'userCityIds'));
         }
 
-        return view('admin.frontend-users.show', compact('frontend_user', 'assignedLocations'));
+        return view('admin.frontend-users.show', compact('frontend_user', 'assignedLocations', 'groupedCmes', 'userCmeIds', 'userCityIds'));
     }
 
     /**
@@ -114,7 +171,34 @@ class FrontendUserController extends Controller
      */
     public function edit(FrontendUser $frontend_user)
     {
-        return view('admin.frontend-users.edit', compact('frontend_user'));
+        // Get CMEs with their cities and sectors
+        $cmes = DB::table('cmes')
+            ->select('cmes.id', 'cmes.name as cme_name', 'cities.id as city_id', 'cities.name as city_name', 'sectors.id as sector_id', 'sectors.name as sector_name')
+            ->leftJoin('cities', 'cmes.id', '=', 'cities.cme_id')
+            ->leftJoin('sectors', 'cmes.id', '=', 'sectors.cme_id')
+            ->where('cmes.status', '=', 'active')
+            ->orderBy('cmes.name')
+            ->orderBy('cities.name')
+            ->orderBy('sectors.name')
+            ->get();
+
+        // Load user's current CME and city privileges
+        $userCmeIds = DB::table('frontend_user_cmes')
+            ->where('frontend_user_id', $frontend_user->id)
+            ->pluck('cme_id')
+            ->toArray();
+
+        $userCityIds = DB::table('frontend_user_cities')
+            ->where('frontend_user_id', $frontend_user->id)
+            ->pluck('city_id')
+            ->toArray();
+
+        // Determine if user is "Super Admin" (has ALL privileges)
+        $totalActiveCmes = DB::table('cmes')->where('status', 'active')->count();
+        $totalActiveCities = DB::table('cities')->where('status', 'active')->count();
+        $isSuperAdmin = (count($userCmeIds) === $totalActiveCmes) && (count($userCityIds) === $totalActiveCities) && ($totalActiveCmes > 0) && ($totalActiveCities > 0);
+
+        return view('admin.frontend-users.edit', compact('frontend_user', 'cmes', 'userCmeIds', 'userCityIds', 'isSuperAdmin'));
     }
 
     /**
@@ -151,6 +235,41 @@ class FrontendUserController extends Controller
             }
 
             $frontend_user->update($updateData);
+
+            // Handle "Grant all privileges" (Super Admin)
+            if ($request->has('is_super_admin') && $request->is_super_admin == 1) {
+                // Delete existing
+                DB::table('frontend_user_cmes')->where('frontend_user_id', $frontend_user->id)->delete();
+                DB::table('frontend_user_cities')->where('frontend_user_id', $frontend_user->id)->delete();
+
+                // Assign ALL CMEs
+                $allCmes = DB::table('cmes')->where('status', 'active')->pluck('id');
+                foreach ($allCmes as $cmeId) {
+                    DB::table('frontend_user_cmes')->insert([
+                        'frontend_user_id' => $frontend_user->id,
+                        'cme_id' => $cmeId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                // Assign ALL Cities
+                $allCities = DB::table('cities')->where('status', 'active')->pluck('id');
+                foreach ($allCities as $cityId) {
+                    DB::table('frontend_user_cities')->insert([
+                        'frontend_user_id' => $frontend_user->id,
+                        'city_id' => $cityId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            } else {
+                // If "Grant all privileges" is unchecked, remove all privileges
+                // User can then assign specific privileges via the modal
+                DB::table('frontend_user_cmes')->where('frontend_user_id', $frontend_user->id)->delete();
+                DB::table('frontend_user_cities')->where('frontend_user_id', $frontend_user->id)->delete();
+                DB::table('frontend_user_locations')->where('frontend_user_id', $frontend_user->id)->delete();
+            }
 
             return redirect()->route('admin.frontend-users.index')
                 ->with('success', 'Frontend user updated successfully.');
@@ -189,7 +308,7 @@ class FrontendUserController extends Controller
         ]);
 
         $status = $frontend_user->status === 'active' ? 'activated' : 'deactivated';
-        
+
         return redirect()->back()
             ->with('success', "Frontend user {$status} successfully.");
     }
@@ -200,7 +319,7 @@ class FrontendUserController extends Controller
     public function getAssignForm(FrontendUser $frontend_user)
     {
         $cities = City::where('status', 'active')
-            ->with(['sectors' => function($query) {
+            ->with(['cme', 'sectors' => function($query) {
                 $query->where('status', 'active')->orderBy('id', 'asc');
             }])
             ->orderBy('id', 'asc')
@@ -209,7 +328,7 @@ class FrontendUserController extends Controller
         // Get already assigned locations (if table exists)
         $assignedCityIds = [];
         $assignedSectorIds = [];
-        
+
         if (Schema::hasTable('frontend_user_locations')) {
             $assignedLocations = FrontendUserLocation::where('frontend_user_id', $frontend_user->id)->get();
             $assignedCityIds = $assignedLocations->whereNotNull('city_id')->whereNull('sector_id')->pluck('city_id')->toArray();
@@ -222,6 +341,8 @@ class FrontendUserController extends Controller
                 'id' => $city->id,
                 'name' => $city->name,
                 'status' => $city->status,
+                'cme_id' => $city->cme_id,
+                'cme_name' => $city->cme ? $city->cme->name : 'N/A',
                 'sectors' => $city->sectors->map(function($sector) {
                     return [
                         'id' => $sector->id,
@@ -237,6 +358,10 @@ class FrontendUserController extends Controller
             'cities' => $citiesData,
             'assignedCityIds' => $assignedCityIds,
             'assignedSectorIds' => $assignedSectorIds,
+            'allCmes' => DB::table('cmes')->where('status', 'active')->select('id', 'name')->orderBy('name')->get(),
+            'allCities' => DB::table('cities')->where('status', 'active')->select('id', 'name', 'cme_id')->orderBy('name')->get(),
+            'userCmeIds' => DB::table('frontend_user_cmes')->where('frontend_user_id', $frontend_user->id)->pluck('cme_id')->toArray(),
+            'userCityIds' => DB::table('frontend_user_cities')->where('frontend_user_id', $frontend_user->id)->pluck('city_id')->toArray(),
         ]);
     }
 
@@ -248,6 +373,12 @@ class FrontendUserController extends Controller
         $validator = Validator::make($request->all(), [
             'city_ids' => 'nullable|array',
             'city_ids.*' => 'exists:cities,id',
+            'sector_ids' => 'nullable|array',
+            'sector_ids.*' => 'exists:sectors,id',
+            'privilege_cme_ids' => 'nullable|array',
+            'privilege_cme_ids.*' => 'exists:cmes,id',
+            'privilege_city_ids' => 'nullable|array',
+            'privilege_city_ids.*' => 'exists:cities,id',
             'sector_ids' => 'nullable|array',
             'sector_ids.*' => 'exists:sectors,id',
         ]);
@@ -320,9 +451,63 @@ class FrontendUserController extends Controller
 
             DB::commit();
 
+            // Save Privileges
+            $privilegeCmeIds = $request->input('privilege_cme_ids', []);
+            $privilegeCityIds = $request->input('privilege_city_ids', []);
+            $sectorIds = $request->input('sector_ids', []);
+
+            // Update CME privileges
+            DB::table('frontend_user_cmes')->where('frontend_user_id', $frontend_user->id)->delete();
+            foreach ($privilegeCmeIds as $cmeId) {
+                DB::table('frontend_user_cmes')->insert([
+                    'frontend_user_id' => $frontend_user->id,
+                    'cme_id' => $cmeId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Update City privileges
+            DB::table('frontend_user_cities')->where('frontend_user_id', $frontend_user->id)->delete();
+            foreach ($privilegeCityIds as $cityId) {
+                DB::table('frontend_user_cities')->insert([
+                    'frontend_user_id' => $frontend_user->id,
+                    'city_id' => $cityId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Update Sector assignments (locations)
+            DB::table('frontend_user_locations')->where('frontend_user_id', $frontend_user->id)->delete();
+
+            // Save cities to locations (for filtering on frontend)
+            foreach ($privilegeCityIds as $cityId) {
+                DB::table('frontend_user_locations')->insert([
+                    'frontend_user_id' => $frontend_user->id,
+                    'city_id' => $cityId,
+                    'sector_id' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Save sectors to locations (for filtering on frontend)
+            foreach ($sectorIds as $sectorId) {
+                DB::table('frontend_user_locations')->insert([
+                    'frontend_user_id' => $frontend_user->id,
+                    'sector_id' => $sectorId,
+                    'city_id' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            DB::commit();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Locations assigned successfully.'
+                'message' => 'Privileges and locations assigned successfully.'
             ]);
 
         } catch (\Exception $e) {
@@ -334,4 +519,3 @@ class FrontendUserController extends Controller
         }
     }
 }
-
