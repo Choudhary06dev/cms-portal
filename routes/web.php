@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ComplaintController as AdminComplaintController;
 use App\Http\Controllers\Admin\ComplaintCrudController as AdminComplaintCrudController;
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\FrontendUserController as AdminFrontendUserController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SpareController as AdminSpareController;
 use App\Http\Controllers\Admin\ApprovalController as AdminApprovalController;
@@ -93,6 +94,18 @@ Route::middleware(['auth', 'verified', 'admin.access'])
         Route::get('users/{user}/activity', [AdminUserController::class, 'getActivityLog'])->name('users.activity');
         Route::post('users/bulk-action', [AdminUserController::class, 'bulkAction'])->name('users.bulk-action');
         Route::get('users/export', [AdminUserController::class, 'export'])->name('users.export');
+    });
+    
+    // ===============================
+    // 🌐 Frontend Users Management
+    // ===============================
+    Route::middleware(['permission:frontend-users'])->group(function () {
+        Route::resource('frontend-users', AdminFrontendUserController::class)->parameters([
+            'frontend-user' => 'frontend_user'
+        ]);
+        Route::post('frontend-users/{frontend_user}/toggle-status', [AdminFrontendUserController::class, 'toggleStatus'])->name('frontend-users.toggle-status');
+        Route::get('frontend-users/{frontend_user}/assign-locations', [AdminFrontendUserController::class, 'getAssignForm'])->name('frontend-users.assign-locations');
+        Route::post('frontend-users/{frontend_user}/assign-locations', [AdminFrontendUserController::class, 'assignLocations'])->name('frontend-users.assign-locations.save');
     });
     
     // ===============================

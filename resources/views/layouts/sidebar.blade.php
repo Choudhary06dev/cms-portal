@@ -102,6 +102,11 @@
       <i data-feather="users" class="me-2"></i> Users
     </a>
     @endif
+    @if($user && ($user->hasPermission('frontend-users') || $userRole === 'director' || $userRole === 'admin'))
+    <a href="{{ route('admin.frontend-users.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.frontend-users.*') ? 'active' : '' }}">
+      <i data-feather="user-check" class="me-2"></i> Frontend Users
+    </a>
+    @endif
     @if($user && ($user->hasPermission('city') || $userRole === 'director' || $userRole === 'admin'))
     <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}">
       <i data-feather="map" class="me-2"></i> GE Groups

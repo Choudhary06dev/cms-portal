@@ -22,4 +22,12 @@ class City extends Model
     {
         return $this->hasMany(User::class, 'city_id', 'id');
     }
+
+    /**
+     * Get the sectors for this city.
+     */
+    public function sectors(): HasMany
+    {
+        return $this->hasMany(Sector::class, 'city_id', 'id');
+    }
 }

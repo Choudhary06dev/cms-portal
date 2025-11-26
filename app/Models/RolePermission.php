@@ -32,6 +32,7 @@ class RolePermission extends Model
         return [
             'dashboard' => 'Dashboard',
             'users' => 'User Management',
+            'frontend-users' => 'Frontend Users',
             'roles' => 'Role Management',
             'employees' => 'Employee Management',
             'clients' => 'Client Management',
