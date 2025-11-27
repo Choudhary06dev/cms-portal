@@ -117,6 +117,27 @@ class FrontendUserController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                // Also assign to locations for filtering
+                DB::table('frontend_user_locations')->insert([
+                    'frontend_user_id' => $user->id,
+                    'city_id' => $cityId,
+                    'sector_id' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Assign ALL Sectors (to locations)
+            $allSectors = DB::table('sectors')->where('status', 'active')->pluck('id');
+            foreach ($allSectors as $sectorId) {
+                DB::table('frontend_user_locations')->insert([
+                    'frontend_user_id' => $user->id,
+                    'sector_id' => $sectorId,
+                    'city_id' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
         }
 
@@ -241,6 +262,7 @@ class FrontendUserController extends Controller
                 // Delete existing
                 DB::table('frontend_user_cmes')->where('frontend_user_id', $frontend_user->id)->delete();
                 DB::table('frontend_user_cities')->where('frontend_user_id', $frontend_user->id)->delete();
+                DB::table('frontend_user_locations')->where('frontend_user_id', $frontend_user->id)->delete();
 
                 // Assign ALL CMEs
                 $allCmes = DB::table('cmes')->where('status', 'active')->pluck('id');
@@ -259,6 +281,27 @@ class FrontendUserController extends Controller
                     DB::table('frontend_user_cities')->insert([
                         'frontend_user_id' => $frontend_user->id,
                         'city_id' => $cityId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    // Also assign to locations for filtering
+                    DB::table('frontend_user_locations')->insert([
+                        'frontend_user_id' => $frontend_user->id,
+                        'city_id' => $cityId,
+                        'sector_id' => null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                // Assign ALL Sectors (to locations)
+                $allSectors = DB::table('sectors')->where('status', 'active')->pluck('id');
+                foreach ($allSectors as $sectorId) {
+                    DB::table('frontend_user_locations')->insert([
+                        'frontend_user_id' => $frontend_user->id,
+                        'sector_id' => $sectorId,
+                        'city_id' => null,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);

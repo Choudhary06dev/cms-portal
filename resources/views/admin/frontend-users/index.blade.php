@@ -139,9 +139,9 @@
       <div class="modal-content card-glass"
         style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
         <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="assignLocationsModalLabel">
+          <!-- <h5 class="modal-title text-white" id="assignLocationsModalLabel">
             <i data-feather="map-pin" class="me-2"></i>Assign CME ,GE'S & Nodes
-          </h5>
+          </h5> -->
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
             onclick="closeAssignLocationsModal()"
             style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
@@ -550,6 +550,13 @@
       currentAssignUserId = userId;
       const locationsList = document.getElementById('locationsList');
 
+      // Reset Select All checkbox state
+      const selectAllCb = document.getElementById('selectAllLocations');
+      if (selectAllCb) {
+        selectAllCb.checked = false;
+        selectAllCb.indeterminate = false;
+      }
+
       locationsList.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
       document.body.classList.add('modal-open-blur');
@@ -642,6 +649,8 @@
         cmeMap[cmeId].cities.push(city);
       });
 
+      html += '<div class="row">';
+
       // Render CMEs with their cities and sectors - privileges only
       Object.keys(cmeMap).forEach(cmeId => {
         const cmeData = cmeMap[cmeId];
@@ -651,26 +660,27 @@
         const cmePrivChecked = privilegeCmeIds.map(id => parseInt(id)).includes(parseInt(cmeId));
 
         html += `
-          <div class="mb-4" style="border: 2px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 15px; background: rgba(59, 130, 246, 0.08);">
-            <!-- CME Header with Privilege Checkbox -->
-            <div class="d-flex align-items-center mb-3" style="border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding-bottom: 10px;">
-              <input type="checkbox"
-                     class="form-check-input priv-cme-checkbox"
-                     id="priv_cme_${cmeId}"
-                     data-cme-id="${cmeId}"
-                     ${cmePrivChecked ? 'checked' : ''}
-                     onchange="handlePrivCmeChange(${cmeId}, this.checked)"
-                     style="width: 20px; height: 20px; cursor: pointer; margin-right: 12px;">
-              <label for="priv_cme_${cmeId}" class="text-white fw-bold mb-0" style="cursor: pointer; font-size: 1.1rem; flex-grow: 1;">
-                CME: ${cmeData.name}
-              </label>
-              <button type="button" class="btn btn-sm btn-link text-white p-0" onclick="toggleCmeDetails('${cmeId}')" style="text-decoration: none;">
-                <i data-feather="chevron-down" style="width: 18px; height: 18px;"></i>
-              </button>
-            </div>
+          <div class="col-md-6 mb-4">
+            <div class="h-100" style="border: 2px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 15px; background: rgba(59, 130, 246, 0.08);">
+              <!-- CME Header with Privilege Checkbox -->
+              <div class="d-flex align-items-center mb-3" style="border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding-bottom: 10px;">
+                <input type="checkbox"
+                       class="form-check-input priv-cme-checkbox"
+                       id="priv_cme_${cmeId}"
+                       data-cme-id="${cmeId}"
+                       ${cmePrivChecked ? 'checked' : ''}
+                       onchange="handlePrivCmeChange(${cmeId}, this.checked)"
+                       style="width: 20px; height: 20px; cursor: pointer; margin-right: 12px;">
+                <label for="priv_cme_${cmeId}" class="text-white fw-bold mb-0" style="cursor: pointer; font-size: 1.1rem; flex-grow: 1;">
+                  CME: ${cmeData.name}
+                </label>
+                <button type="button" class="btn btn-sm btn-link text-white p-0" onclick="toggleCmeDetails('${cmeId}')" style="text-decoration: none;">
+                  <i data-feather="chevron-down" style="width: 18px; height: 18px;"></i>
+                </button>
+              </div>
 
-            <!-- Cities & GE Nodes -->
-            <div id="cme_details_${cmeId}" class="ms-3">
+              <!-- Cities & GE Nodes -->
+              <div id="cme_details_${cmeId}" class="ms-3">
         `;
 
         cmeCities.forEach(city => {
@@ -734,10 +744,13 @@
         });
 
         html += `
+              </div>
             </div>
           </div>
         `;
       });
+
+      html += '</div>';
 
       locationsList.innerHTML = html || '<div class="text-center py-5 text-muted">No data available</div>';
       updateSelectAllCheckbox();
@@ -821,12 +834,14 @@
       // Check/Uncheck all child cities
       const cityCheckboxes = document.querySelectorAll(`.priv-city-checkbox[data-cme-id="${cmeId}"]`);
       cityCheckboxes.forEach(cb => {
-        cb.checked = checked;
+        // We need to trigger the change event logic for each city
+        // This ensures that handlePrivCityChange is called, which in turn handles sectors
         const cityId = parseInt(cb.dataset.cityId);
-        if (checked) {
-          if (!privilegeCityIds.includes(cityId)) privilegeCityIds.push(cityId);
-        } else {
-          privilegeCityIds = privilegeCityIds.filter(id => parseInt(id) !== cityId);
+
+        // Only trigger if the state is actually changing
+        if (cb.checked !== checked) {
+          cb.checked = checked;
+          handlePrivCityChange(cityId, checked);
         }
       });
       updateSelectAllPrivilegesCheckbox();

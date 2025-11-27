@@ -123,52 +123,96 @@
 
 <!-- Assigned Locations -->
 @if(isset($assignedLocations) && $assignedLocations->count() > 0)
-<div class="card-glass mb-4">
-  <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+<div class="mb-4">
+  <div class="d-flex align-items-center mb-4">
     <i data-feather="map-pin" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
     <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Assigned GE Groups & Nodes</h5>
   </div>
 
   @php
-    // Group locations by city
-    $groupedLocations = [];
+    // Group locations by CME -> City
+    $groupedByCme = [];
     foreach ($assignedLocations as $location) {
-      $cityId = $location->city_id;
-      if (!isset($groupedLocations[$cityId])) {
-        $groupedLocations[$cityId] = [
-          'city' => $location->city,
+      $city = $location->city;
+      if (!$city) continue;
+
+      // Lazy load CME if not eager loaded
+      $cme = $city->cme;
+      $cmeId = $cme ? $cme->id : 'no-cme';
+      $cmeName = $cme ? $cme->name : 'Other Locations';
+
+      if (!isset($groupedByCme[$cmeId])) {
+        $groupedByCme[$cmeId] = [
+          'name' => $cmeName,
+          'cities' => []
+        ];
+      }
+
+      $cityId = $city->id;
+      if (!isset($groupedByCme[$cmeId]['cities'][$cityId])) {
+        $groupedByCme[$cmeId]['cities'][$cityId] = [
+          'name' => $city->name,
           'sectors' => []
         ];
       }
-      if ($location->sector_id && $location->sector) {
-        $groupedLocations[$cityId]['sectors'][] = $location->sector;
+
+      if ($location->sector) {
+        // Avoid duplicates if multiple rows point to same sector
+        $sectorId = $location->sector->id;
+        $exists = false;
+        foreach ($groupedByCme[$cmeId]['cities'][$cityId]['sectors'] as $s) {
+            if ($s->id === $sectorId) {
+                $exists = true;
+                break;
+            }
+        }
+        if (!$exists) {
+            $groupedByCme[$cmeId]['cities'][$cityId]['sectors'][] = $location->sector;
+        }
       }
     }
   @endphp
 
-  @foreach($groupedLocations as $location)
-    <div class="mb-3 pb-3" style="border-bottom: 1px solid rgba(59, 130, 246, 0.1);">
-      <div class="d-flex align-items-center mb-2">
-        <i data-feather="map" class="me-2 text-info" style="width: 16px; height: 16px;"></i>
-        <span class="text-white fw-bold" style="font-size: 1rem;">{{ isset($location['city']) && $location['city'] ? $location['city']->name : 'N/A' }}</span>
-      </div>
+  <div class="row">
+    @foreach($groupedByCme as $cmeData)
+      <div class="col-md-6 mb-4">
+        <div class="card-glass h-100">
+          <!-- CME Header -->
+          <div class="d-flex align-items-center mb-3 pb-2" style="border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
+            <i data-feather="layers" class="me-2 text-warning" style="width: 18px; height: 18px;"></i>
+            <h6 class="text-white mb-0 fw-bold">{{ $cmeData['name'] }}</h6>
+          </div>
 
-      @if(count($location['sectors']) > 0)
-        <div class="ms-4">
-          @foreach($location['sectors'] as $sector)
-            <div class="d-flex align-items-center mb-1">
-              <i data-feather="layers" class="me-2 text-muted" style="width: 14px; height: 14px;"></i>
-              <span class="text-white-50" style="font-size: 0.9rem;">{{ $sector->name }}</span>
-            </div>
-          @endforeach
+          <!-- Cities List -->
+          <div class="cities-list">
+            @foreach($cmeData['cities'] as $cityData)
+              <div class="mb-3 last:mb-0">
+                <div class="d-flex align-items-center mb-2">
+                  <i data-feather="map" class="me-2 text-info" style="width: 16px; height: 16px;"></i>
+                  <span class="text-light fw-bold" style="font-size: 0.95rem;">{{ $cityData['name'] }}</span>
+                </div>
+
+                @if(count($cityData['sectors']) > 0)
+                  <div class="ms-4 ps-2" style="border-left: 2px solid rgba(255, 255, 255, 0.1);">
+                    @foreach($cityData['sectors'] as $sector)
+                      <div class="d-flex align-items-center mb-1">
+                        <i data-feather="corner-down-right" class="me-2 text-muted" style="width: 14px; height: 14px;"></i>
+                        <span class="text-white-50" style="font-size: 0.9rem;">{{ $sector->name }}</span>
+                      </div>
+                    @endforeach
+                  </div>
+                @else
+                  <div class="ms-4">
+                    <span class="badge bg-secondary text-white-50" style="font-size: 0.8rem;">All Nodes</span>
+                  </div>
+                @endif
+              </div>
+            @endforeach
+          </div>
         </div>
-      @else
-        <div class="ms-4">
-          <span class="badge bg-info" style="font-size: 0.85rem;">All Nodes (City Only)</span>
-        </div>
-      @endif
-    </div>
-  @endforeach
+      </div>
+    @endforeach
+  </div>
 </div>
 @else
 <div class="card-glass mb-4">

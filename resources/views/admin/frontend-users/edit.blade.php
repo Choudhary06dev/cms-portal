@@ -160,46 +160,6 @@
 
   // Handle Super Admin checkbox and Privilege logic
   document.addEventListener('DOMContentLoaded', function() {
-    const superAdminCheckbox = document.getElementById('is_super_admin');
-    const allPrivilegeCheckboxes = document.querySelectorAll('.privilege-checkbox');
-    const cmeCheckboxes = document.querySelectorAll('.cme-checkbox');
-
-    if (superAdminCheckbox) {
-      // Toggle all checkboxes when Super Admin is clicked
-      superAdminCheckbox.addEventListener('change', function() {
-        const isChecked = this.checked;
-        allPrivilegeCheckboxes.forEach(cb => {
-          cb.checked = isChecked;
-        });
-      });
-    }
-
-    // Handle CME checkbox clicking (Select all cities under it)
-    cmeCheckboxes.forEach(cmeCb => {
-      cmeCb.addEventListener('change', function() {
-        const cmeId = this.dataset.cmeId;
-        const cityCheckboxes = document.querySelectorAll(`.city-checkbox[data-parent-cme="${cmeId}"]`);
-        cityCheckboxes.forEach(cityCb => {
-          cityCb.checked = this.checked;
-        });
-        updateSuperAdminState();
-      });
-    });
-
-    // Update Super Admin state if individual checkboxes are changed
-    allPrivilegeCheckboxes.forEach(cb => {
-      cb.addEventListener('change', updateSuperAdminState);
-    });
-
-    function updateSuperAdminState() {
-      if (!superAdminCheckbox) return;
-
-      const allChecked = Array.from(allPrivilegeCheckboxes).every(cb => cb.checked);
-      superAdminCheckbox.checked = allChecked;
-    }
-
-    // Initial check for Super Admin state
-    updateSuperAdminState();
 
     // Phone number input validation - only allow numbers
     const phoneInput = document.getElementById('phone');
