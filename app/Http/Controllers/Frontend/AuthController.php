@@ -49,15 +49,9 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $loginValue = $credentials['username'];
-        $password = $credentials['password'];
-        $remember = $request->boolean('remember');
-
-        foreach (['username', 'email', 'phone'] as $field) {
-            if (Auth::guard('frontend')->attempt([$field => $loginValue, 'password' => $password], $remember)) {
-                $request->session()->regenerate();
-                return redirect()->intended(route('frontend.dashboard'));
-            }
+        if (Auth::guard('frontend')->attempt($credentials, false)) {
+            $request->session()->regenerate();
+            return redirect()->route('frontend.dashboard');
         }
 
         return back()->withErrors([
