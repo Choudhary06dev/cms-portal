@@ -219,7 +219,8 @@ class HomeController extends Controller
         $user = Auth::user();
         $locationScope = $this->getFrontendUserLocationScope($user);
 
-        // Get filter parameters
+        // Get filter parameters (including CMES)
+        $cmesId = $request->get('cmes_id');
         $cityId = $request->get('city_id');
         $sectorId = $request->get('sector_id');
         $category = $request->get('category');
@@ -312,35 +313,54 @@ class HomeController extends Controller
             })
             ->where('status', 'active');
 
-        $accessibleCityIds = $this->getAccessibleCityIdsForDropdown($locationScope);
-        if (!empty($accessibleCityIds)) {
-            $geGroupsQuery->whereIn('id', $accessibleCityIds);
+        // If CMES selected, restrict GE groups to that CMES
+        if ($cmesId) {
+            $geGroupsQuery->where('cme_id', $cmesId);
+        } else {
+            $accessibleCityIds = $this->getAccessibleCityIdsForDropdown($locationScope);
+            if (!empty($accessibleCityIds)) {
+                $geGroupsQuery->whereIn('id', $accessibleCityIds);
+            }
         }
 
         $geGroups = $geGroupsQuery->orderBy('name')->get();
 
-        $geNodes = Sector::where('status', 'active');
+        $geNodesQuery = Sector::where('status', 'active');
 
-        // Apply location filter to GE Nodes dropdown based on user's location
-        // If user's city_id and sector_id both are null → show all GE Nodes
-        // If user's city_id exists but sector_id is null → show only that city's sectors
-        // If user's sector_id exists → show only that sector
-        if (!empty($locationScope['restricted'])) {
-            if (!empty($locationScope['sector_ids'])) {
-                $geNodes->whereIn('id', $locationScope['sector_ids']);
-            } elseif (!empty($locationScope['city_ids'])) {
-                $geNodes->whereIn('city_id', $locationScope['city_ids']);
-            } elseif (!empty($locationScope['city_sector_map'])) {
-                $geNodes->whereIn('city_id', array_keys($locationScope['city_sector_map']));
+        // If CMES selected, show only nodes belonging to cities of that CMES
+        if ($cmesId) {
+            $cityIdsForCmes = City::where('cme_id', $cmesId)->pluck('id')->toArray();
+            $geNodesQuery->where(function($q) use ($cityIdsForCmes, $cmesId) {
+                if (!empty($cityIdsForCmes)) {
+                    $q->whereIn('city_id', $cityIdsForCmes);
+                }
+                // Also include sectors that have cme_id set directly
+                $q->orWhere('cme_id', $cmesId);
+            });
+
+            // If a specific GE (city) was selected after choosing CMES, narrow nodes to that city
+            if (!empty($cityId)) {
+                $geNodesQuery->where('city_id', $cityId);
+            }
+        } else {
+            // Apply location filter to GE Nodes dropdown based on user's location
+            if (!empty($locationScope['restricted'])) {
+                if (!empty($locationScope['sector_ids'])) {
+                    $geNodesQuery->whereIn('id', $locationScope['sector_ids']);
+                } elseif (!empty($locationScope['city_ids'])) {
+                    $geNodesQuery->whereIn('city_id', $locationScope['city_ids']);
+                } elseif (!empty($locationScope['city_sector_map'])) {
+                    $geNodesQuery->whereIn('city_id', array_keys($locationScope['city_sector_map']));
+                }
+            }
+
+            // Apply manual city filter if provided (for when user selects a GE Group)
+            if ($cityId) {
+                $geNodesQuery->where('city_id', $cityId);
             }
         }
 
-        // Apply manual city filter if provided (for when user selects a GE Group)
-        if ($cityId) {
-            $geNodes->where('city_id', $cityId);
-        }
-
-        $geNodes = $geNodes->orderBy('name')->get();
+        $geNodes = $geNodesQuery->orderBy('name')->get();
 
         $categories = ComplaintCategory::all();
 
@@ -529,6 +549,9 @@ class HomeController extends Controller
             ]);
         }
 
+        // Fetch CMES list for dropdown
+        $cmesList = \App\Models\Cme::where('status', 'active')->orderBy('name')->get();
+
         return view('frontend.dashboard', compact(
             'stats',
             'geGroups',
@@ -545,7 +568,9 @@ class HomeController extends Controller
             'sectorId',
             'category',
             'status',
-            'dateRange'
+            'dateRange',
+            'cmesList',
+            'cmesId'
         ));
     }
 }
