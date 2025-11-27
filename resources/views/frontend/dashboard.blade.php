@@ -18,7 +18,7 @@
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
     }
-    
+
     /* Matte finish for right stats boxes */
     .w-96.grid > div {
         position: relative;
@@ -29,7 +29,7 @@
         filter: saturate(0.9) brightness(0.95);
         transition: all 0.3s ease;
     }
-    
+
     .w-96.grid > div::before {
         content: '';
         position: absolute;
@@ -42,7 +42,7 @@
         pointer-events: none;
         z-index: 1;
     }
-    
+
     .w-96.grid > div::after {
         content: '';
         position: absolute;
@@ -55,24 +55,24 @@
         pointer-events: none;
         z-index: 1;
     }
-    
+
     .w-96.grid > div > * {
         position: relative;
         z-index: 2;
     }
-    
+
     .w-96.grid > div:hover {
         opacity: 0.95;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         transform: translateY(-2px);
         filter: saturate(0.95) brightness(0.98);
     }
-    
+
     /* Reduce gradient intensity for matte look */
     .w-96.grid > div[style*="linear-gradient"] {
         background-blend-mode: overlay !important;
     }
-    
+
     /* Matte finish for Complaints by Status chart */
     .complaints-by-status-chart {
         position: relative;
@@ -83,7 +83,7 @@
         filter: saturate(0.9) brightness(0.97);
         transition: all 0.3s ease;
     }
-    
+
     .complaints-by-status-chart::before {
         content: '';
         position: absolute;
@@ -96,7 +96,7 @@
         pointer-events: none;
         z-index: 1;
     }
-    
+
     .complaints-by-status-chart::after {
         content: '';
         position: absolute;
@@ -109,19 +109,19 @@
         pointer-events: none;
         z-index: 1;
     }
-    
+
     .complaints-by-status-chart > * {
         position: relative;
         z-index: 2;
     }
-    
+
     .complaints-by-status-chart:hover {
         opacity: 0.96;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
         transform: translateY(-1px);
         filter: saturate(0.93) brightness(0.99);
     }
-    
+
     /* Matte finish for Monthly Complaints chart */
     .monthly-complaints-chart {
         position: relative;
@@ -132,7 +132,7 @@
         filter: saturate(0.9) brightness(0.97);
         transition: all 0.3s ease;
     }
-    
+
     .monthly-complaints-chart::before {
         content: '';
         position: absolute;
@@ -145,7 +145,7 @@
         pointer-events: none;
         z-index: 1;
     }
-    
+
     .monthly-complaints-chart::after {
         content: '';
         position: absolute;
@@ -158,12 +158,12 @@
         pointer-events: none;
         z-index: 1;
     }
-    
+
     .monthly-complaints-chart > * {
         position: relative;
         z-index: 2;
     }
-    
+
     .monthly-complaints-chart:hover {
         opacity: 0.96;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
@@ -639,11 +639,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const currentData = chart.data.datasets[0]?.data || [];
             const currentColors = chart.data.datasets[0]?.backgroundColor || [];
             const currentTotal = currentData.reduce((a, b) => a + b, 0);
-            
+
             // Check if status filter is active
             const statusFilter = document.getElementById('filterStatus')?.value;
             const isStatusFiltered = statusFilter && statusFilter !== 'all';
-            
+
             // Get hovered segment
             const activeElements = chart.getActiveElements();
             if (activeElements.length > 0) {
@@ -672,10 +672,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 let filteredValue = 0;
                 let filteredLabel = '';
                 let filteredColor = '#3b82f6';
-                
+
                 // Get the expected label for the filtered status
                 const expectedLabel = statusMap[statusFilter]?.label;
-                
+
                 // Find matching status in chart data
                 for (let i = 0; i < currentLabels.length; i++) {
                     const label = currentLabels[i];
@@ -688,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                     }
                 }
-                
+
                 // If not found by label, try to find by status key in the original data
                 if (filteredIndex === -1 && complaintsByStatus && complaintsByStatus[statusFilter] !== undefined) {
                     // Find the index in the current chart data that corresponds to this status
@@ -701,7 +701,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         filteredColor = currentColors[statusIndex] || statusMap[statusFilter]?.color || '#3b82f6';
                     }
                 }
-                
+
                 if (filteredIndex !== -1 && filteredValue !== undefined) {
                     // Show filtered status name
                     ctx.font = 'bold 14px Arial';
@@ -867,12 +867,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('filterStatus').value;
         const dateRange = document.getElementById('filterDateRange').value;
         const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
-        
+
         // Clear GE Nodes selection when GE Group changes
         if (sectorSelect) {
             sectorSelect.value = '';
         }
-        
+
         // Build params for reload
         const params = new URLSearchParams();
         if (cityId) params.append('city_id', cityId);
@@ -881,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (category && category !== 'all') params.append('category', category);
         if (status && status !== 'all') params.append('status', status);
         if (dateRange) params.append('date_range', dateRange);
-        
+
         // Reload page with new city filter to get updated GE Nodes dropdown
         window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
     });
@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.complaintsByStatus && complaintsByStatusChart) {
             // Update global complaintsByStatus with original data (including closed for total calculation)
             complaintsByStatus = data.complaintsByStatus;
-            
+
             // Filter out 'closed' status for graph display only
             const filteredComplaintsByStatus = {};
             Object.keys(data.complaintsByStatus).forEach(key => {
@@ -1003,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     filteredComplaintsByStatus[key] = data.complaintsByStatus[key];
                 }
             });
-            
+
             const statusKeys = Object.keys(filteredComplaintsByStatus);
             const statusLabels = statusKeys.map(key => {
                 if (statusMap[key] && statusMap[key].label) {
