@@ -182,7 +182,7 @@
         <img src="{{ asset('assests/logo.png') }}" class="h-28 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='{{ asset('assests/logo.png') }}'" />
     </div> -->
     <!-- Filters -->
-    <div class="absolute top-44 p-2 flex items-end justify-start gap-2 flex-wrap" style="left: 5%; max-width: calc(95% - 384px - 24px); background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); border-radius: 4px; overflow: hidden;">
+    <div class="absolute top-44 p-2 flex items-end justify-start gap-2" style="left: 5%; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); border-radius: 4px; white-space: nowrap; width: -webkit-max-content; width: -moz-max-content; width: max-content; overflow: visible;">
         <div style="flex: 0 0 auto;">
             <label for="filterCMES" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">CMES</label>
             <select id="filterCMES" name="cmes_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select CMES" title="Select CMES">
