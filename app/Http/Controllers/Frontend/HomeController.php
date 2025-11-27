@@ -362,6 +362,34 @@ class HomeController extends Controller
 
         $geNodes = $geNodesQuery->orderBy('name')->get();
 
+        // If CMES selected, also filter the main complaints query to CMES scope
+        if ($cmesId) {
+            $cityIdsForCmes = City::where('cme_id', $cmesId)->pluck('id')->toArray();
+
+            $sectorIdsForCmes = Sector::where(function($q) use ($cmesId, $cityIdsForCmes) {
+                $q->where('cme_id', $cmesId);
+                if (!empty($cityIdsForCmes)) {
+                    $q->orWhereIn('city_id', $cityIdsForCmes);
+                }
+            })->pluck('id')->toArray();
+
+            if (empty($cityIdsForCmes) && empty($sectorIdsForCmes)) {
+                // No matching CMES scope — return no complaints
+                $complaintsQuery->whereRaw('1 = 0');
+            } else {
+                $complaintsQuery->where(function($q) use ($cityIdsForCmes, $sectorIdsForCmes) {
+                    if (!empty($cityIdsForCmes)) {
+                        $q->whereIn('city_id', $cityIdsForCmes);
+                    }
+                    if (!empty($sectorIdsForCmes)) {
+                        // If city filter already applied above, this will OR with sector filter
+                        $method = !empty($cityIdsForCmes) ? 'orWhereIn' : 'whereIn';
+                        $q->{$method}('sector_id', $sectorIdsForCmes);
+                    }
+                });
+            }
+        }
+
         $categories = ComplaintCategory::all();
 
         // Get all statuses from database (same as admin side)
