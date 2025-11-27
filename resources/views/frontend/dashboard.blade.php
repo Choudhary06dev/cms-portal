@@ -184,6 +184,17 @@
     <!-- Filters -->
     <div class="absolute top-44 p-2 flex items-end justify-start gap-2 flex-wrap" style="left: 5%; max-width: calc(95% - 384px - 24px); background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); border-radius: 4px; overflow: hidden;">
         <div style="flex: 0 0 auto;">
+            <label for="filterCMES" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">CMES</label>
+            <select id="filterCMES" name="cmes_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select CMES" title="Select CMES">
+                <option value="">All CMES</option>
+                @if(isset($cmesList) && $cmesList->count() > 0)
+                    @foreach($cmesList as $cme)
+                        <option value="{{ $cme->id }}" {{ (isset($cmesId) && $cmesId == $cme->id) ? 'selected' : '' }}>{{ $cme->name }}</option>
+                    @endforeach
+                @endif
+            </select>
+        </div>
+        <div style="flex: 0 0 auto;">
             <label for="filterCity" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">GE</label>
             <select id="filterCity" name="city_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE" title="Select GE">
                 <option value="">Select GE</option>
@@ -827,6 +838,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Handle CMES change to update GE Groups and GE Nodes
+    const filterCMES = document.getElementById('filterCMES');
+    if (filterCMES) {
+        filterCMES.addEventListener('change', function() {
+            const cmesId = this.value;
+            const category = document.getElementById('filterCategory').value;
+            const status = document.getElementById('filterStatus').value;
+            const dateRange = document.getElementById('filterDateRange').value;
+
+            // Build params for reload (clear city/sector when CMES changes)
+            const params = new URLSearchParams();
+            if (cmesId) params.append('cmes_id', cmesId);
+            if (category && category !== 'all') params.append('category', category);
+            if (status && status !== 'all') params.append('status', status);
+            if (dateRange) params.append('date_range', dateRange);
+
+            // Reload page with new CMES filter to get updated GE Groups/Nodes
+            window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+        });
+    }
+
     // Handle GE change to update GE Nodes
     document.getElementById('filterCity').addEventListener('change', function() {
         const cityId = this.value;
@@ -834,6 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const category = document.getElementById('filterCategory').value;
         const status = document.getElementById('filterStatus').value;
         const dateRange = document.getElementById('filterDateRange').value;
+        const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
         
         // Clear GE Nodes selection when GE Group changes
         if (sectorSelect) {
@@ -844,6 +877,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const params = new URLSearchParams();
         if (cityId) params.append('city_id', cityId);
         // Don't include sector_id when city changes
+        if (cmesId) params.append('cmes_id', cmesId);
         if (category && category !== 'all') params.append('category', category);
         if (status && status !== 'all') params.append('status', status);
         if (dateRange) params.append('date_range', dateRange);
@@ -858,13 +892,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function applyFilters() {
-        const cityId = document.getElementById('filterCity').value;
-        const sectorId = document.getElementById('filterSector').value;
-        const category = document.getElementById('filterCategory').value;
-        const status = document.getElementById('filterStatus').value;
-        const dateRange = document.getElementById('filterDateRange').value;
+        const cityId = document.getElementById('filterCity') ? document.getElementById('filterCity').value : null;
+        const sectorId = document.getElementById('filterSector') ? document.getElementById('filterSector').value : null;
+        const category = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : null;
+        const status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : null;
+        const dateRange = document.getElementById('filterDateRange') ? document.getElementById('filterDateRange').value : null;
+        const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
 
         const params = new URLSearchParams();
+        if (cmesId) params.append('cmes_id', cmesId);
         if (cityId) params.append('city_id', cityId);
         if (sectorId) params.append('sector_id', sectorId);
         if (category && category !== 'all') params.append('category', category);
