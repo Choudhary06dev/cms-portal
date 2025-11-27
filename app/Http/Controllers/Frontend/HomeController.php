@@ -16,7 +16,7 @@ use App\Traits\LocationFilterTrait;
 class HomeController extends Controller
 {
     use LocationFilterTrait;
-    
+
     /**
      * Apply location-based filtering to complaints query for frontend users
      * using the GE Groups/Nodes assigned via frontend_user_locations records.
@@ -45,33 +45,28 @@ class HomeController extends Controller
             return $scope;
         }
 
-        if (!method_exists($user, 'locations')) {
-            return $scope;
-        }
+        // Get privileges from JSON columns
+        $cityIds = $user->group_ids ?? [];
+        $sectorIds = $user->node_ids ?? [];
 
-        $locations = $user->locations()->get();
-        if ($locations->isEmpty()) {
+        if (empty($cityIds) && empty($sectorIds)) {
             return $scope;
         }
 
         $scope['restricted'] = true;
+        $scope['city_ids'] = $cityIds;
+        $scope['sector_ids'] = $sectorIds;
 
-        foreach ($locations as $location) {
-            if ($location->sector_id) {
-                $scope['sector_ids'][] = $location->sector_id;
-                $scope['sector_city_map'][$location->sector_id] = $location->city_id;
-                if ($location->city_id) {
-                    $scope['city_sector_map'][$location->city_id][] = $location->sector_id;
+        // Build city_sector_map and sector_city_map for sector-based filtering
+        if (!empty($sectorIds)) {
+            $sectors = \App\Models\Sector::whereIn('id', $sectorIds)->get();
+            foreach ($sectors as $sector) {
+                $scope['sector_city_map'][$sector->id] = $sector->city_id;
+                if (!isset($scope['city_sector_map'][$sector->city_id])) {
+                    $scope['city_sector_map'][$sector->city_id] = [];
                 }
-            } elseif ($location->city_id) {
-                $scope['city_ids'][] = $location->city_id;
+                $scope['city_sector_map'][$sector->city_id][] = $sector->id;
             }
-        }
-
-        $scope['city_ids'] = array_values(array_unique($scope['city_ids']));
-        $scope['sector_ids'] = array_values(array_unique($scope['sector_ids']));
-        foreach ($scope['city_sector_map'] as $cityId => $sectorIds) {
-            $scope['city_sector_map'][$cityId] = array_values(array_unique($sectorIds));
         }
 
         return $scope;
@@ -207,7 +202,7 @@ class HomeController extends Controller
 
         return empty($combined) ? null : $combined;
     }
-    
+
     public function index()
     {
         return view('frontend.home');
@@ -223,17 +218,17 @@ class HomeController extends Controller
         // Get logged-in user
         $user = Auth::user();
         $locationScope = $this->getFrontendUserLocationScope($user);
-        
+
         // Get filter parameters
         $cityId = $request->get('city_id');
         $sectorId = $request->get('sector_id');
         $category = $request->get('category');
         $status = $request->get('status');
         $dateRange = $request->get('date_range');
-        
+
         // Build base query with filters
         $complaintsQuery = Complaint::query();
-        
+
         // Apply location filtering based on GE Group (city_id) and GE Node (sector_id) selections
         $hasRestrictions = !empty($locationScope['restricted']);
 
@@ -269,15 +264,15 @@ class HomeController extends Controller
         } elseif ($hasRestrictions) {
             $this->filterComplaintsByLocationForFrontend($complaintsQuery, $user, $locationScope);
         }
-        
+
         if ($category && $category !== 'all') {
             $complaintsQuery->where('category', $category);
         }
-        
+
         if ($status && $status !== 'all') {
             $complaintsQuery->where('status', $status);
         }
-        
+
         // Filter by date range
         if ($dateRange) {
             $now = now();
@@ -307,7 +302,7 @@ class HomeController extends Controller
                     break;
             }
         }
-        
+
         // Get filter options - filter based on user's location access
         $geGroupsQuery = City::where(function($q) {
                 $q->where('name', 'LIKE', '%GE%')
@@ -321,11 +316,11 @@ class HomeController extends Controller
         if (!empty($accessibleCityIds)) {
             $geGroupsQuery->whereIn('id', $accessibleCityIds);
         }
-        
+
         $geGroups = $geGroupsQuery->orderBy('name')->get();
-        
+
         $geNodes = Sector::where('status', 'active');
-        
+
         // Apply location filter to GE Nodes dropdown based on user's location
         // If user's city_id and sector_id both are null → show all GE Nodes
         // If user's city_id exists but sector_id is null → show only that city's sectors
@@ -339,16 +334,16 @@ class HomeController extends Controller
                 $geNodes->whereIn('city_id', array_keys($locationScope['city_sector_map']));
             }
         }
-        
+
         // Apply manual city filter if provided (for when user selects a GE Group)
         if ($cityId) {
             $geNodes->where('city_id', $cityId);
         }
-        
+
         $geNodes = $geNodes->orderBy('name')->get();
-        
+
         $categories = ComplaintCategory::all();
-        
+
         // Get all statuses from database (same as admin side)
         $statuses = [
             'assigned' => 'Assigned',
@@ -362,7 +357,7 @@ class HomeController extends Controller
             'un_authorized' => 'Un-Authorized',
             'pertains_to_ge_const_isld' => 'Pertains to GE(N) Const Isld',
         ];
-        
+
         // Calculate stats with filters
         $stats = [
             'total_complaints' => (clone $complaintsQuery)->count(),
@@ -374,19 +369,19 @@ class HomeController extends Controller
             'complaints_this_month' => (clone $complaintsQuery)->where('created_at', '>=', now()->startOfMonth())->count(),
             'complaints_last_month' => (clone $complaintsQuery)->whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->startOfMonth()])->count(),
         ];
-        
+
         // Calculate resolution rate
         $totalComplaints = $stats['total_complaints'];
         $resolvedComplaints = $stats['resolved_complaints'];
         $resolutionRate = $totalComplaints > 0 ? round(($resolvedComplaints / $totalComplaints) * 100) : 0;
         $stats['resolution_rate'] = $resolutionRate;
-        
+
         // Calculate average resolution time
         $resolvedComplaintsWithTime = (clone $complaintsQuery)
             ->whereIn('status', ['resolved', 'closed'])
             ->whereNotNull('closed_at')
             ->get();
-        
+
         $avgResolutionDays = 0;
         if ($resolvedComplaintsWithTime->count() > 0) {
             $totalDays = $resolvedComplaintsWithTime->sum(function($complaint) {
@@ -395,31 +390,31 @@ class HomeController extends Controller
             $avgResolutionDays = round($totalDays / $resolvedComplaintsWithTime->count());
         }
         $stats['average_resolution_days'] = $avgResolutionDays;
-        
+
         // In Progress count
         $stats['in_progress'] = (clone $complaintsQuery)->where('status', 'in_progress')->count();
-        
+
         // Assigned count
         $stats['assigned'] = (clone $complaintsQuery)->where('status', 'assigned')->count();
-        
+
         // Closed count
         $stats['closed'] = (clone $complaintsQuery)->where('status', 'closed')->count();
-        
+
         // Work Performa count
         $stats['work_performa'] = (clone $complaintsQuery)->where('status', 'work_performa')->count();
-        
+
         // Maintenance Performa count
         $stats['maint_performa'] = (clone $complaintsQuery)->where('status', 'maint_performa')->count();
-        
+
         // Addressed count (resolved status)
         $stats['addressed'] = (clone $complaintsQuery)->where('status', 'resolved')->count();
-        
+
         // Un Authorized count
         $stats['un_authorized'] = (clone $complaintsQuery)->where('status', 'un_authorized')->count();
-        
+
         // Product N/A count
         $stats['product'] = (clone $complaintsQuery)->where('status', 'product_na')->count();
-        
+
         // Pertains to GE/Const/Isld count
         $stats['pertains_to_ge_const_isld'] = (clone $complaintsQuery)->where('status', 'pertains_to_ge_const_isld')->count();
 
@@ -488,13 +483,13 @@ class HomeController extends Controller
             $monthQuery = (clone $complaintsQuery)
                 ->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month);
-            
+
             $recentEdData[] = $monthQuery->count();
             $resolvedData = (clone $monthQuery)
                 ->whereIn('status', ['resolved', 'closed'])
                 ->count();
             $resolvedVsEdData[] = $resolvedData;
-            
+
             // Year TD (Year to Date) - cumulative from start of year
             $yearTdQuery = (clone $complaintsQuery)
                 ->whereYear('created_at', $date->year)
@@ -554,5 +549,3 @@ class HomeController extends Controller
         ));
     }
 }
-
-

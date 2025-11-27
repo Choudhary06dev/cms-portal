@@ -201,10 +201,6 @@
                       </div>
                     @endforeach
                   </div>
-                @else
-                  <div class="ms-4">
-                    <span class="badge bg-secondary text-white-50" style="font-size: 0.8rem;">All Nodes</span>
-                  </div>
                 @endif
               </div>
             @endforeach

@@ -21,12 +21,31 @@ class FrontendUser extends Authenticatable
         'email',
         'phone',
         'status',
+        'cme_ids',
+        'group_ids',
+        'node_ids',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'cme_ids' => 'array',
+            'group_ids' => 'array',
+            'node_ids' => 'array',
+        ];
+    }
 
     /**
      * Get the password for the user.
@@ -36,10 +55,7 @@ class FrontendUser extends Authenticatable
         return $this->password;
     }
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'status' => 'string',
-    ];
+
 
     /**
      * Check if user is active
@@ -57,32 +73,5 @@ class FrontendUser extends Authenticatable
         return $this->username;
     }
 
-    /**
-     * Get the cities assigned to this frontend user
-     */
-    public function cities(): BelongsToMany
-    {
-        return $this->belongsToMany(City::class, 'frontend_user_locations', 'frontend_user_id', 'city_id')
-            ->withPivot('sector_id')
-            ->withTimestamps();
-    }
 
-    /**
-     * Get the sectors assigned to this frontend user
-     */
-    public function sectors(): BelongsToMany
-    {
-        return $this->belongsToMany(Sector::class, 'frontend_user_locations', 'frontend_user_id', 'sector_id')
-            ->withPivot('city_id')
-            ->withTimestamps();
-    }
-
-    /**
-     * Get all assigned locations (cities and sectors)
-     */
-    public function locations()
-    {
-        return $this->hasMany(\App\Models\FrontendUserLocation::class, 'frontend_user_id');
-    }
 }
-
