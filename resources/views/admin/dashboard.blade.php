@@ -65,12 +65,12 @@
   /* Global styling for stat numbers and labels */
   .stat-card .stat-number {
     font-weight: 800 !important;
-    font-size: 2.2rem !important;
+    font-size: 1.8rem !important;
   }
 
   .stat-card .stat-label {
     font-weight: 700 !important;
-    font-size: 1.1rem !important;
+    font-size: 1.0rem !important;
   }
 
   /* Matte finish for chart containers */
