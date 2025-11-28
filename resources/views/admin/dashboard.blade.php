@@ -409,7 +409,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #3c2d9cff  0%, #3c2d9cff 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['pending_complaints'] ?? 0 }}</div>
@@ -451,7 +451,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #fcbd2bff 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['maint_performa'] ?? 0 }}</div>
@@ -479,7 +479,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #0deb7cff 0%, #22995dff 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['product_na'] ?? 0 }}</div>
