@@ -1245,7 +1245,9 @@
       dataLabels: {
         enabled: true,
         style: {
-          colors: ['#fff']
+          colors: ['#fff'],
+          fontSize: '14px',
+          fontWeight: 'bold'
         }
       },
       tooltip: {

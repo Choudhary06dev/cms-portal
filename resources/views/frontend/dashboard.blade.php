@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     pointBorderWidth: 2,
                 },
                 {
-                    label: 'Complaints Resolved',
+                    label: 'Complaints Addressed',
                     data: monthlyComplaintsResolved,
                     borderColor: '#22c55e',
                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
