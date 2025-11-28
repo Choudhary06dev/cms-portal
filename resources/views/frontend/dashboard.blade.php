@@ -288,7 +288,7 @@
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Total Complaints</span>
         </div>
         <!-- In Progress -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #3c2d9cff 0%, #3c2d9cff 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-in-progress" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['in_progress'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">In Progress</span>
         </div>
@@ -296,6 +296,11 @@
         <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-addressed" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['addressed'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Addressed</span>
+        </div>
+        <!-- Assigned Complaints -->
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px; padding: 1rem 0.75rem;">
+            <span id="stat-assigned" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['assigned'] ?? 0 }}</span>
+            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Assigned</span>
         </div>
         <!-- Work Performa -->
         <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg,rgb(69, 20, 247) 0%, #7c3aed 100%); min-height: 120px; padding: 1rem 0.75rem;">
@@ -313,12 +318,12 @@
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Un Authorized</span>
         </div>
         <!-- Product N/A -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #0deb7cff 0%, #22995dff 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-product" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['product'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Product N/A</span>
         </div>
         <!-- Resolution Rate -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #808000 0%, #808000 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-resolution-rate" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['resolution_rate'] ?? 0 }}%</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Resolution Rate</span>
         </div>
@@ -327,11 +332,7 @@
             <span id="stat-pertains-ge" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Pertains to GE/Const/Isld</span>
         </div>
-        <!-- Assigned Complaints -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px; padding: 1rem 0.75rem;">
-            <span id="stat-assigned" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['assigned'] ?? 0 }}</span>
-            <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Assigned</span>
-        </div>
+        
         </div>
     </div>
 </div>
@@ -580,13 +581,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Complaints by Status Chart (Donut Chart) - Using same colors as admin side
     const statusMap = {
         'assigned': { label: 'Assigned', color: '#16a34a' }, // Green (swapped from grey)
-        'in_progress': { label: 'In Progress', color: '#dc2626' }, // Red
+        'in_progress': { label: 'In Progress', color: '#3c2d9c' }, // Purple
         'resolved': { label: 'Addressed', color: '#64748b' }, // Grey (swapped from green)
         'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
         'maint_performa': { label: 'Maint Performa', color: '#eab308' }, // Yellow
         'work_priced_performa': { label: 'Work Priced', color: '#9333ea' }, // Purple
         'maint_priced_performa': { label: 'Maint Priced', color: '#ea580c' }, // Orange Red
-        'product_na': { label: 'Product N/A', color: '#000000' }, // Black
+        'product_na': { label: 'Product N/A', color: '#0deb7c' }, // Green
         'un_authorized': { label: 'Un-Authorized', color: '#ec4899' }, // Pink
         'pertains_to_ge_const_isld': { label: 'Pertains to GE(N)', color: '#06b6d4' }, // Aqua/Cyan
         'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
@@ -634,6 +635,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
+            // Helper function for formatting numbers (1k, 1.5k, etc.)
+            const formatNumber = (num) => {
+                if (num >= 1000) {
+                    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+                }
+                return num;
+            };
+
             // Get current chart data
             const currentLabels = chart.data.labels || [];
             const currentData = chart.data.datasets[0]?.data || [];
@@ -659,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show total complaints count only (no percentage)
                 ctx.font = 'bold 20px Arial';
                 ctx.fillStyle = currentColors[activeIndex] || '#3b82f6';
-                ctx.fillText(value, centerX, centerY + 15);
+                ctx.fillText(formatNumber(value), centerX, centerY + 15);
 
                 // Show label
                 ctx.font = '12px Arial';
@@ -711,7 +720,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show filtered status count
                     ctx.font = 'bold 20px Arial';
                     ctx.fillStyle = filteredColor;
-                    ctx.fillText(filteredValue, centerX, centerY + 15);
+                    ctx.fillText(formatNumber(filteredValue), centerX, centerY + 15);
 
                     // Show label
                     ctx.font = '12px Arial';
@@ -725,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     ctx.font = 'bold 20px Arial';
                     ctx.fillStyle = '#3b82f6';
-                    ctx.fillText(currentTotal, centerX, centerY + 15);
+                    ctx.fillText(formatNumber(currentTotal), centerX, centerY + 15);
 
                     ctx.font = '12px Arial';
                     ctx.fillStyle = '#6b7280';
@@ -739,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 ctx.font = 'bold 18px Arial';
                 ctx.fillStyle = '#2563eb';
-                ctx.fillText(totalComplaints, centerX, centerY + 8);
+                ctx.fillText(formatNumber(totalComplaints), centerX, centerY + 8);
 
                 ctx.font = 'bold 11px Arial';
                 ctx.fillStyle = '#475569';

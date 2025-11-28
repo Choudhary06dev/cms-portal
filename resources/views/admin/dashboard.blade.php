@@ -62,6 +62,17 @@
     background-blend-mode: overlay !important;
   }
 
+  /* Global styling for stat numbers and labels */
+  .stat-card .stat-number {
+    font-weight: 800 !important;
+    font-size: 2.2rem !important;
+  }
+
+  .stat-card .stat-label {
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+  }
+
   /* Matte finish for chart containers */
   .card-glass.chart-container {
     position: relative;
@@ -504,7 +515,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #05cbee 0%, #05bfee 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
@@ -518,7 +529,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #808000 0%, #808000 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['total_users'] ?? 0 }}</div>
@@ -532,7 +543,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #552826 0%, #f1aca9 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['total_employees'] ?? 0 }}</div>
@@ -839,7 +850,7 @@
                   @if($displayStatus === 'resolved')
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">Addressed</span>
                   @elseif($displayStatus === 'in_progress')
-                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
+                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #3c2d9c !important; color: #ffffff !important; border-color: #2a1f6f !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
                   @elseif($displayStatus === 'assigned')
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'work_performa')
@@ -855,7 +866,7 @@
                 @elseif($displayStatus === 'pertains_to_ge_const_isld')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $hoverText }}">{{ $shortStatusText }}</span>
                 @elseif($displayStatus === 'product_na')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #0deb7c !important; color: #ffffff !important; border-color: #06b366 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'closed')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #6b7280 !important; color: #ffffff !important; border-color: #4b5563 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @else
@@ -1065,13 +1076,13 @@
     // Status colors mapping (same as in approvals view)
     $statusColorMap = [
       'assigned' => '#16a34a', // Green (swapped from grey)
-      'in_progress' => '#dc2626', // Red
+      'in_progress' => '#3c2d9c', // Purple (from In Progress stat card)
       'resolved' => '#64748b', // Grey (swapped from green)
       'work_performa' => '#60a5fa', // Light Blue
       'maint_performa' => '#eab308', // Yellow
       'work_priced_performa' => '#9333ea', // Purple
       'maint_priced_performa' => '#ea580c', // Orange Red
-      'product_na' => '#000000', // Black
+      'product_na' => '#0deb7c', // Green (from Product N/A stat card)
       'un_authorized' => '#ec4899', // Pink (same as approvals view)
       'pertains_to_ge_const_isld' => '#06b6d4', // Aqua/Cyan (same as approvals view)
     ];

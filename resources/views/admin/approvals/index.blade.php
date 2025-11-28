@@ -170,18 +170,18 @@
             'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'], // Dark Yellow
             'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
             'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
-            'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'], // Black
+            'product_na' => ['bg' => '#0deb7c', 'text' => '#ffffff', 'border' => '#06b366'], // Green (from stat card)
           ];
           
-          // Status column colors (red for performa types in status column, like product_na)
+          // Status column colors (updated to match dashboard stat cards)
           $statusColors = [
-            'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
+            'in_progress' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (from stat card)
             'resolved' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Grey (swapped from green)
-            'work_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'maint_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'work_priced_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'maint_priced_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'product_na' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
+            'work_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'maint_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'work_priced_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'maint_priced_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'product_na' => ['bg' => '#0deb7c', 'text' => '#ffffff', 'border' => '#06b366'], // Green (for status column)
             'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'], // Pink
             'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'], // Aqua/Cyan
             'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green (swapped from grey)
