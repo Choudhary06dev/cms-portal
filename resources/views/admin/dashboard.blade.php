@@ -65,7 +65,7 @@
   /* Global styling for stat numbers and labels */
   .stat-card .stat-number {
     font-weight: 800 !important;
-    font-size: 1.8rem !important;
+    font-size: 1.4rem !important;
   }
 
   .stat-card .stat-label {
