@@ -326,14 +326,15 @@ class HomeController extends Controller
         // If CMES selected, restrict GE groups to that CMES
         if ($cmesId) {
             $geGroupsQuery->where('cme_id', $cmesId);
-        } else {
-            $accessibleCityIds = $this->getAccessibleCityIdsForDropdown($locationScope);
-            if (!empty($accessibleCityIds)) {
-                $geGroupsQuery->whereIn('id', $accessibleCityIds);
-            } elseif (!empty($locationScope['restricted'])) {
-                // Restricted user but no accessible cities -> show nothing
-                $geGroupsQuery->whereRaw('1 = 0');
-            }
+        }
+
+        // Apply location restrictions (ALWAYS, even if CMES is selected)
+        $accessibleCityIds = $this->getAccessibleCityIdsForDropdown($locationScope);
+        if (!empty($accessibleCityIds)) {
+            $geGroupsQuery->whereIn('id', $accessibleCityIds);
+        } elseif (!empty($locationScope['restricted'])) {
+            // Restricted user but no accessible cities -> show nothing
+            $geGroupsQuery->whereRaw('1 = 0');
         }
 
         $geGroups = $geGroupsQuery->orderBy('name')->get();
