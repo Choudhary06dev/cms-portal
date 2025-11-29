@@ -50,6 +50,14 @@ class HomeController extends Controller
         $sectorIds = $user->node_ids ?? [];
 
         if (empty($cityIds) && empty($sectorIds)) {
+            // Check if user is Admin (role_id 1 or has admin role)
+            // If Admin, return unrestricted scope (restricted = false)
+            if ($user->role_id === 1 || (method_exists($user, 'isAdmin') && $user->isAdmin())) {
+                return $scope;
+            }
+
+            // Regular user with no privileges -> Restricted access (sees nothing)
+            $scope['restricted'] = true;
             return $scope;
         }
 
@@ -294,11 +302,11 @@ class HomeController extends Controller
                     break;
                 case 'this_month':
                     $complaintsQuery->whereMonth('created_at', $now->month)
-                          ->whereYear('created_at', $now->year);
+                        ->whereYear('created_at', $now->year);
                     break;
                 case 'last_month':
                     $complaintsQuery->whereMonth('created_at', $now->copy()->subMonth()->month)
-                          ->whereYear('created_at', $now->copy()->subMonth()->year);
+                        ->whereYear('created_at', $now->copy()->subMonth()->year);
                     break;
                 case 'last_6_months':
                     $complaintsQuery->where('created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
@@ -307,12 +315,12 @@ class HomeController extends Controller
         }
 
         // Get filter options - filter based on user's location access
-        $geGroupsQuery = City::where(function($q) {
-                $q->where('name', 'LIKE', '%GE%')
-                  ->orWhere('name', 'LIKE', '%AGE%')
-                  ->orWhere('name', 'LIKE', '%ge%')
-                  ->orWhere('name', 'LIKE', '%age%');
-            })
+        $geGroupsQuery = City::where(function ($q) {
+            $q->where('name', 'LIKE', '%GE%')
+                ->orWhere('name', 'LIKE', '%AGE%')
+                ->orWhere('name', 'LIKE', '%ge%')
+                ->orWhere('name', 'LIKE', '%age%');
+        })
             ->where('status', 'active');
 
         // If CMES selected, restrict GE groups to that CMES
@@ -322,6 +330,9 @@ class HomeController extends Controller
             $accessibleCityIds = $this->getAccessibleCityIdsForDropdown($locationScope);
             if (!empty($accessibleCityIds)) {
                 $geGroupsQuery->whereIn('id', $accessibleCityIds);
+            } elseif (!empty($locationScope['restricted'])) {
+                // Restricted user but no accessible cities -> show nothing
+                $geGroupsQuery->whereRaw('1 = 0');
             }
         }
 
@@ -332,7 +343,7 @@ class HomeController extends Controller
         // If CMES selected, show only nodes belonging to cities of that CMES
         if ($cmesId) {
             $cityIdsForCmes = City::where('cme_id', $cmesId)->pluck('id')->toArray();
-            $geNodesQuery->where(function($q) use ($cityIdsForCmes, $cmesId) {
+            $geNodesQuery->where(function ($q) use ($cityIdsForCmes, $cmesId) {
                 if (!empty($cityIdsForCmes)) {
                     $q->whereIn('city_id', $cityIdsForCmes);
                 }
@@ -353,6 +364,9 @@ class HomeController extends Controller
                     $geNodesQuery->whereIn('city_id', $locationScope['city_ids']);
                 } elseif (!empty($locationScope['city_sector_map'])) {
                     $geNodesQuery->whereIn('city_id', array_keys($locationScope['city_sector_map']));
+                } else {
+                    // Restricted user but no assigned sectors/cities -> show nothing
+                    $geNodesQuery->whereRaw('1 = 0');
                 }
             }
 
@@ -368,7 +382,7 @@ class HomeController extends Controller
         if ($cmesId) {
             $cityIdsForCmes = City::where('cme_id', $cmesId)->pluck('id')->toArray();
 
-            $sectorIdsForCmes = Sector::where(function($q) use ($cmesId, $cityIdsForCmes) {
+            $sectorIdsForCmes = Sector::where(function ($q) use ($cmesId, $cityIdsForCmes) {
                 $q->where('cme_id', $cmesId);
                 if (!empty($cityIdsForCmes)) {
                     $q->orWhereIn('city_id', $cityIdsForCmes);
@@ -379,7 +393,7 @@ class HomeController extends Controller
                 // No matching CMES scope — return no complaints
                 $complaintsQuery->whereRaw('1 = 0');
             } else {
-                $complaintsQuery->where(function($q) use ($cityIdsForCmes, $sectorIdsForCmes) {
+                $complaintsQuery->where(function ($q) use ($cityIdsForCmes, $sectorIdsForCmes) {
                     if (!empty($cityIdsForCmes)) {
                         $q->whereIn('city_id', $cityIdsForCmes);
                     }
@@ -434,7 +448,7 @@ class HomeController extends Controller
 
         $avgResolutionDays = 0;
         if ($resolvedComplaintsWithTime->count() > 0) {
-            $totalDays = $resolvedComplaintsWithTime->sum(function($complaint) {
+            $totalDays = $resolvedComplaintsWithTime->sum(function ($complaint) {
                 return $complaint->created_at->diffInDays($complaint->closed_at);
             });
             $avgResolutionDays = round($totalDays / $resolvedComplaintsWithTime->count());
@@ -478,7 +492,7 @@ class HomeController extends Controller
         $self = $this; // Store reference for use in closure
         $pendingApprovals = class_exists(\App\Models\SpareApprovalPerforma::class)
             ? \App\Models\SpareApprovalPerforma::with(['complaint.client', 'requestedBy', 'items.spare'])
-                ->whereHas('complaint', function($q) use ($user, $self, $locationScope) {
+                ->whereHas('complaint', function ($q) use ($user, $self, $locationScope) {
                     $self->filterComplaintsByLocationForFrontend($q, $user, $locationScope);
                 })
                 ->where('status', 'pending')
@@ -551,11 +565,13 @@ class HomeController extends Controller
         $this->filterEmployeesByLocation($employeePerformanceQuery, $user);
         $this->applyFrontendLocationScope($employeePerformanceQuery, $locationScope);
         $employeePerformance = $employeePerformanceQuery
-            ->withCount(['assignedComplaints' => function($query) use ($user, $self, $locationScope) {
-                $query->where('created_at', '>=', now()->subDays(30));
-                // Apply location filter to assigned complaints count
-                $self->filterComplaintsByLocationForFrontend($query, $user, $locationScope);
-            }])
+            ->withCount([
+                'assignedComplaints' => function ($query) use ($user, $self, $locationScope) {
+                    $query->where('created_at', '>=', now()->subDays(30));
+                    // Apply location filter to assigned complaints count
+                    $self->filterComplaintsByLocationForFrontend($query, $user, $locationScope);
+                }
+            ])
             ->orderBy('assigned_complaints_count', 'desc')
             ->limit(5)
             ->get();
@@ -569,38 +585,68 @@ class HomeController extends Controller
 
         // Fetch CMES list for dropdown - filter based on user privileges
         $cmesListQuery = \App\Models\Cme::where('status', 'active');
-        
+
         // Apply CMES filtering based on user privileges
         if ($user && !empty($user->cme_ids)) {
             // User has specific CMES assigned, show only those
             $cmesListQuery->whereIn('id', $user->cme_ids);
+        } elseif (!empty($locationScope['restricted'])) {
+            // User has restricted location scope (e.g. GE user), derive CMES from assigned cities/sectors
+            $derivedCmeIds = [];
+
+            // From assigned cities
+            if (!empty($locationScope['city_ids'])) {
+                $cityCmeIds = \App\Models\City::whereIn('id', $locationScope['city_ids'])
+                    ->pluck('cme_id')
+                    ->filter()
+                    ->unique()
+                    ->toArray();
+                $derivedCmeIds = array_merge($derivedCmeIds, $cityCmeIds);
+            }
+
+            // From assigned sectors
+            if (!empty($locationScope['sector_ids'])) {
+                $sectorCmeIds = \App\Models\Sector::whereIn('id', $locationScope['sector_ids'])
+                    ->pluck('cme_id')
+                    ->filter()
+                    ->unique()
+                    ->toArray();
+                $derivedCmeIds = array_merge($derivedCmeIds, $sectorCmeIds);
+            }
+
+            if (!empty($derivedCmeIds)) {
+                $cmesListQuery->whereIn('id', array_unique($derivedCmeIds));
+            } else {
+                // Restricted user but no derived CMES -> show nothing
+                $cmesListQuery->whereRaw('1 = 0');
+            }
         }
-        
+
         $cmesList = $cmesListQuery->orderBy('name')->get();
 
         // Get CME Complaint Stats for Graph
         $cmeGraphLabels = [];
         $cmeGraphData = [];
         $cmeResolvedData = []; // New array for addressed complaints
-        
+
         $cmeDateRange = $request->get('cme_date_range', $dateRange); // Use specific filter or fallback to global
 
-        foreach($cmesList as $cme) {
+        foreach ($cmesList as $cme) {
             $cmeGraphLabels[] = $cme->name;
-            
+
             // Get cities (GE Groups) for this CME
             $cityIdsForCme = \App\Models\City::where('cme_id', $cme->id)->pluck('id')->toArray();
-            
+
             // Get sectors (GE Nodes) for this CME (either directly or via city)
-            $sectorIdsForCme = \App\Models\Sector::where(function($q) use ($cme, $cityIdsForCme) {
+            $sectorIdsForCme = \App\Models\Sector::where(function ($q) use ($cme, $cityIdsForCme) {
                 $q->where('cme_id', $cme->id);
                 if (!empty($cityIdsForCme)) {
                     $q->orWhereIn('city_id', $cityIdsForCme);
                 }
             })->pluck('id')->toArray();
-            
+
             // Base query for this CME
-            $cmeBaseQuery = \App\Models\Complaint::where(function($q) use ($cityIdsForCme, $sectorIdsForCme) {
+            $cmeBaseQuery = \App\Models\Complaint::where(function ($q) use ($cityIdsForCme, $sectorIdsForCme) {
                 if (!empty($cityIdsForCme)) {
                     $q->whereIn('city_id', $cityIdsForCme);
                 }
@@ -636,11 +682,11 @@ class HomeController extends Controller
                         break;
                     case 'this_month':
                         $cmeBaseQuery->whereMonth('created_at', $now->month)
-                              ->whereYear('created_at', $now->year);
+                            ->whereYear('created_at', $now->year);
                         break;
                     case 'last_month':
                         $cmeBaseQuery->whereMonth('created_at', $now->copy()->subMonth()->month)
-                              ->whereYear('created_at', $now->copy()->subMonth()->year);
+                            ->whereYear('created_at', $now->copy()->subMonth()->year);
                         break;
                     case 'last_6_months':
                         $cmeBaseQuery->where('created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
