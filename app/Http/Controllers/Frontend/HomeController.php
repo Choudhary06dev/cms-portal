@@ -351,30 +351,25 @@ class HomeController extends Controller
                 // Also include sectors that have cme_id set directly
                 $q->orWhere('cme_id', $cmesId);
             });
+        }
 
-            // If a specific GE (city) was selected after choosing CMES, narrow nodes to that city
-            if (!empty($cityId)) {
-                $geNodesQuery->where('city_id', $cityId);
+        // Apply location filter to GE Nodes dropdown based on user's location (ALWAYS, even if CMES is selected)
+        if (!empty($locationScope['restricted'])) {
+            if (!empty($locationScope['sector_ids'])) {
+                $geNodesQuery->whereIn('id', $locationScope['sector_ids']);
+            } elseif (!empty($locationScope['city_ids'])) {
+                $geNodesQuery->whereIn('city_id', $locationScope['city_ids']);
+            } elseif (!empty($locationScope['city_sector_map'])) {
+                $geNodesQuery->whereIn('city_id', array_keys($locationScope['city_sector_map']));
+            } else {
+                // Restricted user but no assigned sectors/cities -> show nothing
+                $geNodesQuery->whereRaw('1 = 0');
             }
-        } else {
-            // Apply location filter to GE Nodes dropdown based on user's location
-            if (!empty($locationScope['restricted'])) {
-                if (!empty($locationScope['sector_ids'])) {
-                    $geNodesQuery->whereIn('id', $locationScope['sector_ids']);
-                } elseif (!empty($locationScope['city_ids'])) {
-                    $geNodesQuery->whereIn('city_id', $locationScope['city_ids']);
-                } elseif (!empty($locationScope['city_sector_map'])) {
-                    $geNodesQuery->whereIn('city_id', array_keys($locationScope['city_sector_map']));
-                } else {
-                    // Restricted user but no assigned sectors/cities -> show nothing
-                    $geNodesQuery->whereRaw('1 = 0');
-                }
-            }
+        }
 
-            // Apply manual city filter if provided (for when user selects a GE Group)
-            if ($cityId) {
-                $geNodesQuery->where('city_id', $cityId);
-            }
+        // Apply manual city filter if provided (for when user selects a GE Group)
+        if ($cityId) {
+            $geNodesQuery->where('city_id', $cityId);
         }
 
         $geNodes = $geNodesQuery->orderBy('name')->get();
