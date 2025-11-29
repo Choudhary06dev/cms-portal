@@ -186,7 +186,7 @@
         <div style="flex: 0 0 auto;">
             <label for="filterCMES" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">CMES</label>
             <select id="filterCMES" name="cmes_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select CMES" title="Select CMES">
-                <option value="">All CMES</option>
+                <option value="">Select CMES</option>
                 @if(isset($cmesList) && $cmesList->count() > 0)
                     @foreach($cmesList as $cme)
                         <option value="{{ $cme->id }}" {{ (isset($cmesId) && $cmesId == $cme->id) ? 'selected' : '' }}>{{ $cme->name }}</option>
@@ -206,7 +206,7 @@
         <div style="flex: 0 0 auto;">
             <label for="filterSector" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">GE Nodes</label>
             <select id="filterSector" name="sector_id" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE Nodes" title="Select GE Nodes">
-                <option value="">All GE Nodes</option>
+                <option value="">Select GE Nodes</option>
                 @foreach($geNodes as $node)
                     <option value="{{ $node->id }}" {{ $sectorId == $node->id ? 'selected' : '' }}>{{ $node->name }}</option>
                 @endforeach
@@ -215,7 +215,7 @@
         <div style="flex: 0 0 auto;">
             <label for="filterCategory" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">Complaints Category</label>
             <select id="filterCategory" name="category" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Complaints Category" title="Select Complaints Category">
-                <option value="all">All Categories</option>
+                <option value="all">Select Category</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->name }}" {{ $category == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
                 @endforeach
@@ -224,7 +224,7 @@
         <div style="flex: 0 0 auto;">
             <label for="filterStatus" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">Complaints Status</label>
             <select id="filterStatus" name="status" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Complaints Status" title="Select Complaints Status">
-                <option value="all">All Status</option>
+                <option value="all">Select Status</option>
                 @foreach($statuses as $key => $label)
                     <option value="{{ $key }}" {{ $status == $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
@@ -233,7 +233,7 @@
         <div style="flex: 0 0 auto;">
             <label for="filterDateRange" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">Date Range</label>
             <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select" style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select Date Range" title="Select Date Range">
-                <option value="">All Time</option>
+                <option value="">Select Date Range</option>
                 <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                 <option value="today" {{ $dateRange == 'today' ? 'selected' : '' }}>Today</option>
                 <option value="this_week" {{ $dateRange == 'this_week' ? 'selected' : '' }}>This Week</option>
@@ -734,18 +734,11 @@ document.addEventListener('DOMContentLoaded', function() {
         'product_na': { label: 'Product N/A', color: '#0deb7c' }, // Green
         'un_authorized': { label: 'Un-Authorized', color: '#ec4899' }, // Pink
         'pertains_to_ge_const_isld': { label: 'Pertains to GE(N)', color: '#06b6d4' }, // Aqua/Cyan
+        'closed': { label: 'Closed', color: '#6b7280' }, // Grey
         'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
     };
 
-    // Filter out 'closed' status from complaintsByStatus for graph display
-    const filteredComplaintsByStatus = {};
-    Object.keys(complaintsByStatus).forEach(key => {
-        if (key !== 'closed') {
-            filteredComplaintsByStatus[key] = complaintsByStatus[key];
-        }
-    });
-
-    const statusKeys = Object.keys(filteredComplaintsByStatus);
+    const statusKeys = Object.keys(complaintsByStatus);
     const statusLabels = statusKeys.map(key => {
         if (statusMap[key] && statusMap[key].label) {
             return statusMap[key].label;
@@ -753,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Fallback: format the key nicely
         return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     });
-    const statusData = Object.values(filteredComplaintsByStatus);
+    const statusData = Object.values(complaintsByStatus);
     const statusColors = statusKeys.map(key => {
         if (statusMap[key] && statusMap[key].color) {
             return statusMap[key].color;
@@ -765,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const ctx3 = document.getElementById('complaintsByStatusChart').getContext('2d');
 
     // Calculate total from original data (including closed) for accurate total count
-    let totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
+    const totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
 
     // Center text plugin for Chart.js
     const centerTextPlugin = {
@@ -892,7 +885,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 ctx.font = 'bold 18px Arial';
                 ctx.fillStyle = '#2563eb';
-                ctx.fillText(formatNumber(totalComplaints), centerX, centerY + 8);
+                ctx.fillText(formatNumber(currentTotal), centerX, centerY + 8);
 
                 ctx.font = 'bold 11px Arial';
                 ctx.fillStyle = '#475569';
@@ -1146,28 +1139,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update Complaints by Status Chart
         if (data.complaintsByStatus && complaintsByStatusChart) {
-            // Update global complaintsByStatus with original data (including closed for total calculation)
+            // Update global complaintsByStatus with all data (including closed)
             complaintsByStatus = data.complaintsByStatus;
 
-            // Recalculate total complaints
-            totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
-
-            // Filter out 'closed' status for graph display only
-            const filteredComplaintsByStatus = {};
-            Object.keys(data.complaintsByStatus).forEach(key => {
-                if (key !== 'closed') {
-                    filteredComplaintsByStatus[key] = data.complaintsByStatus[key];
-                }
-            });
-
-            const statusKeys = Object.keys(filteredComplaintsByStatus);
+            const statusKeys = Object.keys(data.complaintsByStatus);
             const statusLabels = statusKeys.map(key => {
                 if (statusMap[key] && statusMap[key].label) {
                     return statusMap[key].label;
                 }
                 return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             });
-            const statusData = Object.values(filteredComplaintsByStatus);
+            const statusData = Object.values(data.complaintsByStatus);
             const statusColors = statusKeys.map(key => {
                 if (statusMap[key] && statusMap[key].color) {
                     return statusMap[key].color;

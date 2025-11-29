@@ -459,9 +459,11 @@ class DashboardController extends Controller
                 $negativePoints = 0;
                 $resolvedWithGoodFeedback = 0;
                 $resolvedWithBadFeedback = 0;
+                $totalFeedbacks = 0; // NEW: Track total feedbacks received
                 
                 foreach ($resolvedComplaints as $complaint) {
                     if ($complaint->feedback) {
+                        $totalFeedbacks++; // NEW: Increment total feedbacks
                         $rating = $complaint->feedback->overall_rating;
                         if (in_array($rating, ['excellent', 'good'])) {
                             $positivePoints += 1;
@@ -474,11 +476,12 @@ class DashboardController extends Controller
                 }
                 
                 // Calculate progress percentage
-                // Formula: (positive points - negative points) / total complaints * 100
-                // This allows percentage to go down if there are bad feedbacks
+                // CHANGED: Use total feedbacks as denominator instead of total complaints
+                // Formula: (positive points - negative points) / total feedbacks * 100
+                // This ensures percentages are based on feedbacks received, not total complaints
                 $netPoints = $positivePoints - $negativePoints;
-                $progressPercentage = $totalComplaints > 0 
-                    ? max(0, round(($netPoints / $totalComplaints) * 100, 2)) 
+                $progressPercentage = $totalFeedbacks > 0 
+                    ? max(0, round(($netPoints / $totalFeedbacks) * 100, 2)) 
                     : 0;
                 
                 $geProgress[] = [
@@ -489,9 +492,24 @@ class DashboardController extends Controller
                     'resolved_complaints' => $resolvedComplaints->count(),
                     'resolved_with_good_feedback' => $resolvedWithGoodFeedback,
                     'resolved_with_bad_feedback' => $resolvedWithBadFeedback,
+                    'total_feedbacks' => $totalFeedbacks, // NEW: Add total feedbacks to output
                     'progress_percentage' => $progressPercentage,
                 ];
             }
+            
+            // Sort GE Progress: GEs with feedback first, then those without
+            usort($geProgress, function($a, $b) {
+                // First, sort by whether they have feedback (descending: with feedback first)
+                if ($a['total_feedbacks'] > 0 && $b['total_feedbacks'] == 0) {
+                    return -1; // $a has feedback, comes first
+                }
+                if ($a['total_feedbacks'] == 0 && $b['total_feedbacks'] > 0) {
+                    return 1; // $b has feedback, comes first
+                }
+                // If both have feedback or both don't, maintain original order (stable sort)
+                return 0;
+            });
+            
             } else {
                 // Cities table doesn't exist, geProgress will remain empty
             }

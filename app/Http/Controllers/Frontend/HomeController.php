@@ -235,22 +235,24 @@ class HomeController extends Controller
 
         if ($cityId) {
             if ($this->canAccessCity((int) $cityId, $locationScope)) {
-                if (!empty($locationScope['city_ids']) && in_array((int) $cityId, $locationScope['city_ids'])) {
-                    $complaintsQuery->where('city_id', $cityId);
-                } else {
-                    $allowedSectors = $this->getPermittedSectorsForCity((int) $cityId, $locationScope);
-                    if (!empty($allowedSectors)) {
-                        $complaintsQuery->whereIn('sector_id', $allowedSectors);
-                    } else {
-                        $complaintsQuery->whereRaw('1 = 0');
-                    }
-                }
-
+                // If sector is also selected, prioritize sector filter
                 if ($sectorId) {
                     if ($this->canAccessSector((int) $sectorId, $locationScope)) {
                         $complaintsQuery->where('sector_id', $sectorId);
                     } else {
                         $complaintsQuery->whereRaw('1 = 0');
+                    }
+                } else {
+                    // Only city selected, no sector
+                    if (!empty($locationScope['city_ids']) && in_array((int) $cityId, $locationScope['city_ids'])) {
+                        $complaintsQuery->where('city_id', $cityId);
+                    } else {
+                        $allowedSectors = $this->getPermittedSectorsForCity((int) $cityId, $locationScope);
+                        if (!empty($allowedSectors)) {
+                            $complaintsQuery->whereIn('sector_id', $allowedSectors);
+                        } else {
+                            $complaintsQuery->whereRaw('1 = 0');
+                        }
                     }
                 }
             } else {
@@ -565,8 +567,16 @@ class HomeController extends Controller
             'sla_percentage' => 0,
         ];
 
-        // Fetch CMES list for dropdown
-        $cmesList = \App\Models\Cme::where('status', 'active')->orderBy('name')->get();
+        // Fetch CMES list for dropdown - filter based on user privileges
+        $cmesListQuery = \App\Models\Cme::where('status', 'active');
+        
+        // Apply CMES filtering based on user privileges
+        if ($user && !empty($user->cme_ids)) {
+            // User has specific CMES assigned, show only those
+            $cmesListQuery->whereIn('id', $user->cme_ids);
+        }
+        
+        $cmesList = $cmesListQuery->orderBy('name')->get();
 
         // Get CME Complaint Stats for Graph
         $cmeGraphLabels = [];

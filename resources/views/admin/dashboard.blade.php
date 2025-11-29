@@ -319,7 +319,7 @@
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">CMES</label>
           <select class="form-select" id="cmesFilter" name="cmes_id" style="font-size: 0.9rem; width: 180px;">
-            <option value="">All CMES</option>
+            <option value="">Select CMES</option>
             @foreach($cmesList as $cme)
               <option value="{{ $cme->id }}" {{ (request('cmes_id') == $cme->id || (isset($cmesId) && $cmesId == $cme->id)) ? 'selected' : '' }}>{{ $cme->name }}</option>
             @endforeach
@@ -354,7 +354,7 @@
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">GE Nodes</label>
           <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All GE Nodes</option>
+            <option value="">Select GE Nodes</option>
             @if($sectors && $sectors->count() > 0)
               @foreach($sectors as $sector)
                 <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
@@ -367,7 +367,7 @@
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaint Category</label>
           <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All Categories</option>
+            <option value="">Select Category</option>
             @if($categories && $categories->count() > 0)
               @foreach($categories as $cat)
                 <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
@@ -380,7 +380,7 @@
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaints Status</label>
           <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All Status</option>
+            <option value="">Select Status</option>
             @foreach($complaintStatuses as $statusKey => $statusLabel)
               <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
             @endforeach
@@ -391,7 +391,7 @@
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Date Range</label>
           <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All Time</option>
+            <option value="">Select Date Range</option>
             <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
             <option value="today" {{ (request('date_range') == 'today' || $dateRange == 'today') ? 'selected' : '' }}>Today</option>
             <option value="this_week" {{ (request('date_range') == 'this_week' || $dateRange == 'this_week') ? 'selected' : '' }}>This Week</option>
@@ -620,7 +620,7 @@
             ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
             ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
             ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
-            ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
+            ['bg' => 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', 'icon' => '#2dd4bf', 'progress' => 'linear-gradient(90deg, #14b8a6, #2dd4bf)'],
           ];
           $totalCards = count($displayedProgress);
         @endphp
@@ -663,7 +663,7 @@
             </div>
             <div class="mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-white" style="font-size: 0.85rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Progress</span>
+                <span class="text-white" style="font-size: 0.85rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Performance</span>
                 <span class="text-white" style="font-weight: 800; font-size: 1.4rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
               </div>
               <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
