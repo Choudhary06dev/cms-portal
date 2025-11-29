@@ -965,7 +965,7 @@
                   <td style="padding: 0.4rem 0.5rem !important;">
                     @php
                       $statusColors = [
-                        'pending' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#991b1b'],
+                        'pending' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'],
                         'approved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'],
                         'rejected' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'],
                       ];
