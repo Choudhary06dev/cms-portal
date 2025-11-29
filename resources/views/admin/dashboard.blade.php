@@ -431,7 +431,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #3c2d9cff  0%, #3c2d9cff 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #dd4040ff 0%, #b13030 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['pending_complaints'] ?? 0 }}</div>
@@ -616,11 +616,11 @@
       <div class="row g-4">
         @php
           $colorSchemes = [
-            ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => '#60a5fa', 'progress' => 'linear-gradient(90deg, #3b82f6, #60a5fa)'],
-            ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
-            ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
-            ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
-            ['bg' => 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', 'icon' => '#2dd4bf', 'progress' => 'linear-gradient(90deg, #14b8a6, #2dd4bf)'],
+            ['bg' => 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%)', 'icon' => '#bfdbfe', 'progress' => 'linear-gradient(90deg, #93c5fd, #bfdbfe)'],
+            ['bg' => 'linear-gradient(135deg, #6ee7b7 0%, #34d399 100%)', 'icon' => '#a7f3d0', 'progress' => 'linear-gradient(90deg, #6ee7b7, #a7f3d0)'],
+            ['bg' => 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)', 'icon' => '#fde68a', 'progress' => 'linear-gradient(90deg, #fcd34d, #fde68a)'],
+            ['bg' => 'linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%)', 'icon' => '#ddd6fe', 'progress' => 'linear-gradient(90deg, #c4b5fd, #ddd6fe)'],
+            ['bg' => 'linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)', 'icon' => '#99f6e4', 'progress' => 'linear-gradient(90deg, #5eead4, #99f6e4)'],
           ];
           $totalCards = count($displayedProgress);
         @endphp
@@ -651,8 +651,8 @@
           <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
-                <p class="mb-0 text-white" style="font-size: 0.8rem; opacity: 0.95; color: #ffffff !important;">
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.15rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
+                <p class="mb-0 text-white" style="font-size: 0.95rem; opacity: 0.95; color: #ffffff !important;">
                   <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
                   <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
                 </p>
@@ -663,8 +663,8 @@
             </div>
             <div class="mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-white" style="font-size: 0.85rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Performance</span>
-                <span class="text-white" style="font-weight: 800; font-size: 1.4rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
+                <span class="text-white" style="font-size: 1rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Performance</span>
+                <span class="text-white" style="font-weight: 800; font-size: 1.6rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
               </div>
               <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
                 <div class="progress-bar" role="progressbar"
@@ -676,12 +676,12 @@
               </div>
             </div>
             <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.25);">
-              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
-                <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+              <span class="text-white" style="font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="check-circle" style="width: 18px; height: 18px; color: #ffffff;"></i>
                 <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['resolved_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Resolved</span>
               </span>
-              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
-                <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
+              <span class="text-white" style="font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="file-text" style="width: 18px; height: 18px; color: #ffffff;"></i>
                 <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['total_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Total</span>
               </span>
             </div>
@@ -850,7 +850,7 @@
                   @if($displayStatus === 'resolved')
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">Addressed</span>
                   @elseif($displayStatus === 'in_progress')
-                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #3c2d9c !important; color: #ffffff !important; border-color: #2a1f6f !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
+                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
                   @elseif($displayStatus === 'assigned')
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'work_performa')
@@ -965,7 +965,7 @@
                   <td style="padding: 0.4rem 0.5rem !important;">
                     @php
                       $statusColors = [
-                        'pending' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'],
+                        'pending' => ['bg' => '#ec5454', 'text' => '#ffffff', 'border' => '#b13030'],
                         'approved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'],
                         'rejected' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'],
                       ];
@@ -1076,7 +1076,7 @@
     // Status colors mapping (same as in approvals view)
     $statusColorMap = [
       'assigned' => '#16a34a', // Green (swapped from grey)
-      'in_progress' => '#3c2d9c', // Purple (from In Progress stat card)
+      'in_progress' => '#ec5454', // Brown-Red mix
       'resolved' => '#64748b', // Grey (swapped from green)
       'work_performa' => '#60a5fa', // Light Blue
       'maint_performa' => '#eab308', // Yellow

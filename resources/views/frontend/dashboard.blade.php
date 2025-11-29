@@ -288,7 +288,7 @@
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Total Complaints</span>
         </div>
         <!-- In Progress -->
-        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #3c2d9cff 0%, #3c2d9cff 100%); min-height: 120px; padding: 1rem 0.75rem;">
+        <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start" style="background: linear-gradient(135deg, #ec5454 0%, #b13030 100%); min-height: 120px; padding: 1rem 0.75rem;">
             <span id="stat-in-progress" class="text-3xl mb-1 font-bold" style="line-height: 1.2; font-weight: 700;">{{ $stats['in_progress'] ?? 0 }}</span>
             <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">In Progress</span>
         </div>
@@ -725,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Complaints by Status Chart (Donut Chart) - Using same colors as admin side
     const statusMap = {
         'assigned': { label: 'Assigned', color: '#16a34a' }, // Green (swapped from grey)
-        'in_progress': { label: 'In Progress', color: '#3c2d9c' }, // Purple
+        'in_progress': { label: 'In Progress', color: '#ec5454' }, // Brown-Red
         'resolved': { label: 'Addressed', color: '#64748b' }, // Grey (swapped from green)
         'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
         'maint_performa': { label: 'Maint Performa', color: '#eab308' }, // Yellow
