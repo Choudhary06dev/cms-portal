@@ -334,6 +334,24 @@
         </div>
         
         </div>
+        </div>
+
+    
+    <!-- CME Complaints Graph Row -->
+    <div class="mt-6 bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Total Complaints by CME'S</h2>
+            <select id="cmeGraphFilter" class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Default (Global)</option>
+                <option value="this_month">This Month</option>
+                <option value="last_6_months">Last 6 Months</option>
+                <option value="this_year">This Year</option>
+                <option value="last_year">Last Year</option>
+            </select>
+        </div>
+        <div class="h-80 w-full">
+            <canvas id="cmeComplaintsChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -567,6 +585,132 @@ document.addEventListener('DOMContentLoaded', function() {
                         font: {
                             size: 11
                         }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+
+    // CME Complaints Chart (Line Chart)
+    const cmeLabels = @json($cmeGraphLabels ?? []);
+    const cmeData = @json($cmeGraphData ?? []);
+    const cmeResolvedData = @json($cmeResolvedData ?? []);
+    
+    const ctxCme = document.getElementById('cmeComplaintsChart').getContext('2d');
+    const cmeComplaintsChart = new Chart(ctxCme, {
+        type: 'line',
+        data: {
+            labels: cmeLabels,
+            datasets: [
+                {
+                    label: 'Total Complaints',
+                    data: cmeData,
+                    borderColor: '#8b5cf6', // Violet
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7
+                },
+                {
+                    label: 'Addressed Complaints',
+                    data: cmeResolvedData,
+                    borderColor: '#22c55e', // Green
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#22c55e',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 25
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 13,
+                            weight: 'bold',
+                            family: 'Arial, sans-serif'
+                        },
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 10,
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    mode: 'index',
+                    intersect: false
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 5,
+                    font: {
+                        size: 12,
+                        weight: 'bold',
+                        family: 'Arial, sans-serif'
+                    },
+                    color: function(context) {
+                        return context.dataset.borderColor;
+                    },
+                    formatter: function(value) {
+                        return value > 0 ? value : '';
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 12,
+                            weight: 'bold',
+                            family: 'Arial, sans-serif'
+                        },
+                        color: '#1f2937'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grace: '10%', // Add 10% extra space at the top
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        precision: 0
                     }
                 }
             },
@@ -1039,8 +1183,71 @@ document.addEventListener('DOMContentLoaded', function() {
             resolutionTrendChart.data.datasets[0].data = data.recentEdData;
             resolutionTrendChart.data.datasets[1].data = data.resolvedVsEdData;
             resolutionTrendChart.data.labels = data.monthLabels;
+            resolutionTrendChart.data.labels = data.monthLabels;
             resolutionTrendChart.update();
         }
+
+        // Update CME Complaints Chart
+        if (data.cmeGraphData && cmeComplaintsChart) {
+            cmeComplaintsChart.data.datasets[0].data = data.cmeGraphData;
+            if (data.cmeResolvedData) {
+                cmeComplaintsChart.data.datasets[1].data = data.cmeResolvedData;
+            }
+            if (data.cmeGraphLabels) {
+                cmeComplaintsChart.data.labels = data.cmeGraphLabels;
+            }
+            cmeComplaintsChart.update();
+        }
+    }
+
+    // Handle CME Graph Filter Change
+    const cmeGraphFilter = document.getElementById('cmeGraphFilter');
+    if (cmeGraphFilter) {
+        cmeGraphFilter.addEventListener('change', function() {
+            const cmeDateRange = this.value;
+            
+            // Get other current filters to maintain context
+            const cityId = document.getElementById('filterCity') ? document.getElementById('filterCity').value : null;
+            const sectorId = document.getElementById('filterSector') ? document.getElementById('filterSector').value : null;
+            const category = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : null;
+            const status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : null;
+            const dateRange = document.getElementById('filterDateRange') ? document.getElementById('filterDateRange').value : null;
+            const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
+
+            const params = new URLSearchParams();
+            if (cmeDateRange) params.append('cme_date_range', cmeDateRange);
+            if (cmesId) params.append('cmes_id', cmesId);
+            if (cityId) params.append('city_id', cityId);
+            if (sectorId) params.append('sector_id', sectorId);
+            if (category && category !== 'all') params.append('category', category);
+            if (status && status !== 'all') params.append('status', status);
+            if (dateRange) params.append('date_range', dateRange);
+
+            // Fetch data via AJAX
+            fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    // Update ONLY the CME chart
+                    if (data.cmeGraphData && cmeComplaintsChart) {
+                        cmeComplaintsChart.data.datasets[0].data = data.cmeGraphData;
+                        if (data.cmeResolvedData) {
+                            cmeComplaintsChart.data.datasets[1].data = data.cmeResolvedData;
+                        }
+                        if (data.cmeGraphLabels) {
+                            cmeComplaintsChart.data.labels = data.cmeGraphLabels;
+                        }
+                        cmeComplaintsChart.update();
+                    }
+                }
+            })
+            .catch(error => console.error('Error updating CME graph:', error));
+        });
     }
 });
 </script>

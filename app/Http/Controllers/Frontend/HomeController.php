@@ -565,6 +565,92 @@ class HomeController extends Controller
             'sla_percentage' => 0,
         ];
 
+        // Fetch CMES list for dropdown
+        $cmesList = \App\Models\Cme::where('status', 'active')->orderBy('name')->get();
+
+        // Get CME Complaint Stats for Graph
+        $cmeGraphLabels = [];
+        $cmeGraphData = [];
+        $cmeResolvedData = []; // New array for addressed complaints
+        
+        $cmeDateRange = $request->get('cme_date_range', $dateRange); // Use specific filter or fallback to global
+
+        foreach($cmesList as $cme) {
+            $cmeGraphLabels[] = $cme->name;
+            
+            // Get cities (GE Groups) for this CME
+            $cityIdsForCme = \App\Models\City::where('cme_id', $cme->id)->pluck('id')->toArray();
+            
+            // Get sectors (GE Nodes) for this CME (either directly or via city)
+            $sectorIdsForCme = \App\Models\Sector::where(function($q) use ($cme, $cityIdsForCme) {
+                $q->where('cme_id', $cme->id);
+                if (!empty($cityIdsForCme)) {
+                    $q->orWhereIn('city_id', $cityIdsForCme);
+                }
+            })->pluck('id')->toArray();
+            
+            // Base query for this CME
+            $cmeBaseQuery = \App\Models\Complaint::where(function($q) use ($cityIdsForCme, $sectorIdsForCme) {
+                if (!empty($cityIdsForCme)) {
+                    $q->whereIn('city_id', $cityIdsForCme);
+                }
+                if (!empty($sectorIdsForCme)) {
+                    $method = !empty($cityIdsForCme) ? 'orWhereIn' : 'whereIn';
+                    $q->{$method}('sector_id', $sectorIdsForCme);
+                }
+            });
+
+            // Apply Global Filters (Category, Status) - consistent with other stats
+            if ($category && $category !== 'all') {
+                $cmeBaseQuery->where('category', $category);
+            }
+            if ($status && $status !== 'all') {
+                $cmeBaseQuery->where('status', $status);
+            }
+
+            // Apply Date Filter (Specific or Global)
+            if ($cmeDateRange) {
+                $now = now();
+                switch ($cmeDateRange) {
+                    case 'yesterday':
+                        $cmeBaseQuery->whereDate('created_at', $now->copy()->subDay()->toDateString());
+                        break;
+                    case 'today':
+                        $cmeBaseQuery->whereDate('created_at', $now->toDateString());
+                        break;
+                    case 'this_week':
+                        $cmeBaseQuery->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                        break;
+                    case 'last_week':
+                        $cmeBaseQuery->whereBetween('created_at', [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()]);
+                        break;
+                    case 'this_month':
+                        $cmeBaseQuery->whereMonth('created_at', $now->month)
+                              ->whereYear('created_at', $now->year);
+                        break;
+                    case 'last_month':
+                        $cmeBaseQuery->whereMonth('created_at', $now->copy()->subMonth()->month)
+                              ->whereYear('created_at', $now->copy()->subMonth()->year);
+                        break;
+                    case 'last_6_months':
+                        $cmeBaseQuery->where('created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
+                        break;
+                    case 'this_year':
+                        $cmeBaseQuery->whereYear('created_at', $now->year);
+                        break;
+                    case 'last_year':
+                        $cmeBaseQuery->whereYear('created_at', $now->copy()->subYear()->year);
+                        break;
+                }
+            }
+
+            // Count total complaints
+            $cmeGraphData[] = (clone $cmeBaseQuery)->count();
+
+            // Count addressed (resolved + closed) complaints
+            $cmeResolvedData[] = (clone $cmeBaseQuery)->whereIn('status', ['resolved', 'closed'])->count();
+        }
+
         // If AJAX request, return JSON data
         if ($request->ajax()) {
             return response()->json([
@@ -574,11 +660,12 @@ class HomeController extends Controller
                 'complaintsByStatus' => $complaintsByStatus,
                 'resolvedVsEdData' => $resolvedVsEdData,
                 'recentEdData' => $recentEdData,
+                'cmeGraphLabels' => $cmeGraphLabels,
+                'cmeGraphData' => $cmeGraphData,
             ]);
         }
 
-        // Fetch CMES list for dropdown
-        $cmesList = \App\Models\Cme::where('status', 'active')->orderBy('name')->get();
+
 
         return view('frontend.dashboard', compact(
             'stats',
@@ -598,7 +685,10 @@ class HomeController extends Controller
             'status',
             'dateRange',
             'cmesList',
-            'cmesId'
+            'cmesId',
+            'cmeGraphLabels',
+            'cmeGraphData',
+            'cmeResolvedData'
         ));
     }
 }
