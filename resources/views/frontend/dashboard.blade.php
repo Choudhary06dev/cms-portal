@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const ctx3 = document.getElementById('complaintsByStatusChart').getContext('2d');
 
     // Calculate total from original data (including closed) for accurate total count
-    const totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
+    let totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
 
     // Center text plugin for Chart.js
     const centerTextPlugin = {
@@ -1004,6 +1004,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.complaintsByStatus && complaintsByStatusChart) {
             // Update global complaintsByStatus with original data (including closed for total calculation)
             complaintsByStatus = data.complaintsByStatus;
+
+            // Recalculate total complaints
+            totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
 
             // Filter out 'closed' status for graph display only
             const filteredComplaintsByStatus = {};
