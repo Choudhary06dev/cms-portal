@@ -968,45 +968,68 @@ class HomeController extends Controller
 
         // Prepare Stock Consumption Data - Monthly with Inventory Details
         $stockConsumptionData = [];
-        $sparesList = \App\Models\Spare::orderBy('item_name')->get();
+        $sparesListQuery = \App\Models\Spare::orderBy('item_name');
+        
+        // Apply location filtering to spares list based on user privileges
+        $this->applyFrontendLocationScope($sparesListQuery, $locationScope, 'city_id', 'sector_id');
+        
+        $sparesList = $sparesListQuery->get();
 
-        // Get monthly consumption data
-        $stockQuery = \App\Models\ComplaintSpare::selectRaw('
-                complaint_spares.spare_id,
-                MONTH(complaint_spares.created_at) as month,
-                SUM(complaint_spares.quantity) as total_qty
+        // Get monthly consumption data from spare_stock_logs (issued quantity)
+        $stockQuery = \App\Models\SpareStockLog::selectRaw('
+                spare_stock_logs.spare_id,
+                MONTH(spare_stock_logs.created_at) as month,
+                SUM(spare_stock_logs.quantity) as total_qty
             ')
-            ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
-            ->whereYear('complaint_spares.created_at', date('Y'))
-            ->whereNull('complaints.deleted_at');
+            ->join('spares', 'spare_stock_logs.spare_id', '=', 'spares.id')
+            ->where('spare_stock_logs.change_type', 'out')
+            ->whereYear('spare_stock_logs.created_at', date('Y'))
+            ->whereNull('spare_stock_logs.deleted_at')
+            ->whereNull('spares.deleted_at');
 
-        // Apply location filters based on privileges (reuse logic)
+        // Apply location filters based on privileges (filter by spare's location)
         if ($hasUnrestrictedAccess) {
-            // No filter needed
+            // No filter needed - show all issued stock
         } elseif ($user && !empty($user->cme_ids)) {
-            // Filter by CMEs
-            $stockQuery->join('cities', 'complaints.city_id', '=', 'cities.id')
+            // Filter by CMEs - through spare's city
+            $stockQuery->join('cities', 'spares.city_id', '=', 'cities.id')
                 ->whereIn('cities.cme_id', $user->cme_ids);
         } elseif ($user && !empty($user->group_ids)) {
-            // Filter by Cities (Groups)
-            $stockQuery->whereIn('complaints.city_id', $user->group_ids);
+            // Filter by Cities (Groups) - through spare's city_id
+            $stockQuery->whereIn('spares.city_id', $user->group_ids);
         } elseif ($user && !empty($user->node_ids)) {
-            // Filter by Sectors (Nodes)
-            $stockQuery->whereIn('complaints.sector_id', $user->node_ids);
+            // Filter by Sectors (Nodes) - through spare's sector_id
+            $stockQuery->whereIn('spares.sector_id', $user->node_ids);
         }
 
-        $stockResults = $stockQuery->groupBy('complaint_spares.spare_id', 'month')->get();
+        $stockResults = $stockQuery->groupBy('spare_stock_logs.spare_id', 'month')->get();
 
         // Get monthly stock received data from spare_stock_logs
         $stockReceivedQuery = \App\Models\SpareStockLog::selectRaw('
-                spare_id,
-                MONTH(created_at) as month,
-                SUM(quantity) as total_qty
+                spare_stock_logs.spare_id,
+                MONTH(spare_stock_logs.created_at) as month,
+                SUM(spare_stock_logs.quantity) as total_qty
             ')
-            ->where('change_type', 'in')
-            ->whereYear('created_at', date('Y'))
-            ->groupBy('spare_id', 'month')
-            ->get();
+            ->join('spares', 'spare_stock_logs.spare_id', '=', 'spares.id')
+            ->where('spare_stock_logs.change_type', 'in')
+            ->whereYear('spare_stock_logs.created_at', date('Y'))
+            ->whereNull('spare_stock_logs.deleted_at')
+            ->whereNull('spares.deleted_at');
+
+        // Apply location filters to stock received query as well
+        if ($hasUnrestrictedAccess) {
+            // No filter needed
+        } elseif ($user && !empty($user->cme_ids)) {
+            $stockReceivedQuery->join('cities', 'spares.city_id', '=', 'cities.id')
+                ->whereIn('cities.cme_id', $user->cme_ids);
+        } elseif ($user && !empty($user->group_ids)) {
+            $stockReceivedQuery->whereIn('spares.city_id', $user->group_ids);
+        } elseif ($user && !empty($user->node_ids)) {
+            $stockReceivedQuery->whereIn('spares.sector_id', $user->node_ids);
+        }
+
+        $stockReceivedQuery->groupBy('spare_stock_logs.spare_id', 'month');
+        $stockReceivedResults = $stockReceivedQuery->get();
 
         // Process stock data
         foreach ($sparesList as $spare) {
@@ -1027,7 +1050,7 @@ class HomeController extends Controller
                 $totalUsed += $qty;
 
                 // Get received data
-                $receivedStat = $stockReceivedQuery->where('spare_id', $spare->id)->where('month', $m)->first();
+                $receivedStat = $stockReceivedResults->where('spare_id', $spare->id)->where('month', $m)->first();
                 $receivedQty = $receivedStat ? $receivedStat->total_qty : 0;
                 $monthlyReceivedData[$mName] = $receivedQty;
             }
