@@ -519,7 +519,7 @@ class HomeController extends Controller
         $monthLabels = [];
         for ($i = 0; $i < 12; $i++) { // Jan to Dec
             $date = now()->startOfYear()->addMonths($i);
-            $monthLabels[] = $date->format('M');
+            $monthLabels[] = $date->format('F'); // Full month names
             $monthQuery = (clone $complaintsQuery)
                 ->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month);
@@ -566,11 +566,25 @@ class HomeController extends Controller
                     $query->where('created_at', '>=', now()->subDays(30));
                     // Apply location filter to assigned complaints count
                     $self->filterComplaintsByLocationForFrontend($query, $user, $locationScope);
+                },
+                'assignedComplaints as pending_complaints_count' => function ($query) use ($user, $self, $locationScope) {
+                    $query->where('created_at', '>=', now()->subDays(30))
+                        ->whereIn('status', ['new', 'assigned', 'in_progress']);
+                    $self->filterComplaintsByLocationForFrontend($query, $user, $locationScope);
+                },
+                'assignedComplaints as resolved_complaints_count' => function ($query) use ($user, $self, $locationScope) {
+                    $query->where('created_at', '>=', now()->subDays(30))
+                        ->whereIn('status', ['resolved', 'closed']);
+                    $self->filterComplaintsByLocationForFrontend($query, $user, $locationScope);
                 }
             ])
             ->orderBy('assigned_complaints_count', 'desc')
-            ->limit(5)
             ->get();
+
+        // Prepare Employee Graph Data
+        $empGraphLabels = $employeePerformance->pluck('name')->toArray();
+        $empGraphTotal = $employeePerformance->pluck('assigned_complaints_count')->toArray();
+        $empGraphResolved = $employeePerformance->pluck('resolved_complaints_count')->toArray();
 
         $slaPerformance = [
             'total' => 0,
@@ -891,6 +905,122 @@ class HomeController extends Controller
         $isCmeUser = !$hasUnrestrictedAccess && $user && !empty($user->cme_ids);
         $isGeUser = !$hasUnrestrictedAccess && !$isCmeUser && $user && !empty($user->group_ids);
 
+        // Prepare Monthly Table Data
+        $monthlyTableData = [];
+        $tableEntities = collect([]);
+        $entityType = '';
+
+        if ($isCmeUser) {
+            $tableEntities = $geGroupsForCme ?? collect([]);
+            $entityType = 'city';
+        } elseif ($isGeUser) {
+            $tableEntities = $geNodesForGroup ?? collect([]);
+            $entityType = 'sector';
+        } else {
+            $tableEntities = $cmesList;
+            $entityType = 'cme';
+        }
+
+        if ($tableEntities->isNotEmpty()) {
+            // Fetch monthly data for the current year
+            $monthlyQuery = \App\Models\Complaint::selectRaw('
+                    MONTH(complaints.created_at) as month, 
+                    YEAR(complaints.created_at) as year,
+                    count(*) as total,
+                    sum(case when complaints.status in ("resolved", "closed") then 1 else 0 end) as resolved
+                ')
+                ->whereYear('complaints.created_at', date('Y'))
+                ->groupBy('year', 'month');
+
+            if ($entityType === 'cme') {
+                $monthlyQuery->join('cities', 'complaints.city_id', '=', 'cities.id')
+                    ->selectRaw('cities.cme_id as entity_id')
+                    ->groupBy('cities.cme_id');
+            } elseif ($entityType === 'city') {
+                $monthlyQuery->selectRaw('city_id as entity_id')
+                    ->whereIn('city_id', $tableEntities->pluck('id'))
+                    ->groupBy('city_id');
+            } elseif ($entityType === 'sector') {
+                $monthlyQuery->selectRaw('sector_id as entity_id')
+                    ->whereIn('sector_id', $tableEntities->pluck('id'))
+                    ->groupBy('sector_id');
+            }
+
+            $monthlyResults = $monthlyQuery->get();
+
+            // Process results into table data
+            $months = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $months[$m] = date('F', mktime(0, 0, 0, $m, 1));
+            }
+
+            foreach ($months as $mNum => $mName) {
+                $monthlyTableData[$mName] = [];
+                foreach ($tableEntities as $entity) {
+                    $stat = $monthlyResults->where('month', $mNum)->where('entity_id', $entity->id)->first();
+                    $monthlyTableData[$mName][$entity->name] = [
+                        'total' => $stat ? $stat->total : 0,
+                        'resolved' => $stat ? $stat->resolved : 0
+                    ];
+                }
+            }
+        }
+
+        // Prepare Stock Consumption Data - Monthly with Inventory Details
+        $stockConsumptionData = [];
+        $sparesList = \App\Models\Spare::orderBy('item_name')->get();
+
+        // Get monthly consumption data
+        $stockQuery = \App\Models\ComplaintSpare::selectRaw('
+                complaint_spares.spare_id,
+                MONTH(complaint_spares.created_at) as month,
+                SUM(complaint_spares.quantity) as total_qty
+            ')
+            ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+            ->whereYear('complaint_spares.created_at', date('Y'))
+            ->whereNull('complaints.deleted_at');
+
+        // Apply location filters based on privileges (reuse logic)
+        if ($hasUnrestrictedAccess) {
+            // No filter needed
+        } elseif ($user && !empty($user->cme_ids)) {
+            // Filter by CMEs
+            $stockQuery->join('cities', 'complaints.city_id', '=', 'cities.id')
+                ->whereIn('cities.cme_id', $user->cme_ids);
+        } elseif ($user && !empty($user->group_ids)) {
+            // Filter by Cities (Groups)
+            $stockQuery->whereIn('complaints.city_id', $user->group_ids);
+        } elseif ($user && !empty($user->node_ids)) {
+            // Filter by Sectors (Nodes)
+            $stockQuery->whereIn('complaints.sector_id', $user->node_ids);
+        }
+
+        $stockResults = $stockQuery->groupBy('complaint_spares.spare_id', 'month')->get();
+
+        // Process stock data
+        foreach ($sparesList as $spare) {
+            $totalReceived = $spare->total_received_quantity ?? 0;
+            $currentStock = $spare->stock_quantity ?? 0;
+
+            $monthlyData = [];
+            $totalUsed = 0;
+
+            for ($m = 1; $m <= 12; $m++) {
+                $mName = date('F', mktime(0, 0, 0, $m, 1)); // Full month name to match monthLabels
+                $stat = $stockResults->where('spare_id', $spare->id)->where('month', $m)->first();
+                $qty = $stat ? $stat->total_qty : 0;
+                $monthlyData[$mName] = $qty;
+                $totalUsed += $qty;
+            }
+
+            $stockConsumptionData[$spare->item_name] = [
+                'total_received' => $totalReceived,
+                'current_stock' => $currentStock,
+                'monthly_data' => $monthlyData,
+                'total_used' => $totalUsed
+            ];
+        }
+
         return view('frontend.dashboard', compact(
             'stats',
             'geGroups',
@@ -914,7 +1044,13 @@ class HomeController extends Controller
             'cmeGraphData',
             'cmeResolvedData',
             'isCmeUser',
-            'isGeUser'
+            'isGeUser',
+            'empGraphLabels',
+            'empGraphTotal',
+            'empGraphResolved',
+            'monthlyTableData',
+            'tableEntities',
+            'stockConsumptionData'
         ));
     }
 }
