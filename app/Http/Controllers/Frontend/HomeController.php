@@ -1096,4 +1096,14 @@ class HomeController extends Controller
             'stockConsumptionData'
         ));
     }
+
+    /**
+     * Show the user profile.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function profile()
+    {
+        return view('frontend.profile');
+    }
 }

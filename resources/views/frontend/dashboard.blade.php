@@ -454,11 +454,11 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th rowspan="2"
-                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">
+                                class="px-4 py-3 text-left text-xs font-extrabold text-gray-900 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">
                                 Month</th>
                             @foreach($tableEntities as $entity)
                                 <th colspan="2"
-                                    class="px-2 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                    class="px-2 py-3 text-center text-xs font-extrabold text-gray-900 uppercase tracking-wider border-r border-gray-200">
                                     {{ $entity->name }}
                                 </th>
                             @endforeach
@@ -466,10 +466,10 @@
                         <tr>
                             @foreach($tableEntities as $entity)
                                 <th
-                                    class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                    class="px-2 py-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wider border-r border-gray-200">
                                     Total</th>
                                 <th
-                                    class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                    class="px-2 py-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wider border-r border-gray-200">
                                     Addressed</th>
                             @endforeach
                         </tr>
