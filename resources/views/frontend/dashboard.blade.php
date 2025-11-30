@@ -431,7 +431,7 @@
         <!-- Monthly Performance Table -->
         <div id="monthlyPerformanceReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
-                <h2 class="text-xl font-semibold text-gray-800">Monthly Performance Report</h2>
+                <h2 class="text-xl font-semibold text-gray-800">Monthly Performance Report of CMES</h2>
                 <div class="flex space-x-2">
                     <button onclick="printSection('monthlyPerformanceReport')"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
