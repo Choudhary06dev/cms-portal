@@ -340,7 +340,15 @@
     <!-- CME Complaints Graph Row -->
     <div class="mt-6 bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Total Complaints by CMES</h2>
+            <h2 class="text-xl font-semibold">
+                @if($isCmeUser)
+                    Total Complaints by GE
+                @elseif($isGeUser)
+                    Total Complaints by GE Node
+                @else
+                    Total Complaints by CME'S
+                @endif
+            </h2>
             <select id="cmeGraphFilter" class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Default (Global)</option>
                 <option value="this_month">This Month</option>
@@ -672,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datalabels: {
                     anchor: 'end',
                     align: 'top',
-                    offset: 5,
+                    offset: 15,
                     font: {
                         size: 12,
                         weight: 'bold',

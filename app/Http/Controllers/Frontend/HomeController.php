@@ -627,80 +627,225 @@ class HomeController extends Controller
 
         $cmeDateRange = $request->get('cme_date_range', $dateRange); // Use specific filter or fallback to global
 
-        foreach ($cmesList as $cme) {
-            $cmeGraphLabels[] = $cme->name;
+        // Priority: CME User > GE User > Admin
+        // Check if user has specific CME IDs assigned - if yes, show GE Groups instead of CMEs
+        if ($user && !empty($user->cme_ids)) {
+            // CME User: Show all GE Groups (cities) under their assigned CMEs
+            $geGroupsForCme = \App\Models\City::whereIn('cme_id', $user->cme_ids)
+                ->where(function ($q) {
+                    $q->where('name', 'LIKE', '%GE%')
+                        ->orWhere('name', 'LIKE', '%AGE%')
+                        ->orWhere('name', 'LIKE', '%ge%')
+                        ->orWhere('name', 'LIKE', '%age%');
+                })
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get();
 
-            // Get cities (GE Groups) for this CME
-            $cityIdsForCme = \App\Models\City::where('cme_id', $cme->id)->pluck('id')->toArray();
+            foreach ($geGroupsForCme as $city) {
+                $cmeGraphLabels[] = $city->name;
 
-            // Get sectors (GE Nodes) for this CME (either directly or via city)
-            $sectorIdsForCme = \App\Models\Sector::where(function ($q) use ($cme, $cityIdsForCme) {
-                $q->where('cme_id', $cme->id);
-                if (!empty($cityIdsForCme)) {
-                    $q->orWhereIn('city_id', $cityIdsForCme);
+                // Get sectors (GE Nodes) for this city
+                $sectorIdsForCity = \App\Models\Sector::where('city_id', $city->id)->pluck('id')->toArray();
+
+                // Base query for this GE Group (city)
+                $cityBaseQuery = \App\Models\Complaint::where(function ($q) use ($city, $sectorIdsForCity) {
+                    $q->where('city_id', $city->id);
+                    if (!empty($sectorIdsForCity)) {
+                        $q->orWhereIn('sector_id', $sectorIdsForCity);
+                    }
+                });
+
+                // Apply Global Filters (Category, Status)
+                if ($category && $category !== 'all') {
+                    $cityBaseQuery->where('category', $category);
                 }
-            })->pluck('id')->toArray();
-
-            // Base query for this CME
-            $cmeBaseQuery = \App\Models\Complaint::where(function ($q) use ($cityIdsForCme, $sectorIdsForCme) {
-                if (!empty($cityIdsForCme)) {
-                    $q->whereIn('city_id', $cityIdsForCme);
+                if ($status && $status !== 'all') {
+                    $cityBaseQuery->where('status', $status);
                 }
-                if (!empty($sectorIdsForCme)) {
-                    $method = !empty($cityIdsForCme) ? 'orWhereIn' : 'whereIn';
-                    $q->{$method}('sector_id', $sectorIdsForCme);
-                }
-            });
 
-            // Apply Global Filters (Category, Status) - consistent with other stats
-            if ($category && $category !== 'all') {
-                $cmeBaseQuery->where('category', $category);
+                // Apply Date Filter
+                if ($cmeDateRange) {
+                    $now = now();
+                    switch ($cmeDateRange) {
+                        case 'yesterday':
+                            $cityBaseQuery->whereDate('created_at', $now->copy()->subDay()->toDateString());
+                            break;
+                        case 'today':
+                            $cityBaseQuery->whereDate('created_at', $now->toDateString());
+                            break;
+                        case 'this_week':
+                            $cityBaseQuery->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                            break;
+                        case 'last_week':
+                            $cityBaseQuery->whereBetween('created_at', [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()]);
+                            break;
+                        case 'this_month':
+                            $cityBaseQuery->whereMonth('created_at', $now->month)
+                                ->whereYear('created_at', $now->year);
+                            break;
+                        case 'last_month':
+                            $cityBaseQuery->whereMonth('created_at', $now->copy()->subMonth()->month)
+                                ->whereYear('created_at', $now->copy()->subMonth()->year);
+                            break;
+                        case 'last_6_months':
+                            $cityBaseQuery->where('created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
+                            break;
+                        case 'this_year':
+                            $cityBaseQuery->whereYear('created_at', $now->year);
+                            break;
+                        case 'last_year':
+                            $cityBaseQuery->whereYear('created_at', $now->copy()->subYear()->year);
+                            break;
+                    }
+                }
+
+                // Count total complaints for this GE Group
+                $cmeGraphData[] = (clone $cityBaseQuery)->count();
+
+                // Count addressed (resolved + closed) complaints
+                $cmeResolvedData[] = (clone $cityBaseQuery)->whereIn('status', ['resolved', 'closed'])->count();
             }
-            if ($status && $status !== 'all') {
-                $cmeBaseQuery->where('status', $status);
-            }
+        } elseif ($user && !empty($user->group_ids)) {
+            // GE User: Show all GE Nodes (sectors) under their assigned GE Groups
+            $geNodesForGroup = \App\Models\Sector::whereIn('city_id', $user->group_ids)
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get();
 
-            // Apply Date Filter (Specific or Global)
-            if ($cmeDateRange) {
-                $now = now();
-                switch ($cmeDateRange) {
-                    case 'yesterday':
-                        $cmeBaseQuery->whereDate('created_at', $now->copy()->subDay()->toDateString());
-                        break;
-                    case 'today':
-                        $cmeBaseQuery->whereDate('created_at', $now->toDateString());
-                        break;
-                    case 'this_week':
-                        $cmeBaseQuery->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
-                        break;
-                    case 'last_week':
-                        $cmeBaseQuery->whereBetween('created_at', [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()]);
-                        break;
-                    case 'this_month':
-                        $cmeBaseQuery->whereMonth('created_at', $now->month)
-                            ->whereYear('created_at', $now->year);
-                        break;
-                    case 'last_month':
-                        $cmeBaseQuery->whereMonth('created_at', $now->copy()->subMonth()->month)
-                            ->whereYear('created_at', $now->copy()->subMonth()->year);
-                        break;
-                    case 'last_6_months':
-                        $cmeBaseQuery->where('created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
-                        break;
-                    case 'this_year':
-                        $cmeBaseQuery->whereYear('created_at', $now->year);
-                        break;
-                    case 'last_year':
-                        $cmeBaseQuery->whereYear('created_at', $now->copy()->subYear()->year);
-                        break;
+            foreach ($geNodesForGroup as $sector) {
+                $cmeGraphLabels[] = $sector->name;
+
+                // Base query for this GE Node (sector)
+                $sectorBaseQuery = \App\Models\Complaint::where('sector_id', $sector->id);
+
+                // Apply Global Filters (Category, Status)
+                if ($category && $category !== 'all') {
+                    $sectorBaseQuery->where('category', $category);
                 }
+                if ($status && $status !== 'all') {
+                    $sectorBaseQuery->where('status', $status);
+                }
+
+                // Apply Date Filter
+                if ($cmeDateRange) {
+                    $now = now();
+                    switch ($cmeDateRange) {
+                        case 'yesterday':
+                            $sectorBaseQuery->whereDate('created_at', $now->copy()->subDay()->toDateString());
+                            break;
+                        case 'today':
+                            $sectorBaseQuery->whereDate('created_at', $now->toDateString());
+                            break;
+                        case 'this_week':
+                            $sectorBaseQuery->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                            break;
+                        case 'last_week':
+                            $sectorBaseQuery->whereBetween('created_at', [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()]);
+                            break;
+                        case 'this_month':
+                            $sectorBaseQuery->whereMonth('created_at', $now->month)
+                                ->whereYear('created_at', $now->year);
+                            break;
+                        case 'last_month':
+                            $sectorBaseQuery->whereMonth('created_at', $now->copy()->subMonth()->month)
+                                ->whereYear('created_at', $now->copy()->subMonth()->year);
+                            break;
+                        case 'last_6_months':
+                            $sectorBaseQuery->where('created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
+                            break;
+                        case 'this_year':
+                            $sectorBaseQuery->whereYear('created_at', $now->year);
+                            break;
+                        case 'last_year':
+                            $sectorBaseQuery->whereYear('created_at', $now->copy()->subYear()->year);
+                            break;
+                    }
+                }
+
+                // Count total complaints for this GE Node
+                $cmeGraphData[] = (clone $sectorBaseQuery)->count();
+
+                // Count addressed (resolved + closed) complaints
+                $cmeResolvedData[] = (clone $sectorBaseQuery)->whereIn('status', ['resolved', 'closed'])->count();
             }
+        } else {
+            // Non-CME/GE User or Admin: Show CMEs as before
+            foreach ($cmesList as $cme) {
+                $cmeGraphLabels[] = $cme->name;
 
-            // Count total complaints
-            $cmeGraphData[] = (clone $cmeBaseQuery)->count();
+                // Get cities (GE Groups) for this CME
+                $cityIdsForCme = \App\Models\City::where('cme_id', $cme->id)->pluck('id')->toArray();
 
-            // Count addressed (resolved + closed) complaints
-            $cmeResolvedData[] = (clone $cmeBaseQuery)->whereIn('status', ['resolved', 'closed'])->count();
+                // Get sectors (GE Nodes) for this CME (either directly or via city)
+                $sectorIdsForCme = \App\Models\Sector::where(function ($q) use ($cme, $cityIdsForCme) {
+                    $q->where('cme_id', $cme->id);
+                    if (!empty($cityIdsForCme)) {
+                        $q->orWhereIn('city_id', $cityIdsForCme);
+                    }
+                })->pluck('id')->toArray();
+
+                // Base query for this CME
+                $cmeBaseQuery = \App\Models\Complaint::where(function ($q) use ($cityIdsForCme, $sectorIdsForCme) {
+                    if (!empty($cityIdsForCme)) {
+                        $q->whereIn('city_id', $cityIdsForCme);
+                    }
+                    if (!empty($sectorIdsForCme)) {
+                        $method = !empty($cityIdsForCme) ? 'orWhereIn' : 'whereIn';
+                        $q->{$method}('sector_id', $sectorIdsForCme);
+                    }
+                });
+
+                // Apply Global Filters (Category, Status) - consistent with other stats
+                if ($category && $category !== 'all') {
+                    $cmeBaseQuery->where('category', $category);
+                }
+                if ($status && $status !== 'all') {
+                    $cmeBaseQuery->where('status', $status);
+                }
+
+                // Apply Date Filter (Specific or Global)
+                if ($cmeDateRange) {
+                    $now = now();
+                    switch ($cmeDateRange) {
+                        case 'yesterday':
+                            $cmeBaseQuery->whereDate('created_at', $now->copy()->subDay()->toDateString());
+                            break;
+                        case 'today':
+                            $cmeBaseQuery->whereDate('created_at', $now->toDateString());
+                            break;
+                        case 'this_week':
+                            $cmeBaseQuery->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                            break;
+                        case 'last_week':
+                            $cmeBaseQuery->whereBetween('created_at', [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()]);
+                            break;
+                        case 'this_month':
+                            $cmeBaseQuery->whereMonth('created_at', $now->month)
+                                ->whereYear('created_at', $now->year);
+                            break;
+                        case 'last_month':
+                            $cmeBaseQuery->whereMonth('created_at', $now->copy()->subMonth()->month)
+                                ->whereYear('created_at', $now->copy()->subMonth()->year);
+                            break;
+                        case 'last_6_months':
+                            $cmeBaseQuery->where('created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
+                            break;
+                        case 'this_year':
+                            $cmeBaseQuery->whereYear('created_at', $now->year);
+                            break;
+                        case 'last_year':
+                            $cmeBaseQuery->whereYear('created_at', $now->copy()->subYear()->year);
+                            break;
+                    }
+                }
+
+                // Count total complaints
+                $cmeGraphData[] = (clone $cmeBaseQuery)->count();
+
+                // Count addressed (resolved + closed) complaints
+                $cmeResolvedData[] = (clone $cmeBaseQuery)->whereIn('status', ['resolved', 'closed'])->count();
+            }
         }
 
         // If AJAX request, return JSON data
@@ -718,6 +863,11 @@ class HomeController extends Controller
         }
 
 
+
+        // Determine user type for graph heading
+        // Priority: CME User > GE User > Admin
+        $isCmeUser = $user && !empty($user->cme_ids);
+        $isGeUser = !$isCmeUser && $user && !empty($user->group_ids);
 
         return view('frontend.dashboard', compact(
             'stats',
@@ -740,7 +890,9 @@ class HomeController extends Controller
             'cmesId',
             'cmeGraphLabels',
             'cmeGraphData',
-            'cmeResolvedData'
+            'cmeResolvedData',
+            'isCmeUser',
+            'isGeUser'
         ));
     }
 }
