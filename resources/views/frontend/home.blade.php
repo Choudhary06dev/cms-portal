@@ -419,7 +419,7 @@
 <div style="display: flex; flex-direction: column; min-height: calc(100vh - 100px);">
 
   <div class="container">                                                                                                            
-    <div class="left-section" id="leftSection">
+    <div class="left-section" id="leftSection" @auth('frontend') style="border-radius: 20px; min-height: 650px;" @endauth>
         <div class="image-slider" id="imageSlider">
             <img src="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" alt="Navy Image 1" data-bg="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" class="slider-img" />
             <img src="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" alt="Navy Image 2" data-bg="https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg" class="slider-img" />
@@ -427,6 +427,7 @@
         </div>
     </div>
 
+    @guest('frontend')
     <div class="right-section">
         <div class="logo">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Pakistan_Navy_emblem.svg/200px-Pakistan_Navy_emblem.svg.png" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
@@ -444,7 +445,7 @@
 
             <div class="form-group">
                 <label>Login</label>
-                <input type="text" name="username" placeholder="Email or phone number" value="{{ old('username') }}" required autofocus />
+                <input type="text" name="username" placeholder="Username" value="{{ old('username') }}" required autofocus />
         </div>
         
             <div class="form-group">
@@ -466,6 +467,7 @@
             <button type="submit" class="sign-btn">Sign In</button>
         </form>
     </div>
+    @endguest
   </div>
 </div>
 
@@ -496,48 +498,63 @@
     // Image slider functionality
     const sliderImages = document.querySelectorAll('.slider-img');
     const leftSection = document.getElementById('leftSection');
-    const defaultBg = 'https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg';
-    let isClicked = false;
+    let currentIndex = 0;
+    let intervalId;
 
-    // Reset to default background when mouse leaves slider area
-    const imageSlider = document.getElementById('imageSlider');
-    imageSlider.addEventListener('mouseleave', function() {
-      if (!isClicked) {
-        leftSection.style.backgroundImage = `url('${defaultBg}')`;
+    // Function to update slider
+    function updateSlider(index) {
+        // Remove active class from all
         sliderImages.forEach(img => img.classList.remove('active'));
-      }
-    });
-
-    // Hover functionality for background change (temporary)
-    sliderImages.forEach((img, index) => {
-      img.addEventListener('mouseenter', function() {
-        if (!isClicked) {
-          const bgImage = this.getAttribute('data-bg');
-          leftSection.style.backgroundImage = `url('${bgImage}')`;
-        }
-      });
-    });
-
-    // Click on image to change background permanently
-    sliderImages.forEach((img, index) => {
-      img.addEventListener('click', function() {
-        isClicked = true;
-        const bgImage = this.getAttribute('data-bg');
-        leftSection.style.backgroundImage = `url('${bgImage}')`;
         
-        // Update active class
-        sliderImages.forEach(sliderImg => sliderImg.classList.remove('active'));
-        this.classList.add('active');
-      });
+        // Add active to current
+        const img = sliderImages[index];
+        if(img) {
+            img.classList.add('active');
+            const bgImage = img.getAttribute('data-bg');
+            leftSection.style.backgroundImage = `url('${bgImage}')`;
+        }
+    }
+
+    // Function to move to next slide
+    function nextSlide() {
+        currentIndex = (currentIndex + 1) % sliderImages.length;
+        updateSlider(currentIndex);
+    }
+
+    // Start auto rotation
+    function startAutoRotation() {
+        stopAutoRotation(); // clear existing to be safe
+        intervalId = setInterval(nextSlide, 3000);
+    }
+
+    // Stop auto rotation
+    function stopAutoRotation() {
+        if (intervalId) clearInterval(intervalId);
+    }
+
+    const imageSlider = document.getElementById('imageSlider');
+
+    // Hover functionality for images
+    sliderImages.forEach((img, index) => {
+        img.addEventListener('mouseenter', function() {
+            stopAutoRotation();
+            currentIndex = index; // Update current index to the hovered one
+            updateSlider(currentIndex);
+        });
+        
+        img.addEventListener('click', function() {
+            stopAutoRotation();
+            currentIndex = index;
+            updateSlider(currentIndex);
+        });
     });
 
-    // Reset button functionality (optional - can add a reset button)
-    // Or reset when clicking outside
-    document.addEventListener('click', function(event) {
-      if (!imageSlider.contains(event.target) && !leftSection.contains(event.target)) {
-        // Don't reset on outside click - keep clicked state
-      }
-    });
+    // Pause on hover over container, resume on leave
+    imageSlider.addEventListener('mouseenter', stopAutoRotation);
+    imageSlider.addEventListener('mouseleave', startAutoRotation);
+
+    // Start initially
+    startAutoRotation();
   });
 
 </script>
