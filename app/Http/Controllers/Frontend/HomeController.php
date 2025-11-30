@@ -997,26 +997,46 @@ class HomeController extends Controller
 
         $stockResults = $stockQuery->groupBy('complaint_spares.spare_id', 'month')->get();
 
+        // Get monthly stock received data from spare_stock_logs
+        $stockReceivedQuery = \App\Models\SpareStockLog::selectRaw('
+                spare_id,
+                MONTH(created_at) as month,
+                SUM(quantity) as total_qty
+            ')
+            ->where('change_type', 'in')
+            ->whereYear('created_at', date('Y'))
+            ->groupBy('spare_id', 'month')
+            ->get();
+
         // Process stock data
         foreach ($sparesList as $spare) {
             $totalReceived = $spare->total_received_quantity ?? 0;
             $currentStock = $spare->stock_quantity ?? 0;
 
             $monthlyData = [];
+            $monthlyReceivedData = [];
             $totalUsed = 0;
 
             for ($m = 1; $m <= 12; $m++) {
                 $mName = date('F', mktime(0, 0, 0, $m, 1)); // Full month name to match monthLabels
+
+                // Get consumption data
                 $stat = $stockResults->where('spare_id', $spare->id)->where('month', $m)->first();
                 $qty = $stat ? $stat->total_qty : 0;
                 $monthlyData[$mName] = $qty;
                 $totalUsed += $qty;
+
+                // Get received data
+                $receivedStat = $stockReceivedQuery->where('spare_id', $spare->id)->where('month', $m)->first();
+                $receivedQty = $receivedStat ? $receivedStat->total_qty : 0;
+                $monthlyReceivedData[$mName] = $receivedQty;
             }
 
             $stockConsumptionData[$spare->item_name] = [
                 'total_received' => $totalReceived,
                 'current_stock' => $currentStock,
                 'monthly_data' => $monthlyData,
+                'monthly_received_data' => $monthlyReceivedData,
                 'total_used' => $totalUsed
             ];
         }
