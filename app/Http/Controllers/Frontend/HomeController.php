@@ -627,9 +627,30 @@ class HomeController extends Controller
 
         $cmeDateRange = $request->get('cme_date_range', $dateRange); // Use specific filter or fallback to global
 
-        // Priority: CME User > GE User > Admin
-        // Check if user has specific CME IDs assigned - if yes, show GE Groups instead of CMEs
-        if ($user && !empty($user->cme_ids)) {
+        // Check if user has unrestricted access (all privileges)
+        // User is unrestricted if:
+        // 1. They have no location restrictions (no group_ids and no node_ids), OR
+        // 2. They have cme_ids that cover ALL available CMEs (meaning they can see everything)
+        $hasUnrestrictedAccess = false;
+
+        if ($user) {
+            // Check if user has no location restrictions
+            $hasNoLocationRestrictions = empty($user->group_ids) && empty($user->node_ids);
+
+            // Check if user has all CMEs assigned
+            $hasAllCmes = false;
+            if (!empty($user->cme_ids)) {
+                $totalCmes = \App\Models\Cme::where('status', 'active')->count();
+                $userCmesCount = count($user->cme_ids);
+                $hasAllCmes = ($userCmesCount >= $totalCmes);
+            }
+
+            $hasUnrestrictedAccess = $hasNoLocationRestrictions || $hasAllCmes;
+        }
+
+        // Priority: Unrestricted (Admin) > CME User > GE User
+        // If user has unrestricted access, show CMEs regardless of cme_ids/group_ids
+        if (!$hasUnrestrictedAccess && $user && !empty($user->cme_ids)) {
             // CME User: Show all GE Groups (cities) under their assigned CMEs
             $geGroupsForCme = \App\Models\City::whereIn('cme_id', $user->cme_ids)
                 ->where(function ($q) {
@@ -706,7 +727,7 @@ class HomeController extends Controller
                 // Count addressed (resolved + closed) complaints
                 $cmeResolvedData[] = (clone $cityBaseQuery)->whereIn('status', ['resolved', 'closed'])->count();
             }
-        } elseif ($user && !empty($user->group_ids)) {
+        } elseif (!$hasUnrestrictedAccess && $user && !empty($user->group_ids)) {
             // GE User: Show all GE Nodes (sectors) under their assigned GE Groups
             $geNodesForGroup = \App\Models\Sector::whereIn('city_id', $user->group_ids)
                 ->where('status', 'active')
@@ -865,9 +886,10 @@ class HomeController extends Controller
 
 
         // Determine user type for graph heading
-        // Priority: CME User > GE User > Admin
-        $isCmeUser = $user && !empty($user->cme_ids);
-        $isGeUser = !$isCmeUser && $user && !empty($user->group_ids);
+        // Priority: Unrestricted (Admin) > CME User > GE User
+        // Users with unrestricted access should see CMEs, not GE Groups/Nodes
+        $isCmeUser = !$hasUnrestrictedAccess && $user && !empty($user->cme_ids);
+        $isGeUser = !$hasUnrestrictedAccess && !$isCmeUser && $user && !empty($user->group_ids);
 
         return view('frontend.dashboard', compact(
             'stats',
