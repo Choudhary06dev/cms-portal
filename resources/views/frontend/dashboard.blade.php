@@ -554,12 +554,12 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-1 text-left text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">Item Name</th>
-                                <th class="px-4 py-1 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Total Received</th>
                                 @foreach($monthLabels as $month)
                                     <th class="px-4 py-1 text-center text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200">
                                         {{ substr($month, 0, 3) }} <!-- Show Jan, Feb etc -->
                                     </th>
                                 @endforeach
+                                <th class="px-4 py-1 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Total Received</th>
                                 <th class="px-4 py-1 text-center text-xs font-bold text-red-600 uppercase tracking-wider border-r border-gray-200">Total Used</th>
                                 <th class="px-4 py-1 text-center text-xs font-bold text-green-600 uppercase tracking-wider">Balance</th>
                             </tr>
@@ -582,9 +582,6 @@
                                     <td class="px-6 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
                                         {{ $itemName }}
                                     </td>
-                                    <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-gray-700 border-r border-gray-200">
-                                        {{ $data['total_received'] }}
-                                    </td>
                                     @foreach($monthLabels as $month)
                                         @php
                                             $receivedQty = $data['monthly_received_data'][$month] ?? 0;
@@ -594,6 +591,9 @@
                                             {{ $receivedQty > 0 ? $receivedQty : '-' }}
                                         </td>
                                     @endforeach
+                                    <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-gray-700 border-r border-gray-200">
+                                        {{ $data['total_received'] }}
+                                    </td>
                                     <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-red-600 border-r border-gray-200">
                                         {{ $data['total_used'] }}
                                     </td>
@@ -608,17 +608,17 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 sticky left-0 bg-gray-100 z-10">
                                     Total
                                 </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                                    {{ $grandTotalReceived }}
-                                </td>
                                 @foreach($monthLabels as $month)
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
                                         {{ $stockMonthTotalsReceived[$month] }}
                                     </td>
                                 @endforeach
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">
-                                    {{ $grandTotalUsed }}
-                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
+                                        {{ $grandTotalReceived }}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">
+                                        {{ $grandTotalUsed }}
+                                    </td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-green-600">
                                     {{ $grandBalance }}
                                 </td>
