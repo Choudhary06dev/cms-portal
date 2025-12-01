@@ -396,7 +396,7 @@
         <div class="navy-remember-me">
           <input type="checkbox" name="remember" id="remember" class="navy-checkbox">
           <label for="remember" class="navy-checkbox-label">Remember me</label>
-          <a href="#" class="navy-forgot-password ms-auto">Forgot password?</a>
+          <a href="{{ route('frontend.forgot-password') }}" class="navy-forgot-password ms-auto">Forgot password?</a>
           </div>
         
         <button type="submit" class="navy-login-btn">Sign in</button>

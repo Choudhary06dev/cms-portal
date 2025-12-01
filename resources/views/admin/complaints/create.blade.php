@@ -209,7 +209,7 @@
                                 <label for="assigned_employee_id" class="form-label text-white">Assign Employee</label>
                                 <select class="form-select @error('assigned_employee_id') is-invalid @enderror"
                                     id="assigned_employee_id" name="assigned_employee_id">
-                                    <option value="">Select Employee (Optional)</option>
+                                    <option value="">Select Employee</option>
                                     @if (isset($employees) && $employees->count() > 0)
                                         @foreach ($employees as $employee)
                                             <option value="{{ $employee->id }}"
@@ -647,8 +647,8 @@
                 });
 
                 // If city is pre-selected (e.g., for Department Staff), load sectors and select default
-                const defaultCityId = '{{ old('city_id', $defaultCityId ?? '') }}';
-                const defaultSectorId = '{{ old('sector_id', $defaultSectorId ?? '') }}';
+                const defaultCityId = @json(old('city_id', $defaultCityId));
+                const defaultSectorId = @json(old('sector_id', $defaultSectorId));
                 if (defaultCityId) {
                     citySelect.value = defaultCityId;
                     // Trigger fetch to load sectors, then select default
@@ -661,18 +661,31 @@
                         })
                         .then(response => response.json())
                         .then(data => {
+
                             sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
                             if (data && data.length > 0) {
                                 data.forEach(sector => {
                                     const option = document.createElement('option');
                                     option.value = sector.id;
                                     option.textContent = sector.name;
-                                    if (defaultSectorId && String(sector.id) === String(
-                                        defaultSectorId)) {
-                                        option.selected = true;
-                                    }
                                     sectorSelect.appendChild(option);
                                 });
+
+                                // Explicitly set the value if default sector exists in the list
+                                if (defaultSectorId) {
+                                    // Convert to string for comparison to be safe
+                                    const targetId = String(defaultSectorId);
+                                    // Check if option exists
+                                    const optionExists = Array.from(sectorSelect.options).some(opt => opt.value === targetId);
+                                    
+                                    if (optionExists) {
+                                        sectorSelect.value = targetId;
+                                        // Trigger change event so dependent fields (like employee filter) update
+                                        sectorSelect.dispatchEvent(new Event('change'));
+                                    } else {
+                                        console.warn(`Default sector ID ${defaultSectorId} not found in loaded sectors for city ${defaultCityId}`);
+                                    }
+                                }
                             } else {
                                 sectorSelect.innerHTML =
                                     '<option value="">No GE Nodes found for this GE Groups</option>';

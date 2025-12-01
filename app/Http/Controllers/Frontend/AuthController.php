@@ -66,6 +66,11 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect()->route('frontend.home');
     }
+
+    public function showForgotPassword()
+    {
+        return view('frontend.auth.forgot-password');
+    }
 }
 
 

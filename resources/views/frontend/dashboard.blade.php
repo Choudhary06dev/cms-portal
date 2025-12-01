@@ -404,12 +404,12 @@
                         @elseif($isGeUser)
                             Total Complaints by GE Node
                         @else
-                            Total Complaints by CME'S
+                            Total Complaints by CMES
                         @endif
                     </h2>
                     <select id="cmeGraphFilter"
                         class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Selete</option>
+                        <option value="">Select</option>
                         <option value="this_month">This Month</option>
                         <option value="last_6_months">Last 6 Months</option>
                         <option value="this_year">This Year</option>
@@ -435,7 +435,7 @@
         <!-- Monthly Performance Table -->
         <div id="monthlyPerformanceReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
-                <h2 class="text-xl font-semibold text-gray-800">Monthly Performance Report</h2>
+                <h2 class="text-xl font-semibold text-gray-800">Monthly Performance Report of CMES</h2>
                 <div class="flex space-x-2">
                     <button onclick="printSection('monthlyPerformanceReport')"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
@@ -458,11 +458,11 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th rowspan="2"
-                                class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">
+                                class="px-4 py-3 text-left text-xs font-extrabold text-gray-900 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">
                                 Month</th>
                             @foreach($tableEntities as $entity)
                                 <th colspan="2"
-                                    class="px-2 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                    class="px-2 py-3 text-center text-xs font-extrabold text-gray-900 uppercase tracking-wider border-r border-gray-200">
                                     {{ $entity->name }}
                                 </th>
                             @endforeach
@@ -470,11 +470,11 @@
                         <tr>
                             @foreach($tableEntities as $entity)
                                 <th
-                                    class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                    class="px-2 py-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wider border-r border-gray-200">
                                     Total</th>
                                 <th
-                                    class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                                    Resolved</th>
+                                    class="px-2 py-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wider border-r border-gray-200">
+                                    Addressed</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -531,10 +531,9 @@
                 </table>
             </div>
         </div>
-    </div>
 
     <!-- Stock Consumption Table -->
-            <div id="stockConsumptionReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden stock">
+            <div id="stockConsumptionReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
                 <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
                     <h2 class="text-xl font-semibold text-gray-800">Stock Consumption Report</h2>
                     <div class="flex space-x-2">
@@ -566,7 +565,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @php
-                                $stockMonthTotalsUsed = array_fill_keys($monthLabels, 0);
+                                $stockMonthTotalsReceived = array_fill_keys($monthLabels, 0);
                                 $grandTotalReceived = 0;
                                 $grandTotalUsed = 0;
                                 $grandBalance = 0;
@@ -577,7 +576,7 @@
                                     $grandTotalUsed += $data['total_used'];
                                     $grandBalance += $data['current_stock'];
                                 @endphp
-                                <!-- Stock Consumption Row -->
+                                <!-- Stock Received Row -->
                                 <tr class="hover:bg-blue-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
                                         {{ $itemName }}
@@ -587,12 +586,11 @@
                                     </td>
                                     @foreach($monthLabels as $month)
                                         @php
-                                            // CHANGE: Display USED data instead of RECEIVED data
-                                            $usedQty = $data['monthly_data'][$month] ?? 0;
-                                            $stockMonthTotalsUsed[$month] += $usedQty;
+                                            $receivedQty = $data['monthly_received_data'][$month] ?? 0;
+                                            $stockMonthTotalsReceived[$month] += $receivedQty;
                                         @endphp
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 font-semibold border-r border-gray-200" style="background-color: #eff6ff;">
-                                            {{ $usedQty > 0 ? $usedQty : '-' }}
+                                            {{ $receivedQty > 0 ? $receivedQty : '-' }}
                                         </td>
                                     @endforeach
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-red-600 border-r border-gray-200">
@@ -614,7 +612,7 @@
                                 </td>
                                 @foreach($monthLabels as $month)
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
-                                        {{ $stockMonthTotalsUsed[$month] }}
+                                        {{ $stockMonthTotalsReceived[$month] }}
                                     </td>
                                 @endforeach
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">

@@ -3,6 +3,7 @@
 @endphp
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,36 +15,47 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
-    <style>
-      html,body{margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-      /* Browser compatibility for text-size-adjust */
-      html, body {
-        -webkit-text-size-adjust: 100%;
-        text-size-adjust: 100%;
-      }
-      /* Global Footer Styling - Same for all pages */
-      footer {
-        text-align: center !important;
-        width: 100% !important;
-        display: block !important;
-        position: relative !important;
-      }
-      footer .container {
-        text-align: center !important;
-        margin: 0 auto !important;
-      }
-      footer p {
-        text-align: center !important;
-        margin: 0 auto !important;
-      }
-    </style>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif
+    }
+
+    /* Browser compatibility for text-size-adjust */
+    html,
+    body {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    /* Global Footer Styling - Same for all pages */
+    footer {
+      text-align: center !important;
+      width: 100% !important;
+      display: block !important;
+      position: relative !important;
+    }
+
+    footer .container {
+      text-align: center !important;
+      margin: 0 auto !important;
+    }
+
+    footer p {
+      text-align: center !important;
+      margin: 0 auto !important;
+    }
+  </style>
   @stack('styles')
 </head>
-<body>
+
+<body style="padding-bottom: 80px;">
   @include('frontend.layouts.navbar')
 
-    <main>
-      @yield('content')
+  <main>
+    @yield('content')
   </main>
 
   @include('frontend.layouts.footer')
@@ -58,6 +70,5 @@
   </script>
   @stack('scripts')
 </body>
+
 </html>
-
-
