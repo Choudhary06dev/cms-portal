@@ -150,11 +150,11 @@ class ComplaintController extends Controller
         
         $sectors = collect(); // Will be loaded dynamically based on city selection
 
-        // Defaults for Department Staff: preselect their city and sector
+        // Auto-select GE Group and Node for any user who has them assigned
         $defaultCityId = null;
         $defaultSectorId = null;
         $authUser = Auth::user();
-        if ($authUser && $authUser->role && strtolower($authUser->role->role_name) === 'department_staff') {
+        if ($authUser) {
             $defaultCityId = $authUser->city_id;
             $defaultSectorId = $authUser->sector_id;
         }

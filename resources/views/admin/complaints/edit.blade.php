@@ -168,7 +168,7 @@
                   <label for="assigned_employee_id" class="form-label text-white">Assign Employee</label>
                   <select class="form-select @error('assigned_employee_id') is-invalid @enderror" 
                           id="assigned_employee_id" name="assigned_employee_id">
-                    <option value="">Select Employee (Optional)</option>
+                    <option value="">Select Employee</option>
                     @if(isset($employees) && $employees->count() > 0)
                       @foreach($employees as $employee)
                         <option value="{{ $employee->id }}" 
