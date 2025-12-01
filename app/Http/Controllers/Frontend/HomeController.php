@@ -1118,17 +1118,17 @@ class HomeController extends Controller
         $user = Auth::guard('frontend')->user();
 
         $request->validate([
+            'username' => 'required|string|max:255|unique:frontend_users,username,' . $user->id,
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:frontend_users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
-            'cnic' => 'nullable|string|max:20',
         ]);
 
         $user->update([
+            'username' => $request->username,
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'cnic' => $request->cnic,
         ]);
 
         return redirect()->route('frontend.profile')->with('success', 'Profile updated successfully.');

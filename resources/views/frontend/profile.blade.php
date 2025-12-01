@@ -1,205 +1,290 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'My Profile')
+@section('title', 'My Profile - NAVY COMPLAINT MANAGEMENT SYSTEM')
 
 @section('content')
-    <style>
-        .profile-page-wrapper {
-            min-height: calc(100vh - 200px);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            margin-top: 80px;
-            position: relative;
-            overflow: hidden;
-        }
+<style>
+  /* Navy Theme Colors */
+  :root {
+    --navy-primary: #003366;
+    --navy-dark: #001f3f;
+    --navy-light: #004d99;
+    --navy-accent: #0066cc;
+    --navy-gold: #ffd700;
+  }
 
-        .profile-page-wrapper::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,96C1248,75,1344,53,1392,42.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-            opacity: 0.3;
-        }
+  html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
 
-        .profile-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            overflow: hidden;
-            max-width: 900px;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
+  body {
+    background: linear-gradient(135deg, #001f3f 0%, #003366 50%, #004d99 100%) !important;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
 
-        .profile-card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            position: relative;
-        }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1;
+  }
 
-        .profile-card-header h5 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
+  /* Footer override - fixed at bottom */
+  footer {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 999 !important;
+  }
 
-        .profile-card-header .icon-circle {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            backdrop-filter: blur(10px);
-            border: 3px solid rgba(255, 255, 255, 0.3);
-        }
+  /* Override navbar to be visible */
+  .navbar {
+    background-image: url('https://img.freepik.com/premium-photo/dark-blue-ocean-surface-seen-from-underwater_629685-6504.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+  }
 
-        .profile-card-header .icon-circle i {
-            font-size: 2.5rem;
-        }
+  /* Profile Page */
+  .navy-profile-page {
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    margin-top: 90px;
+    margin-bottom: 0;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+  }
 
-        .profile-card-body {
-            padding: 40px;
-        }
+  .navy-profile-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
 
-        .form-label {
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+  .navy-profile-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 900px;
+  }
 
-        .form-control {
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 12px 16px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
+  .navy-profile-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 51, 102, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
 
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+  .navy-profile-header {
+    background: linear-gradient(135deg, #001f3f 0%, #003366 100%);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    color: white;
+  }
 
-        .btn-update {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            padding: 14px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 10px;
-            color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
+  .navy-profile-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: #ffffff;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    transform: translateY(50%);
+  }
 
-        .btn-update:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
+  .profile-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
 
-        .alert-success {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            border: none;
-            color: white;
-            border-radius: 10px;
-            padding: 15px 20px;
-            font-weight: 500;
-        }
-    </style>
+  .profile-icon-wrapper i {
+    font-size: 2.5rem;
+    color: #ffffff;
+  }
 
-    <div class="profile-page-wrapper">
-        <div class="profile-card">
-            <div class="profile-card-header">
-                <div class="icon-circle">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <h5>My Profile</h5>
-            </div>
-            <div class="profile-card-body">
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"
-                            aria-label="Close"></button>
-                    </div>
-                @endif
+  .navy-profile-header h5 {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
 
-                <form method="POST" action="{{ route('frontend.profile.update') }}">
-                    @csrf
+  .navy-profile-body {
+    padding: 3rem 2rem 2rem;
+  }
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
-                                name="name" value="{{ old('name', $user->name) }}" required>
-                            @error('name')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
-                                name="email" value="{{ old('email', $user->email) }}" required>
-                            @error('email')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                    </div>
+  .form-label {
+    font-weight: 600;
+    color: #003366;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone"
-                                name="phone" value="{{ old('phone', $user->phone) }}">
-                            @error('phone')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label for="cnic" class="form-label">CNIC</label>
-                            <input type="text" class="form-control @error('cnic') is-invalid @enderror" id="cnic"
-                                name="cnic" value="{{ old('cnic', $user->cnic) }}">
-                            @error('cnic')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                    </div>
+  .form-control {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background-color: #f8fafc;
+  }
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-update">
-                            <i class="fas fa-save me-2"></i>Update Profile
-                        </button>
-                    </div>
-                </form>
-            </div>
+  .form-control:focus {
+    border-color: #003366;
+    box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+    background-color: #ffffff;
+  }
+
+  .btn-update {
+    background: linear-gradient(135deg, #003366 0%, #004d99 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 51, 102, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn-update:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 51, 102, 0.3);
+    background: linear-gradient(135deg, #004d99 0%, #003366 100%);
+  }
+
+  .alert-success {
+    background: rgba(22, 163, 74, 0.1);
+    border: 1px solid rgba(22, 163, 74, 0.2);
+    color: #16a34a;
+    border-radius: 8px;
+    padding: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+  }
+
+  .alert-dismissible .btn-close {
+    padding: 1.25rem;
+  }
+</style>
+
+<div class="navy-profile-page">
+  <div class="navy-profile-container">
+    <div class="navy-profile-card">
+      <div class="navy-profile-header">
+        <div class="profile-icon-wrapper">
+          <i class="fas fa-user-circle"></i>
         </div>
+        <h5>My Profile</h5>
+        <p class="mb-0 opacity-75 small">Manage your personal information</p>
+      </div>
+      
+      <div class="navy-profile-body">
+        @if(session('success'))
+          <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        @endif
+
+        <form method="POST" action="{{ route('frontend.profile.update') }}">
+          @csrf
+
+          <div class="row g-4 mb-4">
+            <div class="col-md-6">
+              <label for="username" class="form-label">User Name</label>
+              <input type="text" class="form-control @error('username') is-invalid @enderror" id="username"
+                name="username" value="{{ old('username', $user->username) }}" required placeholder="Enter your username">
+              @error('username')
+                <span class="invalid-feedback" role="alert">
+                  <strong>{{ $message }}</strong>
+                </span>
+              @enderror
+            </div>
+            <div class="col-md-6">
+              <label for="name" class="form-label">Full Name</label>
+              <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
+                name="name" value="{{ old('name', $user->name) }}" required placeholder="Enter your full name">
+              @error('name')
+                <span class="invalid-feedback" role="alert">
+                  <strong>{{ $message }}</strong>
+                </span>
+              @enderror
+            </div>
+          </div>
+
+          <div class="row g-4 mb-4">
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
+                name="email" value="{{ old('email', $user->email) }}" required placeholder="Enter your email">
+              @error('email')
+                <span class="invalid-feedback" role="alert">
+                  <strong>{{ $message }}</strong>
+                </span>
+              @enderror
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone"
+                name="phone" value="{{ old('phone', $user->phone) }}" placeholder="Enter your phone number">
+              @error('phone')
+                <span class="invalid-feedback" role="alert">
+                  <strong>{{ $message }}</strong>
+                </span>
+              @enderror
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end pt-2 border-top">
+            <button type="submit" class="btn btn-update">
+              <i class="fas fa-save"></i> Update Profile
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
+</div>
 @endsection
