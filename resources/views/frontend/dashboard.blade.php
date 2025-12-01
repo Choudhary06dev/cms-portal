@@ -171,6 +171,10 @@
             transform: translateY(-1px);
             filter: saturate(0.93) brightness(0.99);
         }
+        .stock {
+            margin-left: 5%;
+            margin-right: 5%;
+        }
     </style>
 @endpush
 
@@ -528,101 +532,101 @@
             </div>
         </div>
 
-        <!-- Stock Consumption Table -->
-        <div id="stockConsumptionReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
-            <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
-                <h2 class="text-xl font-semibold text-gray-800">Stock Consumption Report</h2>
-                <div class="flex space-x-2">
-                    <button onclick="printSection('stockConsumptionReport')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                        <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
-                        Print PDF
-                    </button>
-                    <button onclick="exportTableToExcel('stockConsumptionTable', 'stock_consumption_report')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                        <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
-                        Excel
-                    </button>
+    <!-- Stock Consumption Table -->
+            <div id="stockConsumptionReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
+                    <h2 class="text-xl font-semibold text-gray-800">Stock Consumption Report</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="printSection('stockConsumptionReport')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                            <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                            Print PDF
+                        </button>
+                        <button onclick="exportTableToExcel('stockConsumptionTable', 'stock_consumption_report')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                            <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                            Excel
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="overflow-x-auto">
-                <table id="stockConsumptionTable" class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">Item Name</th>
-                            <th class="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Total Received</th>
-                            @foreach($monthLabels as $month)
-                                <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                                    {{ substr($month, 0, 3) }} <!-- Show Jan, Feb etc -->
-                                </th>
-                            @endforeach
-                            <th class="px-4 py-3 text-center text-xs font-bold text-red-600 uppercase tracking-wider border-r border-gray-200">Total Used</th>
-                            <th class="px-4 py-3 text-center text-xs font-bold text-green-600 uppercase tracking-wider">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @php
-                            $stockMonthTotalsReceived = array_fill_keys($monthLabels, 0);
-                            $grandTotalReceived = 0;
-                            $grandTotalUsed = 0;
-                            $grandBalance = 0;
-                        @endphp
-                        @foreach($stockConsumptionData as $itemName => $data)
+                <div class="overflow-x-auto">
+                    <table id="stockConsumptionTable" class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">Item Name</th>
+                                <th class="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Total Received</th>
+                                @foreach($monthLabels as $month)
+                                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                        {{ substr($month, 0, 3) }} <!-- Show Jan, Feb etc -->
+                                    </th>
+                                @endforeach
+                                <th class="px-4 py-3 text-center text-xs font-bold text-red-600 uppercase tracking-wider border-r border-gray-200">Total Used</th>
+                                <th class="px-4 py-3 text-center text-xs font-bold text-green-600 uppercase tracking-wider">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
                             @php
-                                $grandTotalReceived += $data['total_received'];
-                                $grandTotalUsed += $data['total_used'];
-                                $grandBalance += $data['current_stock'];
+                                $stockMonthTotalsReceived = array_fill_keys($monthLabels, 0);
+                                $grandTotalReceived = 0;
+                                $grandTotalUsed = 0;
+                                $grandBalance = 0;
                             @endphp
-                            <!-- Stock Received Row -->
-                            <tr class="hover:bg-blue-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
-                                    {{ $itemName }}
+                            @foreach($stockConsumptionData as $itemName => $data)
+                                @php
+                                    $grandTotalReceived += $data['total_received'];
+                                    $grandTotalUsed += $data['total_used'];
+                                    $grandBalance += $data['current_stock'];
+                                @endphp
+                                <!-- Stock Received Row -->
+                                <tr class="hover:bg-blue-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
+                                        {{ $itemName }}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-gray-700 border-r border-gray-200">
+                                        {{ $data['total_received'] }}
+                                    </td>
+                                    @foreach($monthLabels as $month)
+                                        @php
+                                            $receivedQty = $data['monthly_received_data'][$month] ?? 0;
+                                            $stockMonthTotalsReceived[$month] += $receivedQty;
+                                        @endphp
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 font-semibold border-r border-gray-200" style="background-color: #eff6ff;">
+                                            {{ $receivedQty > 0 ? $receivedQty : '-' }}
+                                        </td>
+                                    @endforeach
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-red-600 border-r border-gray-200">
+                                        {{ $data['total_used'] }}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-green-600">
+                                        {{ $data['current_stock'] }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="bg-gray-100 font-bold">
+                            <tr class="border-t-2 border-gray-400">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 sticky left-0 bg-gray-100 z-10">
+                                    Total
                                 </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-gray-700 border-r border-gray-200">
-                                    {{ $data['total_received'] }}
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
+                                    {{ $grandTotalReceived }}
                                 </td>
                                 @foreach($monthLabels as $month)
-                                    @php
-                                        $receivedQty = $data['monthly_received_data'][$month] ?? 0;
-                                        $stockMonthTotalsReceived[$month] += $receivedQty;
-                                    @endphp
-                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 font-semibold border-r border-gray-200" style="background-color: #eff6ff;">
-                                        {{ $receivedQty > 0 ? $receivedQty : '-' }}
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
+                                        {{ $stockMonthTotalsReceived[$month] }}
                                     </td>
                                 @endforeach
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-red-600 border-r border-gray-200">
-                                    {{ $data['total_used'] }}
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">
+                                    {{ $grandTotalUsed }}
                                 </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-green-600">
-                                    {{ $data['current_stock'] }}
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-green-600">
+                                    {{ $grandBalance }}
                                 </td>
                             </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot class="bg-gray-100 font-bold">
-                        <tr class="border-t-2 border-gray-400">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 sticky left-0 bg-gray-100 z-10">
-                                Total
-                            </td>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                                {{ $grandTotalReceived }}
-                            </td>
-                            @foreach($monthLabels as $month)
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
-                                    {{ $stockMonthTotalsReceived[$month] }}
-                                </td>
-                            @endforeach
-                            <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">
-                                {{ $grandTotalUsed }}
-                            </td>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-green-600">
-                                {{ $grandBalance }}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
         <!-- Footer -->
 

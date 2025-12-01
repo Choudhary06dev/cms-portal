@@ -11,6 +11,7 @@ use App\Models\City;
 use App\Models\Sector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Traits\LocationFilterTrait;
 
 class HomeController extends Controller
@@ -519,7 +520,7 @@ class HomeController extends Controller
         $monthLabels = [];
         for ($i = 0; $i < 12; $i++) { // Jan to Dec
             $date = now()->startOfYear()->addMonths($i);
-            $monthLabels[] = $date->format('F'); // Full month names
+            $monthLabels[] = $date->format('M'); // Short month names
             $monthQuery = (clone $complaintsQuery)
                 ->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month);
@@ -969,40 +970,38 @@ class HomeController extends Controller
         // Prepare Stock Consumption Data - Monthly with Inventory Details
         $stockConsumptionData = [];
         $sparesListQuery = \App\Models\Spare::orderBy('item_name');
-        
+
         // Apply location filtering to spares list based on user privileges
         $this->applyFrontendLocationScope($sparesListQuery, $locationScope, 'city_id', 'sector_id');
-        
+
         $sparesList = $sparesListQuery->get();
 
-        // Get monthly consumption data from spare_stock_logs (issued quantity)
-        $stockQuery = \App\Models\SpareStockLog::selectRaw('
-                spare_stock_logs.spare_id,
-                MONTH(spare_stock_logs.created_at) as month,
-                SUM(spare_stock_logs.quantity) as total_qty
+        // Get monthly consumption data
+        $stockQuery = \App\Models\ComplaintSpare::selectRaw('
+                complaint_spares.spare_id,
+                MONTH(complaint_spares.created_at) as month,
+                SUM(complaint_spares.quantity) as total_qty
             ')
-            ->join('spares', 'spare_stock_logs.spare_id', '=', 'spares.id')
-            ->where('spare_stock_logs.change_type', 'out')
-            ->whereYear('spare_stock_logs.created_at', date('Y'))
-            ->whereNull('spare_stock_logs.deleted_at')
-            ->whereNull('spares.deleted_at');
+            ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+            ->whereYear('complaint_spares.created_at', date('Y'))
+            ->whereNull('complaints.deleted_at');
 
         // Apply location filters based on privileges (filter by spare's location)
         if ($hasUnrestrictedAccess) {
-            // No filter needed - show all issued stock
+            // No filter needed
         } elseif ($user && !empty($user->cme_ids)) {
-            // Filter by CMEs - through spare's city
-            $stockQuery->join('cities', 'spares.city_id', '=', 'cities.id')
+            // Filter by CMEs
+            $stockQuery->join('cities', 'complaints.city_id', '=', 'cities.id')
                 ->whereIn('cities.cme_id', $user->cme_ids);
         } elseif ($user && !empty($user->group_ids)) {
-            // Filter by Cities (Groups) - through spare's city_id
-            $stockQuery->whereIn('spares.city_id', $user->group_ids);
+            // Filter by Cities (Groups)
+            $stockQuery->whereIn('complaints.city_id', $user->group_ids);
         } elseif ($user && !empty($user->node_ids)) {
-            // Filter by Sectors (Nodes) - through spare's sector_id
-            $stockQuery->whereIn('spares.sector_id', $user->node_ids);
+            // Filter by Sectors (Nodes)
+            $stockQuery->whereIn('complaints.sector_id', $user->node_ids);
         }
 
-        $stockResults = $stockQuery->groupBy('spare_stock_logs.spare_id', 'month')->get();
+        $stockResults = $stockQuery->groupBy('complaint_spares.spare_id', 'month')->get();
 
         // Get monthly stock received data from spare_stock_logs
         $stockReceivedQuery = \App\Models\SpareStockLog::selectRaw('
@@ -1044,7 +1043,10 @@ class HomeController extends Controller
                 $mName = date('F', mktime(0, 0, 0, $m, 1)); // Full month name to match monthLabels
 
                 // Get consumption data
-                $stat = $stockResults->where('spare_id', $spare->id)->where('month', $m)->first();
+                // Key format: spareId_month
+                $key = $spare->id . '_' . $m;
+                $stat = $stockResults->get($key);
+
                 $qty = $stat ? $stat->total_qty : 0;
                 $monthlyData[$mName] = $qty;
                 $totalUsed += $qty;
@@ -1104,6 +1106,62 @@ class HomeController extends Controller
      */
     public function profile()
     {
-        return view('frontend.profile');
+        $user = Auth::guard('frontend')->user();
+        return view('frontend.profile', compact('user'));
+    }
+
+    /**
+     * Update the user profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::guard('frontend')->user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:frontend_users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'cnic' => 'nullable|string|max:20',
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'cnic' => $request->cnic,
+        ]);
+
+        return redirect()->route('frontend.profile')->with('success', 'Profile updated successfully.');
+    }
+
+    /**
+     * Show the change password form.
+     */
+    public function changePassword()
+    {
+        return view('frontend.change-password');
+    }
+
+    /**
+     * Update the user password.
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::guard('frontend')->user();
+
+        if (!\Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'The provided password does not match your current password.']);
+        }
+
+        $user->update([
+            'password' => \Hash::make($request->password),
+        ]);
+
+        return redirect()->route('frontend.password')->with('success', 'Password updated successfully.');
     }
 }

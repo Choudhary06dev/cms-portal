@@ -2,214 +2,203 @@
 
 @section('title', 'My Profile')
 
-@push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+@section('content')
     <style>
-        .profile-header-bg {
-            height: 300px;
-            background-image: url('https://img.freepik.com/premium-photo/dark-blue-ocean-surface-seen-from-underwater_629685-6504.jpg');
+        .profile-page-wrapper {
+            min-height: calc(100vh - 200px);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            margin-top: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-page-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,96C1248,75,1344,53,1392,42.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
             background-size: cover;
-            background-position: center;
+            opacity: 0.3;
+        }
+
+        .profile-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
             position: relative;
         }
-        .profile-card {
+
+        .profile-card-header h5 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-card-header .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
             backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            border: 3px solid rgba(255, 255, 255, 0.3);
         }
-        .avatar-ring {
-            background: white;
-            padding: 6px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+
+        .profile-card-header .icon-circle i {
+            font-size: 2.5rem;
         }
-        .info-card {
+
+        .profile-card-body {
+            padding: 40px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 1rem;
             transition: all 0.3s ease;
         }
-        .info-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        .stat-card {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-left: 4px solid #0ea5e9;
+
+        .btn-update {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-update:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-weight: 500;
         }
     </style>
-@endpush
 
-@section('content')
-    <!-- Header Background -->
-    <div class="profile-header-bg w-full">
-        <div class="absolute inset-0 bg-gradient-to-b from-black/40 to-black/20"></div>
-        <div class="absolute inset-0 flex items-center justify-center">
-            <h1 class="text-4xl font-bold text-white tracking-wide">User Profile</h1>
-        </div>
-    </div>
-
-    <div class="container mx-auto px-4 -mt-40 relative z-10 mb-12">
-        <div class="max-w-6xl mx-auto">
-            <!-- Main Profile Card -->
-            <div class="profile-card rounded-2xl overflow-hidden mb-6">
-                <div class="p-8">
-                    <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
-                        <!-- Avatar Section -->
-                        <div class="flex-shrink-0">
-                            <div class="w-40 h-40 rounded-full avatar-ring">
-                                <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex items-center justify-center text-white text-5xl font-bold shadow-inner">
-                                    {{ strtoupper(substr(Auth::guard('frontend')->user()->username ?? 'U', 0, 1)) }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- User Info Section -->
-                        <div class="flex-grow text-center md:text-left w-full">
-                            <h2 class="text-4xl font-bold text-gray-800 mb-2">{{ Auth::guard('frontend')->user()->username }}</h2>
-                            <p class="text-blue-600 font-semibold text-lg mb-6 flex items-center justify-center md:justify-start gap-2">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
-                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
-                                </svg>
-                                {{ Auth::guard('frontend')->user()->email }}
-                            </p>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                                <div class="info-card bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-blue-700 uppercase tracking-wider">Role</label>
-                                            <p class="text-gray-900 font-bold text-lg">{{ Auth::guard('frontend')->user()->role ?? 'User' }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="info-card bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border border-green-200">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-green-700 uppercase tracking-wider">Member Since</label>
-                                            <p class="text-gray-900 font-bold text-lg">{{ Auth::guard('frontend')->user()->created_at ? Auth::guard('frontend')->user()->created_at->format('M Y') : 'N/A' }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="info-card bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl border border-purple-200">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-purple-700 uppercase tracking-wider">Status</label>
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-500 text-white">
-                                                ● Active
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="profile-page-wrapper">
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <div class="icon-circle">
+                    <i class="fas fa-user-circle"></i>
                 </div>
+                <h5>My Profile</h5>
             </div>
+            <div class="profile-card-body">
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                    </div>
+                @endif
 
-            <!-- Additional Information Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Account Details -->
-                <div class="profile-card rounded-2xl overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
-                            </svg>
-                            Account Details
-                        </h3>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                            <span class="text-gray-600 font-semibold">Username:</span>
-                            <span class="text-gray-900 font-bold">{{ Auth::guard('frontend')->user()->username }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                            <span class="text-gray-600 font-semibold">Email Address:</span>
-                            <span class="text-gray-900 font-bold">{{ Auth::guard('frontend')->user()->email }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                            <span class="text-gray-600 font-semibold">Account Type:</span>
-                            <span class="text-blue-600 font-bold">Frontend User</span>
-                        </div>
-                        <div class="flex justify-between items-center py-3">
-                            <span class="text-gray-600 font-semibold">User ID:</span>
-                            <span class="text-gray-900 font-bold">#{{ Auth::guard('frontend')->user()->id }}</span>
-                        </div>
-                    </div>
-                </div>
+                <form method="POST" action="{{ route('frontend.profile.update') }}">
+                    @csrf
 
-                <!-- Activity Summary -->
-                <div class="profile-card rounded-2xl overflow-hidden">
-                    <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
-                            </svg>
-                            Activity Summary
-                        </h3>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <div class="stat-card p-4 rounded-lg">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-700 font-semibold">Last Login:</span>
-                                <span class="text-gray-900 font-bold">{{ now()->format('M d, Y H:i') }}</span>
-                            </div>
-                        </div>
-                        <div class="stat-card p-4 rounded-lg">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-700 font-semibold">Account Created:</span>
-                                <span class="text-gray-900 font-bold">{{ Auth::guard('frontend')->user()->created_at ? Auth::guard('frontend')->user()->created_at->format('M d, Y') : 'N/A' }}</span>
-                            </div>
-                        </div>
-                        <div class="stat-card p-4 rounded-lg">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-700 font-semibold">Profile Updated:</span>
-                                <span class="text-gray-900 font-bold">{{ Auth::guard('frontend')->user()->updated_at ? Auth::guard('frontend')->user()->updated_at->format('M d, Y') : 'N/A' }}</span>
-                            </div>
-                        </div>
-                        <div class="stat-card p-4 rounded-lg">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-700 font-semibold">Account Status:</span>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                                    ✓ Verified & Active
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
+                                name="name" value="{{ old('name', $user->name) }}" required>
+                            @error('name')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
                                 </span>
-                            </div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
+                                name="email" value="{{ old('email', $user->email) }}" required>
+                            @error('email')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Actions Footer -->
-            <div class="profile-card rounded-2xl overflow-hidden">
-                <div class="px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div class="text-gray-600 text-sm">
-                        <p class="font-semibold">Need to update your information?</p>
-                        <p class="text-xs">Contact your administrator for profile changes.</p>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone"
+                                name="phone" value="{{ old('phone', $user->phone) }}">
+                            @error('phone')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cnic" class="form-label">CNIC</label>
+                            <input type="text" class="form-control @error('cnic') is-invalid @enderror" id="cnic"
+                                name="cnic" value="{{ old('cnic', $user->cnic) }}">
+                            @error('cnic')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
                     </div>
-                    <div class="flex gap-3">
-                        <a href="{{ route('frontend.dashboard') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-105">
-                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                            </svg>
-                            Back to Dashboard
-                        </a>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-update">
+                            <i class="fas fa-save me-2"></i>Update Profile
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>

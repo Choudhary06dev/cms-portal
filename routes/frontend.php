@@ -15,5 +15,11 @@ Route::post('/logout', [FrontendAuthController::class, 'logout'])->name('fronten
 Route::post('/register', [FrontendAuthController::class, 'register'])->name('frontend.register.post');
 Route::get('/forgot-password', [FrontendAuthController::class, 'showForgotPassword'])->name('frontend.forgot-password');
 
+Route::middleware('auth:frontend')->group(function () {
+    Route::post('/user-profile', [FrontendHomeController::class, 'updateProfile'])->name('frontend.profile.update');
+    Route::get('/change-password', [FrontendHomeController::class, 'changePassword'])->name('frontend.password');
+    Route::post('/change-password', [FrontendHomeController::class, 'updatePassword'])->name('frontend.password.update');
+});
+
 
 
