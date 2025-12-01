@@ -13,6 +13,7 @@ Route::get('/register', [FrontendAuthController::class, 'showRegister'])->name('
 Route::post('/login', [FrontendAuthController::class, 'login'])->name('frontend.login.post');
 Route::post('/logout', [FrontendAuthController::class, 'logout'])->name('frontend.logout');
 Route::post('/register', [FrontendAuthController::class, 'register'])->name('frontend.register.post');
+Route::get('/forgot-password', [FrontendAuthController::class, 'showForgotPassword'])->name('frontend.forgot-password');
 
 
 

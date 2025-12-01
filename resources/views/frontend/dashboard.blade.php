@@ -400,7 +400,7 @@
                         @elseif($isGeUser)
                             Total Complaints by GE Node
                         @else
-                            Total Complaints by CME'S
+                            Total Complaints by CMES
                         @endif
                     </h2>
                     <select id="cmeGraphFilter"
