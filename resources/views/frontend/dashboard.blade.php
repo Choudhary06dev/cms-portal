@@ -171,6 +171,10 @@
             transform: translateY(-1px);
             filter: saturate(0.93) brightness(0.99);
         }
+        .stock {
+            margin-left: 5%;
+            margin-right: 5%;
+        }
     </style>
 @endpush
 
@@ -530,7 +534,7 @@
     </div>
 
     <!-- Stock Consumption Table -->
-            <div id="stockConsumptionReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
+            <div id="stockConsumptionReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden stock">
                 <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
                     <h2 class="text-xl font-semibold text-gray-800">Stock Consumption Report</h2>
                     <div class="flex space-x-2">
@@ -562,7 +566,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @php
-                                $stockMonthTotalsReceived = array_fill_keys($monthLabels, 0);
+                                $stockMonthTotalsUsed = array_fill_keys($monthLabels, 0);
                                 $grandTotalReceived = 0;
                                 $grandTotalUsed = 0;
                                 $grandBalance = 0;
@@ -573,7 +577,7 @@
                                     $grandTotalUsed += $data['total_used'];
                                     $grandBalance += $data['current_stock'];
                                 @endphp
-                                <!-- Stock Received Row -->
+                                <!-- Stock Consumption Row -->
                                 <tr class="hover:bg-blue-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
                                         {{ $itemName }}
@@ -583,11 +587,12 @@
                                     </td>
                                     @foreach($monthLabels as $month)
                                         @php
-                                            $receivedQty = $data['monthly_received_data'][$month] ?? 0;
-                                            $stockMonthTotalsReceived[$month] += $receivedQty;
+                                            // CHANGE: Display USED data instead of RECEIVED data
+                                            $usedQty = $data['monthly_data'][$month] ?? 0;
+                                            $stockMonthTotalsUsed[$month] += $usedQty;
                                         @endphp
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 font-semibold border-r border-gray-200" style="background-color: #eff6ff;">
-                                            {{ $receivedQty > 0 ? $receivedQty : '-' }}
+                                            {{ $usedQty > 0 ? $usedQty : '-' }}
                                         </td>
                                     @endforeach
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-center font-bold text-red-600 border-r border-gray-200">
@@ -609,7 +614,7 @@
                                 </td>
                                 @foreach($monthLabels as $month)
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
-                                        {{ $stockMonthTotalsReceived[$month] }}
+                                        {{ $stockMonthTotalsUsed[$month] }}
                                     </td>
                                 @endforeach
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">

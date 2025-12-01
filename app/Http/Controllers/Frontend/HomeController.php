@@ -11,6 +11,7 @@ use App\Models\City;
 use App\Models\Sector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Traits\LocationFilterTrait;
 
 class HomeController extends Controller
@@ -970,32 +971,59 @@ class HomeController extends Controller
         $stockConsumptionData = [];
         $sparesList = \App\Models\Spare::orderBy('item_name')->get();
 
-        // Get monthly consumption data
-        $stockQuery = \App\Models\ComplaintSpare::selectRaw('
-                complaint_spares.spare_id,
-                MONTH(complaint_spares.created_at) as month,
-                SUM(complaint_spares.quantity) as total_qty
-            ')
-            ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
-            ->whereYear('complaint_spares.created_at', date('Y'))
-            ->whereNull('complaints.deleted_at');
+        // Get monthly consumption data - Fetch raw records and process in PHP to avoid SQL grouping issues
+        $stockQuery = \App\Models\ComplaintSpare::select([
+            'complaint_spares.spare_id',
+            'complaint_spares.quantity',
+            'complaint_spares.used_at',
+            'complaint_spares.created_at'
+        ])
+            ->whereYear(DB::raw('COALESCE(complaint_spares.used_at, complaint_spares.created_at)'), date('Y'));
 
         // Apply location filters based on privileges (reuse logic)
         if ($hasUnrestrictedAccess) {
-            // No filter needed
+            // No filter needed - Admin sees all usage (even from deleted complaints)
         } elseif ($user && !empty($user->cme_ids)) {
             // Filter by CMEs
-            $stockQuery->join('cities', 'complaints.city_id', '=', 'cities.id')
+            $stockQuery->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+                ->join('cities', 'complaints.city_id', '=', 'cities.id')
                 ->whereIn('cities.cme_id', $user->cme_ids);
         } elseif ($user && !empty($user->group_ids)) {
             // Filter by Cities (Groups)
-            $stockQuery->whereIn('complaints.city_id', $user->group_ids);
+            $stockQuery->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+                ->whereIn('complaints.city_id', $user->group_ids);
         } elseif ($user && !empty($user->node_ids)) {
             // Filter by Sectors (Nodes)
-            $stockQuery->whereIn('complaints.sector_id', $user->node_ids);
+            $stockQuery->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
+                ->whereIn('complaints.sector_id', $user->node_ids);
         }
 
-        $stockResults = $stockQuery->groupBy('complaint_spares.spare_id', 'month')->get();
+        $stockRecords = $stockQuery->get();
+
+        // Group by spare_id and month in PHP
+        $stockResults = collect();
+        foreach ($stockRecords as $record) {
+            $date = $record->used_at ?? $record->created_at;
+            if (!$date)
+                continue;
+
+            $month = $date->month;
+            $spareId = $record->spare_id;
+            $qty = $record->quantity;
+
+            // Create a unique key for grouping
+            $key = $spareId . '_' . $month;
+
+            if (!$stockResults->has($key)) {
+                $stockResults->put($key, (object) [
+                    'spare_id' => $spareId,
+                    'month' => $month,
+                    'total_qty' => 0
+                ]);
+            }
+
+            $stockResults[$key]->total_qty += $qty;
+        }
 
         // Get monthly stock received data from spare_stock_logs
         $stockReceivedQuery = \App\Models\SpareStockLog::selectRaw('
@@ -1021,7 +1049,10 @@ class HomeController extends Controller
                 $mName = date('F', mktime(0, 0, 0, $m, 1)); // Full month name to match monthLabels
 
                 // Get consumption data
-                $stat = $stockResults->where('spare_id', $spare->id)->where('month', $m)->first();
+                // Key format: spareId_month
+                $key = $spare->id . '_' . $m;
+                $stat = $stockResults->get($key);
+
                 $qty = $stat ? $stat->total_qty : 0;
                 $monthlyData[$mName] = $qty;
                 $totalUsed += $qty;
