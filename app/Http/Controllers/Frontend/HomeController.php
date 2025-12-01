@@ -1003,6 +1003,11 @@ class HomeController extends Controller
 
         $stockResults = $stockQuery->groupBy('complaint_spares.spare_id', 'month')->get();
 
+        // Index stock results by spare_id and month for fast lookup
+        $stockResultsIndex = $stockResults->keyBy(function ($row) {
+            return $row->spare_id . '_' . $row->month;
+        });
+
         // Get monthly stock received data from spare_stock_logs
         $stockReceivedQuery = \App\Models\SpareStockLog::selectRaw('
                 spare_stock_logs.spare_id,
@@ -1034,22 +1039,23 @@ class HomeController extends Controller
         foreach ($sparesList as $spare) {
             $totalReceived = $spare->total_received_quantity ?? 0;
             $currentStock = $spare->stock_quantity ?? 0;
+            // Use issued_quantity from spares table as Total Used (Issue Qty column)
+            $totalIssued = $spare->issued_quantity ?? 0;
 
             $monthlyData = [];
             $monthlyReceivedData = [];
-            $totalUsed = 0;
 
             for ($m = 1; $m <= 12; $m++) {
-                $mName = date('F', mktime(0, 0, 0, $m, 1)); // Full month name to match monthLabels
+                // Use short month names (Jan, Feb, ...) to match $monthLabels
+                $mName = date('M', mktime(0, 0, 0, $m, 1));
 
                 // Get consumption data
                 // Key format: spareId_month
                 $key = $spare->id . '_' . $m;
-                $stat = $stockResults->get($key);
+                $stat = $stockResultsIndex->get($key);
 
                 $qty = $stat ? $stat->total_qty : 0;
                 $monthlyData[$mName] = $qty;
-                $totalUsed += $qty;
 
                 // Get received data
                 $receivedStat = $stockReceivedResults->where('spare_id', $spare->id)->where('month', $m)->first();
@@ -1062,7 +1068,8 @@ class HomeController extends Controller
                 'current_stock' => $currentStock,
                 'monthly_data' => $monthlyData,
                 'monthly_received_data' => $monthlyReceivedData,
-                'total_used' => $totalUsed
+                // Total Used should reflect the spare's issued_quantity (Issue Qty)
+                'total_used' => $totalIssued
             ];
         }
 

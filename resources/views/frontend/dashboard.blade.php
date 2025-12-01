@@ -179,6 +179,7 @@
 @endpush
 
 @section('content')
+
     <!-- Header Background -->
     <div class="relative bg-cover bg-center header-bg"
         style="background-image: url('https://tse1.mm.bing.net/th/id/OIP.zik7BfelfQPsfDPQ6GQMGQHaE8?rs=1&pid=ImgDetMain&o=7&rm=3');">

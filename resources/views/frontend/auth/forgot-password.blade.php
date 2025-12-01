@@ -35,10 +35,15 @@
     flex: 1;
   }
 
-  /* Footer override - remove bottom space only */
+  /* Footer override - fixed at bottom */
   footer {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 999 !important;
   }
 
   /* Override navbar to be visible */

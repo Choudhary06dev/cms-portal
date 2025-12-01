@@ -20,7 +20,8 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif
+      height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
 
     /* Browser compatibility for text-size-adjust */
@@ -28,6 +29,17 @@
     body {
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
+    }
+
+    /* Layout: make footer stick to bottom */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1 0 auto;
     }
 
     /* Global Footer Styling - Same for all pages */
@@ -51,7 +63,7 @@
   @stack('styles')
 </head>
 
-<body style="padding-bottom: 80px;">
+<body>
   @include('frontend.layouts.navbar')
 
   <main>
