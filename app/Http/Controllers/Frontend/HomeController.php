@@ -902,6 +902,52 @@ class HomeController extends Controller
             }
         }
 
+        // Get Top 5 Categories by Used Quantity
+        $categoryDateRange = $request->get('category_date_range');
+
+        $categoryUsageQuery = \App\Models\Spare::selectRaw('
+                category,
+                SUM(issued_quantity) as total_used,
+                SUM(total_received_quantity) as total_received
+            ')
+            ->whereNotNull('category')
+            ->groupBy('category')
+            ->orderByDesc('total_used')
+            ->limit(5);
+
+        // Apply date range filter if provided
+        if ($categoryDateRange) {
+            $now = now();
+            switch ($categoryDateRange) {
+                case 'this_month':
+                    $categoryUsageQuery->whereMonth('updated_at', $now->month)
+                        ->whereYear('updated_at', $now->year);
+                    break;
+                case 'last_6_months':
+                    $categoryUsageQuery->where('updated_at', '>=', $now->copy()->subMonths(6)->startOfDay());
+                    break;
+                case 'this_year':
+                    $categoryUsageQuery->whereYear('updated_at', $now->year);
+                    break;
+                case 'last_year':
+                    $categoryUsageQuery->whereYear('updated_at', $now->copy()->subYear()->year);
+                    break;
+            }
+        }
+
+        // Apply location filtering to category usage data based on user privileges
+        $this->applyFrontendLocationScope($categoryUsageQuery, $locationScope, 'city_id', 'sector_id');
+
+        $categoryUsageData = $categoryUsageQuery->get();
+
+        $categoryLabels = $categoryUsageData->pluck('category')->map(function ($cat) {
+            // Capitalize category names for display
+            return ucfirst($cat);
+        })->toArray();
+
+        $categoryUsageValues = $categoryUsageData->pluck('total_used')->toArray();
+        $categoryTotalReceivedValues = $categoryUsageData->pluck('total_received')->toArray();
+
         // If AJAX request, return JSON data
         if ($request->ajax()) {
             return response()->json([
@@ -915,6 +961,9 @@ class HomeController extends Controller
                 'performaData' => $performaData,
                 'cmeGraphLabels' => $cmeGraphLabels,
                 'cmeGraphData' => $cmeGraphData,
+                'categoryLabels' => $categoryLabels,
+                'categoryUsageValues' => $categoryUsageValues,
+                'categoryTotalReceivedValues' => $categoryTotalReceivedValues,
             ]);
         }
 
@@ -989,7 +1038,7 @@ class HomeController extends Controller
 
         // Prepare Stock Consumption Data - Monthly with Inventory Details
         $stockConsumptionData = [];
-        $sparesListQuery = \App\Models\Spare::orderBy('item_name');
+        $sparesListQuery = \App\Models\Spare::orderBy('issued_quantity', 'desc')->limit(20);
 
         // Apply location filtering to spares list based on user privileges
         $this->applyFrontendLocationScope($sparesListQuery, $locationScope, 'city_id', 'sector_id');
@@ -1093,49 +1142,7 @@ class HomeController extends Controller
             ];
         }
 
-        // Get Top 5 Categories by Used Quantity
-        $categoryDateRange = $request->get('category_date_range');
 
-        $categoryUsageQuery = \App\Models\Spare::selectRaw('
-                category,
-                SUM(issued_quantity) as total_used
-            ')
-            ->whereNotNull('category')
-            ->groupBy('category')
-            ->orderByDesc('total_used')
-            ->limit(5);
-
-        // Apply date range filter if provided
-        if ($categoryDateRange) {
-            $now = now();
-            switch ($categoryDateRange) {
-                case 'this_month':
-                    $categoryUsageQuery->whereMonth('updated_at', $now->month)
-                        ->whereYear('updated_at', $now->year);
-                    break;
-                case 'last_6_months':
-                    $categoryUsageQuery->where('updated_at', '>=', $now->copy()->subMonths(6)->startOfDay());
-                    break;
-                case 'this_year':
-                    $categoryUsageQuery->whereYear('updated_at', $now->year);
-                    break;
-                case 'last_year':
-                    $categoryUsageQuery->whereYear('updated_at', $now->copy()->subYear()->year);
-                    break;
-            }
-        }
-
-        // Apply location filtering to category usage data based on user privileges
-        $this->applyFrontendLocationScope($categoryUsageQuery, $locationScope, 'city_id', 'sector_id');
-
-        $categoryUsageData = $categoryUsageQuery->get();
-
-        $categoryLabels = $categoryUsageData->pluck('category')->map(function ($cat) {
-            // Capitalize category names for display
-            return ucfirst($cat);
-        })->toArray();
-
-        $categoryUsageValues = $categoryUsageData->pluck('total_used')->toArray();
 
         return view('frontend.dashboard', compact(
             'stats',
@@ -1170,7 +1177,8 @@ class HomeController extends Controller
             'tableEntities',
             'stockConsumptionData',
             'categoryLabels',
-            'categoryUsageValues'
+            'categoryUsageValues',
+            'categoryTotalReceivedValues'
         ));
     }
 
