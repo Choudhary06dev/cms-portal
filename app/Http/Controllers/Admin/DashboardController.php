@@ -760,6 +760,7 @@ class DashboardController extends Controller
                     });
             })->count(),
             'pertains_to_ge_const_isld' => (clone $complaintsQuery)->where('status', 'pertains_to_ge_const_isld')->count(),
+            'barak_damages' => (clone $complaintsQuery)->where('status', 'barak_damages')->count(),
 
             // User statistics (users are not location-based)
             'total_users' => User::count(),

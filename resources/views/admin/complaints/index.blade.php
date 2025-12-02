@@ -88,6 +88,7 @@
                             <option value="product_na" {{ request('status') == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                             <option value="un_authorized" {{ request('status') == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
                             <option value="pertains_to_ge_const_isld" {{ request('status') == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                            <option value="barak_damages" {{ request('status') == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
                             <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
                         </select>
                     </div>

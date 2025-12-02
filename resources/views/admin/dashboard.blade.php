@@ -532,11 +532,11 @@
     <div class="stat-card" style="background: linear-gradient(135deg, #808000 0%, #808000 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['total_users'] ?? 0 }}</div>
-          <div class="stat-label">Users</div>
+          <div class="stat-number">{{ $stats['barak_damages'] ?? 0 }}</div>
+          <div class="stat-label">Barak Damages</div>
         </div>
         <div class="stat-icon">
-          <i data-feather="users" class="feather-lg"></i>
+          <i data-feather="alert-triangle" class="feather-lg"></i>
         </div>
       </div>
     </div>

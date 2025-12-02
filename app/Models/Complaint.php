@@ -149,6 +149,7 @@ class Complaint extends Model
             'in_progress' => 'In Process',
             'resolved' => 'Resolved',
             'closed' => 'Closed',
+            'barak_damages' => 'Barak Damages',
         ];
     }
 

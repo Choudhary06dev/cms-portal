@@ -309,7 +309,7 @@
                 <!-- Complaint Resolution Trend -->
                 <div class="bg-white p-6 rounded-xl shadow">
                     <h2 class="text-xl font-semibold mb-4">Complaint Resolution Trend (2025)</h2>
-                    <div class="h-64">
+                    <div class="h-96">
                         <canvas id="resolutionTrendChart"></canvas>
                     </div>
                 </div>
@@ -373,13 +373,7 @@
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['product'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Product N/A</span>
                 </div>
-                <!-- Resolution Rate -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
-                    style="background: linear-gradient(135deg, #808000 0%, #808000 100%); min-height: 120px; padding: 1rem 0.75rem;">
-                    <span id="stat-resolution-rate" class="text-3xl mb-1 font-bold"
-                        style="line-height: 1.2; font-weight: 700;">{{ $stats['resolution_rate'] ?? 0 }}%</span>
-                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Resolution Rate</span>
-                </div>
+                
                 <!-- Pertains to GE/Const/Isld -->
                 <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
                     style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); min-height: 120px; padding: 1rem 0.75rem;">
@@ -387,6 +381,29 @@
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Pertains to
                         GE/Const/Isld</span>
+                </div>
+
+                <!-- Barak Damages -->
+                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                    style="background: linear-gradient(135deg, #808000 0%, #808000 100%); min-height: 120px; padding: 1rem 0.75rem;">
+                    <span id="stat-barak-damages" class="text-3xl mb-1 font-bold"
+                        style="line-height: 1.2; font-weight: 700;">{{ $stats['barak_damages'] ?? 0 }}</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Barak Damages</span>
+                </div>
+
+                <!-- Work Priced Performa -->
+                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                    style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); min-height: 120px; padding: 1rem 0.75rem;">
+                    <span id="stat-work-priced-performa" class="text-3xl mb-1 font-bold"
+                        style="line-height: 1.2; font-weight: 700;">{{ $stats['work_priced_performa'] ?? 0 }}</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Work Priced Performa</span>
+                </div>
+                <!-- Resolution Rate -->
+                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                    style="background: linear-gradient(135deg, #04523eff 0%, #04523eff 100%); min-height: 120px; padding: 1rem 0.75rem;">
+                    <span id="stat-resolution-rate" class="text-3xl mb-1 font-bold"
+                        style="line-height: 1.2; font-weight: 700;">{{ $stats['resolution_rate'] ?? 0 }}%</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Resolution Rate</span>
                 </div>
 
             </div>
@@ -660,6 +677,11 @@
             // Take only first 12 months
             $monthlyComplaintsData = array_slice($monthlyComplaintsData, 0, 12);
             $monthlyResolvedData = array_slice($monthlyResolvedData, 0, 12);
+            
+            // Ensure other arrays are also padded/sliced if they come from backend (though controller logic handles 12 months loop)
+            // But for safety in blade if variables are missing:
+            $unauthorizedData = $unauthorizedData ?? array_fill(0, 12, 0);
+            $performaData = $performaData ?? array_fill(0, 12, 0);
         @endphp
         const monthLabels = @json($monthLabels ?? $defaultMonthLabels);
         const monthlyComplaintsReceived = @json($monthlyComplaintsData);
@@ -668,6 +690,8 @@
         const resolvedVsEdData = @json($resolvedVsEdData ?? []);
         const recentEdData = @json($recentEdData ?? []);
         const yearTdData = @json($yearTdData ?? []);
+        const unauthorizedData = @json($unauthorizedData ?? []);
+        const performaData = @json($performaData ?? []);
 
         // Monthly Complaints Chart (Grouped Bar Chart)
         const ctx = document.getElementById('monthlyComplaintsChart').getContext('2d');
@@ -786,12 +810,41 @@
                         pointBackgroundColor: '#22c55e',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
+                    },
+                    {
+                        label: 'Unauthorized Complaints',
+                        data: unauthorizedData,
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ec4899',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                    },
+                    {
+                        label: 'Performa',
+                        data: performaData,
+                        borderColor: '#eab308',
+                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#eab308',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 50 // Increased padding to bottom
+                    }
+                },
                 plugins: {
                     legend: {
                         display: true,
@@ -819,16 +872,35 @@
                         intersect: false
                     },
                     datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        offset: -5,
+                        display: 'auto', // Hides labels that overlap
+                        clamp: true, // Keeps labels within chart area
+                        anchor: function(context) {
+                            // Alternate anchor based on dataset index to reduce collision
+                            return context.datasetIndex % 2 === 0 ? 'end' : 'start';
+                        },
+                        align: function(context) {
+                            // Alternate alignment based on dataset index
+                            return context.datasetIndex % 2 === 0 ? 'end' : 'start';
+                        },
+                        offset: 4,
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        borderRadius: 4,
+                        borderWidth: 1,
+                        borderColor: function(context) {
+                            return context.dataset.borderColor;
+                        },
+                        padding: {
+                            top: 2,
+                            bottom: 2,
+                            left: 4,
+                            right: 4
+                        },
                         font: {
-                            size: 13,
+                            size: 10, // Slightly smaller font
                             weight: 'bold',
                             family: 'Arial, sans-serif'
                         },
                         color: function(context) {
-                            // Use the same color as the line
                             return context.dataset.borderColor;
                         },
                         formatter: function(value) {
@@ -842,6 +914,7 @@
                             display: false
                         },
                         ticks: {
+                            padding: 20, // Increased padding between chart and labels
                             font: {
                                 size: 11,
                                 weight: 'bold',
@@ -1095,6 +1168,7 @@
             'un_authorized': { label: 'Un-Authorized', color: '#ef4444' }, // Red
             'pertains_to_ge': { label: 'Pertains to GE', color: '#8b5cf6' }, // Violet
             'pertains_to_ge_const_isld': { label: 'Pertains to GE(N)', color: '#06b6d4' }, // Aqua/Cyan
+            'barak_damages': { label: 'Barak Damages', color: '#808000' }, // Olive
             'closed': { label: 'Closed', color: '#6b7280' }, // Grey
             'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
         };

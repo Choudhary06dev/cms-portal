@@ -479,6 +479,12 @@ class HomeController extends Controller
         // Pertains to GE/Const/Isld count
         $stats['pertains_to_ge_const_isld'] = (clone $complaintsQuery)->where('status', 'pertains_to_ge_const_isld')->count();
 
+        // Barak Damages count
+        $stats['barak_damages'] = (clone $complaintsQuery)->where('status', 'barak_damages')->count();
+
+        // Work Priced Performa count
+        $stats['work_priced_performa'] = (clone $complaintsQuery)->where('status', 'work_priced_performa')->count();
+
         $page = request()->get('page', 1);
         $perPage = 5;
         $recentComplaintsQuery = Complaint::with(['client', 'assignedEmployee']);
@@ -539,6 +545,8 @@ class HomeController extends Controller
         $resolvedVsEdData = [];
         $recentEdData = [];
         $yearTdData = [];
+        $unauthorizedData = [];
+        $performaData = [];
         for ($i = 0; $i < 12; $i++) { // Jan to Dec
             $date = now()->startOfYear()->addMonths($i);
             $monthQuery = (clone $complaintsQuery)
@@ -550,6 +558,16 @@ class HomeController extends Controller
                 ->whereIn('status', ['resolved', 'closed'])
                 ->count();
             $resolvedVsEdData[] = $resolvedData;
+
+            // Unauthorized Data
+            $unauthorizedData[] = (clone $monthQuery)
+                ->where('status', 'un_authorized')
+                ->count();
+
+            // Performa Data (aggregating all performa types)
+            $performaData[] = (clone $monthQuery)
+                ->whereIn('status', ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'])
+                ->count();
 
             // Year TD (Year to Date) - cumulative from start of year
             $yearTdQuery = (clone $complaintsQuery)
@@ -893,6 +911,8 @@ class HomeController extends Controller
                 'complaintsByStatus' => $complaintsByStatus,
                 'resolvedVsEdData' => $resolvedVsEdData,
                 'recentEdData' => $recentEdData,
+                'unauthorizedData' => $unauthorizedData,
+                'performaData' => $performaData,
                 'cmeGraphLabels' => $cmeGraphLabels,
                 'cmeGraphData' => $cmeGraphData,
             ]);
@@ -1084,6 +1104,8 @@ class HomeController extends Controller
             'complaintsByStatus',
             'resolvedVsEdData',
             'recentEdData',
+            'unauthorizedData',
+            'performaData',
             'yearTdData',
             'cityId',
             'sectorId',

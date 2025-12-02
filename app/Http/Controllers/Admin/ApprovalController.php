@@ -240,6 +240,7 @@ class ApprovalController extends Controller
                 'product_na' => 'Product N/A',
                 'un_authorized' => 'Un-Authorized',
                 'pertains_to_ge_const_isld' => 'Pertains to GE(N) Const Isld',
+                'barak_damages' => 'Barak Damages',
             ];
 
             // Define performa type labels
@@ -1202,7 +1203,7 @@ class ApprovalController extends Controller
         }
         
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:new,assigned,in_progress,resolved,work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld',
+            'status' => 'required|in:new,assigned,in_progress,resolved,work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld,barak_damages',
             'notes' => 'nullable|string',
             'remarks' => 'nullable|string',
         ]);

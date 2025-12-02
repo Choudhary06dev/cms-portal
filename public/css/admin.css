@@ -283,6 +283,22 @@ table tbody tr:nth-child(even) td,
   color: #ef4444; 
 }
 
+.status-olive {
+  background: rgba(128, 128, 0, 0.2);
+  color: #808000;
+}
+
+.badge-olive {
+  background: linear-gradient(135deg, #808000 0%, #808000 100%);
+  color: #ffffff !important;
+}
+
+.bg-olive {
+  background: linear-gradient(135deg, #808000 0%, #808000 100%) !important;
+  color: #ffffff !important;
+}
+
+
 .priority-badge { 
   padding: 4px 8px; 
   border-radius: 12px; 
