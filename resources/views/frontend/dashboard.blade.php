@@ -1646,6 +1646,16 @@
                 }
                 cmeComplaintsChart.update();
             }
+
+            // Update Category Usage Chart
+            if (data.categoryUsageValues && categoryUsageChart) {
+                categoryUsageChart.data.datasets[0].data = data.categoryTotalReceivedValues;
+                categoryUsageChart.data.datasets[1].data = data.categoryUsageValues;
+                if (data.categoryLabels) {
+                    categoryUsageChart.data.labels = data.categoryLabels;
+                }
+                categoryUsageChart.update();
+            }
         }
 
         // Handle CME Graph Filter Change
@@ -1740,101 +1750,96 @@
     if (categoryUsageCtx) {
         const categoryLabels = @json($categoryLabels ?? []);
         const categoryUsageValues = @json($categoryUsageValues ?? []);
-
-        // Vibrant colors for categories
-        const categoryColors = [
-            '#3b82f6', // Blue
-            '#10b981', // Green
-            '#f59e0b', // Amber
-            '#ef4444', // Red
-            '#8b5cf6', // Purple
-        ];
+        const categoryTotalReceivedValues = @json($categoryTotalReceivedValues ?? []);
 
         const categoryUsageChart = new Chart(categoryUsageCtx.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: categoryLabels,
-                datasets: [{
-                    label: 'Total Used Quantity',
-                    data: categoryUsageValues,
-                    backgroundColor: categoryColors.slice(0, categoryLabels.length),
-                    borderRadius: 6,
-                    borderSkipped: false,
-                }]
+                datasets: [
+                    {
+                        label: 'Total Stock',
+                        data: categoryTotalReceivedValues,
+                        backgroundColor: '#3b82f6', // Blue
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8,
+                        order: 2 // Draw first (behind)
+                    },
+                    {
+                        label: 'Used Quantity',
+                        data: categoryUsageValues,
+                        backgroundColor: '#22c55e', // Green (Foreground)
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8,
+                        order: 1 // Draw second (on top)
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                return 'Used: ' + context.parsed.y + ' units';
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            font: {
+                                size: 11
                             }
                         }
                     },
                     datalabels: {
-                        color: '#ffffff',
+                        color: '#fff',
                         font: {
                             weight: 'bold',
+                            size: 10
+                        },
+                        formatter: function(value) {
+                            return value > 0 ? value : '';
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 10,
+                        titleFont: {
                             size: 12
                         },
-                        anchor: 'center',
-                        align: 'center',
-                        formatter: function(value) {
-                            return value;
+                        bodyFont: {
+                            size: 11
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y;
+                            }
                         }
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            font: {
-                                size: 11
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Quantity Used',
-                            font: {
-                                size: 13,
-                                weight: 'bold'
-                            }
-                        }
-                    },
                     x: {
+                        stacked: true,
                         grid: {
                             display: false
                         },
                         ticks: {
                             font: {
-                                size: 12,
-                                weight: 'bold'
-                            },
-                            color: '#374151'
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: false,
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
                         },
-                        title: {
-                            display: true,
-                            text: 'Category',
+                        ticks: {
+                            precision: 0,
                             font: {
-                                size: 13,
-                                weight: 'bold'
+                                size: 11
                             }
                         }
                     }
