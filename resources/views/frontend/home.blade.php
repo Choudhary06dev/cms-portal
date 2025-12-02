@@ -421,7 +421,7 @@
   <div class="container">                                                                                                            
     <div class="left-section" id="leftSection" @auth('frontend') style="border-radius: 20px; min-height: 650px;" @endauth>
         <div class="image-slider" id="imageSlider">
-            <img src="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" alt="Navy Image 1" data-bg="https://img.freepik.com/premium-photo/navy-with-pakistan-flag_191066-768.jpg" class="slider-img" />
+            <img src="https://cdn.pixabay.com/photo/2020/01/18/14/48/pakistan-4775471_640.jpg" alt="Navy Image 1" data-bg="https://cdn.pixabay.com/photo/2020/01/18/14/48/pakistan-4775471_640.jpg" class="slider-img" />
             <img src="https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg" alt="Navy Image 2" data-bg="https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg" class="slider-img" />
             <img src="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" alt="Navy Image 3" data-bg="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" class="slider-img" />
         </div>

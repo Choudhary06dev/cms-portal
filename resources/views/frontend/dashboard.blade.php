@@ -1017,11 +1017,19 @@
                         intersect: false
                     },
                     datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        offset: 15,
+                        display: 'auto', // Automatically hide overlapping labels
+                        clamp: true, // Keep labels within chart area
+                        anchor: function(context) {
+                            // Alternate anchor based on dataset index to reduce collision
+                            return context.datasetIndex % 2 === 0 ? 'end' : 'start';
+                        },
+                        align: function(context) {
+                            // Alternate alignment based on dataset index
+                            return context.datasetIndex % 2 === 0 ? 'top' : 'bottom';
+                        },
+                        offset: 8,
                         font: {
-                            size: 12,
+                            size: 10,
                             weight: 'bold',
                             family: 'Arial, sans-serif'
                         },
@@ -1157,20 +1165,20 @@
 
         // Complaints by Status Chart (Donut Chart) - Using same colors as admin side
         const statusMap = {
-            'assigned': { label: 'Assigned', color: '#16a34a' }, // Green (swapped from grey)
-            'in_progress': { label: 'In Progress', color: '#ec5454' }, // Brown-Red
-            'resolved': { label: 'Addressed', color: '#64748b' }, // Grey (swapped from green)
+            'assigned': { label: 'Assigned', color: '#16a34a' }, // Green
+            'in_progress': { label: 'In Progress', color: '#ec5454' }, // Red
+            'resolved': { label: 'Addressed', color: '#64748b' }, // Grey
             'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
             'maint_performa': { label: 'Maint Performa', color: '#eab308' }, // Yellow
             'work_priced_performa': { label: 'Work Priced', color: '#9333ea' }, // Purple
-            'maint_performa_priced': { label: 'Maint Priced', color: '#f43f5e' }, // Red-Pink
-            'product_na': { label: 'Product N/A', color: '#f97316' }, // Orange
-            'un_authorized': { label: 'Un-Authorized', color: '#ef4444' }, // Red
+            'maint_priced_performa': { label: 'Maint Priced', color: '#ea580c' }, // Dark Orange
+            'product_na': { label: 'Product N/A', color: '#0deb7c' }, // Green
+            'un_authorized': { label: 'Un-Authorized', color: '#ec4899' }, // Pink
             'pertains_to_ge': { label: 'Pertains to GE', color: '#8b5cf6' }, // Violet
             'pertains_to_ge_const_isld': { label: 'Pertains to GE(N)', color: '#06b6d4' }, // Aqua/Cyan
             'barak_damages': { label: 'Barak Damages', color: '#808000' }, // Olive
             'closed': { label: 'Closed', color: '#6b7280' }, // Grey
-            'new': { label: 'New', color: '#3b82f6' } // Blue (same as assigned)
+            'new': { label: 'New', color: '#3b82f6' } // Blue
         };
 
         const statusKeys = Object.keys(complaintsByStatus);

@@ -417,6 +417,7 @@ class HomeController extends Controller
             'product_na' => 'Product N/A',
             'un_authorized' => 'Un-Authorized',
             'pertains_to_ge_const_isld' => 'Pertains to GE(N) Const Isld',
+            'barak_damages' => 'Barak Damages',
         ];
 
         // Calculate stats with filters
