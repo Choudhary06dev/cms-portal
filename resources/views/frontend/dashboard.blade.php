@@ -455,7 +455,7 @@
         <!-- Top Categories by Usage Chart -->
         <div class="mt-6 bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
             <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Top 5 Categories by Used Quantity</h2>
+                    <h2 class="text-xl font-semibold">Categories by Used Quantity</h2>
                     <select id="categoryGraphFilter"
                         class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">All Time</option>
@@ -1768,21 +1768,13 @@
                 labels: categoryLabels,
                 datasets: [
                     {
-                        label: 'Total Stock',
-                        data: categoryTotalReceivedValues,
-                        backgroundColor: '#3b82f6', // Blue
-                        borderRadius: 4,
-                        barPercentage: 0.6,
-                        categoryPercentage: 0.8,
-                        order: 2 // Draw first (behind)
-                    },
-                    {
                         label: 'Used Quantity',
                         data: categoryUsageValues,
                         backgroundColor: '#22c55e', // Green (Foreground)
                         borderRadius: 4,
                         barPercentage: 0.6,
                         categoryPercentage: 0.8,
+                        maxBarThickness: 40, // Limit bar width
                         order: 1 // Draw second (on top)
                     }
                 ]
