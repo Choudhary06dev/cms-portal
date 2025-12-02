@@ -970,10 +970,11 @@ class HomeController extends Controller
 
 
         // Determine user type for graph heading
-        // Priority: Unrestricted (Admin) > CME User > GE User
+        // Priority: Unrestricted (Admin) > CME User > GE User > Node User
         // Users with unrestricted access should see CMEs, not GE Groups/Nodes
         $isCmeUser = !$hasUnrestrictedAccess && $user && !empty($user->cme_ids);
         $isGeUser = !$hasUnrestrictedAccess && !$isCmeUser && $user && !empty($user->group_ids);
+        $isNodeUser = !$hasUnrestrictedAccess && !$isCmeUser && !$isGeUser && $user && !empty($user->node_ids);
 
         // Prepare Monthly Table Data
         $monthlyTableData = [];
@@ -1170,6 +1171,7 @@ class HomeController extends Controller
             'cmeResolvedData',
             'isCmeUser',
             'isGeUser',
+            'isNodeUser',
             'empGraphLabels',
             'empGraphTotal',
             'empGraphResolved',
