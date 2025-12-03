@@ -913,8 +913,7 @@ class HomeController extends Controller
             ')
             ->whereNotNull('category')
             ->groupBy('category')
-            ->orderByDesc('total_used')
-            ->limit(5);
+            ->orderByDesc('total_used');
 
         // Apply date range filter if provided
         if ($categoryDateRange) {
