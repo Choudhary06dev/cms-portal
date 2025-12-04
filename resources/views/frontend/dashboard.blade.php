@@ -389,7 +389,7 @@
                     style="background: linear-gradient(135deg, #808000 0%, #808000 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-barak-damages" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['barak_damages'] ?? 0 }}</span>
-                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Barak Damages</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Barracks Damages</span>
                 </div>
 
                 <!-- Work Priced Performa -->
@@ -491,9 +491,9 @@
                         @if($isCmeUser)
                             Monthly Performance Report of GE
                         @elseif($isGeUser)
-                            Monthly Performance Report of Node
+                            Monthly Performance Report of Nodes
                         @elseif($isNodeUser)
-                            Monthly Performance Report of Node
+                            Monthly Performance Report of Nodes
                         @else
                             Monthly Performance Report of CMES
                         @endif
