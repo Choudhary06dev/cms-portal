@@ -271,7 +271,7 @@
 
     <!-- Manual Feedback Section -->
     <div class="feedback-section" style="margin-top: 40px; border: 1px solid #ccc; padding: 15px;">
-        <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">Manual
+        <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
             Feedback</h3>
         <div style="display: flex; justify-content: space-around; align-items: center;">
             <div style="text-align: center;">
