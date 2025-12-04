@@ -455,7 +455,7 @@
         <!-- Top Categories by Usage Chart -->
         <div class="mt-6 bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
             <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Categories by Used Quantity</h2>
+                    <h2 class="text-xl font-semibold">Stock Consumption by Category</h2>
                     <select id="categoryGraphFilter"
                         class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">All Time</option>
@@ -1523,6 +1523,8 @@
             window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
         });
 
+
+
         // Reset filters
         resetBtn.addEventListener('click', function() {
             window.location.href = '{{ route("frontend.dashboard") }}';
@@ -1786,6 +1788,12 @@
                 labels: categoryLabels,
                 datasets: [
                     {
+                        label: 'Total Stock',
+                        data: categoryTotalReceivedValues,
+                        hidden: true, // Hide from chart and scale
+                        backgroundColor: '#3b82f6', // Blue (for Tooltip)
+                    },
+                    {
                         label: 'Used Quantity',
                         data: categoryUsageValues,
                         backgroundColor: '#22c55e', // Green (Foreground)
@@ -1800,6 +1808,10 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
                     legend: {
                         position: 'top',
@@ -1809,6 +1821,10 @@
                             boxWidth: 8,
                             font: {
                                 size: 11
+                            },
+                            filter: function(item, chart) {
+                                // Hide Total Stock from legend
+                                return item.text !== 'Total Stock';
                             }
                         }
                     },
@@ -1833,7 +1849,21 @@
                         },
                         callbacks: {
                             label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y;
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y;
+                                return label;
+                            },
+                            afterBody: function(context) {
+                                // Manually show Total Stock since it's hidden
+                                if (context[0].dataset.label === 'Used Quantity') {
+                                    const index = context[0].dataIndex;
+                                    const totalStock = context[0].chart.data.datasets[0].data[index];
+                                    return 'Total Stock: ' + totalStock;
+                                }
+                                return '';
                             }
                         }
                     }
@@ -1866,33 +1896,51 @@
                 }
             }
         });
+
+        // Handle Category Graph Filter Change (AJAX) - Scoped to this block to access categoryUsageChart
+        const categoryGraphFilter = document.getElementById('categoryGraphFilter');
+        if (categoryGraphFilter) {
+            categoryGraphFilter.addEventListener('change', function() {
+                const dateRange = this.value;
+                const cityId = document.getElementById('filterCity') ? document.getElementById('filterCity').value : null;
+                const sectorId = document.getElementById('filterSector') ? document.getElementById('filterSector').value : null;
+                const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
+
+                // Keep existing global filters context
+                const category = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : null;
+                const status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : null;
+
+                const params = new URLSearchParams();
+                if (dateRange) params.append('category_date_range', dateRange);
+                if (cmesId) params.append('cmes_id', cmesId);
+                if (cityId) params.append('city_id', cityId);
+                if (sectorId) params.append('sector_id', sectorId);
+                if (category && category !== 'all') params.append('category', category);
+                if (status && status !== 'all') params.append('status', status);
+
+                // Fetch data via AJAX
+                fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.categoryLabels) {
+                        // Update Category Usage Chart
+                        categoryUsageChart.data.labels = data.categoryLabels;
+                        categoryUsageChart.data.datasets[0].data = data.categoryTotalReceivedValues; // Total Stock (Hidden)
+                        categoryUsageChart.data.datasets[1].data = data.categoryUsageValues; // Used Quantity
+                        categoryUsageChart.update();
+                    }
+                })
+                .catch(error => console.error('Error updating category chart:', error));
+            });
+        }
     }
 
-    // Category Graph Filter Event Listener
-    const categoryGraphFilter = document.getElementById('categoryGraphFilter');
-    if (categoryGraphFilter) {
-        categoryGraphFilter.addEventListener('change', function() {
-            const categoryDateRange = this.value;
-            const cityId = document.getElementById('filterCity') ? document.getElementById('filterCity').value : null;
-            const sectorId = document.getElementById('filterSector') ? document.getElementById('filterSector').value : null;
-            const category = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : null;
-            const status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : null;
-            const dateRange = document.getElementById('filterDateRange') ? document.getElementById('filterDateRange').value : null;
-            const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
 
-            const params = new URLSearchParams();
-            if (categoryDateRange) params.append('category_date_range', categoryDateRange);
-            if (cmesId) params.append('cmes_id', cmesId);
-            if (cityId) params.append('city_id', cityId);
-            if (sectorId) params.append('sector_id', sectorId);
-            if (category && category !== 'all') params.append('category', category);
-            if (status && status !== 'all') params.append('status', status);
-            if (dateRange) params.append('date_range', dateRange);
-
-            // Reload page with new filter
-            window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
-        });
-    }
     </script>
     <style>
     @media print {
