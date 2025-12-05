@@ -47,19 +47,19 @@ class ComplaintController extends Controller
         // Search functionality - by Name and ID
         if ($request->has('search') && $request->search) {
             $search = trim($request->search);
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 // Search by client name
-                $q->whereHas('client', function($clientQuery) use ($search) {
+                $q->whereHas('client', function ($clientQuery) use ($search) {
                     $clientQuery->where('client_name', 'like', "%{$search}%");
                 })
-                // Search by title
-                ->orWhere('title', 'like', "%{$search}%")
-                // Search by description
-                ->orWhere('description', 'like', "%{$search}%");
-                
+                    // Search by title
+                    ->orWhere('title', 'like', "%{$search}%")
+                    // Search by description
+                    ->orWhere('description', 'like', "%{$search}%");
+
                 // If search is numeric, also search by ID (handles both actual ID and formatted complaint_id)
                 if (is_numeric($search)) {
-                    $numericSearch = (int)$search;
+                    $numericSearch = (int) $search;
                     // Search by actual ID
                     $q->orWhere('id', $numericSearch);
                     // Search by ID modulo 10000 (for formatted complaint_id like 0123)
@@ -71,7 +71,7 @@ class ComplaintController extends Controller
         // Filter by status
         if ($request->has('status') && $request->status) {
             $statusValue = $request->status;
-            
+
             // Handle work_priced_performa and maint_priced_performa filters
             // waiting_for_authority removed - only check direct status match
             if ($statusValue === 'work_priced_performa') {
@@ -117,12 +117,12 @@ class ComplaintController extends Controller
         // Clear any existing orders and set explicit descending order
         $query->reorder()->orderBy('id', 'desc');
         $complaints = $query->paginate(15);
-        
+
         // Filter employees by location
         $employeesQuery = Employee::where('status', 'active');
         $this->filterEmployeesByLocation($employeesQuery, $user);
         $employees = $employeesQuery->get();
-        
+
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
@@ -137,17 +137,17 @@ class ComplaintController extends Controller
     {
         // Clear any old input data to ensure clean form
         request()->session()->forget('_old_input');
-        
+
         $employees = Employee::where('status', 'active')->orderBy('name')->get();
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
             : collect();
-        
+
         // Get cities and sectors for dropdowns
         $cities = Schema::hasTable('cities')
             ? City::where('status', 'active')->orderBy('id', 'asc')->get()
             : collect();
-        
+
         $sectors = collect(); // Will be loaded dynamically based on city selection
 
         // Auto-select GE Group and Node for any user who has them assigned
@@ -206,22 +206,22 @@ class ComplaintController extends Controller
 
         // Start database transaction
         DB::beginTransaction();
-        
+
         try {
             // Get city and sector names from IDs if provided (for client table)
             $cityName = null;
             $sectorName = null;
-            
+
             if ($request->city_id) {
                 $city = City::find($request->city_id);
                 $cityName = $city ? $city->name : null;
             }
-            
+
             if ($request->sector_id) {
                 $sector = Sector::find($request->sector_id);
                 $sectorName = $sector ? $sector->name : null;
             }
-            
+
             // Find or create client by name
             $client = Client::firstOrCreate(
                 ['client_name' => trim($request->client_name)],
@@ -240,7 +240,7 @@ class ComplaintController extends Controller
             // JavaScript sets title_other value in hidden input with name="title"
             // But if title is still "other", use title_other field
             $finalTitle = $request->title;
-            
+
             // If title is "other", check for title_other field
             if ($finalTitle === 'other' || strtolower($finalTitle) === 'other') {
                 if ($request->has('title_other') && !empty(trim($request->title_other))) {
@@ -250,18 +250,18 @@ class ComplaintController extends Controller
                     $finalTitle = trim($request->title);
                 }
             }
-            
+
             // Final fallback - if still "other", try to get from title_other
             if (empty($finalTitle) || strtolower($finalTitle) === 'other') {
                 $finalTitle = $request->input('title_other') ? trim($request->input('title_other')) : 'other';
             }
-            
+
             Log::info('Final title being saved', [
                 'final_title' => $finalTitle,
                 'original_title' => $request->title,
                 'title_other' => $request->title_other
             ]);
-            
+
             $complaint = Complaint::create([
                 'title' => $finalTitle,
                 'client_id' => $client->id,
@@ -274,49 +274,49 @@ class ComplaintController extends Controller
                 'status' => 'assigned', // Default to 'assigned' - no performa type selected initially
             ]);
 
-        // Handle file attachments
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('complaint-attachments', $filename, 'public');
-                
-                ComplaintAttachment::create([
+            // Handle file attachments
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('complaint-attachments', $filename, 'public');
+
+                    ComplaintAttachment::create([
+                        'complaint_id' => $complaint->id,
+                        'filename' => $filename,
+                        'original_name' => $file->getClientOriginalName(),
+                        'file_path' => $path,
+                        'file_size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ]);
+                }
+            }
+
+            // Log the complaint creation
+            // Find the employee associated with the current user
+            $currentEmployee = Employee::first();
+
+            if ($currentEmployee) {
+                ComplaintLog::create([
                     'complaint_id' => $complaint->id,
-                    'filename' => $filename,
-                    'original_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
+                    'action_by' => $currentEmployee->id,
+                    'action' => 'created',
+                    'remarks' => 'Complaint created',
                 ]);
             }
-        }
 
-        // Log the complaint creation
-        // Find the employee associated with the current user
-        $currentEmployee = Employee::first();
-        
-        if ($currentEmployee) {
-            ComplaintLog::create([
-                'complaint_id' => $complaint->id,
-                'action_by' => $currentEmployee->id,
-                'action' => 'created',
-                'remarks' => 'Complaint created',
-            ]);
-        }
+            // Note: Approval performa is automatically created by Complaint model's boot() method
+            // No need to create it here to avoid duplicates
 
-        // Note: Approval performa is automatically created by Complaint model's boot() method
-        // No need to create it here to avoid duplicates
+            // Commit the transaction
+            DB::commit();
 
-        // Commit the transaction
-        DB::commit();
+            return redirect()->route('admin.complaints.index')
+                ->with('success', 'Complaint created successfully.');
 
-        return redirect()->route('admin.complaints.index')
-            ->with('success', 'Complaint created successfully.');
-            
         } catch (\Exception $e) {
             // Rollback the transaction on any error
             DB::rollBack();
-            
+
             return redirect()->back()
                 ->with('error', 'Failed to create complaint: ' . $e->getMessage())
                 ->withInput();
@@ -347,14 +347,14 @@ class ComplaintController extends Controller
             if (request()->get('format') === 'html') {
                 return view('admin.complaints.show', compact('complaint'));
             }
-            
+
             if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
                 // Exclude state from client data in JSON response for modal
                 $complaintData = $complaint->toArray();
                 if (isset($complaintData['client']) && is_array($complaintData['client']) && isset($complaintData['client']['state'])) {
                     unset($complaintData['client']['state']);
                 }
-                
+
                 return response()->json([
                     'success' => true,
                     'complaint' => $complaintData
@@ -393,7 +393,7 @@ class ComplaintController extends Controller
     public function edit(Complaint $complaint)
     {
         $complaint->load(['spareParts.spare']);
-        
+
         $employees = Employee::where('status', 'active')->orderBy('name')->get();
         $categories = Schema::hasTable('complaint_categories')
             ? ComplaintCategory::orderBy('name')->pluck('name')
@@ -511,7 +511,7 @@ class ComplaintController extends Controller
         } else {
             $finalTitle = $request->title;
         }
-        
+
         // If finalTitle is still "other" or empty, use title_other if available
         if (empty($finalTitle) || $finalTitle === 'other') {
             $finalTitle = $request->title_other ? trim($request->title_other) : 'other';
@@ -550,7 +550,7 @@ class ComplaintController extends Controller
                 ComplaintSpare::create([
                     'complaint_id' => $complaint->id,
                     'spare_id' => $spare->id,
-                    'quantity' => (int)($part['quantity'] ?? 1),
+                    'quantity' => (int) ($part['quantity'] ?? 1),
                     'used_by' => $currentEmployee?->id ?? Employee::first()->id,
                     'used_at' => now(),
                 ]);
@@ -560,7 +560,7 @@ class ComplaintController extends Controller
                         'complaint_id' => $complaint->id,
                         'action_by' => $currentEmployee->id,
                         'action' => 'spare_parts_updated',
-                        'remarks' => "Updated product to {$spare->item_name} (Qty: " . ((int)($part['quantity'] ?? 1)) . ")",
+                        'remarks' => "Updated product to {$spare->item_name} (Qty: " . ((int) ($part['quantity'] ?? 1)) . ")",
                     ]);
                 }
 
@@ -576,7 +576,7 @@ class ComplaintController extends Controller
             foreach ($request->file('attachments') as $file) {
                 $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('complaint-attachments', $filename, 'public');
-                
+
                 ComplaintAttachment::create([
                     'complaint_id' => $complaint->id,
                     'filename' => $filename,
@@ -604,10 +604,10 @@ class ComplaintController extends Controller
         // Log assignment changes
         if ($oldAssignedTo !== $request->assigned_employee_id) {
             $assignedEmployee = $request->assigned_employee_id ? Employee::find($request->assigned_employee_id) : null;
-            $assignmentNote = $assignedEmployee 
+            $assignmentNote = $assignedEmployee
                 ? "Assigned to {$assignedEmployee->name}"
                 : "Unassigned";
-            
+
             $currentEmployee = Employee::first();
             if ($currentEmployee) {
                 ComplaintLog::create([
@@ -635,7 +635,7 @@ class ComplaintController extends Controller
 
             return redirect()->route('admin.complaints.index')
                 ->with('success', 'Complaint deleted successfully.');
-                
+
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error deleting complaint: ' . $e->getMessage());
@@ -703,7 +703,7 @@ class ComplaintController extends Controller
         }
 
         $oldStatus = $complaint->status;
-        
+
         // Get remarks - prefer remarks field, fallback to notes
         $remarks = $request->input('remarks') ?: $request->input('notes') ?: '';
 
@@ -711,7 +711,7 @@ class ComplaintController extends Controller
         $updateData = [
             'status' => $request->status,
         ];
-        
+
         if ($request->status === 'resolved' && !$complaint->closed_at) {
             // Get current time in Asia/Karachi timezone
             $nowKarachi = \Carbon\Carbon::now('Asia/Karachi');
@@ -727,7 +727,7 @@ class ComplaintController extends Controller
         DB::table('complaints')
             ->where('id', $complaint->id)
             ->update($updateData);
-        
+
         // Refresh the complaint model to get updated data
         $complaint->refresh();
 
@@ -738,7 +738,7 @@ class ComplaintController extends Controller
             $statusDisplay = $request->status === 'resolved' ? 'addressed' : $request->status;
             $oldStatusDisplay = $oldStatus === 'resolved' ? 'addressed' : $oldStatus;
             $logRemarks = "Status changed from {$oldStatusDisplay} to {$statusDisplay}";
-            
+
             if ($remarks) {
                 $logRemarks .= ". Remarks: " . $remarks;
             }
@@ -755,7 +755,7 @@ class ComplaintController extends Controller
             // Get the updated status directly from database to ensure accuracy
             $updatedStatus = DB::table('complaints')->where('id', $complaint->id)->value('status');
             $updatedClosedAt = DB::table('complaints')->where('id', $complaint->id)->value('closed_at');
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Complaint status updated successfully.',
@@ -903,7 +903,7 @@ class ComplaintController extends Controller
     public function printSlip(Complaint $complaint)
     {
         $complaint->load(['client', 'assignedEmployee', 'attachments']);
-        
+
         return view('admin.complaints.print-slip', compact('complaint'));
     }
 
@@ -931,11 +931,11 @@ class ComplaintController extends Controller
                 $validator = Validator::make($request->all(), [
                     'assigned_employee_id' => 'required|exists:employees,id',
                 ]);
-                
+
                 if ($validator->fails()) {
                     return redirect()->back()->withErrors($validator);
                 }
-                
+
                 Complaint::whereIn('id', $complaintIds)->update([
                     'assigned_employee_id' => $request->assigned_employee_id,
                     'status' => 'assigned',
@@ -947,11 +947,11 @@ class ComplaintController extends Controller
                 $validator = Validator::make($request->all(), [
                     'status' => 'required|in:new,assigned,in_progress,resolved,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld',
                 ]);
-                
+
                 if ($validator->fails()) {
                     return redirect()->back()->withErrors($validator);
                 }
-                
+
                 // Set closed_at when status becomes 'addressed', but only if not already set
                 if ($request->status === 'resolved') {
                     $nowKarachi = \Carbon\Carbon::now('Asia/Karachi');
@@ -961,7 +961,7 @@ class ComplaintController extends Controller
                             'status' => $request->status,
                             'closed_at' => $nowKarachi->utc(),
                         ]);
-                    
+
                     // Update status for complaints that already have closed_at
                     Complaint::whereIn('id', $complaintIds)
                         ->whereNotNull('closed_at')
@@ -982,11 +982,11 @@ class ComplaintController extends Controller
                 $validator = Validator::make($request->all(), [
                     'priority' => 'required|in:low,medium,high',
                 ]);
-                
+
                 if ($validator->fails()) {
                     return redirect()->back()->withErrors($validator);
                 }
-                
+
                 Complaint::whereIn('id', $complaintIds)->update(['priority' => $request->priority]);
                 $message = 'Selected complaints priority updated successfully.';
                 break;
@@ -994,9 +994,9 @@ class ComplaintController extends Controller
             case 'delete':
                 // Check for related records
                 $complaintsWithRecords = Complaint::whereIn('id', $complaintIds)
-                    ->where(function($q) {
+                    ->where(function ($q) {
                         $q->whereHas('spareParts')
-                          ->orWhereHas('spareApprovals');
+                            ->orWhereHas('spareApprovals');
                     })
                     ->count();
 
@@ -1044,7 +1044,7 @@ class ComplaintController extends Controller
 
             foreach ($request->spare_parts as $part) {
                 $spare = Spare::find($part['spare_id']);
-                
+
                 if (!$spare) {
                     throw new \Exception("Spare part not found: {$part['spare_id']}");
                 }
@@ -1095,9 +1095,9 @@ class ComplaintController extends Controller
         // Apply same filters as index
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                    ->orWhere('location', 'like', "%{$search}%");
             });
         }
 
