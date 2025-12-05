@@ -370,7 +370,17 @@
                 </tr>
                 <tr>
                   <td class="text-white"><strong>Entered By:</strong></td>
-                  <td class="text-white">{{ ($complaint->feedback->enteredBy && $complaint->feedback->enteredBy->username) ? $complaint->feedback->enteredBy->username : 'N/A' }}</td>
+                  <td class="text-white">
+                    @if($complaint->feedback->enteredBy)
+                      {{ $complaint->feedback->enteredBy->name ?? 'System' }}
+                      <span class="badge badge-light">Staff</span>
+                    @elseif($complaint->feedback->submitted_by)
+                      {{ $complaint->feedback->submitted_by }}
+                      <span class="badge badge-info text-white">Client</span>
+                    @else
+                      Client (Web)
+                    @endif
+                  </td>
                 </tr>
                 @php
                   $geUser = null;

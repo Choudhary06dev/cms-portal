@@ -1263,15 +1263,15 @@ class HomeController extends Controller
     public function feedback($id)
     {
         $complaint = Complaint::findOrFail($id);
-        
+
         // If feedback already exists, show success message
         if (\App\Models\ComplaintFeedback::where('complaint_id', $id)->exists()) {
             return view('frontend.feedback', [
-                'complaint' => $complaint, 
+                'complaint' => $complaint,
                 'already_submitted' => true
             ]);
         }
-        
+
         return view('frontend.feedback', compact('complaint'));
     }
 
@@ -1289,6 +1289,7 @@ class HomeController extends Controller
         }
 
         $request->validate([
+            'submitted_by' => 'required|string|max:255',
             'overall_rating' => 'required|in:excellent,good,average,poor',
             'comments' => 'nullable|string|max:1000',
         ]);
@@ -1296,6 +1297,7 @@ class HomeController extends Controller
         \App\Models\ComplaintFeedback::create([
             'complaint_id' => $complaint->id,
             'client_id' => $complaint->client_id,
+            'submitted_by' => $request->submitted_by,
             'overall_rating' => $request->overall_rating,
             'rating_score' => $this->getRatingScore($request->overall_rating),
             'comments' => $request->comments,
@@ -1312,7 +1314,7 @@ class HomeController extends Controller
      */
     private function getRatingScore($rating): int
     {
-        return match($rating) {
+        return match ($rating) {
             'excellent' => 5,
             'good' => 4,
             'average' => 3,
