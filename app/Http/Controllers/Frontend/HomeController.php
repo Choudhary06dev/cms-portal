@@ -49,6 +49,13 @@ class HomeController extends Controller
         // Get privileges from JSON columns
         $cityIds = $user->group_ids ?? [];
         $sectorIds = $user->node_ids ?? [];
+        $cmeIds = $user->cme_ids ?? [];
+
+        // If user has CMEs assigned, include all cities under those CMEs
+        if (!empty($cmeIds)) {
+            $cmeCityIds = \App\Models\City::whereIn('cme_id', $cmeIds)->pluck('id')->toArray();
+            $cityIds = array_unique(array_merge($cityIds, $cmeCityIds));
+        }
 
         if (empty($cityIds) && empty($sectorIds)) {
             // Check if user is Admin (role_id 1 or has admin role)
@@ -426,7 +433,7 @@ class HomeController extends Controller
             'new_complaints' => (clone $complaintsQuery)->where('status', 'new')->count(),
             'pending_complaints' => (clone $complaintsQuery)->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
             'resolved_complaints' => (clone $complaintsQuery)->whereIn('status', ['resolved', 'closed'])->count(),
-            'overdue_complaints' => (clone $complaintsQuery)->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
+            'overdue_complaints' => (clone $complaintsQuery)->overdue()->count(),
             'complaints_today' => (clone $complaintsQuery)->whereDate('created_at', now()->startOfDay())->count(),
             'complaints_this_month' => (clone $complaintsQuery)->where('created_at', '>=', now()->startOfMonth())->count(),
             'complaints_last_month' => (clone $complaintsQuery)->whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->startOfMonth()])->count(),

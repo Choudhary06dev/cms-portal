@@ -389,15 +389,15 @@
                     style="background: linear-gradient(135deg, #808000 0%, #808000 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-barak-damages" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['barak_damages'] ?? 0 }}</span>
-                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Barracks Damages</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Barrak Damages</span>
                 </div>
 
-                <!-- Work Priced Performa -->
+                <!-- Overdue Complaints -->
                 <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
-                    style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); min-height: 120px; padding: 1rem 0.75rem;">
-                    <span id="stat-work-priced-performa" class="text-3xl mb-1 font-bold"
-                        style="line-height: 1.2; font-weight: 700;">{{ $stats['work_priced_performa'] ?? 0 }}</span>
-                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Work Priced Performa</span>
+                    style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); min-height: 120px; padding: 1rem 0.75rem;">
+                    <span id="stat-overdue-complaints" class="text-3xl mb-1 font-bold"
+                        style="line-height: 1.2; font-weight: 700;">{{ $stats['overdue_complaints'] ?? 0 }}</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Overdue Complaints</span>
                 </div>
                 <!-- Resolution Rate -->
                 <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
@@ -1743,7 +1743,7 @@
         var downloadLink;
         var dataType = 'application/vnd.ms-excel';
         var tableSelect = document.getElementById(tableID);
-        var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+        var tableHTML = tableSelect.outerHTML;
 
         filename = filename?filename+'.xls':'excel_data.xls';
 
@@ -1757,7 +1757,7 @@
             });
             navigator.msSaveOrOpenBlob( blob, filename);
         }else{
-            downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+            downloadLink.href = 'data:' + dataType + ', ' + encodeURIComponent(tableHTML);
             downloadLink.download = filename;
             downloadLink.click();
         }

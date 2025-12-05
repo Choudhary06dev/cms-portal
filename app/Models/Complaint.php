@@ -561,7 +561,24 @@ class Complaint extends Model
      */
     public function scopeOverdue($query, $days = 7)
     {
-        return $query->where('created_at', '<', now()->subDays($days))
-            ->whereIn('status', ['new', 'assigned', 'in_progress']);
+        return $query->whereIn('complaints.status', ['new', 'assigned', 'in_progress'])
+            ->leftJoin('sla_rules', function($join) {
+                $join->on('complaints.category', '=', 'sla_rules.complaint_type')
+                     ->where('sla_rules.status', '=', 'active')
+                     ->whereNull('sla_rules.deleted_at');
+            })
+            ->where(function($q) use ($days) {
+                // If SLA rule exists, check max_resolution_time (in hours)
+                $q->where(function($subQ) {
+                    $subQ->whereNotNull('sla_rules.id')
+                         ->whereRaw('complaints.created_at < DATE_SUB(NOW(), INTERVAL sla_rules.max_resolution_time HOUR)');
+                })
+                // If no SLA rule exists, fallback to default days
+                ->orWhere(function($subQ) use ($days) {
+                    $subQ->whereNull('sla_rules.id')
+                         ->where('complaints.created_at', '<', now()->subDays($days));
+                });
+            })
+            ->select('complaints.*');
     }
 }

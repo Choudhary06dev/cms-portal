@@ -720,10 +720,9 @@ class DashboardController extends Controller
             // Complaint statistics with location filtering
             'total_complaints' => (clone $complaintsQuery)->count(),
             'pending_complaints' => (clone $complaintsQuery)->whereIn('status', ['assigned', 'in_progress'])->count(),
+            'in_progress_complaints' => (clone $complaintsQuery)->where('status', 'in_progress')->count(),
             'addressed_complaints' => (clone $complaintsQuery)->where('status', 'resolved')->count(),
-            'overdue_complaints' => (clone $complaintsQuery)->where(function ($q) {
-                return $q->overdue();
-            })->count(),
+            'overdue_complaints' => (clone $complaintsQuery)->overdue()->count(),
             'complaints_today' => (clone $complaintsQuery)->whereDate('created_at', $today)->count(),
             'complaints_this_month' => (clone $complaintsQuery)->where('created_at', '>=', $thisMonth)->count(),
             'complaints_last_month' => (clone $complaintsQuery)->whereBetween('created_at', [$lastMonth, $thisMonth])->count(),

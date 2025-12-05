@@ -434,7 +434,7 @@
     <div class="stat-card" style="background: linear-gradient(135deg, #dd4040ff 0%, #b13030 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['pending_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['in_progress_complaints'] ?? 0 }}</div>
           <div class="stat-label">In Progress</div>
         </div>
         <div class="stat-icon">
@@ -533,7 +533,7 @@
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['barak_damages'] ?? 0 }}</div>
-          <div class="stat-label">Barak Damages</div>
+          <div class="stat-label">Barrak Damages</div>
         </div>
         <div class="stat-icon">
           <i data-feather="alert-triangle" class="feather-lg"></i>
@@ -543,14 +543,14 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #552826 0%, #f1aca9 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #e00d0dff 0%, #b91c1c 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['total_employees'] ?? 0 }}</div>
-          <div class="stat-label">Employees</div>
+          <div class="stat-number">{{ $stats['overdue_complaints'] ?? 0 }}</div>
+          <div class="stat-label">Overdue Complaints</div>
         </div>
         <div class="stat-icon">
-          <i data-feather="user-check" class="feather-lg"></i>
+          <i data-feather="alert-octagon" class="feather-lg"></i>
         </div>
       </div>
     </div>
