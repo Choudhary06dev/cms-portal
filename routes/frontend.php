@@ -23,3 +23,6 @@ Route::middleware('auth:frontend')->group(function () {
 
 
 
+// Public Feedback Routes
+Route::get('/complaint/{id}/feedback', [FrontendHomeController::class, 'feedback'])->name('frontend.feedback');
+Route::post('/complaint/{id}/feedback', [FrontendHomeController::class, 'submitFeedback'])->name('frontend.feedback.submit');

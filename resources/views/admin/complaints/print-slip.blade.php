@@ -273,28 +273,34 @@
     <div class="feedback-section" style="margin-top: 40px; border: 1px solid #ccc; padding: 15px;">
         <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
             Feedback</h3>
-        <div style="display: flex; justify-content: space-around; align-items: center;">
-            <div style="text-align: center;">
-                <div
-                    style="width: 20px; height: 20px; border: 2px solid #333; display: inline-block; vertical-align: middle; margin-right: 5px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <!-- Left Side: Manual Feedback -->
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 20px;">
+                    <div style="text-align: center;">
+                        <div style="width: 20px; height: 20px; border: 2px solid #333; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                        <span style="font-weight: bold;">Excellent</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 20px; height: 20px; border: 2px solid #333; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                        <span style="font-weight: bold;">Good</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 20px; height: 20px; border: 2px solid #333; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                        <span style="font-weight: bold;">Poor</span>
+                    </div>
                 </div>
-                <span style="font-weight: bold;">Excellent</span>
-            </div>
-            <div style="text-align: center;">
-                <div
-                    style="width: 20px; height: 20px; border: 2px solid #333; display: inline-block; vertical-align: middle; margin-right: 5px;">
+                <div style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 20px;">
+                    <p style="margin: 0; color: #666;">Customer Signature: ___________________________</p>
                 </div>
-                <span style="font-weight: bold;">Good</span>
             </div>
-            <div style="text-align: center;">
-                <div
-                    style="width: 20px; height: 20px; border: 2px solid #333; display: inline-block; vertical-align: middle; margin-right: 5px;">
-                </div>
-                <span style="font-weight: bold;">Poor</span>
+
+            <!-- Right Side: QR Code -->
+            <div style="width: 120px; text-align: center; border-left: 1px solid #eee; padding-left: 15px; margin-left: 15px;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ route('frontend.feedback', $complaint->id) }}" alt="Feedback QR" style="width: 100px; height: 100px;">
+                <p style="font-size: 10px; color: #666; margin-top: 5px;">Scan to Rate</p>
             </div>
-        </div>
-        <div style="margin-top: 40px; border-top: 1px dashed #ccc; padding-top: 20px;">
-            <p style="margin: 0; color: #666; margin-top: 10px;">Customer Signature: ___________________________</p>
         </div>
     </div>
 

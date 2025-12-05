@@ -1256,4 +1256,68 @@ class HomeController extends Controller
 
         return redirect()->route('frontend.password')->with('success', 'Password updated successfully.');
     }
+
+    /**
+     * Show the public feedback form for a complaint.
+     */
+    public function feedback($id)
+    {
+        $complaint = Complaint::findOrFail($id);
+        
+        // If feedback already exists, show success message
+        if (\App\Models\ComplaintFeedback::where('complaint_id', $id)->exists()) {
+            return view('frontend.feedback', [
+                'complaint' => $complaint, 
+                'already_submitted' => true
+            ]);
+        }
+        
+        return view('frontend.feedback', compact('complaint'));
+    }
+
+    /**
+     * Submit public feedback for a complaint.
+     */
+    public function submitFeedback(Request $request, $id)
+    {
+        $complaint = Complaint::findOrFail($id);
+
+        // Check if feedback already exists
+        if (\App\Models\ComplaintFeedback::where('complaint_id', $id)->exists()) {
+            return redirect()->route('frontend.feedback', $id)
+                ->with('error', 'Feedback already submitted for this complaint.');
+        }
+
+        $request->validate([
+            'overall_rating' => 'required|in:excellent,good,average,poor',
+            'comments' => 'nullable|string|max:1000',
+        ]);
+
+        \App\Models\ComplaintFeedback::create([
+            'complaint_id' => $complaint->id,
+            'client_id' => $complaint->client_id,
+            'overall_rating' => $request->overall_rating,
+            'rating_score' => $this->getRatingScore($request->overall_rating),
+            'comments' => $request->comments,
+            'feedback_date' => now(),
+            'entered_at' => now(),
+            // entered_by is null for public feedback
+        ]);
+
+        return redirect()->route('frontend.feedback', $id)->with('success', 'Thank you for your feedback!');
+    }
+
+    /**
+     * Get rating score from rating text
+     */
+    private function getRatingScore($rating): int
+    {
+        return match($rating) {
+            'excellent' => 5,
+            'good' => 4,
+            'average' => 3,
+            'poor' => 2,
+            default => 3
+        };
+    }
 }
