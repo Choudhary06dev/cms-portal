@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na', 'un_authorized', 'pertains_to_ge_const_isld', 'barak_damages'])->default('new');
             $table->unsignedBigInteger('assigned_employee_id')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent', 'emergency'])->default('medium');
+            $table->string('availability_time')->nullable();
             $table->timestamp('closed_at')->nullable();
 
             // Spare part columns
