@@ -31,10 +31,10 @@ class ReportController extends Controller
         // Get real-time statistics
         $stats = $this->getRealTimeStats();
         $recentActivity = $this->getRecentActivity();
-        
+
         // Get real data for JavaScript functions
         $realData = $this->getRealDataForJS();
-        
+
         return view('admin.reports.index', compact('stats', 'recentActivity', 'realData'));
     }
 
@@ -46,27 +46,27 @@ class ReportController extends Controller
         $user = Auth::user();
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
-        
+
         // Complaints with location filtering
         $complaintsQuery = \App\Models\Complaint::query();
         $this->filterComplaintsByLocation($complaintsQuery, $user);
-        
+
         // Employees with location filtering
         $employeesQuery = \App\Models\Employee::where('status', 'active');
         $this->filterEmployeesByLocation($employeesQuery, $user);
-        
+
         // Spares with location filtering
         $sparesQuery = \App\Models\Spare::query();
         $this->filterSparesByLocation($sparesQuery, $user);
-        
+
         // Approvals with location filtering
         $approvalsQuery = \App\Models\SpareApprovalPerforma::query();
         $approvedApprovalsQuery = \App\Models\SpareApprovalPerforma::where('status', 'approved');
-        
+
         if ($user && !$this->canViewAllData($user)) {
-            $filterApprovals = function($query) use ($user) {
-                $query->whereHas('complaint', function($q) use ($user) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
+            $filterApprovals = function ($query) use ($user) {
+                $query->whereHas('complaint', function ($q) use ($user) {
+                    $q->whereHas('client', function ($clientQ) use ($user) {
                         if ($user->city_id && $user->city) {
                             $clientQ->where('city', $user->city->name);
                         }
@@ -79,7 +79,7 @@ class ReportController extends Controller
             $filterApprovals($approvalsQuery);
             $filterApprovals($approvedApprovalsQuery);
         }
-        
+
         return [
             'complaints' => [
                 'total' => (clone $complaintsQuery)->count(),
@@ -118,15 +118,15 @@ class ReportController extends Controller
             ->whereNotNull('updated_at');
         $this->filterComplaintsByLocation($query, $user);
         $resolvedComplaints = $query->get();
-            
+
         if ($resolvedComplaints->isEmpty()) {
             return 0;
         }
-        
-        $totalHours = $resolvedComplaints->sum(function($complaint) {
+
+        $totalHours = $resolvedComplaints->sum(function ($complaint) {
             return $complaint->created_at->diffInHours($complaint->updated_at);
         });
-        
+
         return round($totalHours / $resolvedComplaints->count(), 1);
     }
 
@@ -137,36 +137,39 @@ class ReportController extends Controller
     {
         $employeesQuery = \App\Models\Employee::query();
         $this->filterEmployeesByLocation($employeesQuery, $user);
-        
-        $employees = $employeesQuery->with(['assignedComplaints' => function($complaintsQuery) use ($user) {
-            $complaintsQuery->where('status', 'resolved');
-            // Apply location filter to complaints - using whereHas on the relation
-            if ($user && !$this->canViewAllData($user)) {
-                if ($user->city_id && $user->city) {
-                    $complaintsQuery->whereHas('client', function($clientQ) use ($user) {
-                        $clientQ->where('city', $user->city->name);
-                    });
-                }
-                if ($user->sector_id && $user->sector) {
-                    $complaintsQuery->whereHas('client', function($clientQ) use ($user) {
-                        $clientQ->where('sector', $user->sector->name);
-                    });
+
+        $employees = $employeesQuery->with([
+            'assignedComplaints' => function ($complaintsQuery) use ($user) {
+                $complaintsQuery->where('status', 'resolved');
+                // Apply location filter to complaints - using whereHas on the relation
+                if ($user && !$this->canViewAllData($user)) {
+                    if ($user->city_id && $user->city) {
+                        $complaintsQuery->whereHas('client', function ($clientQ) use ($user) {
+                            $clientQ->where('city', $user->city->name);
+                        });
+                    }
+                    if ($user->sector_id && $user->sector) {
+                        $complaintsQuery->whereHas('client', function ($clientQ) use ($user) {
+                            $clientQ->where('sector', $user->sector->name);
+                        });
+                    }
                 }
             }
-        }])->get();
-        
+        ])->get();
+
         if ($employees->isEmpty()) {
             return 0;
         }
-        
-        $totalPerformance = $employees->sum(function($employee) {
+
+        $totalPerformance = $employees->sum(function ($employee) {
             $totalComplaints = $employee->assignedComplaints->count();
-            if ($totalComplaints === 0) return 0;
-            
+            if ($totalComplaints === 0)
+                return 0;
+
             $resolvedComplaints = $employee->assignedComplaints->where('status', 'resolved')->count();
             return ($resolvedComplaints / $totalComplaints) * 100;
         });
-        
+
         return round($totalPerformance / $employees->count(), 1);
     }
 
@@ -181,7 +184,7 @@ class ReportController extends Controller
                 ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
                 ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
                 ->join('clients', 'complaints.client_id', '=', 'clients.id');
-            
+
             // Apply location filtering
             if ($user && !$this->canViewAllData($user)) {
                 if ($user->city_id && $user->city) {
@@ -191,7 +194,7 @@ class ReportController extends Controller
                     $query->where('clients.sector', $user->sector->name);
                 }
             }
-            
+
             return $query->sum(DB::raw('complaint_spares.quantity * spares.unit_price'));
         }
 
@@ -201,7 +204,7 @@ class ReportController extends Controller
                 ->join('spares', 'spare_approval_items.spare_id', '=', 'spares.id')
                 ->join('spare_approval_performa', 'spare_approval_items.performa_id', '=', 'spare_approval_performa.id')
                 ->where('spare_approval_performa.status', 'approved');
-            
+
             // Apply location filtering if approval is linked to complaint
             if ($user && !$this->canViewAllData($user) && Schema::hasColumn('spare_approval_performa', 'complaint_id')) {
                 $query->join('complaints', 'spare_approval_performa.complaint_id', '=', 'complaints.id')
@@ -213,7 +216,7 @@ class ReportController extends Controller
                     $query->where('clients.sector', $user->sector->name);
                 }
             }
-            
+
             return $query->sum(DB::raw('COALESCE(spare_approval_items.quantity_approved, 0) * spares.unit_price'));
         }
 
@@ -226,8 +229,9 @@ class ReportController extends Controller
     private function getApprovalRate()
     {
         $totalApprovals = \App\Models\SpareApprovalPerforma::count();
-        if ($totalApprovals === 0) return 0;
-        
+        if ($totalApprovals === 0)
+            return 0;
+
         $approvedApprovals = \App\Models\SpareApprovalPerforma::where('status', 'approved')->count();
         return round(($approvedApprovals / $totalApprovals) * 100, 1);
     }
@@ -240,29 +244,29 @@ class ReportController extends Controller
         $user = Auth::user();
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
-        
+
         // Apply location filtering
         $complaintsQuery = Complaint::query();
         $this->filterComplaintsByLocation($complaintsQuery, $user);
-        
+
         $employeesQuery = Employee::where('status', 'active');
         $this->filterEmployeesByLocation($employeesQuery, $user);
-        
+
         $clientsQuery = Client::query();
         $this->filterClientsByLocation($clientsQuery, $user);
-        
+
         // Spares with location filtering
         $sparesQuery = Spare::query();
         $this->filterSparesByLocation($sparesQuery, $user);
-        
+
         // Approvals with location filtering
         $approvalsQuery = SpareApprovalPerforma::query();
         $pendingApprovalsQuery = SpareApprovalPerforma::where('status', 'pending');
-        
+
         if ($user && !$this->canViewAllData($user)) {
-            $filterApprovals = function($query) use ($user) {
-                $query->whereHas('complaint', function($q) use ($user) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
+            $filterApprovals = function ($query) use ($user) {
+                $query->whereHas('complaint', function ($q) use ($user) {
+                    $q->whereHas('client', function ($clientQ) use ($user) {
                         if ($user->city_id && $user->city) {
                             $clientQ->where('city', $user->city->name);
                         }
@@ -275,7 +279,7 @@ class ReportController extends Controller
             $filterApprovals($approvalsQuery);
             $filterApprovals($pendingApprovalsQuery);
         }
-        
+
         return [
             'total_complaints_this_month' => (clone $complaintsQuery)
                 ->whereBetween('created_at', [$startOfMonth, $now])
@@ -303,19 +307,20 @@ class ReportController extends Controller
     {
         $complaintsQuery = Complaint::query();
         $this->filterComplaintsByLocation($complaintsQuery, $user);
-        
+
         $totalComplaints = (clone $complaintsQuery)->count();
-        if ($totalComplaints === 0) return 100;
-        
+        if ($totalComplaints === 0)
+            return 100;
+
         // Get complaints that are resolved and within SLA time limits
         $compliantComplaintsQuery = Complaint::query();
         $this->filterComplaintsByLocation($compliantComplaintsQuery, $user);
-        
+
         $compliantComplaints = (clone $compliantComplaintsQuery)->where('status', 'resolved')
-            ->whereHas('slaRule', function($query) {
+            ->whereHas('slaRule', function ($query) {
                 $query->whereRaw('TIMESTAMPDIFF(HOUR, complaints.created_at, complaints.updated_at) <= sla_rules.max_resolution_time');
             })->count();
-        
+
         return round(($compliantComplaints / $totalComplaints) * 100, 1);
     }
 
@@ -326,7 +331,7 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         $activities = collect();
-        
+
         try {
             // Recent complaints with location filtering
             $recentComplaintsQuery = Complaint::with(['client', 'assignedEmployee']);
@@ -334,7 +339,7 @@ class ReportController extends Controller
             $recentComplaints = $recentComplaintsQuery->latest()
                 ->limit(3)
                 ->get();
-                
+
             foreach ($recentComplaints as $complaint) {
                 $activities->push([
                     'type' => 'complaint',
@@ -345,14 +350,14 @@ class ReportController extends Controller
                     'badge_class' => $this->getStatusBadgeClass($complaint->status)
                 ]);
             }
-            
+
             // Recent approvals with location filtering
             $recentApprovalsQuery = SpareApprovalPerforma::with(['requestedBy']);
-            
+
             // Apply location filtering to approvals
             if ($user && !$this->canViewAllData($user)) {
-                $recentApprovalsQuery->whereHas('complaint', function($q) use ($user) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
+                $recentApprovalsQuery->whereHas('complaint', function ($q) use ($user) {
+                    $q->whereHas('client', function ($clientQ) use ($user) {
                         if ($user->city_id && $user->city) {
                             $clientQ->where('city', $user->city->name);
                         }
@@ -362,28 +367,28 @@ class ReportController extends Controller
                     });
                 });
             }
-            
+
             $recentApprovals = $recentApprovalsQuery->latest()
                 ->limit(2)
                 ->get();
-                
+
             foreach ($recentApprovals as $approval) {
                 $activities->push([
                     'type' => 'approval',
                     'title' => 'Spare part approval',
-                'description' => 'Requested by ' . ($approval->requestedBy->name ?? 'Unknown'),
+                    'description' => 'Requested by ' . ($approval->requestedBy->name ?? 'Unknown'),
                     'time' => $approval->created_at->diffForHumans(),
                     'badge' => ucfirst($approval->status),
                     'badge_class' => $this->getApprovalBadgeClass($approval->status)
                 ]);
             }
-            
+
             // Recent spare part activities
             $recentSpares = Spare::where('stock_quantity', '<=', DB::raw('threshold_level'))
                 ->latest('updated_at')
                 ->limit(1)
                 ->get();
-                
+
             foreach ($recentSpares as $spare) {
                 $activities->push([
                     'type' => 'spare',
@@ -394,12 +399,12 @@ class ReportController extends Controller
                     'badge_class' => 'warning'
                 ]);
             }
-            
+
         } catch (\Exception $e) {
             // If there's an error, return empty activities
             \Log::error('Error fetching recent activity: ' . $e->getMessage());
         }
-        
+
         return $activities->sortByDesc('time')->take(5)->values();
     }
 
@@ -461,21 +466,21 @@ class ReportController extends Controller
         // Ensure dates are properly formatted and include time for full day coverage
         $dateFromStart = \Carbon\Carbon::parse($dateFrom)->startOfDay();
         $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
-        
+
         // Get user for location filtering
         $user = Auth::user();
-        
+
         // Get actual categories from ComplaintCategory table - this is the source of truth
         $actualCategories = \App\Models\ComplaintCategory::orderBy('name')
             ->pluck('name')
             ->toArray();
-        
+
         // Use only categories from ComplaintCategory table (not from complaints table)
         // This ensures we only show categories that are defined in the categories table
         // and avoids showing old/renamed category names from existing complaints
         $allCategories = $actualCategories;
         sort($allCategories);
-        
+
         // Map categories to report format
         $categories = [];
         foreach ($allCategories as $cat) {
@@ -483,7 +488,7 @@ class ReportController extends Controller
             $key = strtolower(str_replace([' ', '&', '-', '(', ')'], ['_', '', '_', '', ''], $cat));
             $categories[$key] = $cat;
         }
-        
+
         // If still no categories, use default structure for demonstration
         if (empty($categories)) {
             $categories = [
@@ -494,14 +499,14 @@ class ReportController extends Controller
                 'barrak_damages' => 'Barrak Damages',
             ];
         }
-        
+
         // Row categories/statuses - based on complaint statuses from Complaint model
         $rows = \App\Models\Complaint::getStatuses();
-        
+
         // Remove new and closed statuses from report
         unset($rows['new']);
         unset($rows['closed']);
-        
+
         // Add performa-related statuses grouped by type
         $rows['work'] = 'Work';
         $rows['maintenance'] = 'Maintenance';
@@ -510,27 +515,27 @@ class ReportController extends Controller
         $rows['product_na'] = 'Product N/A';
         $rows['un_authorized'] = 'Un-Authorized';
         $rows['pertains_to_ge_const_isld'] = 'Pertains to GE(N) Const Isld';
-        
+
         // Base query for all complaints in date range
         // Note: $user already defined above
         $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
-        
+
         // Apply location-based filtering
         $this->filterComplaintsByLocation($baseQuery, $user);
-        
+
         // Initialize report data structure
         $reportData = [];
         $categoryTotals = [];
         $rowTotals = [];
         $grandTotal = 0;
-        
+
         // Process each category from actual database
         foreach ($categories as $catKey => $catName) {
             $categoryTotals[$catKey] = 0;
-            
+
             // Query for this specific category
             $catQuery = (clone $baseQuery)->where('category', $catName);
-            
+
             // Eager load relationships safely
             try {
                 $catComplaints = $catQuery->with(['spareParts', 'spareApprovals', 'client'])->get();
@@ -542,23 +547,23 @@ class ReportController extends Controller
             $catTotal = $catComplaints->count();
             $categoryTotals[$catKey] = $catTotal;
             $grandTotal += $catTotal;
-            
+
             // Process each row for this category
             foreach ($rows as $rowKey => $rowName) {
                 if (!isset($reportData[$rowKey])) {
                     $reportData[$rowKey] = ['name' => $rowName, 'categories' => []];
                     $rowTotals[$rowKey] = 0;
                 }
-                
+
                 $count = 0;
-                
+
                 // Row mapping logic - based on complaint status (new and closed removed)
                 if ($rowKey === 'assigned') {
                     $count = $catComplaints->where('status', 'assigned')->count();
                 } elseif ($rowKey === 'in_progress') {
                     // Count complaints with in_progress status that do NOT have any performa type
                     // Exclude complaints that have work_performa, maint_performa, or product_na performa_type
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         if ($complaint->status !== 'in_progress') {
                             return false;
                         }
@@ -567,17 +572,17 @@ class ReportController extends Controller
                             return false;
                         }
                         // Check if complaint has any performa type set (work_performa, maint_performa, or product_na) - exclude rejected
-                        $hasWorkPerforma = $complaint->spareApprovals->contains(function($approval) {
+                        $hasWorkPerforma = $complaint->spareApprovals->contains(function ($approval) {
                             return $approval->performa_type === 'work_performa' &&
-                                   $approval->status !== 'rejected';
+                                $approval->status !== 'rejected';
                         });
-                        $hasMaintPerforma = $complaint->spareApprovals->contains(function($approval) {
+                        $hasMaintPerforma = $complaint->spareApprovals->contains(function ($approval) {
                             return $approval->performa_type === 'maint_performa' &&
-                                   $approval->status !== 'rejected';
+                                $approval->status !== 'rejected';
                         });
-                        $hasProductNa = $complaint->spareApprovals->contains(function($approval) {
+                        $hasProductNa = $complaint->spareApprovals->contains(function ($approval) {
                             return $approval->performa_type === 'product_na' &&
-                                   $approval->status !== 'rejected';
+                                $approval->status !== 'rejected';
                         });
                         // Exclude if has any performa type
                         return !$hasWorkPerforma && !$hasMaintPerforma && !$hasProductNa;
@@ -587,7 +592,7 @@ class ReportController extends Controller
                 } elseif ($rowKey === 'work') {
                     // Count complaints that have work_performa performa_type in spareApprovals
                     // Logic: If performa_type is set, use it; otherwise use complaint status
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         // First check complaint status - if it's work_performa, include it (simple performa)
                         if ($complaint->status === 'work_performa') {
                             // Exclude if status is work_priced_performa (should be in work_priced_performa row)
@@ -596,10 +601,10 @@ class ReportController extends Controller
                             }
                             return true;
                         }
-                        
+
                         // Get approval with performa_type
                         $approval = $complaint->spareApprovals->first();
-                        
+
                         // If performa_type is set, use it
                         if ($approval && $approval->performa_type === 'work_performa') {
                             // Exclude if status is work_priced_performa (should be in work_priced_performa row)
@@ -613,13 +618,13 @@ class ReportController extends Controller
                             }
                             return true;
                         }
-                        
+
                         return false;
                     })->count();
                 } elseif ($rowKey === 'maintenance') {
                     // Count complaints that have maint_performa performa_type in spareApprovals
                     // Logic: If performa_type is set, use it; otherwise use complaint status
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         // First check complaint status - if it's maint_performa, include it (simple performa)
                         if ($complaint->status === 'maint_performa') {
                             // Exclude if status is maint_priced_performa (should be in maint_priced_performa row)
@@ -628,10 +633,10 @@ class ReportController extends Controller
                             }
                             return true;
                         }
-                        
+
                         // Get approval with performa_type
                         $approval = $complaint->spareApprovals->first();
-                        
+
                         // If performa_type is set, use it
                         if ($approval && $approval->performa_type === 'maint_performa') {
                             // Exclude if status is maint_priced_performa (should be in maint_priced_performa row)
@@ -645,26 +650,26 @@ class ReportController extends Controller
                             }
                             return true;
                         }
-                        
+
                         return false;
                     })->count();
                 } elseif ($rowKey === 'work_priced_performa') {
                     // waiting_for_authority removed - only count direct status match
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         return $complaint->status === 'work_priced_performa';
                     })->count();
                 } elseif ($rowKey === 'maint_priced_performa') {
                     // waiting_for_authority removed - only count direct status match
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         return $complaint->status === 'maint_priced_performa';
                     })->count();
                 } elseif ($rowKey === 'product_na') {
                     // Count complaints that have product_na status OR product_na performa_type in spareApprovals
                     // Logic: If performa_type is set, use it; otherwise use complaint status
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         // Get approval with performa_type
                         $approval = $complaint->spareApprovals->first();
-                        
+
                         // If performa_type is set, use it
                         if ($approval && $approval->performa_type === 'product_na') {
                             // Exclude if status is rejected
@@ -673,49 +678,49 @@ class ReportController extends Controller
                             }
                             return true;
                         }
-                        
+
                         // If performa_type is null, check complaint status
                         if ($complaint->status === 'product_na') {
                             return true;
                         }
-                        
+
                         return false;
                     })->count();
                 } elseif ($rowKey === 'un_authorized') {
                     // Count complaints with un_authorized status
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         return $complaint->status === 'un_authorized';
                     })->count();
                 } elseif ($rowKey === 'pertains_to_ge_const_isld') {
                     // Count complaints with pertains_to_ge_const_isld status
-                    $count = $catComplaints->filter(function($complaint) {
+                    $count = $catComplaints->filter(function ($complaint) {
                         return $complaint->status === 'pertains_to_ge_const_isld';
                     })->count();
                 }
-                
+
                 $percentage = $catTotal > 0 ? round(($count / $catTotal) * 100, 1) : 0;
-                
+
                 $reportData[$rowKey]['categories'][$catKey] = [
                     'count' => $count,
                     'percentage' => $percentage,
                 ];
-                
+
                 $rowTotals[$rowKey] += $count;
             }
         }
-        
+
         // Identify E&M NRC related categories - the 3 specific columns
         // E&M NRC (Electric), E&M NRC (Gas), E&M NRC (Water Supply)
         $emNrcCategoryKeys = [];
         $emNrcTotalKey = 'em_nrc_total';
-        
+
         foreach ($categories as $catKey => $catName) {
             // Check if category contains "E&M NRC" but not "Total"
             if (stripos($catName, 'E&M NRC') !== false && stripos($catName, 'Total') === false) {
                 $emNrcCategoryKeys[] = $catKey;
             }
         }
-        
+
         // Calculate E&M NRC Total for each row
         $emNrcTotal = [];
         foreach ($rows as $rowKey => $rowName) {
@@ -726,23 +731,23 @@ class ReportController extends Controller
                 }
             }
         }
-        
+
         // Calculate E&M NRC Total for Total row
         $emNrcTotalForTotalRow = 0;
         foreach ($emNrcCategoryKeys as $emKey) {
             $emNrcTotalForTotalRow += $categoryTotals[$emKey] ?? 0;
         }
-        
+
         // Reorganize categories: Place E&M NRC Total after individual E&M NRC columns
         $reorganizedCategories = [];
         $emNrcProcessed = [];
-        
+
         foreach ($categories as $catKey => $catName) {
             if (in_array($catKey, $emNrcCategoryKeys)) {
                 // Add E&M NRC category
                 $reorganizedCategories[$catKey] = $catName;
                 $emNrcProcessed[] = $catKey;
-                
+
                 // After adding all E&M NRC categories, add E&M NRC Total
                 if (count($emNrcProcessed) === count($emNrcCategoryKeys) && !isset($reorganizedCategories[$emNrcTotalKey])) {
                     $reorganizedCategories[$emNrcTotalKey] = 'E&M NRC (Total)';
@@ -752,7 +757,7 @@ class ReportController extends Controller
                 $reorganizedCategories[$catKey] = $catName;
             }
         }
-        
+
         // If E&M NRC categories exist but total wasn't added (in case they were not consecutive)
         if (!empty($emNrcCategoryKeys) && !isset($reorganizedCategories[$emNrcTotalKey])) {
             // Find the position after last E&M NRC category
@@ -771,7 +776,7 @@ class ReportController extends Controller
             }
             $reorganizedCategories = $tempCategories;
         }
-        
+
         // Add E&M NRC Total data to reportData
         foreach ($reportData as $rowKey => &$row) {
             $row['categories'][$emNrcTotalKey] = [
@@ -780,10 +785,10 @@ class ReportController extends Controller
             ];
         }
         unset($row);
-        
+
         // Add E&M NRC Total to categoryTotals
         $categoryTotals[$emNrcTotalKey] = $emNrcTotalForTotalRow;
-        
+
         // Add Total row
         $reportData['total'] = ['name' => 'Total', 'categories' => []];
         foreach ($reorganizedCategories as $catKey => $catName) {
@@ -799,7 +804,7 @@ class ReportController extends Controller
                 ];
             }
         }
-        
+
         // Prepare data for view
         $data = [
             'reportData' => $reportData,
@@ -812,14 +817,14 @@ class ReportController extends Controller
             'dateTo' => $dateTo,
             'emNrcTotalKey' => $emNrcTotalKey,
         ];
-        
+
         // Export based on format
         if ($format === 'excel') {
             return $this->exportToExcelReport($data);
         } elseif ($format === 'pdf') {
             return $this->exportToPDFReport($data);
         }
-        
+
         return view('admin.reports.complaints', $data);
     }
 
@@ -843,36 +848,38 @@ class ReportController extends Controller
         }
 
         $user = Auth::user();
-        $query = Employee::with(['assignedComplaints' => function($q) use ($dateFrom, $dateTo, $user) {
-            $q->whereBetween('created_at', [$dateFrom, $dateTo]);
-            // Apply location filter to complaints - get the underlying query builder
-            if ($user && !$this->canViewAllData($user)) {
-                if ($user->city_id && $user->city) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
-                        $clientQ->where('city', $user->city->name);
-                    });
-                }
-                if ($user->sector_id && $user->sector) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
-                        $clientQ->where('sector', $user->sector->name);
-                    });
+        $query = Employee::with([
+            'assignedComplaints' => function ($q) use ($dateFrom, $dateTo, $user) {
+                $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+                // Apply location filter to complaints - get the underlying query builder
+                if ($user && !$this->canViewAllData($user)) {
+                    if ($user->city_id && $user->city) {
+                        $q->whereHas('client', function ($clientQ) use ($user) {
+                            $clientQ->where('city', $user->city->name);
+                        });
+                    }
+                    if ($user->sector_id && $user->sector) {
+                        $q->whereHas('client', function ($clientQ) use ($user) {
+                            $clientQ->where('sector', $user->sector->name);
+                        });
+                    }
                 }
             }
-        }]);
+        ]);
 
         // Apply location-based filtering to employees
         $this->filterEmployeesByLocation($query, $user);
 
-        $employees = $query->get()->map(function($employee) {
+        $employees = $query->get()->map(function ($employee) {
             $complaints = $employee->assignedComplaints;
             $resolved = $complaints->whereIn('status', ['resolved', 'closed']);
-            
+
             return [
                 'employee' => $employee,
                 'total_complaints' => $complaints->count(),
                 'resolved_complaints' => $resolved->count(),
                 'resolution_rate' => $complaints->count() > 0 ? round(($resolved->count() / $complaints->count()) * 100, 2) : 0,
-                'avg_resolution_time' => $resolved->avg(function($complaint) {
+                'avg_resolution_time' => $resolved->avg(function ($complaint) {
                     return $complaint->created_at->diffInHours($complaint->updated_at);
                 }) ?? 0,
             ];
@@ -933,7 +940,7 @@ class ReportController extends Controller
 
         $user = Auth::user();
         $query = Spare::query();
-        
+
         // Apply location-based filtering
         $this->filterSparesByLocation($query, $user);
 
@@ -941,30 +948,47 @@ class ReportController extends Controller
             $query->where('category', $category);
         }
 
-        // Eager load complaint spares safely
+        // Eager load complaint spares and stock logs safely
         try {
-            $spares = $query->with(['complaintSpares' => function($q) use ($dateFrom, $dateTo) {
-                $q->whereBetween('used_at', [$dateFrom, $dateTo]);
-            }])->get()->map(function($spare) use ($dateFrom, $dateTo) {
+            $spares = $query->with([
+                'complaintSpares' => function ($q) use ($dateFrom, $dateTo) {
+                    $q->whereBetween('used_at', [$dateFrom, $dateTo]);
+                },
+                'stockLogs' => function ($q) use ($dateFrom, $dateTo) {
+                    $q->where('change_type', 'out')
+                        ->whereBetween('created_at', [$dateFrom, $dateTo]);
+                }
+            ])->get()->map(function ($spare) use ($dateFrom, $dateTo) {
+                // Calculate usage from complaint_spares (for cost/usage count if needed)
                 $usage = $spare->complaintSpares ?? collect();
-                $totalUsed = $usage->sum('quantity') ?? 0;
-                $totalCost = $usage->sum(function($item) use ($spare) {
-                    return ($item->quantity ?? 0) * ($spare->unit_price ?? 0);
-                }) ?? 0;
+                $complaintUsed = $usage->sum('quantity') ?? 0;
+
+                // Calculate usage from stock logs (primary source for issued quantity)
+                $stockLogs = $spare->stockLogs ?? collect();
+                $stockOut = $stockLogs->sum('quantity') ?? 0;
+
+                // Use stock logs for issued quantity as it tracks all 'out' movements
+                $totalUsed = $stockOut;
+
+                // Calculate cost based on total used
+                $totalCost = $totalUsed * ($spare->unit_price ?? 0);
+
+                // Usage count can be from logs count
+                $usageCount = $stockLogs->count();
 
                 return [
                     'spare' => $spare,
                     'total_used' => $totalUsed,
                     'total_cost' => $totalCost,
-                    'usage_count' => $usage->count() ?? 0,
+                    'usage_count' => $usageCount ?? 0,
                     'current_stock' => $spare->stock_quantity ?? 0,
                     'stock_status' => method_exists($spare, 'getStockStatusAttribute') ? $spare->getStockStatusAttribute() : 'in_stock',
                 ];
             });
         } catch (\Exception $e) {
             // If relationship fails, load without it
-            \Log::warning('Failed to load complaint spares: ' . $e->getMessage());
-            $spares = $query->get()->map(function($spare) {
+            \Log::warning('Failed to load complaint spares or approvals: ' . $e->getMessage());
+            $spares = $query->get()->map(function ($spare) {
                 return [
                     'spare' => $spare,
                     'total_used' => 0,
@@ -979,10 +1003,10 @@ class ReportController extends Controller
         $summary = [
             'total_spares' => $spares->count(),
             'total_usage_count' => $spares->sum('usage_count'),
-            'low_stock_items' => $spares->filter(function($item) {
+            'low_stock_items' => $spares->filter(function ($item) {
                 return ($item['current_stock'] ?? 0) <= ($item['spare']->threshold_level ?? 0) && ($item['current_stock'] ?? 0) > 0;
             })->count(),
-            'out_of_stock_items' => $spares->filter(function($item) {
+            'out_of_stock_items' => $spares->filter(function ($item) {
                 return ($item['current_stock'] ?? 0) <= 0;
             })->count(),
         ];
@@ -1014,14 +1038,14 @@ class ReportController extends Controller
         }
 
         $user = Auth::user();
-        
+
         // Build spare costs query with location filtering
         $spareCostsQuery = DB::table('complaint_spares')
             ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
             ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
             ->join('clients', 'complaints.client_id', '=', 'clients.id')
             ->whereBetween('complaint_spares.used_at', [$dateFrom, $dateTo]);
-        
+
         // Apply location filtering
         if ($user && !$this->canViewAllData($user)) {
             if ($user->city_id && $user->city) {
@@ -1031,7 +1055,7 @@ class ReportController extends Controller
                 $spareCostsQuery->where('clients.sector', $user->sector->name);
             }
         }
-        
+
         $spareCosts = $spareCostsQuery->selectRaw('spares.category, SUM(complaint_spares.quantity * spares.unit_price) as total_cost')
             ->groupBy('spares.category')
             ->get();
@@ -1039,12 +1063,12 @@ class ReportController extends Controller
         // Approval costs - simplified approach (with location filtering if needed)
         $approvalQuery = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', 'approved');
-        
+
         // Note: Approvals might not have direct location, filter if they're related to complaints
         // For now, show all approvals if user can view all, otherwise filter by complaint location
         if ($user && !$this->canViewAllData($user)) {
-            $approvalQuery->whereHas('complaint', function($q) use ($user) {
-                $q->whereHas('client', function($clientQ) use ($user) {
+            $approvalQuery->whereHas('complaint', function ($q) use ($user) {
+                $q->whereHas('client', function ($clientQ) use ($user) {
                     if ($user->city_id && $user->city) {
                         $clientQ->where('city', $user->city->name);
                     }
@@ -1054,12 +1078,12 @@ class ReportController extends Controller
                 });
             });
         }
-        
+
         $approvalCosts = $approvalQuery->get()
-            ->groupBy(function($approval) {
+            ->groupBy(function ($approval) {
                 return $approval->created_at->format('Y-m');
             })
-            ->map(function($approvals) {
+            ->map(function ($approvals) {
                 return $approvals->count(); // For now, just count approvals per month
             });
 
@@ -1067,12 +1091,12 @@ class ReportController extends Controller
         $totalApprovalsQuery = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo]);
         $approvedApprovalsQuery = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', 'approved');
-        
+
         // Apply location filtering to approval counts if needed
         if ($user && !$this->canViewAllData($user)) {
-            $filterApprovals = function($query) use ($user) {
-                $query->whereHas('complaint', function($q) use ($user) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
+            $filterApprovals = function ($query) use ($user) {
+                $query->whereHas('complaint', function ($q) use ($user) {
+                    $q->whereHas('client', function ($clientQ) use ($user) {
                         if ($user->city_id && $user->city) {
                             $clientQ->where('city', $user->city->name);
                         }
@@ -1085,7 +1109,7 @@ class ReportController extends Controller
             $filterApprovals($totalApprovalsQuery);
             $filterApprovals($approvedApprovalsQuery);
         }
-        
+
         $summary = [
             'total_spare_costs' => $spareCosts->sum('total_cost'),
             'total_approvals' => $totalApprovalsQuery->count(),
@@ -1115,25 +1139,25 @@ class ReportController extends Controller
         $slaRules = \App\Models\SlaRule::all()->keyBy('complaint_type');
 
         $user = Auth::user();
-        
+
         // Get complaints with SLA analysis
         $complaintsQuery = Complaint::whereBetween('created_at', [$dateFrom, $dateTo]);
-        
+
         // Apply location-based filtering
         $this->filterComplaintsByLocation($complaintsQuery, $user);
-        
+
         $complaints = $complaintsQuery->with(['client', 'assignedEmployee'])
             ->get()
-            ->map(function($complaint) use ($slaRules) {
+            ->map(function ($complaint) use ($slaRules) {
                 $ageInHours = $complaint->created_at->diffInHours(now());
-                
+
                 // Get SLA rule for this complaint type
                 $slaRule = $slaRules->get($complaint->category);
                 $maxResponseTime = $slaRule ? $slaRule->max_response_time : 24; // Default 24 hours
-                
+    
                 $isOverdue = $ageInHours > $maxResponseTime;
                 $timeRemaining = max(0, $maxResponseTime - $ageInHours);
-                
+
                 // Calculate urgency level
                 $urgencyLevel = 'low';
                 if ($isOverdue) {
@@ -1143,7 +1167,7 @@ class ReportController extends Controller
                 } elseif ($timeRemaining <= $maxResponseTime * 0.5) {
                     $urgencyLevel = 'medium';
                 }
-                
+
                 return [
                     'complaint' => $complaint,
                     'age_hours' => $ageInHours,
@@ -1161,18 +1185,18 @@ class ReportController extends Controller
             'total_complaints' => $complaints->count(),
             'within_sla' => $complaints->where('sla_status', 'within_sla')->count(),
             'breached_sla' => $complaints->where('sla_status', 'breached')->count(),
-            'sla_compliance_rate' => $complaints->count() > 0 ? 
+            'sla_compliance_rate' => $complaints->count() > 0 ?
                 round(($complaints->where('sla_status', 'within_sla')->count() / $complaints->count()) * 100, 2) : 0,
             'critical_urgent' => $complaints->where('urgency_level', 'critical')->count(),
             'high_priority' => $complaints->where('urgency_level', 'high')->count(),
-            'average_resolution_time' => $complaints->filter(function($complaintData) {
+            'average_resolution_time' => $complaints->filter(function ($complaintData) {
                 return $complaintData['complaint']->status === 'resolved';
             })->avg('age_hours') ?? 0,
         ];
 
         // Get SLA rules summary
-        $slaRulesSummary = $slaRules->map(function($rule) use ($complaints) {
-            $ruleComplaints = $complaints->filter(function($complaintData) use ($rule) {
+        $slaRulesSummary = $slaRules->map(function ($rule) use ($complaints) {
+            $ruleComplaints = $complaints->filter(function ($complaintData) use ($rule) {
                 return $complaintData['complaint']->category === $rule->complaint_type;
             });
             return [
@@ -1180,7 +1204,7 @@ class ReportController extends Controller
                 'total_complaints' => $ruleComplaints->count(),
                 'within_sla' => $ruleComplaints->where('sla_status', 'within_sla')->count(),
                 'breached_sla' => $ruleComplaints->where('sla_status', 'breached')->count(),
-                'compliance_rate' => $ruleComplaints->count() > 0 ? 
+                'compliance_rate' => $ruleComplaints->count() > 0 ?
                     round(($ruleComplaints->where('sla_status', 'within_sla')->count() / $ruleComplaints->count()) * 100, 2) : 0,
             ];
         });
@@ -1221,7 +1245,7 @@ class ReportController extends Controller
         $period = $request->get('period', '30'); // days
 
         $user = Auth::user();
-        
+
         switch ($type) {
             case 'complaints':
                 $complaintsQuery = Complaint::where('created_at', '>=', now()->subDays($period));
@@ -1245,30 +1269,32 @@ class ReportController extends Controller
             case 'employees':
                 $employeesQuery = Employee::where('status', 'active');
                 $this->filterEmployeesByLocation($employeesQuery, $user);
-                $data = $employeesQuery->withCount(['assignedComplaints' => function($q) use ($period, $user) {
-                    $q->where('created_at', '>=', now()->subDays($period))
-                      ->whereIn('status', ['resolved', 'closed']);
-                    // Apply location filter to complaints - using whereHas on the relation
-                    if ($user && !$this->canViewAllData($user)) {
-                        if ($user->city_id && $user->city) {
-                            $q->whereHas('client', function($clientQ) use ($user) {
-                                $clientQ->where('city', $user->city->name);
-                            });
-                        }
-                        if ($user->sector_id && $user->sector) {
-                            $q->whereHas('client', function($clientQ) use ($user) {
-                                $clientQ->where('sector', $user->sector->name);
-                            });
+                $data = $employeesQuery->withCount([
+                    'assignedComplaints' => function ($q) use ($period, $user) {
+                        $q->where('created_at', '>=', now()->subDays($period))
+                            ->whereIn('status', ['resolved', 'closed']);
+                        // Apply location filter to complaints - using whereHas on the relation
+                        if ($user && !$this->canViewAllData($user)) {
+                            if ($user->city_id && $user->city) {
+                                $q->whereHas('client', function ($clientQ) use ($user) {
+                                    $clientQ->where('city', $user->city->name);
+                                });
+                            }
+                            if ($user->sector_id && $user->sector) {
+                                $q->whereHas('client', function ($clientQ) use ($user) {
+                                    $clientQ->where('sector', $user->sector->name);
+                                });
+                            }
                         }
                     }
-                }])
-                ->get()
-                ->map(function($employee) {
-                    return [
-                        'name' => $employee->name,
-                        'resolved' => $employee->assigned_complaints_count,
-                    ];
-                });
+                ])
+                    ->get()
+                    ->map(function ($employee) {
+                        return [
+                            'name' => $employee->name,
+                            'resolved' => $employee->assigned_complaints_count,
+                        ];
+                    });
                 break;
 
             default:
@@ -1320,10 +1346,10 @@ class ReportController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-        
-        $callback = function() use ($data) {
+
+        $callback = function () use ($data) {
             $file = fopen('php://output', 'w');
-            
+
             // Write header row - categories + Total
             $headerRow = ['Description'];
             foreach ($data['categories'] as $catName) {
@@ -1333,11 +1359,11 @@ class ReportController extends Controller
             $headerRow[] = 'Total - Qty';
             $headerRow[] = 'Total - %age';
             fputcsv($file, $headerRow);
-            
+
             // Write data rows
             foreach ($data['reportData'] as $rowKey => $row) {
                 $rowData = [$row['name']];
-                
+
                 // Add category columns (count and percentage)
                 foreach ($data['categories'] as $catKey => $catName) {
                     $count = $row['categories'][$catKey]['count'] ?? 0;
@@ -1345,23 +1371,23 @@ class ReportController extends Controller
                     $rowData[] = $count;
                     $rowData[] = $percentage . '%';
                 }
-                
+
                 // Add Grand Total columns: sum of all primary columns
                 // Individual E&M NRC columns (Electric, Gas, Water Supply) should be EXCLUDED from Total
                 // E&M NRC (Total) should be INCLUDED in Total
                 $rowGrandTotal = 0;
                 $emNrcTotalKey = $data['emNrcTotalKey'] ?? 'em_nrc_total';
                 $hasEmNrcTotal = isset($row['categories'][$emNrcTotalKey]);
-                
+
                 foreach ($row['categories'] as $catKey => $catData) {
                     // Always include E&M NRC Total if it exists
                     if ($catKey === $emNrcTotalKey) {
                         $rowGrandTotal += $catData['count'] ?? 0;
-                    } 
+                    }
                     // For other categories, check if it's an individual E&M NRC column
                     elseif (isset($data['categories'][$catKey])) {
                         $catName = $data['categories'][$catKey];
-                        
+
                         // Skip individual E&M NRC columns (Electric, Gas, Water Supply) if E&M NRC Total exists
                         $isIndividualEmNrc = false;
                         if ($hasEmNrcTotal) {
@@ -1370,7 +1396,7 @@ class ReportController extends Controller
                                 $isIndividualEmNrc = true;
                             }
                         }
-                        
+
                         // Include all other columns (non-individual E&M NRC columns)
                         if (!$isIndividualEmNrc) {
                             $rowGrandTotal += $catData['count'] ?? 0;
@@ -1383,13 +1409,13 @@ class ReportController extends Controller
                 $rowGrandPercent = $data['grandTotal'] > 0 ? round(($rowGrandTotal / $data['grandTotal'] * 100), 1) : 0;
                 $rowData[] = $rowGrandTotal;
                 $rowData[] = $rowGrandPercent . '%';
-                
+
                 fputcsv($file, $rowData);
             }
-            
+
             fclose($file);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 
@@ -1399,7 +1425,7 @@ class ReportController extends Controller
     private function exportToPDF($type, $data, $summary)
     {
         $filename = "{$type}_report_" . now()->format('Y-m-d_H-i-s') . '.pdf';
-        
+
         // For now, return JSON with download link
         // In production, you would use a PDF library like DomPDF or TCPDF
         return response()->json([
@@ -1417,7 +1443,7 @@ class ReportController extends Controller
     private function exportToExcel($type, $data, $summary)
     {
         $filename = "{$type}_report_" . now()->format('Y-m-d_H-i-s') . '.xlsx';
-        
+
         // For now, return JSON with download link
         // In production, you would use a library like Laravel Excel
         return response()->json([
@@ -1435,14 +1461,14 @@ class ReportController extends Controller
     private function exportToJSON($type, $data, $summary)
     {
         $filename = "{$type}_report_" . now()->format('Y-m-d_H-i-s') . '.json';
-        
+
         $exportData = [
             'report_type' => $type,
             'generated_at' => now()->toISOString(),
             'summary' => $summary,
             'data' => $data
         ];
-        
+
         return response()->json($exportData)
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->header('Content-Type', 'application/json');
@@ -1457,7 +1483,7 @@ class ReportController extends Controller
             // Get report data based on type
             $request = new Request();
             $reportData = $this->getReportData($type, $request);
-            
+
             if ($format === 'json') {
                 return $this->exportToJSON($type, $reportData['data'], $reportData['summary']);
             } else {
@@ -1507,7 +1533,7 @@ class ReportController extends Controller
         $dateToEnd = \Carbon\Carbon::parse($dateTo)->endOfDay();
 
         $baseQuery = Complaint::whereBetween('created_at', [$dateFromStart, $dateToEnd]);
-        
+
         // Apply location-based filtering
         $this->filterComplaintsByLocation($baseQuery, $user);
         switch ($groupBy) {
@@ -1523,21 +1549,27 @@ class ReportController extends Controller
             case 'employee':
                 $data = (clone $baseQuery)->whereNotNull('assigned_employee_id')
                     ->selectRaw('assigned_employee_id, COUNT(*) as count')->groupBy('assigned_employee_id')->get()
-                    ->map(function($item){ $item->assignedEmployee = Employee::find($item->assigned_employee_id); return $item; });
+                    ->map(function ($item) {
+                        $item->assignedEmployee = Employee::find($item->assigned_employee_id);
+                        return $item;
+                    });
                 break;
             case 'client':
                 $data = (clone $baseQuery)->selectRaw('client_id, COUNT(*) as count')->groupBy('client_id')->get()
-                    ->map(function($item){ $item->client = Client::find($item->client_id); return $item; });
+                    ->map(function ($item) {
+                        $item->client = Client::find($item->client_id);
+                        return $item;
+                    });
                 break;
             default:
-                $data = (clone $baseQuery)->with(['client','assignedEmployee'])->get();
+                $data = (clone $baseQuery)->with(['client', 'assignedEmployee'])->get();
         }
 
         $summary = [
             'total_complaints' => (clone $baseQuery)->count(),
-            'resolved_complaints' => (clone $baseQuery)->whereIn('status', ['resolved','closed'])->count(),
-            'pending_complaints' => (clone $baseQuery)->whereIn('status', ['new','assigned','in_progress'])->count(),
-            'avg_resolution_time' => (clone $baseQuery)->whereIn('status', ['resolved','closed'])->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')->value('avg_hours') ?? 0,
+            'resolved_complaints' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])->count(),
+            'pending_complaints' => (clone $baseQuery)->whereIn('status', ['new', 'assigned', 'in_progress'])->count(),
+            'avg_resolution_time' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')->value('avg_hours') ?? 0,
         ];
 
         return ['data' => $data, 'summary' => $summary];
@@ -1548,39 +1580,45 @@ class ReportController extends Controller
         $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
         $user = Auth::user();
-        $query = Employee::with(['user','assignedComplaints' => function($q) use ($dateFrom, $dateTo, $user){ 
-            $q->whereBetween('created_at', [$dateFrom, $dateTo]);
-            // Apply location filter to complaints - using whereHas on the relation
-            if ($user && !$this->canViewAllData($user)) {
-                if ($user->city_id && $user->city) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
-                        $clientQ->where('city', $user->city->name);
-                    });
-                }
-                if ($user->sector_id && $user->sector) {
-                    $q->whereHas('client', function($clientQ) use ($user) {
-                        $clientQ->where('sector', $user->sector->name);
-                    });
+        $query = Employee::with([
+            'user',
+            'assignedComplaints' => function ($q) use ($dateFrom, $dateTo, $user) {
+                $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+                // Apply location filter to complaints - using whereHas on the relation
+                if ($user && !$this->canViewAllData($user)) {
+                    if ($user->city_id && $user->city) {
+                        $q->whereHas('client', function ($clientQ) use ($user) {
+                            $clientQ->where('city', $user->city->name);
+                        });
+                    }
+                    if ($user->sector_id && $user->sector) {
+                        $q->whereHas('client', function ($clientQ) use ($user) {
+                            $clientQ->where('sector', $user->sector->name);
+                        });
+                    }
                 }
             }
-        }]);
-        
+        ]);
+
         // Apply location-based filtering to employees
         $this->filterEmployeesByLocation($query, $user);
-        
+
         // Filter by category if provided
         if ($request->has('category') && $request->category) {
             $query->where('category', $request->category);
         }
 
-        $employees = $query->get()->map(function($employee){
-            $complaints = $employee->assignedComplaints; $resolved = $complaints->whereIn('status', ['resolved','closed']);
+        $employees = $query->get()->map(function ($employee) {
+            $complaints = $employee->assignedComplaints;
+            $resolved = $complaints->whereIn('status', ['resolved', 'closed']);
             return [
                 'employee' => $employee,
                 'total_complaints' => $complaints->count(),
                 'resolved_complaints' => $resolved->count(),
                 'resolution_rate' => $complaints->count() > 0 ? round(($resolved->count() / $complaints->count()) * 100, 2) : 0,
-                'avg_resolution_time' => $resolved->avg(function($c){ return $c->created_at->diffInHours($c->updated_at); }) ?? 0,
+                'avg_resolution_time' => $resolved->avg(function ($c) {
+                    return $c->created_at->diffInHours($c->updated_at);
+                }) ?? 0,
             ];
         });
 
@@ -1601,19 +1639,37 @@ class ReportController extends Controller
 
         $user = Auth::user();
         $query = Spare::query();
-        
+
         // Apply location-based filtering
         $this->filterSparesByLocation($query, $user);
-        
-        if ($category) { $query->where('category', $category); }
-        $spares = $query->with(['complaintSpares' => function($q) use ($dateFrom, $dateTo){ $q->whereBetween('used_at', [$dateFrom, $dateTo]); }])->get()->map(function($spare){
-            $usage = $spare->complaintSpares; $totalUsed = $usage->sum('quantity');
-            $totalCost = $usage->sum(function($item) use ($spare){ return $item->quantity * $spare->unit_price; });
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        $spares = $query->with([
+            'complaintSpares' => function ($q) use ($dateFrom, $dateTo) {
+                $q->whereBetween('used_at', [$dateFrom, $dateTo]);
+            },
+            'stockLogs' => function ($q) use ($dateFrom, $dateTo) {
+                $q->where('change_type', 'out')
+                    ->whereBetween('created_at', [$dateFrom, $dateTo]);
+            }
+        ])->get()->map(function ($spare) {
+            $usage = $spare->complaintSpares;
+
+            $stockLogs = $spare->stockLogs;
+            $stockOut = $stockLogs->sum('quantity');
+
+            $totalUsed = $stockOut;
+            $totalCost = $totalUsed * $spare->unit_price;
+            $usageCount = $stockLogs->count();
+
             return [
                 'spare' => $spare,
                 'total_used' => $totalUsed,
                 'total_cost' => $totalCost,
-                'usage_count' => $usage->count(),
+                'usage_count' => $usageCount,
                 'current_stock' => $spare->stock_quantity,
                 'stock_status' => $spare->getStockStatusAttribute(),
             ];
@@ -1634,13 +1690,13 @@ class ReportController extends Controller
         $user = Auth::user();
         $dateFrom = $request->get('date_from', now()->subMonth()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
-        
+
         $spareCostsQuery = DB::table('complaint_spares')
             ->join('spares', 'complaint_spares.spare_id', '=', 'spares.id')
             ->join('complaints', 'complaint_spares.complaint_id', '=', 'complaints.id')
             ->join('clients', 'complaints.client_id', '=', 'clients.id')
             ->whereBetween('complaint_spares.used_at', [$dateFrom, $dateTo]);
-        
+
         // Apply location filtering
         if ($user && !$this->canViewAllData($user)) {
             if ($user->city_id && $user->city) {
@@ -1650,16 +1706,20 @@ class ReportController extends Controller
                 $spareCostsQuery->where('clients.sector', $user->sector->name);
             }
         }
-        
+
         $spareCosts = $spareCostsQuery->selectRaw('spares.category, SUM(complaint_spares.quantity * spares.unit_price) as total_cost')
             ->groupBy('spares.category')->get();
         $approvalCosts = SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->where('status','approved')->get()->groupBy(function($a){ return $a->created_at->format('Y-m'); })
-            ->map(function($list){ return $list->count(); });
+            ->where('status', 'approved')->get()->groupBy(function ($a) {
+                return $a->created_at->format('Y-m');
+            })
+            ->map(function ($list) {
+                return $list->count();
+            });
         $summary = [
             'total_spare_costs' => $spareCosts->sum('total_cost'),
             'total_approvals' => SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
-            'approved_approvals' => SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])->where('status','approved')->count(),
+            'approved_approvals' => SpareApprovalPerforma::whereBetween('created_at', [$dateFrom, $dateTo])->where('status', 'approved')->count(),
             'category_breakdown' => $spareCosts,
             'monthly_approvals' => $approvalCosts,
         ];

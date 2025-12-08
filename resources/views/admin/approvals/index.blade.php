@@ -75,6 +75,17 @@
             @endif
           @endforeach
         @else
+          <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
+          <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+          <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Addressed</option>
+          <option value="work_performa" {{ request('status') == 'work_performa' ? 'selected' : '' }}>Work Performa</option>
+          <option value="maint_performa" {{ request('status') == 'maint_performa' ? 'selected' : '' }}>Maintenance Performa</option>
+          <option value="work_priced_performa" {{ request('status') == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+          <option value="maint_priced_performa" {{ request('status') == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
+          <option value="product_na" {{ request('status') == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+          <option value="un_authorized" {{ request('status') == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+          <option value="pertains_to_ge_const_isld" {{ request('status') == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+          <option value="barak_damages" {{ request('status') == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
           <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
           <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
           <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
@@ -170,20 +181,21 @@
             'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'], // Dark Yellow
             'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
             'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
-            'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'], // Black
+            'product_na' => ['bg' => '#0deb7c', 'text' => '#ffffff', 'border' => '#06b366'], // Green (from stat card)
           ];
           
-          // Status column colors (red for performa types in status column, like product_na)
+          // Status column colors (updated to match dashboard stat cards)
           $statusColors = [
-            'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Darker Red
+            'in_progress' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (from stat card)
             'resolved' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Grey (swapped from green)
-            'work_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'maint_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'work_priced_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'maint_priced_performa' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
-            'product_na' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red (for status column)
+            'work_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'maint_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'work_priced_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'maint_priced_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
+            'product_na' => ['bg' => '#0deb7c', 'text' => '#ffffff', 'border' => '#06b366'], // Green (for status column)
             'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'], // Pink
             'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'], // Aqua/Cyan
+            'barak_damages' => ['bg' => '#808000', 'text' => '#ffffff', 'border' => '#666600'], // Olive (matching Users card)
             'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green (swapped from grey)
           ];
           
@@ -333,12 +345,13 @@
                   <option value="product_na" {{ $displayStatusForSelect == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                   <option value="un_authorized" {{ $displayStatusForSelect == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
                   <option value="pertains_to_ge_const_isld" {{ $displayStatusForSelect == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                  <option value="barak_damages" {{ $displayStatusForSelect == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
                 @endif
               </select>
               <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
             @elseif(($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false)) && !$hasPerformaType)
-              <div class="status-chip" style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }};">
+              <div class="status-chip" style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }}; position: relative; overflow: hidden;">
                 <span class="status-indicator" style="background-color: {{ $statusColors['work_performa']['bg'] }}; border-color: {{ $statusColors['work_performa']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
@@ -358,11 +371,13 @@
                   <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                   <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
                   <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                  <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
                 @endif
               </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
             @elseif(($complaintStatus == 'maint_performa' || (isset($performaBadge) && (strpos($performaBadge ?? '', 'Maint') !== false || strpos($performaBadge ?? '', 'Maintenance') !== false))) && !$hasPerformaType && !in_array($performaTypeValue, ['work_priced_performa', 'maint_priced_performa']))
-              <div class="status-chip" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};">
+              <div class="status-chip" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }}; position: relative; overflow: hidden;">
                 <span class="status-indicator" style="background-color: {{ $statusColors['maint_performa']['bg'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
@@ -384,9 +399,10 @@
                   <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
                 @endif
               </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
             @elseif($complaintStatus == 'un_authorized')
-              <div class="status-chip" style="background-color: {{ $statusColors['un_authorized']['bg'] }}; color: {{ $statusColors['un_authorized']['text'] }}; border-color: {{ $statusColors['un_authorized']['border'] }};">
+              <div class="status-chip" style="background-color: {{ $statusColors['un_authorized']['bg'] }}; color: {{ $statusColors['un_authorized']['text'] }}; border-color: {{ $statusColors['un_authorized']['border'] }}; position: relative; overflow: hidden;">
                 <span class="status-indicator" style="background-color: {{ $statusColors['un_authorized']['bg'] }}; border-color: {{ $statusColors['un_authorized']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
@@ -406,11 +422,13 @@
                   <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                   <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
                   <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                  <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
                 @endif
               </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
             @elseif($complaintStatus == 'pertains_to_ge_const_isld')
-              <div class="status-chip" style="background-color: {{ $statusColors['pertains_to_ge_const_isld']['bg'] }}; color: {{ $statusColors['pertains_to_ge_const_isld']['text'] }}; border-color: {{ $statusColors['pertains_to_ge_const_isld']['border'] }};">
+              <div class="status-chip" style="background-color: {{ $statusColors['pertains_to_ge_const_isld']['bg'] }}; color: {{ $statusColors['pertains_to_ge_const_isld']['text'] }}; border-color: {{ $statusColors['pertains_to_ge_const_isld']['border'] }}; position: relative; overflow: hidden;">
                 <span class="status-indicator" style="background-color: {{ $statusColors['pertains_to_ge_const_isld']['bg'] }}; border-color: {{ $statusColors['pertains_to_ge_const_isld']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
@@ -430,11 +448,39 @@
                   <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                   <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
                   <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                  <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
                 @endif
               </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
+              </div>
+            @elseif($complaintStatus == 'barak_damages')
+              <div class="status-chip" style="background-color: {{ $statusColors['barak_damages']['bg'] }}; color: {{ $statusColors['barak_damages']['text'] }}; border-color: {{ $statusColors['barak_damages']['border'] }}; position: relative; overflow: hidden;">
+                <span class="status-indicator" style="background-color: {{ $statusColors['barak_damages']['bg'] }}; border-color: {{ $statusColors['barak_damages']['border'] }};"></span>
+              <select class="form-select form-select-sm status-select" 
+                      data-complaint-id="{{ $complaint->id }}"
+                      data-actual-status="{{ $rawStatus }}"
+                      data-status-color="barak_damages"
+                      style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center;">
+                @if(isset($statuses) && $statuses->count() > 0)
+                  @foreach($statuses as $statusValue => $statusLabel)
+                    <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>{{ $statusLabel }}</option>
+                  @endforeach
+                @else
+                  <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                  <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                  <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
+                  <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
+                  <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
+                  <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
+                  <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
+                  <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                  <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
+                @endif
+              </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
             @else
-              <div class="status-chip" style="background-color: {{ $statusColors['assigned']['bg'] }}; color: {{ $statusColors['assigned']['text'] }}; border-color: {{ $statusColors['assigned']['border'] }};">
+              <div class="status-chip" style="background-color: {{ $statusColors['assigned']['bg'] }}; color: {{ $statusColors['assigned']['text'] }}; border-color: {{ $statusColors['assigned']['border'] }}; position: relative; overflow: hidden;">
                 <span class="status-indicator" style="background-color: {{ $statusColors['assigned']['bg'] }}; border-color: {{ $statusColors['assigned']['border'] }};"></span>
               <select class="form-select form-select-sm status-select" 
                       data-complaint-id="{{ $complaint->id }}"
@@ -454,8 +500,10 @@
                   <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                   <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized</option>
                   <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
+                  <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages</option>
                 @endif
               </select>
+              <i data-feather="chevron-down" style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
               </div>
             @endif
           </td>
@@ -3727,6 +3775,7 @@
     'un_authorized': { bg: '#ec4899', text: '#ffffff', border: '#db2777' }, // Pink
     'pertains_to_ge_const_isld': { bg: '#06b6d4', text: '#ffffff', border: '#0891b2' }, // Aqua/Cyan
     'assigned': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Green (swapped from grey)
+    'barak_damages': { bg: '#808000', text: '#ffffff', border: '#666600' }, // Olive
   };
 
   // Function to update status select box colors
@@ -4014,7 +4063,7 @@
       }
 
       // Real statuses only - include all possible statuses
-      const allowed = ['new','assigned','in_progress','resolved','closed','un_authorized','pertains_to_ge_const_isld','product_na','work_performa','maint_performa','work_priced_performa','maint_priced_performa'];
+      const allowed = ['new','assigned','in_progress','resolved','closed','un_authorized','pertains_to_ge_const_isld','barak_damages','product_na','work_performa','maint_performa','work_priced_performa','maint_priced_performa'];
       if (!allowed.includes(newStatus)) {
         console.warn('Blocked unsupported status:', newStatus);
         // Revert to old on invalid
@@ -4482,6 +4531,52 @@
                   .then(data => {
                     if (data.success) {
                       console.log('Performa type cleared from approval for pertains_to_ge_const_isld');
+                    }
+                  })
+                  .catch(error => {
+                    console.error('Error clearing performa type:', error);
+                  });
+                }
+              }
+            } else if (newStatus === 'barak_damages') {
+              // Set barak_damages value and color
+              select.value = 'barak_damages';
+              updateStatusSelectColor(select, 'barak_damages');
+              // Clear performa badge for barak_damages status
+              const performaBadgeInRow = row?.querySelector('.performa-badge');
+              if (performaBadgeInRow) {
+                performaBadgeInRow.style.display = 'none';
+                performaBadgeInRow.textContent = '';
+              }
+              // Clear localStorage
+              if (complaintId) {
+                try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) {}
+              }
+              
+              // Clear performa_type from approval record
+              const addStockBtn = row?.querySelector('button[data-approval-id]');
+              const approvalId = addStockBtn ? addStockBtn.getAttribute('data-approval-id') : null;
+              if (approvalId) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (csrfToken) {
+                  fetch(`/admin/approvals/${approvalId}/save-performa`, {
+                    method: 'POST',
+                    headers: {
+                      'X-Requested-With': 'XMLHttpRequest',
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json',
+                      'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                      performa_type: null,
+                      remarks: `Performa type cleared - status changed to ${newStatus}`
+                    }),
+                    credentials: 'same-origin'
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.success) {
+                      console.log('Performa type cleared from approval for barak_damages');
                     }
                   })
                   .catch(error => {

@@ -51,6 +51,7 @@
                 $modules = [
                   'dashboard' => ['label' => 'Dashboard', 'icon' => 'home', 'sublinks' => []],
                   'users' => ['label' => 'Users', 'icon' => 'users', 'sublinks' => []],
+                  'frontend-users' => ['label' => 'Frontend Users', 'icon' => 'user-check', 'sublinks' => []],
                   'city' => ['label' => 'GE Groups', 'icon' => 'map', 'sublinks' => []],
                   'sector' => ['label' => 'GE Nodes', 'icon' => 'map-pin', 'sublinks' => []],
                   'roles' => ['label' => 'Roles', 'icon' => 'shield', 'sublinks' => []],

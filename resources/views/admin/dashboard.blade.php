@@ -18,7 +18,7 @@
     transition: all 0.3s ease;
     filter: saturate(0.9) brightness(0.95);
   }
-  
+
   .stat-card::before {
     content: '';
     position: absolute;
@@ -31,7 +31,7 @@
     pointer-events: none;
     z-index: 1;
   }
-  
+
   .stat-card::after {
     content: '';
     position: absolute;
@@ -44,24 +44,35 @@
     pointer-events: none;
     z-index: 1;
   }
-  
+
   .stat-card > * {
     position: relative;
     z-index: 2;
   }
-  
+
   .stat-card:hover {
     opacity: 0.92;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.18) !important;
     transform: translateY(-2px);
     filter: saturate(0.95) brightness(0.98);
   }
-  
+
   /* Reduce gradient intensity for matte look */
   .stat-card[style*="linear-gradient"] {
     background-blend-mode: overlay !important;
   }
-  
+
+  /* Global styling for stat numbers and labels */
+  .stat-card .stat-number {
+    font-weight: 800 !important;
+    font-size: 1.4rem !important;
+  }
+
+  .stat-card .stat-label {
+    font-weight: 700 !important;
+    font-size: 1.0rem !important;
+  }
+
   /* Matte finish for chart containers */
   .card-glass.chart-container {
     position: relative;
@@ -72,7 +83,7 @@
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     filter: saturate(0.9) brightness(0.95);
   }
-  
+
   .card-glass.chart-container::before {
     content: '';
     position: absolute;
@@ -85,43 +96,43 @@
     pointer-events: none;
     z-index: 1;
   }
-  
+
   .card-glass.chart-container > * {
     position: relative;
     z-index: 2;
   }
-  
+
   .card-glass.chart-container:hover {
     opacity: 0.93;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.18) !important;
   }
-  
+
   /* Reduce column spacing in Recent Complaints table */
   .table-responsive .table.table-dark th,
   .table-responsive .table.table-dark td {
     padding: 0.6rem 0.5rem !important;
     white-space: nowrap;
   }
-  
+
   .table-responsive .table.table-dark th:first-child,
   .table-responsive .table.table-dark td:first-child {
     padding-left: 0.75rem !important;
   }
-  
+
   .table-responsive .table.table-dark th:last-child,
   .table-responsive .table.table-dark td:last-child {
     padding-right: 0.75rem !important;
   }
-  
+
   .table-responsive .table.table-dark th {
     font-size: 0.85rem;
     font-weight: 600;
   }
-  
+
   .table-responsive .table.table-dark td {
     font-size: 0.875rem;
   }
-  
+
   /* Subtle matte finish for status badges */
   .status-badge {
     position: relative;
@@ -132,7 +143,7 @@
     filter: saturate(0.92) brightness(0.95);
     transition: all 0.2s ease;
   }
-  
+
   .status-badge::before {
     content: '';
     position: absolute;
@@ -145,17 +156,17 @@
     pointer-events: none;
     z-index: 1;
   }
-  
+
   .status-badge > * {
     position: relative;
     z-index: 2;
   }
-  
+
   .status-badge:hover {
     filter: saturate(0.95) brightness(0.98);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
   }
-  
+
   /* Subtle matte finish for priority badges */
   .priority-badge {
     position: relative;
@@ -166,7 +177,7 @@
     filter: saturate(0.92) brightness(0.95);
     transition: all 0.2s ease;
   }
-  
+
   .priority-badge::before {
     content: '';
     position: absolute;
@@ -179,24 +190,24 @@
     pointer-events: none;
     z-index: 1;
   }
-  
+
   .priority-badge > * {
     position: relative;
     z-index: 2;
   }
-  
+
   .priority-badge:hover {
     filter: saturate(0.95) brightness(0.98);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
   }
-  
+
   /* Force font size for filter labels */
   .filter-box .form-label,
   .filter-box .col-auto .form-label {
     font-size: 1rem !important;
     font-weight: 700 !important;
   }
-  
+
   /* Matte finish for GE Feedback Overview section */
   .card-glass:has(h5:contains("GE Feedback Overview")),
   .card-glass:has([class*="ge-feedback"]) {
@@ -208,7 +219,7 @@
     filter: saturate(0.88) brightness(0.93);
     transition: all 0.3s ease;
   }
-  
+
   /* Alternative selector for GE Feedback Overview */
   .row.mt-5.mb-5 .card-glass {
     position: relative;
@@ -219,7 +230,7 @@
     filter: saturate(0.88) brightness(0.93);
     transition: all 0.3s ease;
   }
-  
+
   .row.mt-5.mb-5 .card-glass::before {
     content: '';
     position: absolute;
@@ -232,12 +243,12 @@
     pointer-events: none;
     z-index: 1;
   }
-  
+
   .row.mt-5.mb-5 .card-glass:hover {
     filter: saturate(0.92) brightness(0.96);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22), 0 3px 8px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
   }
-  
+
   /* Dropdown arrow for select boxes - High specificity */
   .filter-box .form-select,
   .filter-box select.form-select,
@@ -260,7 +271,7 @@
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
   }
-  
+
   /* Override dashboard.css for filter selects */
   .theme-light .filter-box .form-select,
   .theme-dark .filter-box .form-select,
@@ -292,7 +303,7 @@
   if (!$filterCityId && isset($cityId)) {
     $filterCityId = $cityId;
   }
-  
+
   $userHasNoCity = $user && (is_null($user->city_id) || $user->city_id == 0 || $user->city_id === '');
   $showCityFilter = $userHasNoCity;
   $showSectorFilter = $user && (!$user->sector_id || $user->sector_id == null || $user->sector_id == 0 || $user->sector_id == '');
@@ -304,6 +315,17 @@
     <form id="dashboardFiltersForm" method="GET" action="{{ route('admin.dashboard') }}">
       <div class="row g-3 align-items-end">
         @if($showCityFilter)
+        @if(isset($cmesList) && $cmesList->count() > 0)
+        <div class="col-auto">
+          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">CMES</label>
+          <select class="form-select" id="cmesFilter" name="cmes_id" style="font-size: 0.9rem; width: 180px;">
+            <option value="">Select CMES</option>
+            @foreach($cmesList as $cme)
+              <option value="{{ $cme->id }}" {{ (request('cmes_id') == $cme->id || (isset($cmesId) && $cmesId == $cme->id)) ? 'selected' : '' }}>{{ $cme->name }}</option>
+            @endforeach
+          </select>
+        </div>
+        @endif
         <div class="col-auto" id="cityFilterContainer">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">GE</label>
           <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
@@ -327,12 +349,12 @@
           </select>
         </div>
         @endif
-        
+
         @if($showSectorFilter)
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">GE Nodes</label>
           <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All GE Nodes</option>
+            <option value="">Select GE Nodes</option>
             @if($sectors && $sectors->count() > 0)
               @foreach($sectors as $sector)
                 <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
@@ -341,11 +363,11 @@
           </select>
         </div>
         @endif
-        
+
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaint Category</label>
           <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All Categories</option>
+            <option value="">Select Category</option>
             @if($categories && $categories->count() > 0)
               @foreach($categories as $cat)
                 <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
@@ -353,23 +375,23 @@
             @endif
           </select>
         </div>
-        
+
         @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaints Status</label>
           <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All Status</option>
+            <option value="">Select Status</option>
             @foreach($complaintStatuses as $statusKey => $statusLabel)
               <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
             @endforeach
           </select>
         </div>
         @endif
-        
+
         <div class="col-auto">
           <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Date Range</label>
           <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">All Time</option>
+            <option value="">Select Date Range</option>
             <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
             <option value="today" {{ (request('date_range') == 'today' || $dateRange == 'today') ? 'selected' : '' }}>Today</option>
             <option value="this_week" {{ (request('date_range') == 'this_week' || $dateRange == 'this_week') ? 'selected' : '' }}>This Week</option>
@@ -379,7 +401,7 @@
             <option value="last_6_months" {{ (request('date_range') == 'last_6_months' || $dateRange == 'last_6_months') ? 'selected' : '' }}>Last 6 Months</option>
           </select>
         </div>
-        
+
         <div class="col-auto">
           <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetDashboardFilters()" style="font-size: 0.9rem; padding: 0.5rem 1.25rem;">
@@ -407,12 +429,12 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #dd4040ff 0%, #b13030 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['pending_complaints'] ?? 0 }}</div>
+          <div class="stat-number">{{ $stats['in_progress_complaints'] ?? 0 }}</div>
           <div class="stat-label">In Progress</div>
         </div>
         <div class="stat-icon">
@@ -421,7 +443,7 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
     <div class="stat-card" style="background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
@@ -435,7 +457,7 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
     <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
@@ -449,9 +471,9 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #fcbd2bff 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['maint_performa'] ?? 0 }}</div>
@@ -463,7 +485,7 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
     <div class="stat-card" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
@@ -477,9 +499,9 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #0deb7cff 0%, #22995dff 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['product_na'] ?? 0 }}</div>
@@ -491,9 +513,9 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #05cbee 0%, #05bfee 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
@@ -505,30 +527,30 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #808000 0%, #808000 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['total_users'] ?? 0 }}</div>
-          <div class="stat-label">Users</div>
+          <div class="stat-number">{{ $stats['barak_damages'] ?? 0 }}</div>
+          <div class="stat-label">Barrak Damages</div>
         </div>
         <div class="stat-icon">
-          <i data-feather="users" class="feather-lg"></i>
+          <i data-feather="alert-triangle" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
-  
+
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%) !important;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #e00d0dff 0%, #b91c1c 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['total_employees'] ?? 0 }}</div>
-          <div class="stat-label">Employees</div>
+          <div class="stat-number">{{ $stats['overdue_complaints'] ?? 0 }}</div>
+          <div class="stat-label">Overdue Complaints</div>
         </div>
         <div class="stat-icon">
-          <i data-feather="user-check" class="feather-lg"></i>
+          <i data-feather="alert-octagon" class="feather-lg"></i>
         </div>
       </div>
     </div>
@@ -546,7 +568,7 @@
       <div id="complaintsStatusChart" style="height: 300px;"></div>
     </div>
   </div>
-  
+
   <div class="col-md-6">
     <div class="card-glass chart-container">
       <h5 class="mb-4 text-white" style="font-weight: 700; font-size: 1.25rem;">
@@ -562,14 +584,14 @@
 @php
   $showGEFeedback = false;
   $user = auth()->user();
-  
+
   // Location filter logic:
   // 1. If user's city_id AND sector_id are both null - show all data
   // 2. If user's city_id is set but sector_id is null - show only their city's data
   // 3. If user has sector_id - they shouldn't see GE Feedback Overview
   $canSeeAllData = (!$user->city_id && !$user->sector_id);
   $canSeeCityData = ($user->city_id && !$user->sector_id);
-  
+
   // Show section based on location filter only
   if ($canSeeAllData || $canSeeCityData) {
     $showGEFeedback = true;
@@ -594,24 +616,24 @@
       <div class="row g-4">
         @php
           $colorSchemes = [
-            ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => '#60a5fa', 'progress' => 'linear-gradient(90deg, #3b82f6, #60a5fa)'],
-            ['bg' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 'icon' => '#34d399', 'progress' => 'linear-gradient(90deg, #10b981, #34d399)'],
-            ['bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'icon' => '#fbbf24', 'progress' => 'linear-gradient(90deg, #f59e0b, #fbbf24)'],
-            ['bg' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'icon' => '#a78bfa', 'progress' => 'linear-gradient(90deg, #8b5cf6, #a78bfa)'],
-            ['bg' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'icon' => '#f472b6', 'progress' => 'linear-gradient(90deg, #ec4899, #f472b6)'],
+            ['bg' => 'linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%)', 'icon' => '#bfdbfe', 'progress' => 'linear-gradient(90deg, #93c5fd, #bfdbfe)'],
+            ['bg' => 'linear-gradient(135deg, #6ee7b7 0%, #34d399 100%)', 'icon' => '#a7f3d0', 'progress' => 'linear-gradient(90deg, #6ee7b7, #a7f3d0)'],
+            ['bg' => 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)', 'icon' => '#fde68a', 'progress' => 'linear-gradient(90deg, #fcd34d, #fde68a)'],
+            ['bg' => 'linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%)', 'icon' => '#ddd6fe', 'progress' => 'linear-gradient(90deg, #c4b5fd, #ddd6fe)'],
+            ['bg' => 'linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)', 'icon' => '#99f6e4', 'progress' => 'linear-gradient(90deg, #5eead4, #99f6e4)'],
           ];
           $totalCards = count($displayedProgress);
         @endphp
         @foreach($displayedProgress as $index => $geData)
         @php
           $colorScheme = $colorSchemes[$index % count($colorSchemes)];
-          $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
-                          ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+          $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' :
+                          ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' :
                           ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
-          
+
           $colClasses = 'col-md-6 col-lg-4 mb-3';
           $offsetClasses = '';
-          
+
           if ($totalCards == 1) {
             $colClasses = 'col-md-6 col-lg-4 mb-3';
             $offsetClasses = 'offset-md-3 offset-lg-4';
@@ -629,8 +651,8 @@
           <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
-                <p class="mb-0 text-white" style="font-size: 0.8rem; opacity: 0.95; color: #ffffff !important;">
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.15rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
+                <p class="mb-0 text-white" style="font-size: 0.95rem; opacity: 0.95; color: #ffffff !important;">
                   <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
                   <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
                 </p>
@@ -641,25 +663,25 @@
             </div>
             <div class="mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-white" style="font-size: 0.85rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Progress</span>
-                <span class="text-white" style="font-weight: 800; font-size: 1.4rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
+                <span class="text-white" style="font-size: 1rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Performance</span>
+                <span class="text-white" style="font-weight: 800; font-size: 1.6rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
               </div>
               <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
-                <div class="progress-bar" role="progressbar" 
-                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 8px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);" 
-                     aria-valuenow="{{ $geData['progress_percentage'] }}" 
-                     aria-valuemin="0" 
+                <div class="progress-bar" role="progressbar"
+                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 8px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);"
+                     aria-valuenow="{{ $geData['progress_percentage'] }}"
+                     aria-valuemin="0"
                      aria-valuemax="100">
                 </div>
               </div>
             </div>
             <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.25);">
-              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
-                <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+              <span class="text-white" style="font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="check-circle" style="width: 18px; height: 18px; color: #ffffff;"></i>
                 <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['resolved_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Resolved</span>
               </span>
-              <span class="text-white" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
-                <i data-feather="file-text" style="width: 16px; height: 16px; color: #ffffff;"></i>
+              <span class="text-white" style="font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffffff !important;">
+                <i data-feather="file-text" style="width: 18px; height: 18px; color: #ffffff;"></i>
                 <span style="font-weight: 700; color: #ffffff !important;">{{ $geData['total_complaints'] }}</span> <span style="color: #ffffff !important; opacity: 0.9;">Total</span>
               </span>
             </div>
@@ -683,13 +705,13 @@
         @php
           $actualIndex = $index + 3;
           $colorScheme = $colorSchemes[$actualIndex % count($colorSchemes)];
-          $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
-                          ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' : 
+          $progressColor = $geData['progress_percentage'] >= 80 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' :
+                          ($geData['progress_percentage'] >= 50 ? 'linear-gradient(90deg, #ffffff, #f0f9ff)' :
                           ($geData['progress_percentage'] >= 30 ? 'linear-gradient(90deg, #fff7ed, #ffffff)' : 'linear-gradient(90deg, #fef2f2, #ffffff)'));
-          
+
           $colClasses = 'col-md-6 col-lg-4 mb-3';
           $offsetClasses = '';
-          
+
           if ($totalRemainingCards == 1) {
             $colClasses = 'col-md-6 col-lg-4 mb-3';
             $offsetClasses = 'offset-md-3 offset-lg-4';
@@ -723,10 +745,10 @@
                 <span class="text-white" style="font-weight: 800; font-size: 1.4rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
               </div>
               <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
-                <div class="progress-bar" role="progressbar" 
-                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 8px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);" 
-                     aria-valuenow="{{ $geData['progress_percentage'] }}" 
-                     aria-valuemin="0" 
+                <div class="progress-bar" role="progressbar"
+                     style="width: {{ $geData['progress_percentage'] }}%; background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%); border-radius: 8px; box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8); transition: width 0.6s ease; border: 1px solid rgba(255, 255, 255, 0.4);"
+                     aria-valuenow="{{ $geData['progress_percentage'] }}"
+                     aria-valuemin="0"
                      aria-valuemax="100">
                 </div>
               </div>
@@ -815,7 +837,7 @@
                   $fullStatusText = $complaint->getStatusDisplayAttribute();
                   $shortStatusText = $fullStatusText;
                   $hoverText = $fullStatusText;
-                  
+
                   // Set short text and hover text for specific statuses
                   if($displayStatus === 'pertains_to_ge_const_isld') {
                     $shortStatusText = 'Pertains to GE';
@@ -828,7 +850,7 @@
                   @if($displayStatus === 'resolved')
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">Addressed</span>
                   @elseif($displayStatus === 'in_progress')
-                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #dc2626 !important; color: #ffffff !important; border-color: #991b1b !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
+                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
                   @elseif($displayStatus === 'assigned')
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'work_performa')
@@ -844,7 +866,7 @@
                 @elseif($displayStatus === 'pertains_to_ge_const_isld')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $hoverText }}">{{ $shortStatusText }}</span>
                 @elseif($displayStatus === 'product_na')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #1a1a1a !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #0deb7c !important; color: #ffffff !important; border-color: #06b366 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'closed')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #6b7280 !important; color: #ffffff !important; border-color: #4b5563 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @else
@@ -943,7 +965,7 @@
                   <td style="padding: 0.4rem 0.5rem !important;">
                     @php
                       $statusColors = [
-                        'pending' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#991b1b'],
+                        'pending' => ['bg' => '#ec5454', 'text' => '#ffffff', 'border' => '#b13030'],
                         'approved' => ['bg' => '#22c55e', 'text' => '#ffffff', 'border' => '#16a34a'],
                         'rejected' => ['bg' => '#ef4444', 'text' => '#ffffff', 'border' => '#dc2626'],
                       ];
@@ -1054,17 +1076,17 @@
     // Status colors mapping (same as in approvals view)
     $statusColorMap = [
       'assigned' => '#16a34a', // Green (swapped from grey)
-      'in_progress' => '#dc2626', // Red
+      'in_progress' => '#ec5454', // Brown-Red mix
       'resolved' => '#64748b', // Grey (swapped from green)
       'work_performa' => '#60a5fa', // Light Blue
       'maint_performa' => '#eab308', // Yellow
       'work_priced_performa' => '#9333ea', // Purple
       'maint_priced_performa' => '#ea580c', // Orange Red
-      'product_na' => '#000000', // Black
+      'product_na' => '#0deb7c', // Green (from Product N/A stat card)
       'un_authorized' => '#ec4899', // Pink (same as approvals view)
       'pertains_to_ge_const_isld' => '#06b6d4', // Aqua/Cyan (same as approvals view)
     ];
-    
+
     // All possible statuses from approvals page (in order)
     $allPossibleStatuses = [
       'assigned',
@@ -1078,11 +1100,11 @@
       'un_authorized',
       'pertains_to_ge_const_isld'
     ];
-    
+
     // Ensure we preserve the order of statuses and include all possible statuses
     $statusKeys = isset($complaintsByStatus) ? array_keys($complaintsByStatus) : [];
     $statusData = isset($complaintsByStatus) ? array_values($complaintsByStatus) : [0, 0, 0, 0, 0];
-    
+
     // Merge with all possible statuses to ensure all are included (even with 0 count)
     $mergedStatusData = [];
     $mergedStatusKeys = [];
@@ -1090,14 +1112,14 @@
       $mergedStatusKeys[] = $status;
       $mergedStatusData[] = isset($complaintsByStatus[$status]) ? $complaintsByStatus[$status] : 0;
     }
-    
+
     // Use merged data if we have complaintsByStatus, otherwise use original
     if (isset($complaintsByStatus) && !empty($complaintsByStatus)) {
       $statusKeys = $mergedStatusKeys;
       $statusData = $mergedStatusData;
     }
-    
-    $statusLabels = isset($complaintsByStatus) ? array_map(function($status) { 
+
+    $statusLabels = isset($complaintsByStatus) ? array_map(function($status) {
       $label = ucfirst(str_replace('_', ' ', $status));
       // Handle special cases
       if ($label === 'Resolved') {
@@ -1121,7 +1143,7 @@
       }
       return $label;
     }, $statusKeys) : ['New', 'Assigned', 'In Progress', 'Addressed'];
-    
+
     // Map colors based on status keys - ensure same order as data
     $statusColors = isset($complaintsByStatus) ? array_map(function($status) use ($statusColorMap) {
       return $statusColorMap[$status] ?? '#64748b'; // Default gray if status not found
@@ -1130,7 +1152,7 @@
     var statusDataArray = @json($statusData);
     var statusLabelsArray = @json($statusLabels);
     var statusColorsArray = @json($statusColors);
-    
+
     var complaintsStatusOptions = {
     series: statusDataArray,
       chart: {
@@ -1177,7 +1199,7 @@
   @php
     $typeData = isset($complaintsByType) ? array_values($complaintsByType) : [];
     $typeLabels = isset($complaintsByType) ? array_map(function($type) { return $type; }, array_keys($complaintsByType)) : [];
-    
+
     // Color mapping based on category name to ensure unique colors
     $colorMap = [
       'B&R-I' => '#3b82f6',                    // Blue
@@ -1190,7 +1212,7 @@
     $fallbackColors = ['#f59e0b', '#ef4444', '#84cc16', '#14b8a6', '#a855f7', '#22c55e'];
     $categoryColors = [];
     $colorIndex = 0;
-    
+
     foreach($typeLabels as $label) {
       if(isset($colorMap[$label])) {
         $categoryColors[] = $colorMap[$label];
@@ -1199,7 +1221,7 @@
         $colorIndex++;
       }
     }
-    
+
     // If no colors, use default
     if(empty($categoryColors)) {
       $categoryColors = ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e'];
@@ -1223,7 +1245,9 @@
       dataLabels: {
         enabled: true,
         style: {
-          colors: ['#fff']
+          colors: ['#fff'],
+          fontSize: '14px',
+          fontWeight: 'bold'
         }
       },
       tooltip: {
@@ -1525,8 +1549,11 @@
       const form = document.getElementById('dashboardFiltersForm');
       const formData = new FormData(form);
       const params = new URLSearchParams();
-      
+
       // Add filter values to params
+      if (formData.get('cmes_id')) {
+        params.append('cmes_id', formData.get('cmes_id'));
+      }
       if (formData.get('city_id')) {
         params.append('city_id', formData.get('city_id'));
       }
@@ -1542,7 +1569,7 @@
       if (formData.get('date_range')) {
         params.append('date_range', formData.get('date_range'));
       }
-      
+
       // Reload dashboard with filters
       window.location.href = '{{ route("admin.dashboard") }}?' + params.toString();
     }
@@ -1555,7 +1582,7 @@
     const cityFilter = document.getElementById('cityFilter');
     const sectorFilter = document.getElementById('sectorFilter');
     const categoryFilter = document.getElementById('categoryFilter');
-    
+
     // Keep GE filter visible at all times - don't hide it
     // @if($user && !$user->city_id)
     // const cityFilterContainer = document.getElementById('cityFilterContainer');
@@ -1566,14 +1593,14 @@
     //   }
     // }
     // @endif
-    
+
     // Auto-apply filters on change (like other modules)
     if (cityFilter) {
       cityFilter.addEventListener('change', function() {
         @if($user && !$user->city_id)
         // User can see all cities: Load sectors dynamically when city changes
         const cityId = this.value;
-        
+
         // Keep GE filter visible at all times - don't hide it
         // const cityFilterContainer = document.getElementById('cityFilterContainer');
         // if (cityFilterContainer) {
@@ -1583,7 +1610,7 @@
         //     cityFilterContainer.style.display = 'block';
         //   }
         // }
-        
+
         if (sectorFilter) {
           sectorFilter.innerHTML = '<option value="">Loading GE Nodes...</option>';
           sectorFilter.disabled = true;
@@ -1637,21 +1664,21 @@
         @endif
       });
     }
-    
+
     // Auto-apply filters when sector changes
     if (sectorFilter) {
       sectorFilter.addEventListener('change', function() {
         applyDashboardFilters();
       });
     }
-    
+
     // Auto-apply filters when category changes
     if (categoryFilter) {
       categoryFilter.addEventListener('change', function() {
         applyDashboardFilters();
       });
     }
-    
+
     // Auto-apply filters when complaint status changes
     const complaintStatusFilter = document.getElementById('complaintStatusFilter');
     if (complaintStatusFilter) {
@@ -1659,11 +1686,20 @@
         applyDashboardFilters();
       });
     }
-    
+
     // Auto-apply filters when date range changes
     const dateRangeFilter = document.getElementById('dateRangeFilter');
     if (dateRangeFilter) {
       dateRangeFilter.addEventListener('change', function() {
+        applyDashboardFilters();
+      });
+    }
+
+    // CMES filter change
+    const cmesFilter = document.getElementById('cmesFilter');
+    if (cmesFilter) {
+      cmesFilter.addEventListener('change', function() {
+        // Clear city/sector selection if desired, or let server handle dependent lists
         applyDashboardFilters();
       });
     }
@@ -1673,7 +1709,7 @@
       const body = document.body;
       const isDarkTheme = body.classList.contains('theme-dark');
       const isNightTheme = body.classList.contains('theme-night');
-      
+
       if (isDarkTheme || isNightTheme) {
         // Inject a style tag with maximum specificity to override inline styles
         let styleId = 'filter-labels-dark-theme-style';
@@ -1693,7 +1729,7 @@
           `;
           document.head.appendChild(existingStyle);
         }
-        
+
         // Also directly manipulate the style attribute
         const filterLabels = document.querySelectorAll('.filter-box label, .filter-box .form-label, .filter-box .col-auto label');
         filterLabels.forEach(function(label) {
@@ -1723,10 +1759,10 @@
         }
       }
     }
-    
+
     // Run immediately and multiple times to ensure it works
     updateFilterLabelsColor();
-    
+
     // Run on DOM ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function() {
@@ -1740,7 +1776,7 @@
       setTimeout(updateFilterLabelsColor, 500);
       setTimeout(updateFilterLabelsColor, 1000);
     }
-    
+
     // Watch for theme changes
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
@@ -1749,7 +1785,7 @@
         }
       });
     });
-    
+
     if (document.body) {
       observer.observe(document.body, {
         attributes: true,
@@ -1761,7 +1797,7 @@
     function showAllGEProgress() {
       const allGEProgress = document.getElementById('allGEProgress');
       const seeMoreBtn = document.getElementById('seeMoreBtn');
-      
+
       if (allGEProgress && seeMoreBtn) {
         // Show all boxes - remove inline style to let Bootstrap row class handle display
         allGEProgress.removeAttribute('style');
@@ -1776,7 +1812,7 @@
     function hideAllGEProgress() {
       const allGEProgress = document.getElementById('allGEProgress');
       const seeMoreBtn = document.getElementById('seeMoreBtn');
-      
+
       if (allGEProgress && seeMoreBtn) {
         allGEProgress.style.display = 'none';
         seeMoreBtn.innerHTML = '<i data-feather="chevron-down" class="me-1" style="width: 16px; height: 16px;"></i>See More';

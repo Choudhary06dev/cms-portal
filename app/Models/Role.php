@@ -29,6 +29,7 @@ class Role extends Model
                 $modules = [
                     'dashboard',
                     'users',
+                    'frontend-users',
                     'roles',
                     'employees',
                     'clients',

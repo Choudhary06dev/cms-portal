@@ -482,6 +482,11 @@
             </a>
           </li>
           <li>
+            <a class="dropdown-item" href="{{ route('password.edit') }}">
+              <i data-feather="lock" class="me-2"></i>Change Password
+            </a>
+          </li>
+          <li>
             <a class="dropdown-item" href="{{ route('admin.help.index') }}">
               <i data-feather="help-circle" class="me-2"></i>Help & Support
             </a>

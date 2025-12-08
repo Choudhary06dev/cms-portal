@@ -53,6 +53,7 @@ class RoleAccessLevelSeeder extends Seeder
         $modules = [
             'dashboard',
             'users',
+            'frontend-users',
             'roles',
             'employees',
             'clients',

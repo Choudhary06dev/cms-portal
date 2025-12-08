@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,17 +18,18 @@ return new class extends Migration
             $table->unsignedBigInteger('sector_id')->nullable();
             $table->string('category', 100);
             $table->text('description')->nullable();
-            $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na', 'un_authorized', 'pertains_to_ge_const_isld'])->default('new');
+            $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na', 'un_authorized', 'pertains_to_ge_const_isld', 'barak_damages'])->default('new');
             $table->unsignedBigInteger('assigned_employee_id')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent', 'emergency'])->default('medium');
+            $table->string('availability_time')->nullable();
             $table->timestamp('closed_at')->nullable();
-            
+
             // Spare part columns
             $table->unsignedBigInteger('spare_id')->nullable();
             $table->integer('spare_quantity')->nullable();
             $table->unsignedBigInteger('spare_used_by')->nullable();
             $table->timestamp('spare_used_at')->nullable();
-            
+
             $table->timestamps();
         });
     }

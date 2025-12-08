@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\City;
+use App\Models\Cme;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
@@ -15,21 +16,27 @@ class CityController extends Controller
     {
         if (!Schema::hasTable('cities')) {
             $cities = new LengthAwarePaginator([], 0, 15);
-            return view('admin.city.index', compact('cities'))
+            $cmes = collect();
+            return view('admin.city.index', compact('cities', 'cmes'))
                 ->with('error', 'Run migrations to create cities table.');
         }
 
         // Show all cities; status column indicates active/inactive
-        $cities = City::orderBy('id', 'asc')->paginate(15);
-        return view('admin.city.index', compact('cities'));
+        $cities = City::with('cme')->orderBy('id', 'asc')->paginate(15);
+        $cmes = Schema::hasTable('cmes')
+            ? Cme::where('status', 'active')->orderBy('name')->get()
+            : collect();
+
+        return view('admin.city.index', compact('cities', 'cmes'));
     }
 
     public function store(Request $request)
     {
-        if (!Schema::hasTable('cities')) {
-            return back()->with('error', 'Run migrations to create cities table (php artisan migrate).');
+        if (!Schema::hasTable('cities') || !Schema::hasTable('cmes')) {
+            return back()->with('error', 'Run migrations to create cities/CMES tables (php artisan migrate).');
         }
         $validated = $request->validate([
+            'cme_id' => 'required|exists:cmes,id',
             'name' => 'required|string|max:100|unique:cities,name,NULL,id,status,active',
             'status' => 'required|in:active,inactive',
         ]);
@@ -39,14 +46,15 @@ class CityController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!Schema::hasTable('cities')) {
-            return back()->with('error', 'Run migrations to create cities table (php artisan migrate).');
+        if (!Schema::hasTable('cities') || !Schema::hasTable('cmes')) {
+            return back()->with('error', 'Run migrations to create cities/CMES tables (php artisan migrate).');
         }
         
         try {
             $city = City::findOrFail($id);
             
             $rules = [
+                'cme_id' => 'required|exists:cmes,id',
                 'name' => 'required|string|max:100',
                 'status' => 'required|in:active,inactive',
             ];

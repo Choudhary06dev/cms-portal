@@ -22,6 +22,7 @@ class ComplaintFeedback extends Model
         'complaint_id',
         'client_id',
         'entered_by',
+        'submitted_by',
         'overall_rating',
         'rating_score',
         'service_quality',
@@ -77,7 +78,7 @@ class ComplaintFeedback extends Model
      */
     public function getRatingColorAttribute(): string
     {
-        return match($this->overall_rating) {
+        return match ($this->overall_rating) {
             'excellent' => '#22c55e', // Green
             'good' => '#3b82f6',      // Blue
             'average' => '#f59e0b',    // Orange
@@ -91,7 +92,7 @@ class ComplaintFeedback extends Model
      */
     public function getRatingBadgeColorAttribute(): string
     {
-        return match($this->overall_rating) {
+        return match ($this->overall_rating) {
             'excellent' => 'success',
             'good' => 'primary',
             'average' => 'warning',

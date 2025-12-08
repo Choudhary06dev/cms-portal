@@ -28,6 +28,7 @@
     'product_na' => 'Product N/A',
     'un_authorized' => 'Un-Authorized',
     'pertains_to_ge_const_isld' => 'GE Const Isld',
+    'barak_damages' => 'Barak Damages',
   ];
   $statusDisplay = $statusLabels[$complaintStatus] ?? ucfirst(str_replace('_', ' ', $complaintStatus));
   $statusColors = [
@@ -40,6 +41,7 @@
     'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'],
     'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'],
     'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'],
+    'barak_damages' => ['bg' => '#808000', 'text' => '#ffffff', 'border' => '#666600'],
     'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green (swapped from grey)
   ];
   $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
@@ -213,6 +215,16 @@
       </div>
       @endif
       
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="clock" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Availability Time</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->availability_time ?? 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      
       @if($complaint->assignedEmployee)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
@@ -368,7 +380,17 @@
                 </tr>
                 <tr>
                   <td class="text-white"><strong>Entered By:</strong></td>
-                  <td class="text-white">{{ ($complaint->feedback->enteredBy && $complaint->feedback->enteredBy->username) ? $complaint->feedback->enteredBy->username : 'N/A' }}</td>
+                  <td class="text-white">
+                    @if($complaint->feedback->enteredBy)
+                      {{ $complaint->feedback->enteredBy->name ?? 'System' }}
+                      <span class="badge badge-light">Staff</span>
+                    @elseif($complaint->feedback->submitted_by)
+                      {{ $complaint->feedback->submitted_by }}
+                      <span class="badge badge-info text-white">Client</span>
+                    @else
+                      Client (Web)
+                    @endif
+                  </td>
                 </tr>
                 @php
                   $geUser = null;

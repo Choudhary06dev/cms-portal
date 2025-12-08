@@ -23,6 +23,7 @@ class Complaint extends Model
         'assigned_employee_id',
         'status',
         'closed_at',
+        'availability_time',
     ];
 
     protected $casts = [
@@ -149,6 +150,7 @@ class Complaint extends Model
             'in_progress' => 'In Process',
             'resolved' => 'Resolved',
             'closed' => 'Closed',
+            'barak_damages' => 'Barak Damages',
         ];
     }
 
@@ -246,7 +248,7 @@ class Complaint extends Model
         $year = $this->created_at->format('Y');
         $month = $this->created_at->format('m');
         $id = str_pad($this->id, 5, '0', STR_PAD_LEFT);
-        
+
         return "CMP-{$year}{$month}-{$id}";
     }
 
@@ -350,20 +352,20 @@ class Complaint extends Model
             try {
                 // Check if approval performa already exists (avoid duplicates)
                 $existingApproval = \App\Models\SpareApprovalPerforma::where('complaint_id', $complaint->id)->first();
-                
+
                 if (!$existingApproval) {
                     // Get employee for requested_by
                     $requestedByEmployee = null;
-                    
+
                     if ($complaint->assigned_employee_id) {
                         $requestedByEmployee = \App\Models\Employee::find($complaint->assigned_employee_id);
                     }
-                    
+
                     // If no assigned employee, get first available employee
                     if (!$requestedByEmployee) {
                         $requestedByEmployee = \App\Models\Employee::first();
                     }
-                    
+
                     // Create approval performa if we have an employee
                     if ($requestedByEmployee) {
                         \App\Models\SpareApprovalPerforma::create([
@@ -389,7 +391,7 @@ class Complaint extends Model
             if ($complaint->isDirty('status')) {
                 $newStatus = $complaint->status;
                 $oldStatus = $complaint->getOriginal('status');
-                
+
                 // Set closed_at when status becomes 'resolved' or 'closed', but only if not already set
                 if (in_array($newStatus, ['resolved', 'closed']) && !$complaint->closed_at) {
                     // Get current time in Asia/Karachi and convert to UTC for storage
@@ -560,7 +562,24 @@ class Complaint extends Model
      */
     public function scopeOverdue($query, $days = 7)
     {
-        return $query->where('created_at', '<', now()->subDays($days))
-            ->whereIn('status', ['new', 'assigned', 'in_progress']);
+        return $query->whereIn('complaints.status', ['new', 'assigned', 'in_progress'])
+            ->leftJoin('sla_rules', function ($join) {
+                $join->on('complaints.category', '=', 'sla_rules.complaint_type')
+                    ->where('sla_rules.status', '=', 'active')
+                    ->whereNull('sla_rules.deleted_at');
+            })
+            ->where(function ($q) use ($days) {
+                // If SLA rule exists, check max_resolution_time (in hours)
+                $q->where(function ($subQ) {
+                    $subQ->whereNotNull('sla_rules.id')
+                        ->whereRaw('complaints.created_at < DATE_SUB(NOW(), INTERVAL sla_rules.max_resolution_time HOUR)');
+                })
+                    // If no SLA rule exists, fallback to default days
+                    ->orWhere(function ($subQ) use ($days) {
+                    $subQ->whereNull('sla_rules.id')
+                        ->where('complaints.created_at', '<', now()->subDays($days));
+                });
+            })
+            ->select('complaints.*');
     }
 }
