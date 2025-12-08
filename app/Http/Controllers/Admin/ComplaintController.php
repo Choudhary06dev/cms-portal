@@ -183,6 +183,7 @@ class ComplaintController extends Controller
             // Allow any category string (column changed to VARCHAR)
             'category' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
+            'availability_time' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
             // Status removed from form - will be managed in approvals view, default to 'new'
@@ -269,6 +270,7 @@ class ComplaintController extends Controller
                 'sector_id' => $request->sector_id ?: null,
                 'category' => $request->category,
                 'priority' => $request->priority,
+                'availability_time' => $request->availability_time,
                 'description' => $request->description,
                 'assigned_employee_id' => $request->assigned_employee_id ?: null,
                 'status' => 'assigned', // Default to 'assigned' - no performa type selected initially
@@ -440,6 +442,7 @@ class ComplaintController extends Controller
             // Allow any category string (column changed to VARCHAR)
             'category' => 'required|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent,emergency',
+            'availability_time' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'assigned_employee_id' => 'nullable|exists:employees,id',
             // Status removed from form - will be managed in approvals view, keep existing status
@@ -524,6 +527,7 @@ class ComplaintController extends Controller
             'sector_id' => $request->sector_id ?: null,
             'category' => $request->category,
             'priority' => $request->priority,
+            'availability_time' => $request->availability_time,
             'description' => $request->description,
             'assigned_employee_id' => $request->assigned_employee_id ?: null,
             // Status not updated here - will be managed in approvals view

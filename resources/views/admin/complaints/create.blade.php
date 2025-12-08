@@ -181,6 +181,7 @@
 
 
 
+
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="priority" class="form-label text-white">Priority <span
@@ -199,6 +200,18 @@
                                    
                                 </select>
                                 @error('priority')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="availability_time" class="form-label text-white">Availability Time</label>
+                                <input type="text" class="form-control @error('availability_time') is-invalid @enderror"
+                                    id="availability_time" name="availability_time" value="{{ old('availability_time') }}"
+                                    placeholder="e.g., After 5 PM, Weekend Only">
+                                @error('availability_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

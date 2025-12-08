@@ -448,6 +448,10 @@
                         </td>
                     </tr>
                     <tr>
+                        <td class="label">Availability:</td>
+                        <td class="value">{{ $complaint->availability_time ?? 'N/A' }}</td>
+                    </tr>
+                    <tr>
                         <td class="label">Status:</td>
                         <td class="value">
                             <span class="badge badge-{{ strtolower($complaint->status) }}">
