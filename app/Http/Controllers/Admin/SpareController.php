@@ -787,7 +787,34 @@ class SpareController extends Controller
                 'approval_object_exists' => $approval ? true : false
             ]);
             
-            // StockApprovalData feature removed. No record creation.
+            
+            // Save authority number to approval if present in remarks
+            if ($finalApprovalId && $approval) {
+                try {
+                    // Extract authority number from remarks if present
+                    $authorityNumber = null;
+                    if ($remarks && preg_match('/Authority\s*No\.?\s*:\s*([A-Za-z0-9\-]+)/i', $remarks, $matches)) {
+                        $authorityNumber = trim($matches[1]);
+                    }
+                    
+                    // Update approval with authority number if extracted
+                    if ($authorityNumber) {
+                        DB::table('spare_approval_performa')
+                            ->where('id', $finalApprovalId)
+                            ->update(['authority_number' => $authorityNumber]);
+                        
+                        \Log::info('Authority number saved to approval', [
+                            'approval_id' => $finalApprovalId,
+                            'authority_number' => $authorityNumber
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to save authority number to approval', [
+                        'approval_id' => $finalApprovalId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
             // Auto-update complaint status to "in_progress" if stock is issued from approval
             if ($complaint && ($complaint->status === 'assigned' || $complaint->status === 'new')) {

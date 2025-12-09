@@ -270,6 +270,75 @@
   </div>
 </div>
 
+@php
+  // Get approval data with authority number and issued stock
+  $approval = $complaint->spareApprovals->first();
+  $authorityNumber = $approval?->authority_number ?? null;
+  
+  // Get issued stock from stock logs
+  $issuedStock = \App\Models\SpareStockLog::where('reference_id', $complaint->id)
+    ->where('change_type', 'out')
+    ->with('spare:id,item_name')
+    ->orderBy('created_at', 'desc')
+    ->get();
+@endphp
+
+@if($authorityNumber || $issuedStock->count() > 0)
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+        <i data-feather="package" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
+        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Authority & Stock Details</h5>
+      </div>
+      
+      @if($authorityNumber)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="file-text" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Authority Number</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $authorityNumber }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($issuedStock->count() > 0)
+      <div class="info-item">
+        <div class="d-flex align-items-start">
+          <i data-feather="box" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-2" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Issued Stock</div>
+            <div class="table-responsive">
+              <table class="table table-sm table-dark" style="margin-bottom: 0;">
+                <thead>
+                  <tr>
+                    <th style="font-size: 0.8rem; padding: 8px;">Product Name</th>
+                    <th style="font-size: 0.8rem; padding: 8px;">Quantity</th>
+                    <th style="font-size: 0.8rem; padding: 8px;">Issue Date/Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($issuedStock as $stock)
+                  <tr>
+                    <td style="font-size: 0.85rem; padding: 8px;">{{ $stock->spare->item_name ?? 'N/A' }}</td>
+                    <td style="font-size: 0.85rem; padding: 8px;">{{ $stock->quantity }}</td>
+                    <td style="font-size: 0.85rem; padding: 8px;">{{ $stock->created_at ? $stock->created_at->timezone('Asia/Karachi')->format('M d, Y H:i') : 'N/A' }}</td>
+                  </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      @endif
+    </div>
+  </div>
+</div>
+@endif
+
 @if($complaint->attachments->count() > 0)
 <div class="row mb-4">
   <div class="col-12">
