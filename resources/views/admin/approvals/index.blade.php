@@ -697,19 +697,30 @@
   <!-- Issue Stock Modal -->
   <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true"
     role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addStockModalLabel">Authority/Stock</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" tabindex="0"></button>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+      <div class="modal-content card-glass"
+        style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h5 class="modal-title text-white" id="addStockModalLabel">
+            <i data-feather="package" class="me-2" style="width: 20px; height: 20px;"></i>Authority / Stock Management
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" tabindex="0"
+            style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
         </div>
-        <div class="modal-body" id="addStockModalBody">
+        <div class="modal-body" id="addStockModalBody"
+          style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
           <!-- Stock items will be loaded here -->
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" tabindex="0">Close</button>
-          <button type="button" class="btn btn-success" id="submitAddStockBtn" style="display: none;" tabindex="0">
-            <i data-feather="check-circle"></i> Submit
+        <div class="modal-footer"
+          style="border-top: 2px solid rgba(59, 130, 246, 0.2); background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+          <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" tabindex="0"
+            style="border-color: rgba(255, 255, 255, 0.3); color: #ffffff;">
+            <i data-feather="x" class="me-1" style="width: 16px; height: 16px;"></i>Close
+          </button>
+          <button type="button" class="btn btn-success" id="submitAddStockBtn"
+            style="display: none; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border: none; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);"
+            tabindex="0">
+            <i data-feather="check-circle" class="me-1" style="width: 16px; height: 16px;"></i> Submit
           </button>
         </div>
       </div>
@@ -2587,33 +2598,33 @@
     function renderItemRow(item) {
       const canDelete = !item.isExisting;
       return `
-            <tr data-item-id="${item.itemId}" data-spare-id="${item.spareId}" data-is-existing="${item.isExisting}">
-              <td style="vertical-align: middle; font-weight: 500; padding: 12px;">${escapeHtml(item.productName)}</td>
-              <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${escapeHtml(item.category)}</td>
-              <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${item.requestedQty}</td>
-              <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">
-                <span class="badge ${item.availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">${item.availableStock}</span>
-              </td>
-              <td style="vertical-align: middle; text-align: center; padding: 12px;">
-                <input type="number" 
-                       class="form-control form-control-sm issue-quantity-input" 
-                       name="items[${item.itemId}][issue_quantity]" 
-                       value="${item.issueQty}" 
-                       min="0" 
-                       max="${item.availableStock}"
-                       data-spare-id="${item.spareId}"
-                       data-item-id="${item.itemId}"
-                       data-product-name="${escapeHtml(item.productName)}"
-                       data-available-stock="${item.availableStock}"
-                       style="width: 120px; text-align: center; margin: 0 auto; display: block;">
-              </td>
-              <td style="vertical-align: middle; text-align: center; padding: 12px;">
-                ${canDelete ? `<button type="button" class="btn btn-danger btn-sm remove-item-btn" data-item-id="${item.itemId}" style="padding: 3px 8px;" title="Remove">
-                  <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
-                </button>` : '<span class="text-muted">-</span>'}
-              </td>
-            </tr>
-          `;
+              <tr data-item-id="${item.itemId}" data-spare-id="${item.spareId}" data-is-existing="${item.isExisting}">
+                <td style="vertical-align: middle; font-weight: 500; padding: 12px;">${escapeHtml(item.productName)}</td>
+                <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${escapeHtml(item.category)}</td>
+                <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${item.requestedQty}</td>
+                <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">
+                  <span class="badge ${item.availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">${item.availableStock}</span>
+                </td>
+                <td style="vertical-align: middle; text-align: center; padding: 12px;">
+                  <input type="number" 
+                         class="form-control form-control-sm issue-quantity-input" 
+                         name="items[${item.itemId}][issue_quantity]" 
+                         value="${item.issueQty}" 
+                         min="0" 
+                         max="${item.availableStock}"
+                         data-spare-id="${item.spareId}"
+                         data-item-id="${item.itemId}"
+                         data-product-name="${escapeHtml(item.productName)}"
+                         data-available-stock="${item.availableStock}"
+                         style="width: 120px; text-align: center; margin: 0 auto; display: block;">
+                </td>
+                <td style="vertical-align: middle; text-align: center; padding: 12px;">
+                  ${canDelete ? `<button type="button" class="btn btn-danger btn-sm remove-item-btn" data-item-id="${item.itemId}" style="padding: 3px 8px;" title="Remove">
+                    <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
+                  </button>` : '<span class="text-muted">-</span>'}
+                </td>
+              </tr>
+            `;
     }
 
     // Load categories for modal dropdown
@@ -3200,64 +3211,64 @@
 
             // Manual Add Form Section
             itemsHtml += `
-                <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 8px;">
-                  <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
-                  </div>
-                  <div class="card-body" style="padding: 16px;">
-                    <!-- Authority No. Req and Issue Stock Row - Combined -->
-                    <div class="row g-3 mb-3 align-items-end" id="authorityRow">
-                      <div class="col-md-3">
-                        <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No. Req</label>
-                        <div class="d-flex align-items-center" style="gap: 10px;">
-                          <div class="form-check form-check-inline" style="margin: 0;">
-                            <input class="form-check-input" type="radio" name="authorityRequired" id="authorityNo" value="no" checked>
-                            <label class="form-check-label" for="authorityNo" style="font-size: 0.85rem;">No</label>
-                          </div>
-                          <div class="form-check form-check-inline" style="margin: 0;">
-                            <input class="form-check-input" type="radio" name="authorityRequired" id="authorityYes" value="yes">
-                            <label class="form-check-label" for="authorityYes" style="font-size: 0.85rem;">Yes</label>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-3 d-none" id="authorityNoCol">
-                        <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
-                        <input type="text" class="form-control form-control-sm" id="authorityNumber" placeholder="Enter Authority No." style="font-size: 0.9rem;">
-                      </div>
-                      <div class="col-md-3">
-                        <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Issue Stock</label>
-                        <div class="d-flex align-items-center" style="gap: 10px;">
-                          <div class="form-check form-check-inline" style="margin: 0;">
-                            <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockNo" value="no" checked>
-                            <label class="form-check-label" for="issueStockNo" style="font-size: 0.85rem;">No</label>
-                          </div>
-                          <div class="form-check form-check-inline" style="margin: 0;">
-                            <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockYes" value="yes">
-                            <label class="form-check-label" for="issueStockYes" style="font-size: 0.85rem;">Yes</label>
-                          </div>
-                        </div>
-                      </div>
+                  <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 8px;">
+                    <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
                     </div>
+                    <div class="card-body" style="padding: 16px;">
+                      <!-- Authority No. Req and Issue Stock Row - Combined -->
+                      <div class="row g-3 mb-3 align-items-end" id="authorityRow">
+                        <div class="col-md-3">
+                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No. Req</label>
+                          <div class="d-flex align-items-center" style="gap: 10px;">
+                            <div class="form-check form-check-inline" style="margin: 0;">
+                              <input class="form-check-input" type="radio" name="authorityRequired" id="authorityNo" value="no" checked>
+                              <label class="form-check-label" for="authorityNo" style="font-size: 0.85rem;">No</label>
+                            </div>
+                            <div class="form-check form-check-inline" style="margin: 0;">
+                              <input class="form-check-input" type="radio" name="authorityRequired" id="authorityYes" value="yes">
+                              <label class="form-check-label" for="authorityYes" style="font-size: 0.85rem;">Yes</label>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-3 d-none" id="authorityNoCol">
+                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
+                          <input type="text" class="form-control form-control-sm" id="authorityNumber" placeholder="Enter Authority No." style="font-size: 0.9rem;">
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Issue Stock</label>
+                          <div class="d-flex align-items-center" style="gap: 10px;">
+                            <div class="form-check form-check-inline" style="margin: 0;">
+                              <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockNo" value="no" checked>
+                              <label class="form-check-label" for="issueStockNo" style="font-size: 0.85rem;">No</label>
+                            </div>
+                            <div class="form-check form-check-inline" style="margin: 0;">
+                              <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockYes" value="yes">
+                              <label class="form-check-label" for="issueStockYes" style="font-size: 0.85rem;">Yes</label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                    <!-- Product Issue Fields - Hidden by default -->
-                    <div class="row g-3 d-none" id="productIssueFields">
-                      <div class="col-md-4">
-                        <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
-                        <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
-                          <option value="">Loading Products...</option>
-                        </select>
-                      </div>
-                      <div class="col-md-2">
-                        <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
-                        <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
-                      </div>
-                      <div class="col-md-3">
-                        <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
-                        <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
+                      <!-- Product Issue Fields - Hidden by default -->
+                      <div class="row g-3 d-none" id="productIssueFields">
+                        <div class="col-md-4">
+                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
+                          <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
+                            <option value="">Loading Products...</option>
+                          </select>
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
+                          <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
+                          <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              `;
+                `;
 
             itemsHtml += '</form>';
             modalBody.innerHTML = itemsHtml;
@@ -3964,56 +3975,56 @@
       const alertDiv = document.createElement('div');
       alertDiv.className = 'custom-alert-toast alert-success-toast';
       alertDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            min-width: 320px;
-            max-width: 450px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideInRight 0.3s ease-out;
-            font-size: 14px;
-            font-weight: 500;
-          `;
-      alertDiv.innerHTML = `
-            <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-            </div>
-            <div style="flex: 1; line-height: 1.5;">
-              <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Success!</strong>
-              <span style="opacity: 0.95;">${message}</span>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()" style="
-              background: rgba(255, 255, 255, 0.2);
-              border: none;
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              z-index: 10000;
+              min-width: 320px;
+              max-width: 450px;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
               color: white;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              cursor: pointer;
+              padding: 16px 20px;
+              border-radius: 12px;
+              box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
               display: flex;
               align-items: center;
-              justify-content: center;
-              padding: 0;
-              flex-shrink: 0;
-              transition: background 0.2s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          `;
+              gap: 12px;
+              animation: slideInRight 0.3s ease-out;
+              font-size: 14px;
+              font-weight: 500;
+            `;
+      alertDiv.innerHTML = `
+              <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <div style="flex: 1; line-height: 1.5;">
+                <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Success!</strong>
+                <span style="opacity: 0.95;">${message}</span>
+              </div>
+              <button type="button" onclick="this.parentElement.remove()" style="
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                flex-shrink: 0;
+                transition: background 0.2s;
+              " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            `;
       document.body.appendChild(alertDiv);
 
       // Auto remove after 3 seconds
@@ -4038,57 +4049,57 @@
       const alertDiv = document.createElement('div');
       alertDiv.className = 'custom-alert-toast alert-error-toast';
       alertDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            min-width: 320px;
-            max-width: 450px;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideInRight 0.3s ease-out, shake 0.5s ease-in-out 0.3s;
-            font-size: 14px;
-            font-weight: 500;
-          `;
-      alertDiv.innerHTML = `
-            <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-            </div>
-            <div style="flex: 1; line-height: 1.5;">
-              <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Error!</strong>
-              <span style="opacity: 0.95;">${message}</span>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()" style="
-              background: rgba(255, 255, 255, 0.2);
-              border: none;
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              z-index: 10000;
+              min-width: 320px;
+              max-width: 450px;
+              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
               color: white;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              cursor: pointer;
+              padding: 16px 20px;
+              border-radius: 12px;
+              box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
               display: flex;
               align-items: center;
-              justify-content: center;
-              padding: 0;
-              flex-shrink: 0;
-              transition: background 0.2s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          `;
+              gap: 12px;
+              animation: slideInRight 0.3s ease-out, shake 0.5s ease-in-out 0.3s;
+              font-size: 14px;
+              font-weight: 500;
+            `;
+      alertDiv.innerHTML = `
+              <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+              <div style="flex: 1; line-height: 1.5;">
+                <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Error!</strong>
+                <span style="opacity: 0.95;">${message}</span>
+              </div>
+              <button type="button" onclick="this.parentElement.remove()" style="
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                flex-shrink: 0;
+                transition: background 0.2s;
+              " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            `;
       document.body.appendChild(alertDiv);
 
       // Auto remove after 6 seconds (slightly longer for errors)
@@ -5292,17 +5303,17 @@
 
             let itemsHtml = '<form id="addStockForm">';
             itemsHtml += `
-                <div class="row g-3 mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
-                    <input type="text" class="form-control form-control-sm" id="authorityNumberSimple" placeholder="Enter Authority No. (optional)" style="font-size: 0.9rem;">
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
+                      <input type="text" class="form-control form-control-sm" id="authorityNumberSimple" placeholder="Enter Authority No. (optional)" style="font-size: 0.9rem;">
+                    </div>
                   </div>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-striped">
-                    <thead><tr><th>Category</th><th>Product</th><th>Total Stock</th><th>Request Stock</th></tr></thead>
-                    <tbody>
-              `;
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead><tr><th>Category</th><th>Product</th><th>Total Stock</th><th>Request Stock</th></tr></thead>
+                      <tbody>
+                `;
 
             // Store items globally for submission
             window.currentApprovalItems = items;
@@ -5312,10 +5323,10 @@
 
             if (items.length === 0) {
               itemsHtml += `
-                  <tr>
-                    <td colspan="4" class="text-center">No products found</td>
-                  </tr>
-                `;
+                    <tr>
+                      <td colspan="4" class="text-center">No products found</td>
+                    </tr>
+                  `;
             } else {
               items.forEach((item, index) => {
                 const productName = item.spare_name || 'N/A';
@@ -5339,21 +5350,21 @@
                 const catDisplay = categoryDisplay[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1);
 
                 itemsHtml += `
-                    <tr>
-                      <td>${catDisplay}</td>
-                      <td>${productName}</td>
-                      <td>
-                        <span class="badge ${availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">
-                          ${availableStock}
-                        </span>
-                      </td>
-                      <td>
-                        <span class="badge bg-info" style="font-size: 12px;">
-                          ${requestedQty}
-                        </span>
-                      </td>
-                    </tr>
-                  `;
+                      <tr>
+                        <td>${catDisplay}</td>
+                        <td>${productName}</td>
+                        <td>
+                          <span class="badge ${availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">
+                            ${availableStock}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="badge bg-info" style="font-size: 12px;">
+                            ${requestedQty}
+                          </span>
+                        </td>
+                      </tr>
+                    `;
               });
             }
 
