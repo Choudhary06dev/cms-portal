@@ -75,11 +75,16 @@
   $performaType = $approval->performa_type ?? null;
   $performaTypeLabel = $performaType ? ucwords(str_replace('_', ' ', $performaType)) : null;
   
-  // Extract authority number from remarks or stock logs
+  // Extract authority number - check dedicated column first, then remarks, then stock logs
   $authorityNumber = null;
   
-  // First check approval remarks
-  if ($approval->remarks) {
+  // First check the dedicated authority_number column
+  if ($approval->authority_number) {
+    $authorityNumber = $approval->authority_number;
+  }
+  
+  // If not found, check approval remarks
+  if (!$authorityNumber && $approval->remarks) {
     // Look for "Authority No:" or "Authority No" in remarks - extract just the number
     if (preg_match('/Authority\s+No[:\s]+([A-Za-z0-9\-]+)/i', $approval->remarks, $matches)) {
       $authorityNumber = trim($matches[1]);

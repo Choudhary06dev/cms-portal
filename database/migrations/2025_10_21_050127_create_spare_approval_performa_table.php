@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('approved_by')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->string('performa_type', 50)->nullable();
+            $table->string('authority_number')->nullable();
             $table->boolean('waiting_for_authority')->default(false);
             $table->timestamp('approved_at')->nullable();
             $table->text('remarks')->nullable();
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->index(['requested_by', 'status']);
             $table->index(['approved_by', 'status']);
         });
-        
+
         // Update status to 'approved' for all existing approvals that have performa_type set
         // This ensures existing data is consistent with new logic (status = approved when performa_type is set)
         // Safe to run even if table was just created (no records will match)
