@@ -48,7 +48,7 @@
 
     /* Override navbar to be visible */
     .navbar {
-      background-image: url('https://img.freepik.com/premium-photo/dark-blue-ocean-surface-seen-from-underwater_629685-6504.jpg') !important;
+      background-image: url('{{ asset('assests/Background.jpg') }}') !important;
       background-size: cover !important;
       background-position: center !important;
     }

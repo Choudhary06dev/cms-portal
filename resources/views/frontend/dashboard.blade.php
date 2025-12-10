@@ -183,7 +183,7 @@
 
     <!-- Header Background -->
     <div class="relative bg-cover bg-center header-bg"
-        style="background-image: url('https://tse1.mm.bing.net/th/id/OIP.zik7BfelfQPsfDPQ6GQMGQHaE8?rs=1&pid=ImgDetMain&o=7&rm=3');">
+        style="background-image: url('{{ asset('assests/Background.jpg') }}');">
 
         <div class="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
         <!-- Logo -->
@@ -860,14 +860,14 @@
                         pointBorderWidth: 2,
                     },
                     {
-                        label: 'Unauthorized Complaints',
+                        label: 'Un Authorized Barrak Damages',
                         data: unauthorizedData,
-                        borderColor: '#ec4899',
-                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        borderColor: '#808000',
+                        backgroundColor: 'rgba(128, 128, 0, 0.1)',
                         fill: true,
                         tension: 0.4,
                         pointRadius: 4,
-                        pointBackgroundColor: '#ec4899',
+                        pointBackgroundColor: '#808000',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
                     },

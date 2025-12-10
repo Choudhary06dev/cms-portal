@@ -567,9 +567,9 @@ class HomeController extends Controller
                 ->count();
             $resolvedVsEdData[] = $resolvedData;
 
-            // Unauthorized Data
+            // Barak Damages Data
             $unauthorizedData[] = (clone $monthQuery)
-                ->where('status', 'un_authorized')
+                ->where('status', 'barak_damages')
                 ->count();
 
             // Performa Data (aggregating all performa types)

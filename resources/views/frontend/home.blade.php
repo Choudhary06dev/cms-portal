@@ -7,7 +7,7 @@
   body {
     margin: 0;
     font-family: 'Inter', Arial, sans-serif;
-    background: url('https://e1.pxfuel.com/desktop-wallpaper/492/540/desktop-wallpaper-join-pak-navy-as-a-civilian.jpg') no-repeat center center/cover;
+    background: url('{{ asset('assests/Background.jpg') }}') no-repeat center center/cover;
     background-attachment: fixed;
     position: relative;
     min-height: 100vh;
@@ -23,7 +23,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAgd66m-skOO1rxIMOQv3bmjsuWKbZReg92AnJJmIjx9pMU5IQQ3qKRxR4-JaynxF0bQQ&usqp=CAU') no-repeat center left/cover;
+    background: url('{{ asset('assests/Slider3.jpg') }}') no-repeat center left/cover;
     opacity: 0.15;
     z-index: 0;
     pointer-events: none;
@@ -132,7 +132,7 @@
   .left-section {
     flex: 1.3;
     min-height: 420px;
-    background: url('https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg') no-repeat center center/cover;
+    background: url('{{ asset('assests/slider1.jpg') }}') no-repeat center center/cover;
     background-size: cover;
     position: relative;
     display: flex;
@@ -144,7 +144,7 @@
   }
 
   .left-section.default-bg {
-    background: url('https://www.newarab.com/sites/default/files/media/images/3C87EE22-AE80-4B40-921D-4CA8EE3350CD.jpg') no-repeat center center/cover;
+    background: url('{{ asset('assests/slider1.jpg') }}') no-repeat center center/cover;
   }
 
   .left-section::before {
@@ -421,16 +421,16 @@
   <div class="container">                                                                                                            
     <div class="left-section" id="leftSection" @auth('frontend') style="border-radius: 20px; min-height: 650px;" @endauth>
         <div class="image-slider" id="imageSlider">
-            <img src="https://cdn.pixabay.com/photo/2020/01/18/14/48/pakistan-4775471_640.jpg" alt="Navy Image 1" data-bg="https://cdn.pixabay.com/photo/2020/01/18/14/48/pakistan-4775471_640.jpg" class="slider-img" />
-            <img src="https://news.cgtn.com/news/3d3d514e77597a4e7a457a6333566d54/img/a96400738e9b41faaa577bce5338d1bb/a96400738e9b41faaa577bce5338d1bb.jpg" alt="Navy Image 3" data-bg="https://news.cgtn.com/news/3d3d514e77597a4e7a457a6333566d54/img/a96400738e9b41faaa577bce5338d1bb/a96400738e9b41faaa577bce5338d1bb.jpg" class="slider-img" />
-            <img src="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" alt="Navy Image 3" data-bg="https://quwa.org/wp-content/uploads/2020/05/Pakistan-Navy-Tughril-Class-Type-054AP-Frigate.jpg" class="slider-img" />
+            <img src="{{ asset('assests/slider1.jpg') }}" alt="Navy Image 1" data-bg="{{ asset('assests/slider1.jpg') }}" class="slider-img" />
+            <img src="{{ asset('assests/Slider2.jpg') }}" alt="Navy Image 2" data-bg="{{ asset('assests/Slider2.jpg') }}" class="slider-img" />
+            <img src="{{ asset('assests/slider3.jpg') }}" alt="Navy Image 3" data-bg="{{ asset('assests/slider3.jpg') }}" class="slider-img" />
         </div>
     </div>
 
     @guest('frontend')
     <div class="right-section">
         <div class="logo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Pakistan_Navy_emblem.svg/200px-Pakistan_Navy_emblem.svg.png" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
+            <img src="{{ asset('assests/logo.png') }}" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
         </div>
         <div class="heading">MES COMPLAINT MANAGEMENT SYSTEM</div>
         <p class="subtitle">Nice to see you again</p>

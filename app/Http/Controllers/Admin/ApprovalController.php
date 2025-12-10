@@ -460,6 +460,7 @@ class ApprovalController extends Controller
                     'id' => $approval->id,
                     'status' => $approval->status,
                     'performa_type' => $approval->performa_type,
+                    'authority_number' => $approval->authority_number,
                     // waiting_for_authority removed
                     'created_at' => $approval->created_at ? $approval->created_at->format('M d, Y H:i') : null,
                     'approved_at' => $approval->approved_at ? $approval->approved_at->format('M d, Y H:i') : null,
@@ -732,11 +733,21 @@ class ApprovalController extends Controller
             }
             // If performa_type is null, status remains 'pending' (default)
             
-            // waiting_for_authority removed - no longer needed
-            // Stock will be issued directly when authority code is added
-            
-            if ($request->has('remarks')) {
+            // Extract authority number from remarks if present
+            $authorityNumber = null;
+            if ($request->has('remarks') && $request->remarks) {
                 $updateData['remarks'] = $request->remarks;
+                
+                // Try to extract authority number from remarks
+                // Pattern: "Authority No: AUTH-12345" or "Authority No.: AUTH-12345"
+                if (preg_match('/Authority\s*No\.?\s*:\s*([A-Za-z0-9\-]+)/i', $request->remarks, $matches)) {
+                    $authorityNumber = trim($matches[1]);
+                }
+            }
+            
+            // Save authority number to dedicated column if extracted
+            if ($authorityNumber) {
+                $updateData['authority_number'] = $authorityNumber;
             }
             
             // Use DB::table to ensure status is updated correctly
