@@ -860,7 +860,7 @@
                         pointBorderWidth: 2,
                     },
                     {
-                        label: 'Barak Damages',
+                        label: 'Un Authorized Barrak Damages',
                         data: unauthorizedData,
                         borderColor: '#808000',
                         backgroundColor: 'rgba(128, 128, 0, 0.1)',
