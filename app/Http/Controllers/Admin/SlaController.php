@@ -32,14 +32,14 @@ class SlaController extends Controller
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('complaint_type', 'like', "%{$search}%");
+            $query->whereHas('category', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
             });
         }
 
-        // Filter by complaint type
-        if ($request->has('complaint_type') && $request->complaint_type) {
-            $query->where('complaint_type', $request->complaint_type);
+        // Filter by complaint type (category_id)
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('category_id', $request->category_id);
         }
 
         // Filter by priority
@@ -53,7 +53,7 @@ class SlaController extends Controller
         }
 
         $slaRules = $query->orderBy('created_at', 'desc')->paginate(15);
-        $users = User::where('status', 'active')->get();
+        $users = User::where('status', 1)->get();
 
         return view('admin.sla.index', compact('slaRules', 'users'));
     }
@@ -64,7 +64,7 @@ class SlaController extends Controller
     public function create()
     {
         $loggedInUser = Auth::user();
-        $usersQuery = User::where('status', 'active')->with('role');
+        $usersQuery = User::where('status', 1)->with('role');
         
         // Apply location filtering for users
         if ($loggedInUser && $loggedInUser->role) {
@@ -72,20 +72,36 @@ class SlaController extends Controller
             
             // Director and Admin can see all users
             if (!in_array($roleName, ['director', 'admin'])) {
-                // Garrison Engineer: Show users from their city
-                if ($roleName === 'garrison_engineer' && $loggedInUser->city_id) {
-                    $usersQuery->where('city_id', $loggedInUser->city_id);
+                // Garrison Engineer: Show users from their cities
+                if ($roleName === 'garrison_engineer' && !empty($loggedInUser->city_ids)) {
+                    $usersQuery->where(function($q) use ($loggedInUser) {
+                        foreach ($loggedInUser->city_ids as $cityId) {
+                            $q->orWhereJsonContains('city_ids', (int)$cityId);
+                        }
+                    });
                 }
-                // Complaint Center and Department Staff: Show users from their sector
-                elseif (in_array($roleName, ['complaint_center', 'department_staff']) && $loggedInUser->sector_id) {
-                    $usersQuery->where('sector_id', $loggedInUser->sector_id);
+                // Complaint Center and Department Staff: Show users from their sectors
+                elseif (in_array($roleName, ['complaint_center', 'department_staff']) && !empty($loggedInUser->sector_ids)) {
+                    $usersQuery->where(function($q) use ($loggedInUser) {
+                        foreach ($loggedInUser->sector_ids as $sectorId) {
+                            $q->orWhereJsonContains('sector_ids', (int)$sectorId);
+                        }
+                    });
                 }
-                // Other roles: Filter by city_id if available, otherwise by sector_id
+                // Other roles: Filter by city_ids or sector_ids
                 else {
-                    if ($loggedInUser->sector_id) {
-                        $usersQuery->where('sector_id', $loggedInUser->sector_id);
-                    } elseif ($loggedInUser->city_id) {
-                        $usersQuery->where('city_id', $loggedInUser->city_id);
+                    if (!empty($loggedInUser->sector_ids)) {
+                        $usersQuery->where(function($q) use ($loggedInUser) {
+                            foreach ($loggedInUser->sector_ids as $sectorId) {
+                                $q->orWhereJsonContains('sector_ids', (int)$sectorId);
+                            }
+                        });
+                    } elseif (!empty($loggedInUser->city_ids)) {
+                        $usersQuery->where(function($q) use ($loggedInUser) {
+                            foreach ($loggedInUser->city_ids as $cityId) {
+                                $q->orWhereJsonContains('city_ids', (int)$cityId);
+                            }
+                        });
                     } else {
                         // If no location assigned, show no users
                         $usersQuery->whereRaw('1 = 0');
@@ -98,7 +114,7 @@ class SlaController extends Controller
         
         // Fetch categories from database (ComplaintCategory table)
         $complaintTypes = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name', 'name')->toArray()
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')->toArray()
             : [];
 
         return view('admin.sla.create', compact('users', 'complaintTypes'));
@@ -111,22 +127,30 @@ class SlaController extends Controller
     {
         // Get categories from database
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('id')->toArray()
             : [];
         
-        $categoryRule = 'required|string';
+        $categoryRule = 'required|integer';
         if (!empty($categories)) {
             $categoryRule .= '|in:' . implode(',', $categories);
         }
         
+        $rules = explode('|', $categoryRule);
+        $rules[] = function ($attribute, $value, $fail) use ($request) {
+            $exists = SlaRule::where('category_id', $value)
+                ->where('priority', $request->priority)
+                ->exists();
+            if ($exists) {
+                $fail('An SLA rule already exists for this category and priority.');
+            }
+        };
+
         $validator = Validator::make($request->all(), [
-            'complaint_type' => $categoryRule,
+            'category_id' => $rules,
             'priority' => 'required|in:low,medium,high,urgent',
-            'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
-            'notify_to' => 'required|exists:users,id',
             'description' => 'nullable|string|max:255',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:0,1',
         ]);
 
         if ($validator->fails()) {
@@ -135,7 +159,12 @@ class SlaController extends Controller
                 ->withInput();
         }
 
-        $slaRule = SlaRule::create($request->all());
+        // Set defaults for removed fields
+        $data = $request->all();
+        $data['max_response_time'] = 0;
+        $data['notify_to'] = null;
+
+        $slaRule = SlaRule::create($data);
 
         return redirect()->route('admin.sla.index')
             ->with('success', 'SLA rule created successfully.');
@@ -149,8 +178,8 @@ class SlaController extends Controller
         $sla->load('notifyTo');
 
         // Get recent complaints for this SLA rule
-        $recentComplaints = Complaint::where('category', $sla->complaint_type)
-            ->with(['client', 'assignedEmployee'])
+        $recentComplaints = Complaint::where('category_id', $sla->category_id)
+            ->with(['house', 'assignedEmployee'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
@@ -164,7 +193,7 @@ class SlaController extends Controller
     public function edit(SlaRule $sla)
     {
         $loggedInUser = Auth::user();
-        $usersQuery = User::where('status', 'active')->with('role');
+        $usersQuery = User::where('status', 1)->with('role');
         
         // Apply location filtering for users
         if ($loggedInUser && $loggedInUser->role) {
@@ -172,20 +201,36 @@ class SlaController extends Controller
             
             // Director and Admin can see all users
             if (!in_array($roleName, ['director', 'admin'])) {
-                // Garrison Engineer: Show users from their city
-                if ($roleName === 'garrison_engineer' && $loggedInUser->city_id) {
-                    $usersQuery->where('city_id', $loggedInUser->city_id);
+                // Garrison Engineer: Show users from their cities
+                if ($roleName === 'garrison_engineer' && !empty($loggedInUser->city_ids)) {
+                    $usersQuery->where(function($q) use ($loggedInUser) {
+                        foreach ($loggedInUser->city_ids as $cityId) {
+                            $q->orWhereJsonContains('city_ids', (int)$cityId);
+                        }
+                    });
                 }
-                // Complaint Center and Department Staff: Show users from their sector
-                elseif (in_array($roleName, ['complaint_center', 'department_staff']) && $loggedInUser->sector_id) {
-                    $usersQuery->where('sector_id', $loggedInUser->sector_id);
+                // Complaint Center and Department Staff: Show users from their sectors
+                elseif (in_array($roleName, ['complaint_center', 'department_staff']) && !empty($loggedInUser->sector_ids)) {
+                    $usersQuery->where(function($q) use ($loggedInUser) {
+                        foreach ($loggedInUser->sector_ids as $sectorId) {
+                            $q->orWhereJsonContains('sector_ids', (int)$sectorId);
+                        }
+                    });
                 }
-                // Other roles: Filter by city_id if available, otherwise by sector_id
+                // Other roles: Filter by city_ids or sector_ids
                 else {
-                    if ($loggedInUser->sector_id) {
-                        $usersQuery->where('sector_id', $loggedInUser->sector_id);
-                    } elseif ($loggedInUser->city_id) {
-                        $usersQuery->where('city_id', $loggedInUser->city_id);
+                    if (!empty($loggedInUser->sector_ids)) {
+                        $usersQuery->where(function($q) use ($loggedInUser) {
+                            foreach ($loggedInUser->sector_ids as $sectorId) {
+                                $q->orWhereJsonContains('sector_ids', (int)$sectorId);
+                            }
+                        });
+                    } elseif (!empty($loggedInUser->city_ids)) {
+                        $usersQuery->where(function($q) use ($loggedInUser) {
+                            foreach ($loggedInUser->city_ids as $cityId) {
+                                $q->orWhereJsonContains('city_ids', (int)$cityId);
+                            }
+                        });
                     } else {
                         // If no location assigned, show no users
                         $usersQuery->whereRaw('1 = 0');
@@ -198,7 +243,7 @@ class SlaController extends Controller
         
         // Fetch categories from database (ComplaintCategory table)
         $complaintTypes = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name', 'name')->toArray()
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')->toArray()
             : [];
 
         return view('admin.sla.edit', compact('sla', 'users', 'complaintTypes'));
@@ -211,22 +256,31 @@ class SlaController extends Controller
     {
         // Get categories from database
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('id')->toArray()
             : [];
         
-        $categoryRule = 'required|string';
+        $categoryRule = 'required|integer';
         if (!empty($categories)) {
             $categoryRule .= '|in:' . implode(',', $categories);
         }
         
+        $rules = explode('|', $categoryRule);
+        $rules[] = function ($attribute, $value, $fail) use ($request, $sla) {
+            $exists = SlaRule::where('category_id', $value)
+                ->where('priority', $request->priority)
+                ->where('id', '!=', $sla->id)
+                ->exists();
+            if ($exists) {
+                $fail('An SLA rule already exists for this category and priority.');
+            }
+        };
+
         $validator = Validator::make($request->all(), [
-            'complaint_type' => $categoryRule,
+            'category_id' => $rules,
             'priority' => 'required|in:low,medium,high,urgent',
-            'max_response_time' => 'required|integer|min:1',
             'max_resolution_time' => 'required|integer|min:1',
-            'notify_to' => 'required|exists:users,id',
             'description' => 'nullable|string|max:255',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:0,1',
         ]);
 
         if ($validator->fails()) {
@@ -235,7 +289,12 @@ class SlaController extends Controller
                 ->withInput();
         }
 
-        $sla->update($request->all());
+        // Set defaults for removed fields
+        $data = $request->all();
+        $data['max_response_time'] = 0;
+        $data['notify_to'] = null;
+
+        $sla->update($data);
 
         return redirect()->route('admin.sla.index')
             ->with('success', 'SLA rule updated successfully.');
@@ -260,10 +319,10 @@ class SlaController extends Controller
     public function toggleStatus(SlaRule $sla)
     {
         $sla->update([
-            'status' => $sla->status === 'active' ? 'inactive' : 'active'
+            'status' => $sla->status === 1 ? 0 : 1
         ]);
 
-        $status = $sla->status === 'active' ? 'activated' : 'deactivated';
+        $status = $sla->status === 1 ? 'activated' : 'deactivated';
         
         return redirect()->back()
             ->with('success', "SLA rule {$status} successfully.");
@@ -278,8 +337,8 @@ class SlaController extends Controller
 
         $stats = [
             'total_rules' => SlaRule::count(),
-            'active_rules' => SlaRule::where('status', 'active')->count(),
-            'inactive_rules' => SlaRule::where('status', 'inactive')->count(),
+            'active_rules' => SlaRule::where('status', 1)->count(),
+            'inactive_rules' => SlaRule::where('status', 0)->count(),
             'total_complaints' => Complaint::where('created_at', '>=', now()->subDays($period))->count(),
             'complaints_within_sla' => $this->getComplaintsWithinSla($period),
             'complaints_breached' => $this->getComplaintsBreached($period),
@@ -313,7 +372,7 @@ class SlaController extends Controller
 
         $breaches = Complaint::where('created_at', '>=', now()->subDays($period))
             ->whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->with(['client', 'assignedEmployee', 'slaRule'])
+            ->with(['house', 'assignedEmployee', 'slaRule'])
             ->get()
             ->filter(function($complaint) {
                 return $complaint->isSlaBreached();
@@ -321,7 +380,7 @@ class SlaController extends Controller
             ->map(function($complaint) {
                 return [
                     'id' => $complaint->id,
-                    'client_name' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
+                    'name' => $complaint->house ? ($complaint->house->name ?? 'Deleted House') : 'Deleted House',
                     'category' => $complaint->category,
                     'status' => $complaint->status,
                     'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->name : 'Unassigned',
@@ -346,22 +405,22 @@ class SlaController extends Controller
         $performance = [];
         // Fetch categories from database
         $complaintTypes = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name', 'name')->toArray()
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')->toArray()
             : [];
 
-        foreach ($complaintTypes as $type => $label) {
-            $total = Complaint::where('category', $type)
+        foreach ($complaintTypes as $categoryId => $label) {
+            $total = Complaint::where('category_id', $categoryId)
                 ->where('created_at', '>=', now()->subDays($period))
                 ->count();
 
-            $withinSla = Complaint::where('category', $type)
+            $withinSla = Complaint::where('category_id', $categoryId)
                 ->where('created_at', '>=', now()->subDays($period))
                 ->whereIn('status', ['resolved', 'closed'])
-                ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = ? AND status = "active"), 999999)', [$type])
+                ->whereRaw('TIMESTAMPDIFF(HOUR, complaints.created_at, complaints.updated_at) <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE category_id = ? AND priority = complaints.priority AND status = 1), 999999)', [$categoryId])
                 ->count();
 
             $performance[] = [
-                'type' => $type,
+                'type' => $label,
                 'label' => $label,
                 'total' => $total,
                 'within_sla' => $withinSla,
@@ -382,7 +441,7 @@ class SlaController extends Controller
 
         $alerts = Complaint::where('created_at', '>=', now()->subHours($hours))
             ->whereIn('status', ['new', 'assigned', 'in_progress'])
-            ->with(['client', 'assignedEmployee', 'slaRule'])
+            ->with(['house', 'assignedEmployee', 'slaRule'])
             ->get()
             ->filter(function($complaint) {
                 return $complaint->isSlaBreached();
@@ -390,7 +449,7 @@ class SlaController extends Controller
             ->map(function($complaint) {
                 return [
                     'complaint_id' => $complaint->id,
-                    'client_name' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
+                    'name' => $complaint->house ? ($complaint->house->name ?? 'Deleted House') : 'Deleted House',
                     'category' => $complaint->category,
                     'assigned_to' => $complaint->assignedEmployee ? $complaint->assignedEmployee->name : 'Unassigned',
                     'hours_overdue' => $complaint->getHoursOverdue(),
@@ -458,12 +517,12 @@ class SlaController extends Controller
 
         switch ($action) {
             case 'activate':
-                SlaRule::whereIn('id', $slaRuleIds)->update(['status' => 'active']);
+                SlaRule::whereIn('id', $slaRuleIds)->update(['status' => 1]);
                 $message = 'Selected SLA rules activated successfully.';
                 break;
 
             case 'deactivate':
-                SlaRule::whereIn('id', $slaRuleIds)->update(['status' => 'inactive']);
+                SlaRule::whereIn('id', $slaRuleIds)->update(['status' => 0]);
                 $message = 'Selected SLA rules deactivated successfully.';
                 break;
 
@@ -486,13 +545,13 @@ class SlaController extends Controller
         // Apply same filters as index
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('complaint_type', 'like', "%{$search}%");
+            $query->whereHas('category', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
             });
         }
 
-        if ($request->has('complaint_type') && $request->complaint_type) {
-            $query->where('complaint_type', $request->complaint_type);
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('category_id', $request->category_id);
         }
 
         if ($request->has('status') && $request->status) {
@@ -512,7 +571,7 @@ class SlaController extends Controller
     {
         return Complaint::where('created_at', '>=', now()->subDays($period))
             ->whereIn('status', ['resolved', 'closed'])
-            ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = "active"), 999999)')
+            ->whereRaw('TIMESTAMPDIFF(HOUR, complaints.created_at, complaints.updated_at) <= COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE category_id = complaints.category_id AND priority = complaints.priority AND status = 1), 999999)')
             ->count();
     }
 
@@ -523,7 +582,7 @@ class SlaController extends Controller
     {
         return Complaint::where('created_at', '>=', now()->subDays($period))
             ->whereIn('status', ['resolved', 'closed'])
-            ->whereRaw('TIMESTAMPDIFF(HOUR, created_at, updated_at) > COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE complaint_type = complaints.category AND status = "active"), 999999)')
+            ->whereRaw('TIMESTAMPDIFF(HOUR, complaints.created_at, complaints.updated_at) > COALESCE((SELECT MIN(max_resolution_time) FROM sla_rules WHERE category_id = complaints.category_id AND priority = complaints.priority AND status = 1), 999999)')
             ->count();
     }
 }

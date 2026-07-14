@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Complaint;
 use App\Models\User;
-use App\Models\Client;
+use App\Models\House;
 use App\Models\Employee;
 use App\Models\Spare;
 use App\Models\SpareApprovalPerforma;
@@ -48,18 +48,20 @@ class SearchController extends Controller
         $results = [];
 
         // Search Complaints
-        $complaints = Complaint::with(['client', 'assignedEmployee'])
+        $complaints = Complaint::with(['house', 'assignedEmployee'])
             ->where(function($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
                   ->orWhere('description', 'like', "%{$query}%")
-                  ->orWhere('category', 'like', "%{$query}%")
+                  ->orWhereHas('category', function($subQ) use ($query) {
+                      $subQ->where('name', 'like', "%{$query}%");
+                  })
                   ->orWhere('status', 'like', "%{$query}%")
                   ->orWhere('priority', 'like', "%{$query}%");
             })
-            ->orWhereHas('client', function($q) use ($query) {
-                $q->where('client_name', 'like', "%{$query}%")
-                  ->orWhere('contact_person', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%");
+            ->orWhereHas('house', function($q) use ($query) {
+                $q->where('house_no', 'like', "%{$query}%")
+                  ->orWhere('username', 'like', "%{$query}%")
+                  ->orWhere('address', 'like', "%{$query}%");
             })
             ->orWhereHas('assignedEmployee', function($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
@@ -79,7 +81,7 @@ class SearchController extends Controller
                     return [
                         'id' => $complaint->id,
                         'title' => $complaint->getTicketNumberAttribute(),
-                        'subtitle' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
+                        'subtitle' => $complaint->house ? $complaint->house->house_no : 'N/A',
                         'description' => $complaint->description,
                         'status' => $complaint->getStatusDisplayAttribute(),
                         'priority' => $complaint->getPriorityDisplayAttribute(),
@@ -115,7 +117,7 @@ class SearchController extends Controller
                         'title' => $user->username,
                         'subtitle' => $user->email,
                         'description' => $user->role->role_name ?? 'No Role',
-                        'status' => $user->status === 'active' ? 'Active' : 'Inactive',
+                        'status' => $user->status === 1 ? 'Active' : 'Inactive',
                         'url' => route('admin.users.show', $user->id),
                         'created_at' => $user->created_at->format('M d, Y')
                     ];
@@ -123,33 +125,32 @@ class SearchController extends Controller
             ];
         }
 
-        // Search Clients
-        $clients = Client::where(function($q) use ($query) {
-                $q->where('client_name', 'like', "%{$query}%")
-                  ->orWhere('contact_person', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%")
+        // Search Houses
+        $houses = House::where(function($q) use ($query) {
+                $q->where('house_no', 'like', "%{$query}%")
+                  ->orWhere('username', 'like', "%{$query}%")
                   ->orWhere('phone', 'like', "%{$query}%")
                   ->orWhere('address', 'like', "%{$query}%");
             })
             ->limit(10)
             ->get();
 
-        if ($clients->count() > 0) {
+        if ($houses->count() > 0) {
             $results[] = [
-                'type' => 'clients',
-                'title' => 'Clients',
-                'icon' => 'briefcase',
+                'type' => 'houses',
+                'title' => 'Houses',
+                'icon' => 'home',
                 'color' => 'info',
-                'count' => $clients->count(),
-                'items' => $clients->map(function($client) {
+                'count' => $houses->count(),
+                'items' => $houses->map(function($house) {
                     return [
-                        'id' => $client->id,
-                        'title' => $client->client_name,
-                        'subtitle' => $client->contact_person,
-                        'description' => $client->email,
-                        'status' => $client->is_active ? 'Active' : 'Inactive',
-                        'url' => route('admin.clients.show', $client->id),
-                        'created_at' => $client->created_at->format('M d, Y')
+                        'id' => $house->id,
+                        'title' => $house->house_no,
+                        'subtitle' => $house->name ?? $house->username,
+                        'description' => $house->address,
+                        'status' => $house->status === 1 ? 'Active' : 'Inactive',
+                        'url' => route('admin.houses.show', $house->id),
+                        'created_at' => $house->created_at->format('M d, Y')
                     ];
                 })
             ];
@@ -178,7 +179,7 @@ class SearchController extends Controller
                         'title' => $employee->name ?? 'Unknown',
                         'subtitle' => $employee->designation,
                         'description' => '',
-                        'status' => ($employee->status === 'active') ? 'Active' : 'Inactive',
+                        'status' => ($employee->status === 1) ? 'Active' : 'Inactive',
                         'url' => route('admin.employees.show', $employee->id),
                         'created_at' => $employee->created_at->format('M d, Y')
                     ];
@@ -262,7 +263,7 @@ class SearchController extends Controller
         $results = [];
 
         // Quick search for complaints
-        $complaints = Complaint::with('client')
+        $complaints = Complaint::with('house')
             ->where('title', 'like', "%{$query}%")
             ->orWhere('description', 'like', "%{$query}%")
             ->limit(3)
@@ -272,7 +273,7 @@ class SearchController extends Controller
             $results[] = [
                 'type' => 'complaint',
                 'title' => $complaint->getTicketNumberAttribute(),
-                'subtitle' => $complaint->client ? $complaint->client->client_name : 'Deleted Client',
+                'subtitle' => $complaint->house ? $complaint->house->house_no : 'N/A',
                 'url' => route('admin.complaints.show', $complaint->id),
                 'icon' => 'alert-circle',
                 'color' => 'primary'
@@ -296,19 +297,19 @@ class SearchController extends Controller
             ];
         }
 
-        // Quick search for clients
-        $clients = Client::where('client_name', 'like', "%{$query}%")
-            ->orWhere('contact_person', 'like', "%{$query}%")
+        // Quick search for houses
+        $houses = House::where('house_no', 'like', "%{$query}%")
+            ->orWhere('username', 'like', "%{$query}%")
             ->limit(3)
             ->get();
 
-        foreach ($clients as $client) {
+        foreach ($houses as $house) {
             $results[] = [
-                'type' => 'client',
-                'title' => $client->client_name,
-                'subtitle' => $client->contact_person,
-                'url' => route('admin.clients.show', $client->id),
-                'icon' => 'briefcase',
+                'type' => 'house',
+                'title' => $house->house_no,
+                'subtitle' => $house->name ?? $house->username,
+                'url' => route('admin.houses.show', $house->id),
+                'icon' => 'home',
                 'color' => 'info'
             ];
         }

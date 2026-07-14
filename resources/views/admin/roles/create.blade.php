@@ -52,10 +52,12 @@
                   'dashboard' => ['label' => 'Dashboard', 'icon' => 'home', 'sublinks' => []],
                   'users' => ['label' => 'Users', 'icon' => 'users', 'sublinks' => []],
                   'frontend-users' => ['label' => 'Frontend Users', 'icon' => 'user-check', 'sublinks' => []],
+                  'cmes' => ['label' => 'CMES', 'icon' => 'layers', 'sublinks' => []],
                   'city' => ['label' => 'GE Groups', 'icon' => 'map', 'sublinks' => []],
                   'sector' => ['label' => 'GE Nodes', 'icon' => 'map-pin', 'sublinks' => []],
                   'roles' => ['label' => 'Roles', 'icon' => 'shield', 'sublinks' => []],
                   'employees' => ['label' => 'Employees', 'icon' => 'user-check', 'sublinks' => ['designation' => 'Designations']],
+                  'houses' => ['label' => 'Houses', 'icon' => 'home', 'sublinks' => []],
                   'complaints' => ['label' => 'Complaints Mgmt', 'icon' => 'file-text', 'sublinks' => [
                     'category' => 'Complaint Cat',
                     'complaint-titles' => 'Complaint Types',
@@ -65,6 +67,7 @@
                   'spares' => ['label' => 'Stock Products', 'icon' => 'package', 'sublinks' => []],
                   'reports' => ['label' => 'Reports', 'icon' => 'bar-chart-2', 'sublinks' => []],
                   'sla' => ['label' => 'SLA Rules', 'icon' => 'clock', 'sublinks' => []],
+                  'registered-devices' => ['label' => 'Registered Devices', 'icon' => 'smartphone', 'sublinks' => []],
                 ];
                 @endphp
                 

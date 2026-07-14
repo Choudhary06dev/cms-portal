@@ -46,7 +46,7 @@
         <select name="category" class="form-select @error('category') is-invalid @enderror" required>
           <option value="">Select Category</option>
           @foreach($categories as $cat)
-            <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+            <option value="{{ $cat->id }}" {{ old('category') == $cat->id ? 'selected' : '' }}>{{ ucfirst($cat->name) }}</option>
           @endforeach
         </select>
         @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -57,9 +57,9 @@
         @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div style="min-width: 260px; flex: 1 1 380px;">
-        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
-        <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Description (optional)">
-        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Questions (to guide receiver)</label>
+        <textarea name="questions" class="form-control @error('questions') is-invalid @enderror" placeholder="e.g. Is it in whole house or one room?" rows="1">{{ old('questions') }}</textarea>
+        @error('questions')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
       <div class="d-grid" style="flex: 0 0 140px;">
         <button class="btn btn-outline-secondary" type="submit" style="width: 100%;"> <i data-feather="plus" class="me-2"></i> Add</button>
@@ -81,23 +81,28 @@
                         <th>Types</th>
 
             <th>Category</th>
-            <th>Description</th>
+            <th>Questions</th>
             <th style="width:180px">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="titlesTableBody">
         @forelse($complaintTitles as $title)
           <tr>
             <td>{{ $title->id }}</td>
                         <td><strong>{{ $title->title }}</strong></td>
 
             <td>
-              {{ ucfirst($title->category) }}
+              {{ ucfirst($title->category->name ?? '-') }}
             </td>
-            <td>{{ $title->description ? Str::limit($title->description, 80) : '-' }}</td>
+            <td>{{ $title->questions ? Str::limit($title->questions, 50) : '-' }}</td>
             <td>
               <div class="btn-group" role="group">
-                <button class="btn btn-outline-primary btn-sm" onclick="editTitle({{ $title->id }}, '{{ $title->category }}', '{{ addslashes($title->title) }}', '{{ addslashes($title->description ?? '') }}')" title="Edit" style="padding: 3px 8px;">
+                <button class="btn btn-outline-primary btn-sm edit-title-btn" 
+                    data-id="{{ $title->id }}"
+                    data-category="{{ $title->category_id }}"
+                    data-title="{!! htmlspecialchars($title->title) !!}"
+                    data-questions="{!! htmlspecialchars($title->questions ?? '') !!}"
+                    title="Edit" style="padding: 3px 8px;">
                   <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
                 <form action="{{ route('admin.complaint-titles.destroy', $title) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this complaint title?');">
@@ -130,7 +135,7 @@
     </div>
 
     <!-- Pagination -->
-    <div class="d-flex justify-content-center mt-3">
+    <div class="d-flex justify-content-center mt-3" id="titlesPagination">
       {{ $complaintTitles->links() }}
     </div>
   </div>
@@ -153,7 +158,7 @@
             <select name="category" id="edit_category" class="form-select" required>
               <option value="">Select Category</option>
               @foreach($categories as $cat)
-                <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
+                <option value="{{ $cat->id }}">{{ ucfirst($cat->name) }}</option>
               @endforeach
             </select>
           </div>
@@ -162,8 +167,8 @@
             <input type="text" name="title" id="edit_title" class="form-control" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Description</label>
-            <input type="text" name="description" id="edit_description" class="form-control">
+            <label class="form-label">Questions (to guide receiver)</label>
+            <textarea name="questions" id="edit_questions" class="form-control" rows="3"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -183,15 +188,117 @@
 <script>
   feather.replace();
 
-  function editTitle(id, category, title, description) {
-    document.getElementById('editForm').action = '{{ url("admin/complaint-titles") }}/' + id;
-    document.getElementById('edit_category').value = category;
-    document.getElementById('edit_title').value = title;
-    document.getElementById('edit_description').value = description;
-    
-    const modal = new bootstrap.Modal(document.getElementById('editModal'));
-    modal.show();
-  }
+  // Use event delegation for dynamically loaded content if needed, or direct bind
+  document.addEventListener('DOMContentLoaded', function() {
+    // Attach click event to all edit buttons
+    const editButtons = document.querySelectorAll('.edit-title-btn');
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const category = this.getAttribute('data-category');
+        const title = this.getAttribute('data-title');
+        const questions = this.getAttribute('data-questions');
+        
+        document.getElementById('editForm').action = '{{ url("admin/complaint-titles") }}/' + id;
+        document.getElementById('edit_category').value = category;
+        document.getElementById('edit_title').value = title;
+        document.getElementById('edit_questions').value = questions;
+        
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+      });
+    });
+
+    // AJAX Pagination and Search
+    function loadTitles(url = null) {
+      const titlesTableBody = document.getElementById('titlesTableBody');
+      const titlesPagination = document.getElementById('titlesPagination');
+      const footerContainer = document.getElementById('complaintTitlesTableFooter');
+
+      if (titlesTableBody) {
+        titlesTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+      }
+
+      const fetchUrl = url || window.location.href;
+
+      fetch(fetchUrl, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'text/html',
+        }
+      })
+      .then(response => response.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const newTbody = doc.querySelector('#titlesTableBody');
+        const newPagination = doc.querySelector('#titlesPagination');
+        const newFooter = doc.querySelector('#complaintTitlesTableFooter');
+
+        if (newTbody && titlesTableBody) {
+          titlesTableBody.innerHTML = newTbody.innerHTML;
+          // Re-attach edit modal events
+          attachEditEvents();
+        }
+
+        if (newPagination && titlesPagination) {
+          titlesPagination.innerHTML = newPagination.innerHTML;
+        }
+
+        if (newFooter && footerContainer) {
+          footerContainer.innerHTML = newFooter.innerHTML;
+        }
+
+        feather.replace();
+
+        if (url) {
+          window.history.pushState({ path: url }, '', url);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading titles:', error);
+        if (titlesTableBody) {
+          titlesTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger">Error loading data.</td></tr>';
+        }
+      });
+    }
+
+    function attachEditEvents() {
+      const editButtons = document.querySelectorAll('.edit-title-btn');
+      editButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          const category = this.getAttribute('data-category');
+          const title = this.getAttribute('data-title');
+          const questions = this.getAttribute('data-questions');
+          
+          document.getElementById('editForm').action = '{{ url("admin/complaint-titles") }}/' + id;
+          document.getElementById('edit_category').value = category;
+          document.getElementById('edit_title').value = title;
+          document.getElementById('edit_questions').value = questions;
+          
+          const modal = new bootstrap.Modal(document.getElementById('editModal'));
+          modal.show();
+        });
+      });
+    }
+
+    // Handle pagination clicks
+    document.addEventListener('click', function(e) {
+      const paginationLink = e.target.closest('#titlesPagination a');
+      if (paginationLink && paginationLink.href && !paginationLink.href.includes('javascript:')) {
+        e.preventDefault();
+        loadTitles(paginationLink.href);
+      }
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function(e) {
+      loadTitles(window.location.href);
+    });
+  });
 </script>
 @endpush
 @endsection

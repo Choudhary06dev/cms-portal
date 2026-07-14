@@ -30,8 +30,8 @@
       <select class="form-select" name="category" onchange="submitEmployeesFilters()" style="font-size: 0.9rem; width: 140px;">
         <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
         @if(isset($categories) && $categories->count() > 0)
-          @foreach($categories as $cat)
-            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+          @foreach($categories as $id => $cat)
+            <option value="{{ $id }}" {{ request('category') == $id ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
         @endif
       </select>
@@ -40,8 +40,8 @@
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
       <select class="form-select" name="status" onchange="submitEmployeesFilters()" style="font-size: 0.9rem; width: 120px;">
         <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
-        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
+        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
       </select>
     </div>
     <div class="col-auto">
@@ -87,14 +87,14 @@
               </div>
             </div>
           </td>
-          <td>{{ ucfirst($employee->category ?? 'N/A') }}</td>
-          <td>{{ $employee->designation ?? '' }}</td>
+          <td>{{ $employee->category ? ucfirst($employee->category->name) : 'N/A' }}</td>
+          <td>{{ $employee->designation ? ucfirst($employee->designation->name) : 'N/A' }}</td>
           <td>{{ $employee->city ? $employee->city->name : 'N/A' }}</td>
           <td>{{ $employee->sector ? $employee->sector->name : 'N/A' }}</td>
           <td>{{ $employee->phone ?: 'N/A' }}</td>
           <td>
-            <span class="badge {{ $employee->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
-              {{ ucfirst($employee->status ?? 'inactive') }}
+            <span class="badge {{ $employee->status === 1 ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
+              {{ ($employee->status ? 'Active' : 'Inactive') }}
             </span>
           </td>
           <td>{{ $employee->date_of_hire ? $employee->date_of_hire->format('M d, Y') : 'N/A' }}</td>

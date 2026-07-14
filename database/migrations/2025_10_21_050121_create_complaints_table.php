@@ -12,15 +12,16 @@ return new class extends Migration {
     {
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->unsignedBigInteger('client_id');
+            $table->string('title')->nullable();
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->unsignedBigInteger('complaint_title_id')->nullable();
+            $table->unsignedBigInteger('house_id')->nullable();
             $table->unsignedBigInteger('city_id')->nullable();
             $table->unsignedBigInteger('sector_id')->nullable();
-            $table->string('category', 100);
             $table->text('description')->nullable();
-            $table->enum('status', ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na', 'un_authorized', 'pertains_to_ge_const_isld', 'barak_damages'])->default('new');
+            $table->string('status', 50)->default('new');
             $table->unsignedBigInteger('assigned_employee_id')->nullable();
-            $table->enum('priority', ['low', 'medium', 'high', 'urgent', 'emergency'])->default('medium');
+            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->string('availability_time')->nullable();
             $table->timestamp('closed_at')->nullable();
 
@@ -31,6 +32,15 @@ return new class extends Migration {
             $table->timestamp('spare_used_at')->nullable();
 
             $table->timestamps();
+
+            // Performance indexes
+            $table->index('city_id');
+            $table->index('sector_id');
+            $table->index('status');
+            $table->index('category_id');
+            $table->index('complaint_title_id');
+            $table->index('created_at');
+            $table->index('assigned_employee_id');
         });
     }
 

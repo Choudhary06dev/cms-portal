@@ -44,6 +44,10 @@ return [
             'driver' => 'session',
             'provider' => 'frontend_users',
         ],
+        'sanctum' => [
+            'driver' => 'sanctum',
+            'provider' => 'houses',
+        ],
     ],
 
     /*
@@ -72,6 +76,11 @@ return [
         'frontend_users' => [
             'driver' => 'eloquent',
             'model' => App\Models\FrontendUser::class,
+        ],
+
+        'houses' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\House::class,
         ],
 
         // 'users' => [
@@ -120,5 +129,7 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    'password_renewal_days' => env('PASSWORD_RENEWAL_DAYS'),
 
 ];

@@ -20,9 +20,9 @@ return new class extends Migration
             $table->string('email', 150)->nullable();
             $table->string('phone', 20)->nullable();
             $table->unsignedBigInteger('role_id')->nullable();
-            $table->unsignedBigInteger('city_id')->nullable();
-            $table->unsignedBigInteger('sector_id')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->json('city_ids')->nullable();
+            $table->json('sector_ids')->nullable();
+            $table->tinyInteger('status')->default(1);
             $table->string('theme', 10)->default('auto');
             $table->timestamps();
         });

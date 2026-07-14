@@ -13,8 +13,13 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+use App\Traits\LocationFilterTrait;
+use Illuminate\Support\Facades\Auth;
+
 class FrontendUserController extends Controller
 {
+    use LocationFilterTrait;
+
     public function __construct()
     {
         // Middleware is applied in routes
@@ -26,6 +31,9 @@ class FrontendUserController extends Controller
     public function index(Request $request)
     {
         $query = FrontendUser::query();
+
+        // Apply location-based filtering
+        $this->filterFrontendUsersByLocation($query, Auth::user());
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -57,7 +65,7 @@ class FrontendUserController extends Controller
             ->select('cmes.id', 'cmes.name as cme_name', 'cities.id as city_id', 'cities.name as city_name', 'sectors.id as sector_id', 'sectors.name as sector_name')
             ->leftJoin('cities', 'cmes.id', '=', 'cities.cme_id')
             ->leftJoin('sectors', 'cmes.id', '=', 'sectors.cme_id')
-            ->where('cmes.status', '=', 'active')
+            ->where('cmes.status', '=', 1)
             ->orderBy('cmes.name')
             ->orderBy('cities.name')
             ->orderBy('sectors.name')
@@ -76,8 +84,8 @@ class FrontendUserController extends Controller
             'name' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:150|unique:frontend_users,email',
             'phone' => 'nullable|string|min:11|max:20',
-            'password' => 'required|string|min:6|confirmed',
-            'status' => 'required|in:active,inactive',
+            'password' => 'required|string|min:8|confirmed',
+            'status' => 'required|in:0,1',
         ]);
 
         if ($validator->fails()) {
@@ -98,9 +106,9 @@ class FrontendUserController extends Controller
         // Handle "Grant all privileges" (Super Admin)
         if ($request->has('is_super_admin') && $request->is_super_admin == 1) {
             // Assign ALL CMEs, Cities, and Sectors
-            $user->cme_ids = DB::table('cmes')->where('status', 'active')->pluck('id')->toArray();
-            $user->group_ids = DB::table('cities')->where('status', 'active')->pluck('id')->toArray();
-            $user->node_ids = DB::table('sectors')->where('status', 'active')->pluck('id')->toArray();
+            $user->cme_ids = DB::table('cmes')->where('status', 1)->pluck('id')->toArray();
+            $user->group_ids = DB::table('cities')->where('status', 1)->pluck('id')->toArray();
+            $user->node_ids = DB::table('sectors')->where('status', 1)->pluck('id')->toArray();
             $user->save();
         }
 
@@ -165,7 +173,7 @@ class FrontendUserController extends Controller
         $cmes = DB::table('cmes')
             ->select('cmes.id', 'cmes.name as cme_name', 'cities.id as city_id', 'cities.name as city_name')
             ->leftJoin('cities', 'cmes.id', '=', 'cities.cme_id')
-            ->where('cmes.status', '=', 'active')
+            ->where('cmes.status', '=', 1)
             ->orderBy('cmes.name')
             ->orderBy('cities.name')
             ->get();
@@ -189,7 +197,7 @@ class FrontendUserController extends Controller
             ->select('cmes.id', 'cmes.name as cme_name', 'cities.id as city_id', 'cities.name as city_name', 'sectors.id as sector_id', 'sectors.name as sector_name')
             ->leftJoin('cities', 'cmes.id', '=', 'cities.cme_id')
             ->leftJoin('sectors', 'cmes.id', '=', 'sectors.cme_id')
-            ->where('cmes.status', '=', 'active')
+            ->where('cmes.status', '=', 1)
             ->orderBy('cmes.name')
             ->orderBy('cities.name')
             ->orderBy('sectors.name')
@@ -200,8 +208,8 @@ class FrontendUserController extends Controller
         $userCityIds = $frontend_user->group_ids ?? [];
 
         // Determine if user is "Super Admin" (has ALL privileges)
-        $totalActiveCmes = DB::table('cmes')->where('status', 'active')->count();
-        $totalActiveCities = DB::table('cities')->where('status', 'active')->count();
+        $totalActiveCmes = DB::table('cmes')->where('status', 1)->count();
+        $totalActiveCities = DB::table('cities')->where('status', 1)->count();
         $isSuperAdmin = (count($userCmeIds) === $totalActiveCmes) && (count($userCityIds) === $totalActiveCities) && ($totalActiveCmes > 0) && ($totalActiveCities > 0);
 
         return view('admin.frontend-users.edit', compact('frontend_user', 'cmes', 'userCmeIds', 'userCityIds', 'isSuperAdmin'));
@@ -217,8 +225,8 @@ class FrontendUserController extends Controller
             'name' => 'nullable|string|max:100',
             'email' => 'nullable|email|max:150|unique:frontend_users,email,' . $frontend_user->id,
             'phone' => 'nullable|string|min:11|max:20',
-            'password' => 'nullable|string|min:6|confirmed',
-            'status' => 'required|in:active,inactive',
+            'password' => 'nullable|string|min:8|confirmed',
+            'status' => 'required|in:0,1',
         ]);
 
         if ($validator->fails()) {
@@ -238,24 +246,36 @@ class FrontendUserController extends Controller
 
             if ($request->filled('password')) {
                 $updateData['password'] = Hash::make($request->password);
+                $updateData['password_updated_at'] = now();
             }
 
             $frontend_user->update($updateData);
 
-            // Handle "Grant all privileges" (Super Admin)
+            // Handle "Grant all privileges" (Super Admin) logic carefully
+            $totalActiveCmes = DB::table('cmes')->where('status', 1)->count();
+            $totalActiveCities = DB::table('cities')->where('status', 1)->count();
+            
+            $userCmeIds = $frontend_user->cme_ids ?? [];
+            $userCityIds = $frontend_user->group_ids ?? [];
+            
+            $wasSuperAdmin = ($totalActiveCmes > 0 && $totalActiveCities > 0) &&
+                            (count($userCmeIds) === $totalActiveCmes) && 
+                            (count($userCityIds) === $totalActiveCities);
+
             if ($request->has('is_super_admin') && $request->is_super_admin == 1) {
-                // Assign ALL CMEs, Cities, and Sectors
-                $frontend_user->cme_ids = DB::table('cmes')->where('status', 'active')->pluck('id')->toArray();
-                $frontend_user->group_ids = DB::table('cities')->where('status', 'active')->pluck('id')->toArray();
-                $frontend_user->node_ids = DB::table('sectors')->where('status', 'active')->pluck('id')->toArray();
+                // Grant ALL CMEs, Cities, and Sectors
+                $frontend_user->cme_ids = DB::table('cmes')->where('status', 1)->pluck('id')->toArray();
+                $frontend_user->group_ids = DB::table('cities')->where('status', 1)->pluck('id')->toArray();
+                $frontend_user->node_ids = DB::table('sectors')->where('status', 1)->pluck('id')->toArray();
                 $frontend_user->save();
-            } else {
-                // If "Grant all privileges" is unchecked, remove all privileges
+            } elseif ($wasSuperAdmin && !$request->has('is_super_admin')) {
+                // Was super admin but now unchecked, so demote (remove all)
                 $frontend_user->cme_ids = [];
                 $frontend_user->group_ids = [];
                 $frontend_user->node_ids = [];
                 $frontend_user->save();
             }
+            // else: regular user update, don't touch existing JSON privileges/locations
 
             return redirect()->route('admin.frontend-users.index')
                 ->with('success', 'Frontend user updated successfully.');
@@ -290,10 +310,10 @@ class FrontendUserController extends Controller
     public function toggleStatus(FrontendUser $frontend_user)
     {
         $frontend_user->update([
-            'status' => $frontend_user->status === 'active' ? 'inactive' : 'active'
+            'status' => $frontend_user->status === 1 ? 0 : 1
         ]);
 
-        $status = $frontend_user->status === 'active' ? 'activated' : 'deactivated';
+        $status = $frontend_user->status === 1 ? 'activated' : 'deactivated';
 
         return redirect()->back()
             ->with('success', "Frontend user {$status} successfully.");
@@ -304,9 +324,9 @@ class FrontendUserController extends Controller
      */
     public function getAssignForm(FrontendUser $frontend_user)
     {
-        $cities = City::where('status', 'active')
+        $cities = City::where('status', 1)
             ->with(['cme', 'sectors' => function($query) {
-                $query->where('status', 'active')->orderBy('id', 'asc');
+                $query->where('status', 1)->orderBy('id', 'asc');
             }])
             ->orderBy('id', 'asc')
             ->get();
@@ -338,8 +358,8 @@ class FrontendUserController extends Controller
             'cities' => $citiesData,
             'assignedCityIds' => $assignedCityIds,
             'assignedSectorIds' => $assignedSectorIds,
-            'allCmes' => DB::table('cmes')->where('status', 'active')->select('id', 'name')->orderBy('name')->get(),
-            'allCities' => DB::table('cities')->where('status', 'active')->select('id', 'name', 'cme_id')->orderBy('name')->get(),
+            'allCmes' => DB::table('cmes')->where('status', 1)->select('id', 'name')->orderBy('name')->get(),
+            'allCities' => DB::table('cities')->where('status', 1)->select('id', 'name', 'cme_id')->orderBy('name')->get(),
             'userCmeIds' => $frontend_user->cme_ids ?? [],
             'userCityIds' => $frontend_user->group_ids ?? [],
         ]);
@@ -350,11 +370,18 @@ class FrontendUserController extends Controller
      */
     public function assignLocations(Request $request, FrontendUser $frontend_user)
     {
+        // Sanitize incoming arrays to remove any stale/deleted IDs
+        $validCmeIds = \App\Models\Cme::whereIn('id', $request->input('privilege_cme_ids', []))->pluck('id')->toArray();
+        $validCityIds = \App\Models\City::whereIn('id', $request->input('privilege_city_ids', []))->pluck('id')->toArray();
+        $validSectorIds = \App\Models\Sector::whereIn('id', $request->input('sector_ids', []))->pluck('id')->toArray();
+
+        $request->merge([
+            'privilege_cme_ids' => $validCmeIds,
+            'privilege_city_ids' => $validCityIds,
+            'sector_ids' => $validSectorIds,
+        ]);
+
         $validator = Validator::make($request->all(), [
-            'city_ids' => 'nullable|array',
-            'city_ids.*' => 'exists:cities,id',
-            'sector_ids' => 'nullable|array',
-            'sector_ids.*' => 'exists:sectors,id',
             'privilege_cme_ids' => 'nullable|array',
             'privilege_cme_ids.*' => 'exists:cmes,id',
             'privilege_city_ids' => 'nullable|array',

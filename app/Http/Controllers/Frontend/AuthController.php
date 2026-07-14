@@ -25,7 +25,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'username' => ['required','string','max:100','unique:users,username'],
             'email' => ['required','email','max:150','unique:users,email'],
-            'password' => ['required','string','min:6','confirmed'],
+            'password' => ['required','string','min:8','confirmed'],
         ]);
 
         $user = User::create([
@@ -33,7 +33,7 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role_id' => 2, // default to Employee/standard role if exists
-            'status' => 'active',
+            'status' => 1,
             'theme' => 'light',
         ]);
 
@@ -50,7 +50,29 @@ class AuthController extends Controller
         ]);
 
         if (Auth::guard('frontend')->attempt($credentials, false)) {
+            // Check if user is active
+            $user = Auth::guard('frontend')->user();
+            
+            if ($user->status !== 1) {
+                Auth::guard('frontend')->logout();
+                
+                return back()->withErrors([
+                    'username' => 'Your account has been deactivated. Please contact the administrator.',
+                ])->onlyInput('username');
+            }
+            
             $request->session()->regenerate();
+
+            // Log the login
+            \App\Models\LoginHistory::create([
+                'user_id' => $user->id,
+                'user_type' => get_class($user),
+                'username' => $user->username,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'source' => 'web',
+            ]);
+
             return redirect()->route('frontend.dashboard');
         }
 
@@ -62,8 +84,13 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::guard('frontend')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+
+        // Only invalidate session if no other guard is logged in
+        if (!Auth::guard('web')->check()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         return redirect()->route('frontend.home');
     }
 

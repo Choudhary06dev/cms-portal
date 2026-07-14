@@ -7,14 +7,26 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->append(\App\Http\Middleware\SecureHeaders::class);
+        $middleware->append(\App\Http\Middleware\SqlInjectionMitigation::class);
+        $middleware->validateCsrfTokens(except: [
+            'admin/logout',
+            'admin/login',
+            'login',
+            'logout',
+            'api/*', // Exclude all API routes from CSRF protection
+        ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
             'admin.access' => \App\Http\Middleware\AdminAccessMiddleware::class,
+            'password.renewal' => \App\Http\Middleware\CheckPasswordRenewal::class,
+            'manual.auth' => \App\Http\Middleware\ManualTokenAuth::class, // Custom auth bypass
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

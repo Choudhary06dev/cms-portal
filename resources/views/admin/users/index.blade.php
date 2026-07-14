@@ -38,8 +38,8 @@
       <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
       <select class="form-select" name="status" onchange="submitUsersFilters()" style="font-size: 0.9rem; width: 120px;">
         <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
-        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
+        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
       </select>
     </div>
     <div class="col-auto">
@@ -93,29 +93,41 @@
           </td>
           <td>
             @php
-              $roleName = strtolower($user->role->role_name ?? '');
+              $roleNameLower = strtolower($user->role->role_name ?? '');
+              $cityCount = count($user->city_ids ?? []);
             @endphp
-            @if(in_array($roleName, ['director', 'admin']))
+            @if(in_array($roleNameLower, ['director', 'admin']) && $cityCount === 0)
               <span class="badge bg-info">All GE Groups</span>
+            @elseif($cityCount > 0 && $cityCount >= ($totalCities ?? 0))
+              <span class="badge bg-info">All GE Groups</span>
+            @elseif($cityCount > 1)
+              <span class="text-white">{{ $cityCount }} GE Groups</span>
             @else
-              {{ $user->city->name ?? 'N/A' }}
+              <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $user->cities->pluck('name')->join(', ') }}">
+                {{ $user->cities->pluck('name')->join(', ') ?: 'N/A' }}
+              </span>
             @endif
           </td>
           <td>
             @php
-              $roleName = strtolower($user->role->role_name ?? '');
+              $sectorCount = count($user->sector_ids ?? []);
             @endphp
-            @if(in_array($roleName, ['director', 'admin']))
+            @if(in_array($roleNameLower, ['director', 'admin', 'ge']) && $sectorCount === 0)
               <span class="badge bg-info">All GE Nodes</span>
-            @elseif($roleName === 'garrison_engineer')
+            @elseif($sectorCount > 0 && $sectorCount >= ($totalSectors ?? 0))
               <span class="badge bg-info">All GE Nodes</span>
+            @elseif($sectorCount > 1)
+              <span class="text-white">{{ $sectorCount }} GE Nodes</span>
             @else
-              {{ $user->sector->name ?? 'N/A' }}
+              <span class="text-truncate d-inline-block" style="max-width: 120px;" title="{{ $user->sectors->pluck('name')->join(', ') }}">
+                {{ $user->sectors->pluck('name')->join(', ') ?: 'N/A' }}
+              </span>
             @endif
           </td>
+
           <td>
-            <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
-              {{ ucfirst($user->status) }}
+            <span class="badge {{ $user->status === 1 ? 'bg-success' : 'bg-danger' }}" style="color: #ffffff !important;">
+              {{ ($user->status ? 'Active' : 'Inactive') }}
             </span>
           </td>
           <td>

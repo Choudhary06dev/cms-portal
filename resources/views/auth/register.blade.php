@@ -29,7 +29,12 @@
             <label for="password" class="form-label" style="margin-bottom: 0.375rem; font-size: 0.8125rem;">
                 <i data-feather="lock" class="inline w-3.5 h-3.5 mr-1.5"></i>Password
             </label>
-            <input id="password" class="form-input" type="password" name="password" required autocomplete="new-password" placeholder="Create a password" style="padding: 0.625rem 0.875rem; font-size: 0.875rem;" />
+            <div style="position: relative;">
+                <input id="password" class="form-input" type="password" name="password" required autocomplete="new-password" placeholder="Create a password (min 8 characters)" style="padding: 0.625rem 0.875rem; padding-right: 40px; font-size: 0.875rem;" />
+                <span class="toggle-password" data-target="password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10;">
+                    <i data-feather="eye" style="width: 16px; height: 16px; color: #6c757d;"></i>
+                </span>
+            </div>
             @error('password')
                 <div class="error-message" style="margin-top: 0.375rem; font-size: 0.75rem;">{{ $message }}</div>
             @enderror
@@ -40,7 +45,12 @@
             <label for="password_confirmation" class="form-label" style="margin-bottom: 0.375rem; font-size: 0.8125rem;">
                 <i data-feather="lock" class="inline w-3.5 h-3.5 mr-1.5"></i>Confirm Password
             </label>
-            <input id="password_confirmation" class="form-input" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" style="padding: 0.625rem 0.875rem; font-size: 0.875rem;" />
+            <div style="position: relative;">
+                <input id="password_confirmation" class="form-input" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password" style="padding: 0.625rem 0.875rem; padding-right: 40px; font-size: 0.875rem;" />
+                <span class="toggle-password" data-target="password_confirmation" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10;">
+                    <i data-feather="eye" style="width: 16px; height: 16px; color: #6c757d;"></i>
+                </span>
+            </div>
             @error('password_confirmation')
                 <div class="error-message" style="margin-top: 0.375rem; font-size: 0.75rem;">{{ $message }}</div>
             @enderror
@@ -62,4 +72,78 @@
             </a>
         </div>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglers = document.querySelectorAll('.toggle-password');
+            
+            togglers.forEach(toggler => {
+                toggler.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    
+                    if (input) {
+                        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                        input.setAttribute('type', type);
+                        
+                        // Toggle icon inside the span container
+                        const icon = this.querySelector('i') || this.querySelector('svg');
+                        if (icon) {
+                            icon.setAttribute('data-feather', type === 'password' ? 'eye' : 'eye-off');
+                            
+                            // Refresh feather icons
+                            if (typeof feather !== 'undefined') {
+                                feather.replace();
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Form validation
+            const registerForm = document.querySelector('form[action*="register"]');
+            if (registerForm) {
+                registerForm.setAttribute('novalidate', '');
+
+                registerForm.addEventListener('submit', function(e) {
+                    const errors = [];
+                    
+                    const username = document.getElementById('username').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const password = document.getElementById('password').value;
+                    const passwordConfirmation = document.getElementById('password_confirmation').value;
+
+                    if (!username) {
+                        errors.push('Username is required.');
+                    }
+                    if (!email) {
+                        errors.push('Email address is required.');
+                    }
+                    if (!password) {
+                        errors.push('Password is required.');
+                    } else if (password.length < 8) {
+                        errors.push('Password must be at least 8 characters long.');
+                    }
+                    if (password && password !== passwordConfirmation) {
+                        errors.push('Password and Confirm Password do not match.');
+                    }
+
+                    if (errors.length > 0) {
+                        e.preventDefault();
+                        alert("Validation Errors:\n\n- " + errors.join("\n- "));
+                        return false;
+                    }
+                });
+            }
+
+            // Show server-side validation errors in popup if any
+            @if($errors->any())
+                const serverErrors = [];
+                @foreach($errors->all() as $error)
+                    serverErrors.push("{!! addslashes($error) !!}");
+                @endforeach
+                alert("Validation Errors:\n\n- " + serverErrors.join("\n- "));
+            @endif
+        });
+    </script>
 </x-guest-layout>

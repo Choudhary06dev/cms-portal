@@ -20,7 +20,7 @@ class ComplaintFeedback extends Model
 
     protected $fillable = [
         'complaint_id',
-        'client_id',
+        'house_id',
         'entered_by',
         'submitted_by',
         'overall_rating',
@@ -49,12 +49,14 @@ class ComplaintFeedback extends Model
         return $this->belongsTo(Complaint::class, 'complaint_id', 'id');
     }
 
+
+
     /**
-     * Get the client that provided this feedback.
+     * Get the house that provided this feedback.
      */
-    public function client(): BelongsTo
+    public function house(): BelongsTo
     {
-        return $this->belongsTo(Client::class, 'client_id', 'id');
+        return $this->belongsTo(House::class, 'house_id', 'id');
     }
 
     /**
@@ -70,6 +72,16 @@ class ComplaintFeedback extends Model
      */
     public function getOverallRatingDisplayAttribute(): string
     {
+        if (empty($this->overall_rating) && $this->rating_score > 0) {
+            return match($this->rating_score) {
+                5 => 'Excellent',
+                4 => 'Good',
+                3 => 'Satisfied',
+                2 => 'Fair',
+                1 => 'Poor',
+                default => 'N/A'
+            };
+        }
         return ucfirst($this->overall_rating ?? 'N/A');
     }
 
@@ -78,10 +90,23 @@ class ComplaintFeedback extends Model
      */
     public function getRatingColorAttribute(): string
     {
-        return match ($this->overall_rating) {
+        $rating = !empty($this->overall_rating) ? strtolower($this->overall_rating) : null;
+        if (!$rating && $this->rating_score > 0) {
+            $rating = match($this->rating_score) {
+                5 => 'excellent',
+                4 => 'good',
+                3 => 'satisfied',
+                2 => 'fair',
+                1 => 'poor',
+                default => null
+            };
+        }
+
+        return match ($rating) {
             'excellent' => '#22c55e', // Green
             'good' => '#3b82f6',      // Blue
-            'average' => '#f59e0b',    // Orange
+            'satisfied' => '#0ea5e9', // Sky Blue/Cyan
+            'fair' => '#f59e0b',      // Orange
             'poor' => '#ef4444',      // Red
             default => '#64748b'      // Gray
         };
@@ -92,10 +117,23 @@ class ComplaintFeedback extends Model
      */
     public function getRatingBadgeColorAttribute(): string
     {
-        return match ($this->overall_rating) {
+        $rating = !empty($this->overall_rating) ? strtolower($this->overall_rating) : null;
+        if (!$rating && $this->rating_score > 0) {
+            $rating = match($this->rating_score) {
+                5 => 'excellent',
+                4 => 'good',
+                3 => 'satisfied',
+                2 => 'fair',
+                1 => 'poor',
+                default => null
+            };
+        }
+
+        return match ($rating) {
             'excellent' => 'success',
             'good' => 'primary',
-            'average' => 'warning',
+            'satisfied' => 'info',
+            'fair' => 'warning',
             'poor' => 'danger',
             default => 'secondary'
         };

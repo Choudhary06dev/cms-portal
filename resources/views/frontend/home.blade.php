@@ -3,10 +3,22 @@
 @section('title', 'Navy Complaint Management System - Login')
 
 @push('styles')
+<link rel="preload" as="image" href="{{ asset('assests/Background.jpg') }}" fetchpriority="high">
+<link rel="preload" as="image" href="{{ asset('assests/slider1.jpg') }}">
 <style>
-  body {
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
     margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
     font-family: 'Inter', Arial, sans-serif;
+  }
+
+  body {
     background: url('{{ asset('assests/Background.jpg') }}') no-repeat center center/cover;
     background-attachment: fixed;
     position: relative;
@@ -15,19 +27,6 @@
     flex-direction: column;
   }
   
-  /* Overlay for people saluting flag */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('{{ asset('assests/Slider3.jpg') }}') no-repeat center left/cover;
-    opacity: 0.15;
-    z-index: 0;
-    pointer-events: none;
-  }
   
   /* Dark overlay for better readability */
   body::after {
@@ -67,6 +66,24 @@
     padding-right: 15px !important;
   }
 
+  /* Override global footer background for home page */
+  footer, footer *, footer::before, footer::after {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  footer p {
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 0, 0, 0.5);
+    font-weight: 700 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   footer .text-center {
     text-align: center !important;
     width: 100% !important;
@@ -82,7 +99,7 @@
   main {
     padding: 0 !important;
     margin: 0 !important;
-    padding-top: 25px !important;
+    padding-top: 10px !important;
     position: relative;
     z-index: 2;
     flex: 1;
@@ -91,14 +108,14 @@
   /* Custom navbar for home page */
   .home-navbar {
     text-align: center;
-    padding: 30px 30px;
+    padding: 10px 30px;
     font-size: 16px;
     color: #fff;
     letter-spacing: 2px;
     position: relative;
     z-index: 10;
     width: 100%;
-    margin-bottom: 40px;
+    margin-bottom: 5px;
   }
 
   .home-navbar a {
@@ -115,9 +132,9 @@
 
   .container {
     width: 90%;
-    max-width: 1100px;
-    margin: 15px auto;
-    margin-top: 75px;
+    max-width: 850px;
+    margin: 10px auto;
+    margin-top: 100px; 
     padding: 0;
     display: flex;
     background: rgba(255, 255, 255, 0.95);
@@ -130,8 +147,8 @@
   }
 
   .left-section {
-    flex: 1.3;
-    min-height: 420px;
+    flex: 1.5;
+    min-height: 220px;
     background: url('{{ asset('assests/slider1.jpg') }}') no-repeat center center/cover;
     background-size: cover;
     position: relative;
@@ -158,44 +175,11 @@
     z-index: 1;
   }
 
-  .image-slider {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 15px;
-    background: rgba(255, 255, 255, 0.5);
-    padding: 15px;
-    border-radius: 15px;
-    backdrop-filter: blur(5px);
-    z-index: 2;
-  }
-
-  .image-slider img {
-    width: 90px;
-    height: 60px;
-    border-radius: 10px;
-    object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .image-slider img:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }
-
-  .image-slider img.active {
-    border: 3px solid #2563eb;
-    transform: scale(1.05);
-  }
 
   .right-section {
     flex: 0.7;
     background: #fff;
-    padding: 40px 35px;
+    padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -206,30 +190,39 @@
 
   .logo {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     margin-top: -10px;
   }
 
-  .logo img {
-    width: 120px;
+ .logo img {
+    width: 100px;
     height: auto;
     display: block;
     margin: 0 auto;
+
+    /* White PNG ko Navy Blue (#000080) me convert karne ke liye */
+    filter: brightness(0) saturate(100%) invert(7%) sepia(95%) saturate(5000%) hue-rotate(235deg) brightness(70%) contrast(120%);
+
+    transition: transform 0.3s ease;
+}
+
+  .logo img:hover {
+    transform: scale(1.05);
   }
 
   .logo svg {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     display: block;
     margin: 0 auto;
   }
 
   .heading {
     text-align: center;
-    font-size: 28px !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
-    margin-top: 15px;
-    margin-bottom: 5px;
+    margin-top: 8px;
+    margin-bottom: 2px;
     color: #003366;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -238,18 +231,18 @@
 
   .subtitle {
     text-align: center;
-    font-size: 14px;
+    font-size: 13px;
     color: #6c757d;
-    margin-bottom: 30px;
+    margin-bottom: 5px;
     font-weight: 400;
   }
 
   .form {
-    margin-top: 20px;
+    margin-top: 5px;
   }
 
   .form-group {
-    margin-top: 15px;
+    margin-top: 10px;
   }
 
   .form-group label {
@@ -264,7 +257,7 @@
   input[type="password"],
   input[type="text"] {
     width: 100%;
-    padding: 12px 14px;
+    padding: 8px 10px;
     margin-top: 6px;
     border-radius: 8px;
     border: 2px solid #3b82f6;
@@ -320,13 +313,13 @@
 
   .sign-btn {
     width: 100%;
-    margin-top: 25px;
-    padding: 12px;
+    margin-top: 15px;
+    padding: 10px;
     background: #2563eb;
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -359,7 +352,7 @@
     color: #6c757d;
     margin-top: 10px;
     font-size: 0.95rem;
-    margin-bottom: 25px;
+    margin-bottom: 10px;
   }
 
   /* Responsive */
@@ -368,30 +361,38 @@
       flex-direction: column;
       width: 95%;
       margin: 20px auto;
+      margin-top: 180px;
     }
 
     .left-section {
-      min-height: 300px;
+      min-height: 250px;
+      border-radius: 20px 20px 0 0 !important;
     }
 
     .right-section {
       padding: 30px;
+      border-radius: 0 0 20px 20px !important;
     }
 
-    .navbar a {
-      margin: 0 15px;
-      font-size: 16px;
+    .home-navbar {
+      padding: 20px 15px;
+      margin-bottom: 50px;
+    }
+
+    .home-navbar a {
+      margin: 0 5px;
+      font-size: 13px;
     }
   }
 
   @media (max-width: 576px) {
-    .navbar {
+    .home-navbar {
       padding: 15px;
     }
 
-    .navbar a {
-      margin: 0 10px;
-      font-size: 14px;
+    .home-navbar a {
+      margin: 0 5px;
+      font-size: 12px;
     }
 
     .right-section {
@@ -399,7 +400,17 @@
     }
 
     .heading {
-      font-size: 22px !important;
+      font-size: 20px !important;
+    }
+
+    .sign-btn {
+      padding: 10px;
+      margin-top: 15px;
+    }
+
+    .container {
+      width: 90%;
+      margin-top: 150px;
     }
 
     .image-slider {
@@ -419,18 +430,13 @@
 <div style="display: flex; flex-direction: column; min-height: calc(100vh - 100px);">
 
   <div class="container">                                                                                                            
-    <div class="left-section" id="leftSection" @auth('frontend') style="border-radius: 20px; min-height: 650px;" @endauth>
-        <div class="image-slider" id="imageSlider">
-            <img src="{{ asset('assests/slider1.jpg') }}" alt="Navy Image 1" data-bg="{{ asset('assests/slider1.jpg') }}" class="slider-img" />
-            <img src="{{ asset('assests/Slider2.jpg') }}" alt="Navy Image 2" data-bg="{{ asset('assests/Slider2.jpg') }}" class="slider-img" />
-            <img src="{{ asset('assests/slider3.jpg') }}" alt="Navy Image 3" data-bg="{{ asset('assests/slider3.jpg') }}" class="slider-img" />
-        </div>
+    <div class="left-section" id="leftSection" @auth('frontend') style="border-radius: 20px; min-height: 500px;" @endauth>
     </div>
 
     @guest('frontend')
     <div class="right-section">
         <div class="logo">
-            <img src="{{ asset('assests/logo.png') }}" alt="Pakistan Navy Emblem" style="width: 120px; height: 120px; object-fit: contain;" />
+            <img src="{{ asset('assests/logo.png') }}" alt="Pakistan Navy Emblem" width="100" height="100" style="width: 100px; height: 100px; object-fit: contain;" fetchpriority="high" />
         </div>
         <div class="heading">MES COMPLAINT MANAGEMENT SYSTEM</div>
         <p class="subtitle">Nice to see you again</p>
@@ -452,8 +458,10 @@
                 <label>Password</label>
                 <div style="position: relative;">
                     <input type="password" name="password" id="password" placeholder="Enter password" required style="padding-right: 40px;" />
-                    <i data-feather="eye" id="togglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; width: 18px; height: 18px; color: #6c757d;"></i>
-          </div>
+                    <span id="togglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10;">
+                        <i data-feather="eye" style="width: 18px; height: 18px; color: #6c757d;"></i>
+                    </span>
+                  </div>
         </div>
         
             <div class="remember">
@@ -475,17 +483,23 @@
 <script>
   // Password toggle functionality
   document.addEventListener('DOMContentLoaded', function() {
-    const togglePassword = document.getElementById('togglePassword');
+    const toggleBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     
-    if (togglePassword && passwordInput) {
-      togglePassword.addEventListener('click', function() {
+    if (toggleBtn && passwordInput) {
+      toggleBtn.addEventListener('click', function() {
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
         
-        // Update icon
-        if (typeof feather !== 'undefined') {
-          feather.replace();
+        // Toggle the eye icon
+        const icon = this.querySelector('i') || this.querySelector('svg');
+        if (icon) {
+          icon.setAttribute('data-feather', type === 'password' ? 'eye' : 'eye-off');
+          
+          // Re-initialize feather icons if available
+          if (typeof feather !== 'undefined') {
+            feather.replace();
+          }
         }
       });
     }
@@ -495,66 +509,6 @@
       feather.replace();
     }
 
-    // Image slider functionality
-    const sliderImages = document.querySelectorAll('.slider-img');
-    const leftSection = document.getElementById('leftSection');
-    let currentIndex = 0;
-    let intervalId;
-
-    // Function to update slider
-    function updateSlider(index) {
-        // Remove active class from all
-        sliderImages.forEach(img => img.classList.remove('active'));
-        
-        // Add active to current
-        const img = sliderImages[index];
-        if(img) {
-            img.classList.add('active');
-            const bgImage = img.getAttribute('data-bg');
-            leftSection.style.backgroundImage = `url('${bgImage}')`;
-        }
-    }
-
-    // Function to move to next slide
-    function nextSlide() {
-        currentIndex = (currentIndex + 1) % sliderImages.length;
-        updateSlider(currentIndex);
-    }
-
-    // Start auto rotation
-    function startAutoRotation() {
-        stopAutoRotation(); // clear existing to be safe
-        intervalId = setInterval(nextSlide, 3000);
-    }
-
-    // Stop auto rotation
-    function stopAutoRotation() {
-        if (intervalId) clearInterval(intervalId);
-    }
-
-    const imageSlider = document.getElementById('imageSlider');
-
-    // Hover functionality for images
-    sliderImages.forEach((img, index) => {
-        img.addEventListener('mouseenter', function() {
-            stopAutoRotation();
-            currentIndex = index; // Update current index to the hovered one
-            updateSlider(currentIndex);
-        });
-        
-        img.addEventListener('click', function() {
-            stopAutoRotation();
-            currentIndex = index;
-            updateSlider(currentIndex);
-        });
-    });
-
-    // Pause on hover over container, resume on leave
-    imageSlider.addEventListener('mouseenter', stopAutoRotation);
-    imageSlider.addEventListener('mouseleave', startAutoRotation);
-
-    // Start initially
-    startAutoRotation();
   });
 
 </script>

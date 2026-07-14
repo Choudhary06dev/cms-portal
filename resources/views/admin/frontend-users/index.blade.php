@@ -33,8 +33,8 @@
           <select class="form-select" name="status" onchange="submitFrontendUsersFilters()"
             style="font-size: 0.9rem; width: 120px;">
             <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
-            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+            <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
+            <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
           </select>
         </div>
         <div class="col-auto">
@@ -78,9 +78,9 @@
               <td>{{ $user->email ?? 'N/A' }}</td>
               <td>{{ $user->phone ?? 'N/A' }}</td>
               <td>
-                <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}"
+                <span class="badge {{ $user->status === 1 ? 'bg-success' : 'bg-danger' }}"
                   style="color: #ffffff !important;">
-                  {{ ucfirst($user->status) }}
+                  {{ ($user->status ? 'Active' : 'Inactive') }}
                 </span>
               </td>
               <td>
@@ -629,25 +629,40 @@
       const locationsList = document.getElementById('locationsList');
       let html = '';
 
-      if (!cities || cities.length === 0) {
+      if ((!cities || cities.length === 0) && (!allCmes || allCmes.length === 0)) {
         locationsList.innerHTML = '<div class="text-center py-5 text-muted">No data available.</div>';
         return;
       }
 
-      // Group cities by CME
+      // Group cities by CME, but ensure ALL active CMEs are included
       const cmeMap = {};
-      cities.forEach(city => {
-        const cmeId = city.cme_id || 'no-cme';
-        const cmeName = city.cme_name || 'N/A';
-        if (!cmeMap[cmeId]) {
-          cmeMap[cmeId] = {
-            id: cmeId,
-            name: cmeName,
+      
+      // First, initialize cmeMap with ALL available CMEs
+      if (allCmes && allCmes.length > 0) {
+        allCmes.forEach(cme => {
+          cmeMap[cme.id] = {
+            id: cme.id,
+            name: cme.name,
             cities: []
           };
-        }
-        cmeMap[cmeId].cities.push(city);
-      });
+        });
+      }
+
+      // Then distribute the cities into their respective CMEs
+      if (cities && cities.length > 0) {
+        cities.forEach(city => {
+          const cmeId = city.cme_id || 'no-cme';
+          const cmeName = city.cme_name || 'N/A';
+          if (!cmeMap[cmeId]) {
+            cmeMap[cmeId] = {
+              id: cmeId,
+              name: cmeName,
+              cities: []
+            };
+          }
+          cmeMap[cmeId].cities.push(city);
+        });
+      }
 
       html += '<div class="row">';
 
@@ -1055,19 +1070,25 @@
         allCmeCbs.forEach(cb => {
           cb.checked = true;
           const cmeId = parseInt(cb.dataset.cmeId);
-          privilegeCmeIds.push(cmeId);
+          if (!isNaN(cmeId)) {
+            privilegeCmeIds.push(cmeId);
+          }
         });
 
         allCityCbs.forEach(cb => {
           cb.checked = true;
           const cityId = parseInt(cb.dataset.cityId);
-          privilegeCityIds.push(cityId);
+          if (!isNaN(cityId)) {
+            privilegeCityIds.push(cityId);
+          }
         });
 
         allSectorCbs.forEach(cb => {
           cb.checked = true;
           const sectorId = parseInt(cb.dataset.sectorId);
-          assignedSectorIds.push(sectorId);
+          if (!isNaN(sectorId)) {
+            assignedSectorIds.push(sectorId);
+          }
         });
       } else {
         allCmeCbs.forEach(cb => {
@@ -1134,11 +1155,11 @@
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-          body: JSON.stringify({
-            privilege_cme_ids: privilegeCmeIds,
-            privilege_city_ids: privilegeCityIds,
-            sector_ids: assignedSectorIds
-          }),
+        body: JSON.stringify({
+          privilege_cme_ids: privilegeCmeIds.map(id => parseInt(id)).filter(id => !isNaN(id)),
+          privilege_city_ids: privilegeCityIds.map(id => parseInt(id)).filter(id => !isNaN(id)),
+          sector_ids: assignedSectorIds.map(id => parseInt(id)).filter(id => !isNaN(id))
+        }),
         credentials: 'same-origin'
       })
         .then(response => response.json())

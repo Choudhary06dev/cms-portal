@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\CityController as AdminCityController;
 use App\Http\Controllers\Admin\CmeController as AdminCmeController;
 use App\Http\Controllers\Admin\DesignationController as AdminDesignationController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Admin\BrandController as AdminBrandController;
+use App\Http\Middleware\AdminAccessMiddleware;
 use App\Http\Controllers\SearchController;
 // Frontend routes are defined in routes/frontend.php and loaded here
 
@@ -33,6 +35,10 @@ use App\Http\Controllers\SearchController;
 |--------------------------------------------------------------------------
 */
 require __DIR__.'/frontend.php';
+
+// Force load API routes if automatic loading fails on live server
+Route::prefix('api')->group(base_path('routes/api.php'));
+
 
 Route::get('/admin', function () {
     return redirect()->route('admin.dashboard');
@@ -66,7 +72,7 @@ require __DIR__.'/auth.php';
 | Admin Routes (Protected)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'verified', 'admin.access'])
+Route::middleware(['auth', 'verified', AdminAccessMiddleware::class])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -77,9 +83,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::middleware(['permission:dashboard'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     });
-    // Notifications
-    Route::get('/notifications', [AdminController::class, 'notificationsIndex'])->name('notifications.index');
-    Route::get('/notifications/api', [AdminController::class, 'getNotifications'])->name('notifications.api');
+
     Route::get('/dashboard/chart-data', [AdminDashboardController::class, 'getChartData'])->name('dashboard.chart-data');
     Route::get('/dashboard/real-time-updates', [AdminDashboardController::class, 'getRealTimeUpdates'])->name('dashboard.real-time-updates');
     
@@ -143,6 +147,27 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::middleware(['permission:employees.delete'])->group(function () {
         Route::delete('employees/{employee}', [AdminEmployeeController::class, 'destroy'])->name('employees.destroy');
     });
+
+    // ===============================
+    // 🏠 House Management
+    // ===============================
+    Route::middleware(['permission:employees.view'])->group(function () {
+        // Extra AJAX/helper routes (must come BEFORE resource routes to avoid conflicts)
+        Route::get('houses/sectors', [App\Http\Controllers\Admin\HouseController::class, 'getSectorsByCity'])->name('houses.sectors');
+        
+        // Resource routes
+        // Resource routes
+        Route::resource('houses', App\Http\Controllers\Admin\HouseController::class);
+    });
+
+    // ===============================
+    // 📱 Registered Devices Management
+    // ===============================
+    Route::middleware(['permission:registered-devices'])->group(function () {
+        Route::get('registered-devices/houses', [App\Http\Controllers\Admin\RegisteredDeviceController::class, 'getHousesBySector'])->name('registered-devices.houses');
+        Route::resource('registered-devices', App\Http\Controllers\Admin\RegisteredDeviceController::class);
+    });
+
 
     // ===============================
     // 🛠 Complaints
@@ -222,10 +247,11 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::get('spares/get-categories', [AdminSpareController::class, 'getCategories'])->middleware(['permission:spares.view'])->name('spares.get-categories');
     Route::get('spares/get-products-by-category', [AdminSpareController::class, 'getProductsByCategory'])->middleware(['permission:spares.view'])->name('spares.get-products-by-category');
     Route::get('spares/get-product-brands', [AdminSpareController::class, 'getProductBrands'])->middleware(['permission:spares.view'])->name('spares.get-product-brands');
-    Route::get('spares/old-brand-history/{itemName}/{brandName}', [AdminSpareController::class, 'showOldBrandHistory'])->middleware(['permission:spares.view'])->name('spares.old-brand-history');
     
     // Resource routes and routes with parameters
     Route::resource('spares', AdminSpareController::class)->middleware(['permission:spares.view']);
+    Route::resource('brands', AdminBrandController::class)->middleware(['permission:spares.view']);
+    Route::get('brands/by-category/{category}', [AdminBrandController::class, 'getByCategory'])->name('brands.by-category');
     Route::get('spares/{spare}/edit-data', [AdminSpareController::class, 'editData'])->name('spares.edit-data');
     Route::get('spares/{spare}/print-slip', [AdminSpareController::class, 'printSlip'])->middleware(['permission:spares.view'])->name('spares.print-slip');
     Route::get('spares/{spare}/history', [AdminSpareController::class, 'getProductHistory'])->middleware(['permission:spares.view'])->name('spares.history');
@@ -238,6 +264,7 @@ Route::middleware(['auth', 'verified', 'admin.access'])
     Route::post('approvals/{approval}/save-performa', [AdminApprovalController::class, 'saveWithPerforma'])->middleware(['permission:approvals.view'])->name('approvals.save-performa');
     Route::post('approvals/{approval}/update-performa-type', [AdminApprovalController::class, 'updatePerformaType'])->middleware(['permission:approvals.view'])->name('approvals.update-performa-type');
     Route::post('approvals/bulk-action', [AdminApprovalController::class, 'bulkAction'])->middleware(['permission:approvals.view'])->name('approvals.bulk-action');
+    Route::post('complaints/{complaint}/ensure-approval', [AdminApprovalController::class, 'ensureApproval'])->middleware(['permission:approvals.view'])->name('complaints.ensure-approval');
     Route::post('approvals/complaints/{complaintId}/update-status', [AdminApprovalController::class, 'updateComplaintStatus'])->middleware(['permission:approvals.view'])->name('approvals.complaints.update-status');
     Route::resource('sla', AdminSlaController::class)->middleware(['permission:sla.view']);
     Route::post('sla/{sla}/toggle-status', [AdminSlaController::class, 'toggleStatus'])->name('sla.toggle-status');

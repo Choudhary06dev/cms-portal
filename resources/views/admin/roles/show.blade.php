@@ -105,8 +105,8 @@
                     {{ $user->email }}
                   </span>
                 @endif
-                <span class="badge ms-2 {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.75rem; padding: 4px 8px; color: #ffffff !important;">
-                  {{ ucfirst($user->status) }}
+                <span class="badge ms-2 {{ $user->status === 1 ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.75rem; padding: 4px 8px; color: #ffffff !important;">
+                  {{ ($user->status ? 'Active' : 'Inactive') }}
                 </span>
               </div>
             </div>
@@ -161,7 +161,7 @@
                 'designation' => 'Designations',
                 'city' => 'GE Groups',
                 'sector' => 'GE Nodes',
-                'clients' => 'Clients',
+                'houses' => 'Houses',
                 'complaints' => 'Complaints Mgmt',
                 'category' => 'Complaint Cat',
                 'complaint-titles' => 'Complaint Types',

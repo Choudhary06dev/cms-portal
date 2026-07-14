@@ -6,6 +6,94 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 <style>
+  /* Modal Background Blur */
+  body.modal-open-blur > .wrapper, 
+  body.modal-open-blur > .main-header, 
+  body.modal-open-blur > .main-sidebar, 
+  body.modal-open-blur > .content-wrapper {
+      filter: blur(5px);
+      transition: filter 0.3s ease;
+  }
+
+  /* Compact Modal Table Styles */
+  #complaintsListModal .table th,
+  #complaintsListModal .table td {
+      font-size: 0.7rem !important; /* Smaller text */
+      white-space: normal !important; /* Wrap text to avoid scroll */
+      padding: 0.3rem 0.4rem !important;
+      vertical-align: middle;
+      line-height: 1.2;
+  }
+  
+  #complaintsListModal .table th {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap !important; /* Keep headers single line if possible */
+  }
+
+  /* Force Date and Addressed Time columns to stay on a single line */
+  #complaintsListModal table th:nth-child(2),
+  #complaintsListModal table td:nth-child(2),
+  #complaintsListModal table th:nth-child(3),
+  #complaintsListModal table td:nth-child(3) {
+      white-space: nowrap !important;
+  }
+
+  /* Override badge sizes in modal */
+  #complaintsListModal .badge,
+  #complaintsListModal .status-badge,
+  #complaintsListModal .priority-badge {
+      font-size: 0.6rem !important;
+      padding: 2px 0 !important; /* Reduced side padding, rely on width */
+      min-width: 60px !important; /* Fixed width for equality */
+      max-width: 60px !important;
+      display: inline-block !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+  }
+
+  /* Specific override for Status badge to allow full text display */
+  #complaintsListModal .badge-status-label {
+      width: 115px !important;
+      min-width: 115px !important;
+      max-width: 115px !important;
+      padding: 3px 0 !important;
+      font-size: 0.65rem !important;
+      text-overflow: clip !important;
+      overflow: hidden !important;
+      display: inline-block !important;
+  }
+
+  /* Ensure the priority column centers its content */
+  #complaintsListModal table th:nth-child(8), 
+  #complaintsListModal table td:nth-child(8) {
+      text-align: center;
+      vertical-align: middle;
+  }
+
+  /* Smaller Action Buttons in Modal */
+  #complaintsListModal .table .btn {
+      padding: 1px 4px !important;
+      font-size: 0.6rem !important;
+      line-height: 1 !important;
+      height: 20px !important;
+      width: 20px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+  }
+  
+  #complaintsListModal .table .btn i,
+  #complaintsListModal .table .btn svg {
+      width: 10px !important;
+      height: 10px !important;
+      min-width: 10px !important;
+      min-height: 10px !important;
+  }
+
+
   /* Enhanced matte finish for stat cards */
   .stat-card {
     position: relative;
@@ -65,12 +153,12 @@
   /* Global styling for stat numbers and labels */
   .stat-card .stat-number {
     font-weight: 800 !important;
-    font-size: 1.4rem !important;
+    font-size: 1.15rem !important; /* Reduced from 1.4rem */
   }
 
   .stat-card .stat-label {
     font-weight: 700 !important;
-    font-size: 1.0rem !important;
+    font-size: 0.8rem !important; /* Reduced from 1.0rem */
   }
 
   /* Matte finish for chart containers */
@@ -110,7 +198,7 @@
   /* Reduce column spacing in Recent Complaints table */
   .table-responsive .table.table-dark th,
   .table-responsive .table.table-dark td {
-    padding: 0.6rem 0.5rem !important;
+    padding: 0.4rem 0.35rem !important; /* Reduced from 0.6rem 0.5rem */
     white-space: nowrap;
   }
 
@@ -125,12 +213,12 @@
   }
 
   .table-responsive .table.table-dark th {
-    font-size: 0.85rem;
+    font-size: 0.75rem; /* Reduced from 0.85rem */
     font-weight: 600;
   }
 
   .table-responsive .table.table-dark td {
-    font-size: 0.875rem;
+    font-size: 0.8rem; /* Reduced from 0.875rem */
   }
 
   /* Subtle matte finish for status badges */
@@ -286,14 +374,22 @@
     -moz-appearance: none !important;
   }
 </style>
-@endpush
-
 @section('content')
 
 <!-- DASHBOARD HEADER -->
 <div class="mb-5 dashboard-header">
-  <h2 class="text-white mb-2">Dashboard Overview</h2>
-  <p class="text-light">Real-time complaint management system</p>
+  <div class="d-flex justify-content-between align-items-start mb-1">
+    <h2 class="text-white mb-0" style="font-size: 2.25rem; font-weight: 700; line-height: 1.2; margin-top: 0 !important;">Dashboard Overview</h2>
+    @if(Auth::user() && Auth::user()->hasPermission('complaints'))
+    <a href="{{ route('admin.complaints.create') }}" class="btn d-flex align-items-center gap-2" style="background: #001f5b !important; color: #ffffff !important; font-weight: 700; font-size: 1.15rem; padding: 0.75rem 1.75rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: none; text-decoration: none; transition: all 0.3s ease; margin-top: 0 !important;">
+      <i data-feather="plus-circle" style="width: 22px; height: 22px; color: #ffffff !important; stroke: #ffffff !important; stroke-width: 2.5px;"></i>
+      <span style="color: #ffffff !important;">Add Complaint</span>
+    </a>
+    @endif  
+  </div>
+  <p class="text-light mb-0" style="margin-top: 0.25rem; padding-left: 2.5rem; font-size: 1.1rem; opacity: 0.85;">
+    Real-time complaint management system
+  </p>
 </div>
 
 <!-- FILTERS SECTION -->
@@ -313,84 +409,133 @@
 <div class="mb-5 d-flex justify-content-center">
   <div class="filter-box" style="display: inline-block; width: fit-content;">
     <form id="dashboardFiltersForm" method="GET" action="{{ route('admin.dashboard') }}">
-      <div class="row g-3 align-items-end">
+      <div class="row g-2 align-items-end flex-nowrap">
         @if($showCityFilter)
         @if(isset($cmesList) && $cmesList->count() > 0)
         <div class="col-auto">
-          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">CMES</label>
-          <select class="form-select" id="cmesFilter" name="cmes_id" style="font-size: 0.9rem; width: 180px;">
-            <option value="">Select CMES</option>
-            @foreach($cmesList as $cme)
-              <option value="{{ $cme->id }}" {{ (request('cmes_id') == $cme->id || (isset($cmesId) && $cmesId == $cme->id)) ? 'selected' : '' }}>{{ $cme->name }}</option>
-            @endforeach
-          </select>
+          <label class="form-label mb-1" style="font-size: 0.8rem !important; color: #1e293b !important; font-weight: 700 !important;">CMES</label>
+          <div class="dropdown filter-dropdown-wrapper" style="width: 150px;">
+            <button class="btn btn-light btn-sm form-select text-start" type="button" id="cmesDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem !important; height: 38px !important; line-height: 1.5 !important; padding: 0.375rem 2.25rem 0.375rem 0.75rem !important; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%;">
+              Select CMES
+            </button>
+            <ul class="dropdown-menu p-2" aria-labelledby="cmesDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff !important; border: 1px solid #ced4da;">
+              @php
+                $selectedCmesIds = is_array(request('cmes_id')) ? request('cmes_id') : (request('cmes_id') ? [request('cmes_id')] : (isset($cmesId) ? (is_array($cmesId) ? $cmesId : [$cmesId]) : []));
+              @endphp
+              @foreach($cmesList as $cme)
+                <li class="p-1">
+                  <div class="form-check">
+                    <input class="form-check-input cmes-checkbox" type="checkbox" value="{{ $cme->id }}" id="cme_cb_{{ $cme->id }}" name="cmes_id[]" {{ in_array($cme->id, $selectedCmesIds) ? 'checked' : '' }} onchange="updateDropdownButtonText('cmesDropdownBtn', 'cmes_id[]', 'Select CMES'); handleCmesCheckboxChange();">
+                    <label class="form-check-label w-100 cursor-pointer text-dark" for="cme_cb_{{ $cme->id }}">{{ $cme->name }}</label>
+                  </div>
+                </li>
+              @endforeach
+            </ul>
+          </div>
         </div>
         @endif
         <div class="col-auto" id="cityFilterContainer">
-          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">GE</label>
-          <select class="form-select" id="cityFilter" name="city_id" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">Select GE</option>
-            @if($cities && $cities->count() > 0)
-              @foreach($cities as $city)
-                @php
-                  $geUser = $city->users->where('role_id', $geRole->id ?? null)->where('status', 'active')->first();
-                  $displayName = $city->name;
-                  if ($geUser) {
-                    if ($geUser->name) {
-                      $displayName = $geUser->name . ' - ' . $city->name;
-                    } elseif ($geUser->username) {
-                      $displayName = $geUser->username . ' - ' . $city->name;
-                    }
-                  }
-                @endphp
-                <option value="{{ $city->id }}" {{ (request('city_id') == $city->id || $cityId == $city->id) ? 'selected' : '' }}>{{ $displayName }}</option>
-              @endforeach
-            @endif
-          </select>
+          <label class="form-label mb-1" style="font-size: 0.8rem !important; color: #1e293b !important; font-weight: 700 !important;">GE</label>
+          <div class="dropdown filter-dropdown-wrapper" style="width: 150px;">
+            <button class="btn btn-light btn-sm form-select text-start" type="button" id="cityDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem !important; height: 38px !important; line-height: 1.5 !important; padding: 0.375rem 2.25rem 0.375rem 0.75rem !important; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%;">
+              Select GE
+            </button>
+            <ul class="dropdown-menu p-2" id="cityDropdownList" aria-labelledby="cityDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 220px; background-color: #ffffff !important; border: 1px solid #ced4da;">
+              @php
+                $selectedCityIds = is_array(request('city_id')) ? request('city_id') : (request('city_id') ? [request('city_id')] : (isset($cityId) ? (is_array($cityId) ? $cityId : [$cityId]) : []));
+              @endphp
+              @if($cities && $cities->count() > 0)
+                @foreach($cities as $city)
+                  <li class="p-1 city-item" data-cme-id="{{ $city->cme_id }}">
+                    <div class="form-check">
+                      <input class="form-check-input city-checkbox" type="checkbox" value="{{ $city->id }}" id="city_cb_{{ $city->id }}" name="city_id[]" {{ in_array($city->id, $selectedCityIds) ? 'checked' : '' }} onchange="updateDropdownButtonText('cityDropdownBtn', 'city_id[]', 'Select GE'); handleCityCheckboxChange();">
+                      <label class="form-check-label w-100 cursor-pointer text-dark" for="city_cb_{{ $city->id }}">{{ $city->name }}</label>
+                    </div>
+                  </li>
+                @endforeach
+              @endif
+            </ul>
+          </div>
         </div>
         @endif
 
         @if($showSectorFilter)
         <div class="col-auto">
-          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">GE Nodes</label>
-          <select class="form-select" id="sectorFilter" name="sector_id" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">Select GE Nodes</option>
-            @if($sectors && $sectors->count() > 0)
-              @foreach($sectors as $sector)
-                <option value="{{ $sector->id }}" {{ (request('sector_id') == $sector->id || $sectorId == $sector->id) ? 'selected' : '' }}>{{ $sector->name }}</option>
-              @endforeach
-            @endif
-          </select>
+          <label class="form-label mb-1" style="font-size: 0.8rem !important; color: #1e293b !important; font-weight: 700 !important;">GE Nodes</label>
+          <div class="dropdown filter-dropdown-wrapper" style="width: 150px;">
+            <button class="btn btn-light btn-sm form-select text-start" type="button" id="sectorDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem !important; height: 38px !important; line-height: 1.5 !important; padding: 0.375rem 2.25rem 0.375rem 0.75rem !important; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%;">
+              Select GE Nodes
+            </button>
+            <ul class="dropdown-menu p-2" id="sectorDropdownList" aria-labelledby="sectorDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff !important; border: 1px solid #ced4da;">
+              @php
+                $selectedSectorIds = is_array(request('sector_id')) ? request('sector_id') : (request('sector_id') ? [request('sector_id')] : (isset($sectorId) ? (is_array($sectorId) ? $sectorId : [$sectorId]) : []));
+              @endphp
+              @if($sectors && $sectors->count() > 0)
+                @foreach($sectors as $sector)
+                  <li class="p-1 sector-item" data-city-id="{{ $sector->city_id }}" data-cme-id="{{ $sector->cme_id }}">
+                    <div class="form-check">
+                      <input class="form-check-input sector-checkbox" type="checkbox" value="{{ $sector->id }}" id="sector_cb_{{ $sector->id }}" name="sector_id[]" {{ in_array($sector->id, $selectedSectorIds) ? 'checked' : '' }} onchange="updateDropdownButtonText('sectorDropdownBtn', 'sector_id[]', 'Select GE Nodes')">
+                      <label class="form-check-label w-100 cursor-pointer text-dark" for="sector_cb_{{ $sector->id }}">{{ $sector->name }}</label>
+                    </div>
+                  </li>
+                @endforeach
+              @endif
+            </ul>
+          </div>
         </div>
         @endif
 
         <div class="col-auto">
-          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaint Category</label>
-          <select class="form-select" id="categoryFilter" name="category" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">Select Category</option>
-            @if($categories && $categories->count() > 0)
-              @foreach($categories as $cat)
-                <option value="{{ $cat }}" {{ (request('category') == $cat || $category == $cat) ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-              @endforeach
-            @endif
-          </select>
+          <label class="form-label mb-1" style="font-size: 0.8rem !important; color: #1e293b !important; font-weight: 700 !important;">Category</label>
+          <div class="dropdown filter-dropdown-wrapper" style="width: 150px;">
+            <button class="btn btn-light btn-sm form-select text-start" type="button" id="categoryDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem !important; height: 38px !important; line-height: 1.5 !important; padding: 0.375rem 2.25rem 0.375rem 0.75rem !important; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%;">
+              Select Category
+            </button>
+            <ul class="dropdown-menu p-2" aria-labelledby="categoryDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff !important; border: 1px solid #ced4da;">
+              @php
+                $selectedCategories = is_array(request('category')) ? request('category') : (request('category') ? [request('category')] : (isset($category) ? (is_array($category) ? $category : [$category]) : []));
+              @endphp
+              @if($categories && $categories->count() > 0)
+                @foreach($categories as $cat)
+                  <li class="p-1">
+                    <div class="form-check">
+                      <input class="form-check-input category-checkbox" type="checkbox" value="{{ $cat }}" id="cat_cb_{{ Str::slug($cat) }}" name="category[]" {{ in_array($cat, $selectedCategories) ? 'checked' : '' }} onchange="updateDropdownButtonText('categoryDropdownBtn', 'category[]', 'Select Category');">
+                      <label class="form-check-label w-100 cursor-pointer text-dark" for="cat_cb_{{ Str::slug($cat) }}">{{ ucfirst($cat) }}</label>
+                    </div>
+                  </li>
+                @endforeach
+              @endif
+            </ul>
+          </div>
         </div>
 
         @if(isset($complaintStatuses) && count($complaintStatuses) > 0)
         <div class="col-auto">
-          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Complaints Status</label>
-          <select class="form-select" id="complaintStatusFilter" name="complaint_status" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
-            <option value="">Select Status</option>
-            @foreach($complaintStatuses as $statusKey => $statusLabel)
-              <option value="{{ $statusKey }}" {{ (request('complaint_status') == $statusKey || $complaintStatus == $statusKey) ? 'selected' : '' }}>{{ $statusLabel }}</option>
-            @endforeach
-          </select>
+          <label class="form-label mb-1" style="font-size: 0.8rem !important; color: #1e293b !important; font-weight: 700 !important;">Status</label>
+          <div class="dropdown filter-dropdown-wrapper" style="width: 150px;">
+            <button class="btn btn-light btn-sm form-select text-start" type="button" id="complaintStatusDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem !important; height: 38px !important; line-height: 1.5 !important; padding: 0.375rem 2.25rem 0.375rem 0.75rem !important; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%;">
+              Select Status
+            </button>
+            <ul class="dropdown-menu p-2" aria-labelledby="complaintStatusDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff !important; border: 1px solid #ced4da;">
+              @php
+                $selectedStatuses = is_array(request('complaint_status')) ? request('complaint_status') : (request('complaint_status') ? [request('complaint_status')] : (isset($complaintStatus) ? (is_array($complaintStatus) ? $complaintStatus : [$complaintStatus]) : []));
+              @endphp
+              @foreach($complaintStatuses as $statusKey => $statusLabel)
+                <li class="p-1">
+                  <div class="form-check">
+                    <input class="form-check-input status-checkbox" type="checkbox" value="{{ $statusKey }}" id="status_cb_{{ $statusKey }}" name="complaint_status[]" {{ in_array($statusKey, $selectedStatuses) ? 'checked' : '' }} onchange="updateDropdownButtonText('complaintStatusDropdownBtn', 'complaint_status[]', 'Select Status');">
+                    <label class="form-check-label w-100 cursor-pointer text-dark" for="status_cb_{{ $statusKey }}">{{ $statusLabel }}</label>
+                  </div>
+                </li>
+              @endforeach
+            </ul>
+          </div>
         </div>
         @endif
 
-        <div class="col-auto">
-          <label class="form-label mb-1" style="font-size: 1rem !important; color: #1e293b !important; font-weight: 700 !important;">Date Range</label>
-          <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.9rem; width: 180px; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
+        <div class="col-auto position-relative">
+          <label class="form-label mb-1" style="font-size: 0.8rem !important; color: #1e293b !important; font-weight: 700 !important;">Date Range</label>
+          <select class="form-select" id="dateRangeFilter" name="date_range" style="font-size: 0.85rem !important; height: 38px !important; width: 150px !important; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3e%3c/svg%3e') !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 16px 12px !important; padding-right: 2.5rem !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; background-color: #ffffff !important; border: 1px solid #ced4da !important; color: #334155 !important;">
             <option value="">Select Date Range</option>
             <option value="yesterday" {{ (request('date_range') == 'yesterday' || $dateRange == 'yesterday') ? 'selected' : '' }}>Yesterday</option>
             <option value="today" {{ (request('date_range') == 'today' || $dateRange == 'today') ? 'selected' : '' }}>Today</option>
@@ -399,14 +544,44 @@
             <option value="this_month" {{ (request('date_range') == 'this_month' || $dateRange == 'this_month') ? 'selected' : '' }}>This Month</option>
             <option value="last_month" {{ (request('date_range') == 'last_month' || $dateRange == 'last_month') ? 'selected' : '' }}>Last Month</option>
             <option value="last_6_months" {{ (request('date_range') == 'last_6_months' || $dateRange == 'last_6_months') ? 'selected' : '' }}>Last 6 Months</option>
+            <option value="custom" {{ (request('date_range') == 'custom' || $dateRange == 'custom') ? 'selected' : '' }}>Custom Range</option>
           </select>
+
+          <!-- Custom Date Range Inputs (Floating absolute card) -->
+          <div id="customDateRangeContainer" class="card p-3 shadow-lg" style="display: none; position: absolute; top: 100%; right: 0; z-index: 1050; min-width: 320px; background-color: #ffffff; border: 1px solid #ced4da; margin-top: 5px; border-radius: 6px;">
+            <div class="d-flex flex-column gap-2 text-dark">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Custom Range</span>
+                <button type="button" class="btn-close" onclick="closeCustomDateContainer()" style="font-size: 0.65rem;"></button>
+              </div>
+              <div class="d-flex gap-2">
+                <div class="flex-grow-1">
+                  <label class="form-label mb-1 small text-muted">Start Date</label>
+                  <input type="date" class="form-control form-control-sm" id="startDate" name="start_date" style="font-size: 0.85rem; height: 35px; border: 1px solid #ced4da;" value="{{ request('start_date') }}">
+                </div>
+                <div class="flex-grow-1">
+                  <label class="form-label mb-1 small text-muted">End Date</label>
+                  <input type="date" class="form-control form-control-sm" id="endDate" name="end_date" style="font-size: 0.85rem; height: 35px; border: 1px solid #ced4da;" value="{{ request('end_date') }}">
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm w-100 text-white mt-1" id="applyCustomDate" style="background-color: #001f5b; border-color: #001f5b; font-weight: 600; height: 35px; border-radius: 4px;">Apply Range</button>
+            </div>
+          </div>
         </div>
 
-        <div class="col-auto">
-          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
-          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetDashboardFilters()" style="font-size: 0.9rem; padding: 0.5rem 1.25rem;">
-            <i data-feather="refresh-cw" class="me-1" style="width: 16px; height: 16px;"></i>Reset
-          </button>
+        <div class="col-auto d-flex gap-1">
+          <div>
+            <label class="form-label small text-muted mb-1" style="font-size: 0.7rem; display: block;">&nbsp;</label>
+            <button type="button" class="btn btn-primary btn-sm text-white d-flex align-items-center justify-content-center" onclick="applyDashboardFilters()" style="font-size: 0.85rem; height: 38px; padding: 0 1.25rem; background-color: #001f5b; border-color: #001f5b; font-weight: bold; border-radius: 6px;">
+              <i data-feather="filter" class="me-1" style="width: 14px; height: 14px;"></i>Apply
+            </button>
+          </div>
+          <div>
+            <label class="form-label small text-muted mb-1" style="font-size: 0.7rem; display: block;">&nbsp;</label>
+            <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center" onclick="resetDashboardFilters()" style="font-size: 0.85rem; height: 38px; padding: 0 1.25rem; border-radius: 6px;">
+              <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+            </button>
+          </div>
         </div>
       </div>
     </form>
@@ -417,7 +592,7 @@
 <!-- STATISTICS CARDS -->
 <div class="row mb-5 g-3 justify-content-center">
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('all')" style="cursor: pointer; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['total_complaints'] ?? 0 }}</div>
@@ -431,7 +606,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #dd4040ff 0%, #b13030 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('in_progress')" style="cursor: pointer; background: linear-gradient(135deg, #dd4040ff 0%, #b13030 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['in_progress_complaints'] ?? 0 }}</div>
@@ -445,7 +620,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('resolved')" style="cursor: pointer; background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['addressed_complaints'] ?? 0 }}</div>
@@ -459,7 +634,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('work_performa')" style="cursor: pointer; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['work_performa'] ?? 0 }}</div>
@@ -473,7 +648,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #eab308 0%, #fcbd2bff 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('maint_performa')" style="cursor: pointer; background: linear-gradient(135deg, #eab308 0%, #fcbd2bff 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['maint_performa'] ?? 0 }}</div>
@@ -487,7 +662,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('un_authorized')" style="cursor: pointer; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['un_authorized'] ?? 0 }}</div>
@@ -501,7 +676,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #0deb7cff 0%, #22995dff 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('product_na')" style="cursor: pointer; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['product_na'] ?? 0 }}</div>
@@ -515,25 +690,25 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #05cbee 0%, #05bfee 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('work_priced_performa')" style="cursor: pointer; background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</div>
-          <div class="stat-label">Pertains to GE/Const/Isld</div>
+          <div class="stat-number">{{ $stats['work_priced_performa'] ?? 0 }}</div>
+          <div class="stat-label">Work Performa Priced</div>
         </div>
         <div class="stat-icon">
-          <i data-feather="map-pin" class="feather-lg"></i>
+          <i data-feather="dollar-sign" class="feather-lg"></i>
         </div>
       </div>
     </div>
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #808000 0%, #808000 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('barrack_damages')" style="cursor: pointer; background: linear-gradient(135deg, #808000 0%, #808000 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
-          <div class="stat-number">{{ $stats['barak_damages'] ?? 0 }}</div>
-          <div class="stat-label">Barrak Damages</div>
+          <div class="stat-number">{{ $stats['barrack_damages'] ?? 0 }}</div>
+          <div class="stat-label">Un Authorized Barrack Damages</div>
         </div>
         <div class="stat-icon">
           <i data-feather="alert-triangle" class="feather-lg"></i>
@@ -543,7 +718,7 @@
   </div>
 
   <div class="col-md-2 col-lg-2">
-    <div class="stat-card" style="background: linear-gradient(135deg, #e00d0dff 0%, #b91c1c 100%) !important;">
+    <div class="stat-card" onclick="showComplaintsModal('overdue')" style="cursor: pointer; background: linear-gradient(135deg, #e00d0dff 0%, #b91c1c 100%) !important;">
       <div class="d-flex align-items-center justify-content-between">
         <div class="flex-grow-1">
           <div class="stat-number">{{ $stats['overdue_complaints'] ?? 0 }}</div>
@@ -582,20 +757,9 @@
 
 <!-- GE FEEDBACK OVERVIEW SECTION -->
 @php
-  $showGEFeedback = false;
-  $user = auth()->user();
-
-  // Location filter logic:
-  // 1. If user's city_id AND sector_id are both null - show all data
-  // 2. If user's city_id is set but sector_id is null - show only their city's data
-  // 3. If user has sector_id - they shouldn't see GE Feedback Overview
-  $canSeeAllData = (!$user->city_id && !$user->sector_id);
-  $canSeeCityData = ($user->city_id && !$user->sector_id);
-
-  // Show section based on location filter only
-  if ($canSeeAllData || $canSeeCityData) {
-    $showGEFeedback = true;
-  }
+  // GE Feedback Overview is now enabled for all users.
+  // Location-based filtering from the controller ensures users only see what they have access to.
+  $showGEFeedback = true;
 @endphp
 
 @if($showGEFeedback)
@@ -606,10 +770,10 @@
 @endphp
 <div class="row mt-5 mb-5">
   <div class="col-12">
-    <div class="card-glass" style="padding: 2.5rem;">
+    <div class="card-glass" style="padding: 1.5rem;">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h5 class="mb-0 text-white" style="font-weight: 700; font-size: 1.5rem;">
-          <i data-feather="users" class="me-2" style="width: 28px; height: 28px;"></i>GE Feedback Overview
+        <h5 class="mb-0 text-white" style="font-weight: 700; font-size: 1.2rem;">
+          <i data-feather="users" class="me-2" style="width: 22px; height: 22px;"></i>GE Feedback Overview
         </h5>
       </div>
       @if($hasData)
@@ -651,8 +815,8 @@
           <div class="ge-progress-card" style="padding: 1.25rem 1.5rem !important; background: {{ $colorScheme['bg'] }} !important; border: none !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important; border-radius: 0 !important;">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1.15rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
-                <p class="mb-0 text-white" style="font-size: 0.95rem; opacity: 0.95; color: #ffffff !important;">
+                <h6 class="mb-1 text-white" style="font-weight: 700; font-size: 1rem; color: #ffffff !important;">{{ $geData['ge_name'] ?? ($geData['ge']->name ?? $geData['ge']->username ?? 'N/A') }}</h6>
+                <p class="mb-0 text-white" style="font-size: 0.85rem; opacity: 0.95; color: #ffffff !important;">
                   <i data-feather="map-pin" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; color: #ffffff;"></i>
                   <span style="color: #ffffff !important; margin-left: 0.25rem;">{{ $geData['city'] }}</span>
                 </p>
@@ -663,8 +827,8 @@
             </div>
             <div class="mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-white" style="font-size: 1rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Performance</span>
-                <span class="text-white" style="font-weight: 800; font-size: 1.6rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
+                <span class="text-white" style="font-size: 0.9rem; font-weight: 600; opacity: 0.95; color: #ffffff !important;">Performance</span>
+                <span class="text-white" style="font-weight: 800; font-size: 1.3rem; color: #ffffff !important;">{{ $geData['progress_percentage'] }}%</span>
               </div>
               <div class="progress" style="height: 14px; background-color: rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);">
                 <div class="progress-bar" role="progressbar"
@@ -793,6 +957,76 @@
   </div>
 </div>
 
+<!-- Complaints List Modal -->
+<div class="modal fade" id="complaintsListModal" tabindex="-1" aria-labelledby="complaintsListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div class="modal-header d-flex justify-content-between align-items-center" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+                <h5 class="modal-title text-white" id="complaintsListModalLabel">
+                    <i data-feather="list" class="me-2"></i>Complaints
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-success btn-sm d-inline-flex align-items-center text-white" onclick="exportModalToExcel()" style="background-color: #16a34a; border-color: #15803d; font-weight: 600; padding: 0 6px !important; font-size: 0.65rem !important; height: 24px !important; line-height: 1 !important; border-radius: 0px !important; border: 1px solid #15803d; color: #ffffff !important; margin: 0;">
+                        <i data-feather="download" class="me-1" style="width: 12px; height: 12px;"></i> Export to Excel
+                    </button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 0px !important; padding: 0 !important; opacity: 1 !important; filter: invert(1); background-size: 0.8em; width: 24px !important; height: 24px !important; margin: 0; border: none;"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive-xl">
+                    <table class="table table-dark table-sm table-compact mb-0" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">CMP-ID</th>
+                                <th style="width: 15%;">Reg. Date</th>
+                                <th style="width: 15%; text-align: left;">Addr. Time</th>
+                                <th style="width: 8%;">House</th>
+                                <th style="width: 15%;">Status</th>
+                                <th style="width: 14%;">Nature</th>
+                                <th style="width: 15%;">Type</th>
+                                <th style="width: 8%;">Priority</th>
+                                <th style="width: 5%;">Act</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalComplaintsTableBody">
+                            <!-- Content will be loaded via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 2px solid rgba(59, 130, 246, 0.2); justify-content: space-between;">
+                <div id="modalPaginationContainer" class="w-100"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complaint Details Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content card-glass" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+                <h5 class="modal-title text-white" id="complaintModalLabel">
+                    <i data-feather="alert-triangle" class="me-2"></i>Complaint Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeComplaintModal()" style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
+            </div>
+            <div class="modal-body" id="complaintModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 2px solid rgba(59, 130, 246, 0.2);">
+                <a href="#" id="printSlipBtn" class="btn btn-outline-primary" target="_blank" style="display: none;">
+                    <i data-feather="printer" class="me-2" style="width: 16px; height: 16px;"></i>Print Slip
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- TABLES ROW -->
 <div class="row mb-5">
   <div class="col-12">
@@ -809,7 +1043,7 @@
           <thead>
             <tr>
               <th style="width: 8%;">ID</th>
-              <th style="width: 18%;">Complainant</th>
+              <th style="width: 18%;">House No.</th>
               <th style="width: 12%;">Category</th>
               <th style="width: 15%;">Assigned To</th>
               <th style="width: 18%;">Status</th>
@@ -821,13 +1055,13 @@
             @forelse($recentComplaints ?? [] as $complaint)
             <tr>
               <td><strong>{{ (int)$complaint->id }}</strong></td>
-              <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
+              <td>{{ $complaint->house->house_no ?? 'N/A' }}</td>
               <td>{{ $complaint->getCategoryDisplayAttribute() }}</td>
               <td>
                 @if($complaint->assignedEmployee)
                   <span style="font-size: 0.875rem;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}</span>
                 @else
-                  <span style="color: #94a3b8; font-style: italic; font-size: 0.875rem;">Unassigned</span>
+                  <span style="color: #94a3b8; font-size: 0.875rem;">Unassigned</span>
                 @endif
               </td>
               <td>
@@ -836,13 +1070,8 @@
                   $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
                   $fullStatusText = $complaint->getStatusDisplayAttribute();
                   $shortStatusText = $fullStatusText;
-                  $hoverText = $fullStatusText;
-
-                  // Set short text and hover text for specific statuses
-                  if($displayStatus === 'pertains_to_ge_const_isld') {
-                    $shortStatusText = 'Pertains to GE';
-                    $hoverText = $fullStatusText;
-                  } elseif($displayStatus === 'maint_priced_performa') {
+                  $hoverText = $fullStatusText;                  // Set short text and hover text for specific statuses
+                  if($displayStatus === 'maint_priced_performa') {
                     $shortStatusText = 'Maint Priced';
                     $hoverText = $fullStatusText;
                   }
@@ -851,24 +1080,30 @@
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #64748b !important; color: #ffffff !important; border-color: #475569 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">Addressed</span>
                   @elseif($displayStatus === 'in_progress')
                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">In Progress</span>
-                  @elseif($displayStatus === 'assigned')
-                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                @elseif($displayStatus === 'assigned')
+                  @if($fullStatusText === 'Unassigned')
+                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #000000 !important; color: #ffffff !important; border-color: #000000 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">Unassigned</span>
+                  @else
+                    <span class="status-badge status-{{ $displayStatus }}" style="background-color: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                  @endif
+                @elseif($displayStatus === 'unassigned')
+                   <span class="status-badge status-unassigned" style="background-color: #000000 !important; color: #ffffff !important; border-color: #000000 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">Unassigned</span>
                 @elseif($displayStatus === 'work_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #60a5fa !important; color: #ffffff !important; border-color: #3b82f6 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'maint_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #eab308 !important; color: #ffffff !important; border-color: #ca8a04 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'work_priced_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #9333ea !important; color: #ffffff !important; border-color: #7e22ce !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'maint_priced_performa')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ea580c !important; color: #ffffff !important; border-color: #c2410c !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $hoverText }}">{{ $shortStatusText }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $hoverText }}">{{ $shortStatusText }}</span>
                 @elseif($displayStatus === 'un_authorized')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec4899 !important; color: #ffffff !important; border-color: #db2777 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
-                @elseif($displayStatus === 'pertains_to_ge_const_isld')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #06b6d4 !important; color: #ffffff !important; border-color: #0891b2 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $hoverText }}">{{ $shortStatusText }}</span>
                 @elseif($displayStatus === 'product_na')
-                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #0deb7c !important; color: #ffffff !important; border-color: #06b366 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #ec5454 !important; color: #ffffff !important; border-color: #b13030 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @elseif($displayStatus === 'closed')
                   <span class="status-badge status-{{ $displayStatus }}" style="background-color: #6b7280 !important; color: #ffffff !important; border-color: #4b5563 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
+                @elseif($displayStatus === 'barrack_damages')
+                  <span class="status-badge status-{{ $displayStatus }}" style="background-color: #808000 !important; color: #ffffff !important; border-color: #6b6b00 !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @else
                   <span class="status-badge status-{{ $displayStatus }}" style="color: #ffffff !important; padding: 3px 6px !important; font-size: 10px !important; border-radius: 6px !important; display: inline-block !important; width: 120px !important; text-align: center !important;" title="{{ $fullStatusText }}">{{ $fullStatusText }}</span>
                 @endif
@@ -925,7 +1160,7 @@
               <thead>
                 <tr>
                   <th style="width: 8%; padding: 0.4rem 0.5rem !important;">Complaint ID</th>
-                  <th style="width: 15%; padding: 0.4rem 0.5rem !important;">Complainant</th>
+                  <th style="width: 15%; padding: 0.4rem 0.5rem !important;">House No.</th>
                   <th style="width: 12%; padding: 0.4rem 0.5rem !important;">Assigned To</th>
                   <th style="width: 11%; padding: 0.4rem 0.5rem !important;">Category</th>
                   <th style="width: 10%; padding: 0.4rem 0.5rem !important;">Status</th>
@@ -938,24 +1173,12 @@
                 @foreach($pendingApprovals as $approval)
                 <tr>
                   <td style="padding: 0.4rem 0.5rem !important;">{{ $approval->complaint ? (int)$approval->complaint->id : 'N/A' }}</td>
-                  <td style="padding: 0.4rem 0.5rem !important;">{{ $approval->complaint && $approval->complaint->client ? $approval->complaint->client->client_name : 'N/A' }}</td>
+                  <td style="padding: 0.4rem 0.5rem !important;">{{ $approval->complaint && $approval->complaint->house ? $approval->complaint->house->house_no : 'N/A' }}</td>
                   <td style="padding: 0.4rem 0.5rem !important;">{{ $approval->requestedBy->name ?? 'N/A' }}</td>
                   <td style="padding: 0.4rem 0.5rem !important;">
                     @if($approval->complaint)
                       @php
-                        $category = $approval->complaint->category ?? 'N/A';
-                        $categoryDisplay = [
-                          'electric' => 'Electric',
-                          'technical' => 'Technical',
-                          'service' => 'Service',
-                          'billing' => 'Billing',
-                          'water' => 'Water Supply',
-                          'sanitary' => 'Sanitary',
-                          'plumbing' => 'Plumbing',
-                          'kitchen' => 'Kitchen',
-                          'other' => 'Other',
-                        ];
-                        $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
+                        $catDisplay = $approval->complaint->getCategoryDisplayAttribute();
                       @endphp
                       <span style="font-size: 0.75rem;">{{ $catDisplay }}</span>
                     @else
@@ -1020,7 +1243,7 @@
               <i data-feather="alert-triangle" class="me-2"></i>Low Stock Alerts
             </h5>
             <a href="{{ route('admin.spares.index') }}" class="btn btn-outline-warning btn-sm">Manage Stock</a>
-        </div>
+          </div>
         <div class="table-responsive">
             <table class="table table-dark ">
             <thead>
@@ -1075,20 +1298,21 @@
   @php
     // Status colors mapping (same as in approvals view)
     $statusColorMap = [
+      'unassigned' => '#000000', // Black
       'assigned' => '#16a34a', // Green (swapped from grey)
-      'in_progress' => '#ec5454', // Brown-Red mix
+      'in_progress' => '#ec5454', // Red-ish
       'resolved' => '#64748b', // Grey (swapped from green)
       'work_performa' => '#60a5fa', // Light Blue
       'maint_performa' => '#eab308', // Yellow
       'work_priced_performa' => '#9333ea', // Purple
       'maint_priced_performa' => '#ea580c', // Orange Red
-      'product_na' => '#0deb7c', // Green (from Product N/A stat card)
-      'un_authorized' => '#ec4899', // Pink (same as approvals view)
-      'pertains_to_ge_const_isld' => '#06b6d4', // Aqua/Cyan (same as approvals view)
+      'product_na' => '#f97316', // Orange
+      'un_authorized' => '#ec4899', // Pink
     ];
 
     // All possible statuses from approvals page (in order)
     $allPossibleStatuses = [
+      'unassigned',
       'assigned',
       'in_progress',
       'resolved',
@@ -1098,7 +1322,6 @@
       'maint_priced_performa',
       'product_na',
       'un_authorized',
-      'pertains_to_ge_const_isld'
     ];
 
     // Ensure we preserve the order of statuses and include all possible statuses
@@ -1136,8 +1359,6 @@
         return 'Product N/A';
       } elseif ($status === 'un_authorized') {
         return 'Un-Authorized';
-      } elseif ($status === 'pertains_to_ge_const_isld') {
-        return 'Pertains to GE(N) Const Isld';
       } elseif ($status === 'in_progress') {
         return 'In Progress';
       }
@@ -1544,30 +1765,128 @@
         .catch(error => console.error('Error updating dashboard:', error));
     }, 300000); // 5 minutes
 
+    // Dropdown Helper Functions for Multiselect Dropdowns
+    function updateDropdownButtonText(dropdownId, checkboxName, defaultText) {
+      const btn = document.getElementById(dropdownId);
+      if (!btn) return;
+      const checkboxes = document.querySelectorAll(`input[name="${checkboxName}"]`);
+      const checked = Array.from(checkboxes).filter(cb => cb.checked);
+      
+      if (checked.length === 0) {
+        btn.innerText = defaultText;
+      } else if (checked.length === 1) {
+        const label = document.querySelector(`label[for="${checked[0].id}"]`);
+        btn.innerText = label ? label.innerText.trim() : checked[0].value;
+      } else {
+        btn.innerText = `${checked.length} Selected`;
+      }
+    }
+
+    function handleCmesCheckboxChange() {
+      const checkedCmes = Array.from(document.querySelectorAll('.cmes-checkbox:checked')).map(cb => cb.value);
+      const cityItems = document.querySelectorAll('#cityDropdownList .city-item');
+      
+      cityItems.forEach(item => {
+        const cmeId = item.getAttribute('data-cme-id');
+        if (checkedCmes.length === 0 || checkedCmes.includes(cmeId)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+          const cb = item.querySelector('.city-checkbox');
+          if (cb && cb.checked) {
+            cb.checked = false;
+            cb.dispatchEvent(new Event('change'));
+          }
+        }
+      });
+      updateDropdownButtonText('cityDropdownBtn', 'city_id[]', 'Select GE');
+      handleCityCheckboxChange();
+    }
+
+    function handleCityCheckboxChange() {
+      const checkedCities = Array.from(document.querySelectorAll('.city-checkbox:checked')).map(cb => cb.value);
+      const visibleCityIds = Array.from(document.querySelectorAll('#cityDropdownList .city-item'))
+        .filter(item => item.style.display !== 'none')
+        .map(item => item.querySelector('.city-checkbox').value);
+
+      const sectorItems = document.querySelectorAll('#sectorDropdownList .sector-item');
+      
+      sectorItems.forEach(item => {
+        const cityId = item.getAttribute('data-city-id');
+        const isVisible = checkedCities.length > 0
+          ? checkedCities.includes(cityId)
+          : visibleCityIds.includes(cityId);
+
+        if (isVisible) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+          const cb = item.querySelector('.sector-checkbox');
+          if (cb && cb.checked) {
+            cb.checked = false;
+            cb.dispatchEvent(new Event('change'));
+          }
+        }
+      });
+      updateDropdownButtonText('sectorDropdownBtn', 'sector_id[]', 'Select GE Nodes');
+    }
+
+    // Run updates on DOM load
+    document.addEventListener('DOMContentLoaded', function() {
+      updateDropdownButtonText('cmesDropdownBtn', 'cmes_id[]', 'Select CMES');
+      updateDropdownButtonText('cityDropdownBtn', 'city_id[]', 'Select GE');
+      updateDropdownButtonText('sectorDropdownBtn', 'sector_id[]', 'Select GE Nodes');
+      updateDropdownButtonText('categoryDropdownBtn', 'category[]', 'Select Category');
+      updateDropdownButtonText('complaintStatusDropdownBtn', 'complaint_status[]', 'Select Status');
+      handleCmesCheckboxChange();
+      handleCityCheckboxChange();
+    });
+
     // Dashboard Filters Functions
     function applyDashboardFilters() {
-      const form = document.getElementById('dashboardFiltersForm');
-      const formData = new FormData(form);
       const params = new URLSearchParams();
 
-      // Add filter values to params
-      if (formData.get('cmes_id')) {
-        params.append('cmes_id', formData.get('cmes_id'));
-      }
-      if (formData.get('city_id')) {
-        params.append('city_id', formData.get('city_id'));
-      }
-      if (formData.get('sector_id')) {
-        params.append('sector_id', formData.get('sector_id'));
-      }
-      if (formData.get('category')) {
-        params.append('category', formData.get('category'));
-      }
-      if (formData.get('complaint_status')) {
-        params.append('complaint_status', formData.get('complaint_status'));
-      }
-      if (formData.get('date_range')) {
-        params.append('date_range', formData.get('date_range'));
+      // Append multiple values for cmes_id
+      const checkedCmes = document.querySelectorAll('.cmes-checkbox:checked');
+      checkedCmes.forEach(cb => {
+        params.append('cmes_id[]', cb.value);
+      });
+
+      // Append multiple values for city_id
+      const checkedCities = document.querySelectorAll('.city-checkbox:checked');
+      checkedCities.forEach(cb => {
+        params.append('city_id[]', cb.value);
+      });
+
+      // Append multiple values for sector_id
+      const checkedSectors = document.querySelectorAll('.sector-checkbox:checked');
+      checkedSectors.forEach(cb => {
+        params.append('sector_id[]', cb.value);
+      });
+
+      // Append multiple values for category
+      const checkedCategories = document.querySelectorAll('.category-checkbox:checked');
+      checkedCategories.forEach(cb => {
+        params.append('category[]', cb.value);
+      });
+
+      // Append multiple values for complaint_status
+      const checkedStatuses = document.querySelectorAll('.status-checkbox:checked');
+      checkedStatuses.forEach(cb => {
+        params.append('complaint_status[]', cb.value);
+      });
+
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
+      if (dateRangeFilter && dateRangeFilter.value) {
+        params.append('date_range', dateRangeFilter.value);
+        if (dateRangeFilter.value === 'custom') {
+          const start = document.getElementById('startDate').value;
+          const end = document.getElementById('endDate').value;
+          if (start && end) {
+            params.append('start_date', start);
+            params.append('end_date', end);
+          }
+        }
       }
 
       // Reload dashboard with filters
@@ -1578,128 +1897,45 @@
       window.location.href = '{{ route("admin.dashboard") }}';
     }
 
-    // Dynamic sector loading for Director when city changes and auto-apply filters
-    const cityFilter = document.getElementById('cityFilter');
-    const sectorFilter = document.getElementById('sectorFilter');
-    const categoryFilter = document.getElementById('categoryFilter');
-
-    // Keep GE filter visible at all times - don't hide it
-    // @if($user && !$user->city_id)
-    // const cityFilterContainer = document.getElementById('cityFilterContainer');
-    // if (cityFilterContainer && cityFilter) {
-    //   const selectedCityId = cityFilter.value;
-    //   if (selectedCityId && selectedCityId !== '') {
-    //     cityFilterContainer.style.display = 'none';
-    //   }
-    // }
-    // @endif
-
-    // Auto-apply filters on change (like other modules)
-    if (cityFilter) {
-      cityFilter.addEventListener('change', function() {
-        @if($user && !$user->city_id)
-        // User can see all cities: Load sectors dynamically when city changes
-        const cityId = this.value;
-
-        // Keep GE filter visible at all times - don't hide it
-        // const cityFilterContainer = document.getElementById('cityFilterContainer');
-        // if (cityFilterContainer) {
-        //   if (cityId && cityId !== '') {
-        //     cityFilterContainer.style.display = 'none';
-        //   } else {
-        //     cityFilterContainer.style.display = 'block';
-        //   }
-        // }
-
-        if (sectorFilter) {
-          sectorFilter.innerHTML = '<option value="">Loading GE Nodes...</option>';
-          sectorFilter.disabled = true;
-
-          if (cityId) {
-            // Fetch sectors for selected city
-            fetch(`{{ route('admin.sectors.by-city') }}?city_id=${cityId}`, {
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-              },
-              credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-              sectorFilter.innerHTML = '<option value="">All GE Nodes</option>';
-              const sectors = Array.isArray(data) ? data : (data.sectors || []);
-              if (sectors && sectors.length > 0) {
-                sectors.forEach(function(sector) {
-                  const option = document.createElement('option');
-                  option.value = sector.id;
-                  option.textContent = sector.name;
-                  sectorFilter.appendChild(option);
-                });
-              }
-              sectorFilter.disabled = false;
-              // Auto-apply filters after loading GE Nodes
-              applyDashboardFilters();
-            })
-            .catch(error => {
-              console.error('Error loading GE Nodes:', error);
-              sectorFilter.innerHTML = '<option value="">All GE Nodes</option>';
-              sectorFilter.disabled = false;
-              // Auto-apply filters even on error
-              applyDashboardFilters();
-            });
-          } else {
-            // Show all GE Nodes if no city selected (Director) - reload page to get all GE Nodes
-            sectorFilter.innerHTML = '<option value="">All GE Nodes</option>';
-            sectorFilter.disabled = false;
-            // Auto-apply filters
-            applyDashboardFilters();
-          }
-        } else {
-          // Auto-apply filters when city changes
-          applyDashboardFilters();
-        }
-        @else
-        // For GE: Auto-apply filters when city changes
-        applyDashboardFilters();
-        @endif
-      });
-    }
-
-    // Auto-apply filters when sector changes
-    if (sectorFilter) {
-      sectorFilter.addEventListener('change', function() {
-        applyDashboardFilters();
-      });
-    }
-
-    // Auto-apply filters when category changes
-    if (categoryFilter) {
-      categoryFilter.addEventListener('change', function() {
-        applyDashboardFilters();
-      });
-    }
-
-    // Auto-apply filters when complaint status changes
-    const complaintStatusFilter = document.getElementById('complaintStatusFilter');
-    if (complaintStatusFilter) {
-      complaintStatusFilter.addEventListener('change', function() {
-        applyDashboardFilters();
-      });
-    }
-
-    // Auto-apply filters when date range changes
+    // Auto-apply filters when date range changes or show custom inputs
     const dateRangeFilter = document.getElementById('dateRangeFilter');
+    const customDateRangeContainer = document.getElementById('customDateRangeContainer');
+    const applyCustomDateBtn = document.getElementById('applyCustomDate');
+
     if (dateRangeFilter) {
       dateRangeFilter.addEventListener('change', function() {
-        applyDashboardFilters();
+        if (this.value === 'custom') {
+          if (customDateRangeContainer) customDateRangeContainer.style.display = 'block';
+        } else {
+          if (customDateRangeContainer) customDateRangeContainer.style.display = 'none';
+          applyDashboardFilters();
+        }
+      });
+
+      // Toggle display on click when the value is custom so user can open it again
+      dateRangeFilter.addEventListener('click', function() {
+        if (this.value === 'custom') {
+          if (customDateRangeContainer && customDateRangeContainer.style.display === 'none') {
+            customDateRangeContainer.style.display = 'block';
+          }
+        }
       });
     }
 
-    // CMES filter change
-    const cmesFilter = document.getElementById('cmesFilter');
-    if (cmesFilter) {
-      cmesFilter.addEventListener('change', function() {
-        // Clear city/sector selection if desired, or let server handle dependent lists
+    // Define close helper for the custom range card
+    window.closeCustomDateContainer = function() {
+      const container = document.getElementById('customDateRangeContainer');
+      if (container) container.style.display = 'none';
+    };
+
+    if (applyCustomDateBtn) {
+      applyCustomDateBtn.addEventListener('click', function() {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+        if (!start || !end) {
+          alert('Please select both Start and End dates.');
+          return;
+        }
         applyDashboardFilters();
       });
     }
@@ -1820,6 +2056,294 @@
         // Reinitialize feather icons
         feather.replace();
       }
+    }
+
+    // --- Added for Dashboard Popup ---
+    window.showComplaintsModal = function(param) {
+        const modalElement = document.getElementById('complaintsListModal');
+        modalElement.dataset.activeParam = param;
+        const modal = new bootstrap.Modal(modalElement);
+        const titleEl = document.getElementById('complaintsListModalLabel');
+        const tbody = document.getElementById('modalComplaintsTableBody');
+        const paginationContainer = document.getElementById('modalPaginationContainer');
+
+        // Parse current window location search parameters to pass active dashboard filters
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('modal', '1');
+        urlParams.delete('page'); // Clear page number so modal starts at page 1
+
+        let title = 'Complaints';
+
+        // Map params to titles and query params
+        if (param === 'all') {
+            title = 'Total Complaints';
+            urlParams.delete('status');
+        } else if (param === 'overdue') {
+            title = 'Overdue Complaints';
+            urlParams.set('filter', 'overdue');
+            urlParams.delete('status');
+        } else {
+            title = formatTitle(param) + ' Complaints';
+            urlParams.set('status', param);
+        }
+
+        let url = "{{ route('admin.complaints.index') }}?" + urlParams.toString();
+
+        titleEl.innerHTML = `<i data-feather="list" class="me-2"></i>${title}`;
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        paginationContainer.innerHTML = '';
+        
+        // Add blur effect
+        document.body.classList.add('modal-open-blur');
+        modal.show();
+        feather.replace();
+
+        // Remove blur when hidden
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            document.body.classList.remove('modal-open-blur');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if(backdrop) backdrop.remove();
+        }, { once: true });
+
+        // Fetch data
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTbody = doc.querySelector('#complaintsTableBody');
+            const newPagination = doc.querySelector('#complaintsPagination');
+
+            if (newTbody) {
+                // Remove inline styles from the fetched rows that might conflict or look bad in modal
+                tbody.innerHTML = newTbody.innerHTML;
+                
+                // Initialize icons
+                feather.replace();
+            } else {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No complaints found.</td></tr>';
+            }
+
+            if (newPagination) {
+                paginationContainer.innerHTML = newPagination.innerHTML;
+                
+                // Hijack pagination links to stay in modal
+                const links = paginationContainer.querySelectorAll('a');
+                links.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        if (href) {
+                            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+                            fetch(href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                                .then(res => res.text())
+                                .then(pageHtml => {
+                                    const pageDoc = parser.parseFromString(pageHtml, 'text/html');
+                                    const pageTbody = pageDoc.querySelector('#complaintsTableBody');
+                                    if (pageTbody) {
+                                        tbody.innerHTML = pageTbody.innerHTML;
+                                        feather.replace();
+                                    }
+                                });
+                        }
+                    });
+                });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data.</td></tr>';
+        });
+    };
+
+    // Client-side Excel (CSV) exporter for modal table
+    window.exportModalToExcel = function() {
+        const modalElement = document.getElementById('complaintsListModal');
+        if (!modalElement) return;
+
+        const btn = document.querySelector('#complaintsListModal button[onclick="exportModalToExcel()"]');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Exporting...';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('export_all', '1');
+
+        const param = modalElement.dataset.activeParam || 'all';
+        if (param === 'all') {
+            urlParams.delete('status');
+        } else if (param === 'overdue') {
+            urlParams.set('filter', 'overdue');
+            urlParams.delete('status');
+        } else {
+            urlParams.set('status', param);
+        }
+
+        const url = "{{ route('admin.complaints.index') }}?" + urlParams.toString();
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+
+            if (!data || !data.complaints || data.complaints.length === 0) {
+                alert('No complaints found to export.');
+                return;
+            }
+
+            const modalTitle = document.getElementById('complaintsListModalLabel').textContent.trim() || 'Complaints';
+
+            // Build CSV content with UTF-8 BOM
+            let csvContent = '\uFEFF'; // Add BOM for Excel UTF-8 support
+            
+            // Header Row
+            csvContent += 'CMP-ID,Reg. Date,Addr. Time,House,Status,Nature,Type,Priority\r\n';
+
+            // Helper to escape values and wrap in Excel formula to force left-alignment
+            const fmt = (val) => {
+                const cleanVal = String(val || '').replace(/"/g, '""');
+                return '"=""' + cleanVal + '"""';
+            };
+
+            data.complaints.forEach(row => {
+                const cmpIdText = 'CMP-' + String(row.id).padStart(4, '0');
+                let rowData = [
+                    fmt(cmpIdText),
+                    fmt(row.created_at || '-'),
+                    fmt(row.closed_at || '-'),
+                    fmt(row.house_no || 'N/A'),
+                    fmt(row.status || '-'),
+                    fmt(row.category || '-'),
+                    fmt(row.type || '-'),
+                    fmt(row.priority || '-')
+                ];
+                csvContent += rowData.join(',') + '\r\n';
+            });
+
+            // Create Blob and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            
+            link.setAttribute('href', downloadUrl);
+            link.setAttribute('download', modalTitle.replace(/\s+/g, '_') + '_' + dateStr + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        })
+        .catch(err => {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            alert('Error exporting data. Please try again.');
+        });
+    };
+
+    function formatTitle(str) {
+        return str.split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
+    // View Complaint Details
+    window.viewComplaint = function(complaintId) {
+        if (!complaintId) {
+            alert('Invalid complaint ID');
+            return;
+        }
+        
+        const modalElement = document.getElementById('complaintModal');
+        const modalBody = document.getElementById('complaintModalBody');
+        
+        // Show loading state
+        modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        // Hide print slip button initially
+        const printSlipBtn = document.getElementById('printSlipBtn');
+        if (printSlipBtn) {
+            printSlipBtn.style.display = 'none';
+        }
+        
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+        });
+        modal.show();
+        
+        // Fetch details
+        fetch(`/admin/complaints/${complaintId}?format=html`, {
+            method: 'GET',
+            headers: { 'Accept': 'text/html' },
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Extract duplicate script removal logic from index.blade.php
+            const allScripts = doc.querySelectorAll('script');
+            allScripts.forEach(script => script.remove());
+            
+            let contentSection = doc.querySelector('section.content') || doc.querySelector('.content') || doc.querySelector('main') || doc.body;
+            let complaintContent = '';
+            
+            // Extract rows
+            const allRows = contentSection.querySelectorAll('.row');
+            allRows.forEach(row => {
+                 const hasCardGlass = row.querySelector('.card-glass');
+                 const isInHeader = row.closest('.mb-4') && row.closest('.mb-4').querySelector('h2');
+                 
+                 if (hasCardGlass && !isInHeader) {
+                     complaintContent += row.outerHTML;
+                 }
+            });
+
+             // Fallback
+            if (!complaintContent) {
+                const allCards = contentSection.querySelectorAll('.card-glass');
+                allCards.forEach(card => {
+                    const parentRow = card.closest('.row');
+                    const isInHeader = parentRow && parentRow.closest('.mb-4') && parentRow.closest('.mb-4').querySelector('h2');
+                    if (!isInHeader) {
+                        complaintContent += '<div class="mb-3">' + card.outerHTML + '</div>';
+                    }
+                });
+            }
+
+            if (complaintContent) {
+                 modalBody.innerHTML = complaintContent;
+                 
+                 if (printSlipBtn && complaintId) {
+                    printSlipBtn.href = `/admin/complaints/${complaintId}/print-slip`;
+                    printSlipBtn.style.display = 'inline-block';
+                }
+                 feather.replace();
+            } else {
+                 modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error: Could not load content.</div>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading data.</div>';
+        });
+    }
+
+    window.closeComplaintModal = function() {
+        const modalElement = document.getElementById('complaintModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) modal.hide();
     }
 </script>
 @endpush

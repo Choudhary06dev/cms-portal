@@ -48,16 +48,16 @@
       <div class="col-md-6">
         <div class="mb-3">
           <label for="category" class="form-label text-white">Category <span class="text-danger">*</span></label>
-          <select class="form-select @error('category') is-invalid @enderror" 
-                  id="category" name="category" required>
+          <select class="form-select @error('category_id') is-invalid @enderror" 
+                  id="category" name="category_id" required>
             <option value="">Select Category</option>
             @if(isset($categories) && $categories->count() > 0)
-              @foreach ($categories as $cat)
-                <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+              @foreach ($categories as $id => $cat)
+                <option value="{{ $id }}" {{ old('category_id') == $id ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
               @endforeach
             @endif
           </select>
-          @error('category')
+          @error('category_id')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
         </div>
@@ -65,11 +65,11 @@
       <div class="col-md-6">
         <div class="mb-3">
           <label for="designation" class="form-label text-white">Designation <span class="text-danger">*</span></label>
-          <select class="form-select @error('designation') is-invalid @enderror" 
-                  id="designation" name="designation" disabled required>
+          <select class="form-select @error('designation_id') is-invalid @enderror" 
+                  id="designation" name="designation_id" disabled required>
             <option value="">Select Category First</option>
           </select>
-          @error('designation')
+          @error('designation_id')
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
         </div>
@@ -82,7 +82,7 @@
             <option value="">Select GE Groups</option>
             @if(isset($cities) && $cities->count() > 0)
               @foreach ($cities as $city)
-                <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
+                <option value="{{ $city->id }}" data-id="{{ $city->id }}" data-province="{{ $city->province ?? '' }}" {{ (old('city_id') == $city->id || (isset($defaultCityId) && $defaultCityId == $city->id)) ? 'selected' : '' }}>{{ $city->name }}{{ $city->province ? ' (' . $city->province . ')' : '' }}</option>
               @endforeach
             @endif
           </select>
@@ -121,8 +121,8 @@
           <label for="status" class="form-label text-white">Status</label>
           <select class="form-select @error('status') is-invalid @enderror" 
                   id="status" name="status">
-            <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
-            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+            <option value="1" {{ old('status', 1) == 'active' ? 'selected' : '' }}>Active</option>
+            <option value="0" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
           </select>
           @error('status')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -209,7 +209,7 @@
         designationSelectEl.disabled = true;
         
         if (category) {
-          fetch(`{{ route('admin.employees.designations') }}?category=${encodeURIComponent(category)}`, {
+          fetch(`{{ route('admin.employees.designations') }}?category_id=${encodeURIComponent(category)}`, {
             method: 'GET',
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
@@ -229,7 +229,7 @@
             if (data.designations && data.designations.length > 0) {
               data.designations.forEach(function(designation) {
                 const option = document.createElement('option');
-                option.value = designation.name;
+                option.value = designation.id;
                 option.textContent = designation.name;
                 designationSelectEl.appendChild(option);
               });
@@ -257,72 +257,104 @@
     
     // Handle city change
     if (citySelect && sectorSelect) {
-      citySelect.addEventListener('change', function() {
-        // Get the actual city ID value - make sure we're using the value attribute, not text
-        const cityId = this.value;
-        const selectedOption = this.options[this.selectedIndex];
-        const cityIdFromData = selectedOption ? selectedOption.getAttribute('data-id') : null;
         
-        // Use data-id if available, otherwise use value
-        const actualCityId = cityIdFromData || cityId;
-        
-        console.log('City selected - value:', cityId, 'data-id:', cityIdFromData, 'using:', actualCityId);
-        
-        // Clear and disable sector dropdown
-        sectorSelect.innerHTML = '<option value="">Loading...</option>';
-        sectorSelect.disabled = true;
-        
-        if (actualCityId) {
-          // Fetch sectors for this city
-          const url = `{{ route('admin.employees.sectors') }}?city_id=${actualCityId}`;
-          console.log('Fetching sectors from:', url);
+      function loadSectors(cityId, targetSectorId = null) {
+          // Use data-id if available (from select option attribute), otherwise use value directly
+          // When called from event listener, 'this' might be the select element
+          // When called manually, cityId is passed directly
           
-          fetch(url, {
-            method: 'GET',
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-              'Accept': 'application/json',
-            }
-          })
-          .then(response => {
-            console.log('Response status:', response.status);
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            console.log('GE Nodes data received:', data);
-            console.log('Number of GE Nodes for GE Groups:', data.sectors ? data.sectors.length : 0);
-            sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
-            
-            if (data.sectors && data.sectors.length > 0) {
-              data.sectors.forEach(function(sector) {
-                const option = document.createElement('option');
-                option.value = sector.id;
-                option.textContent = sector.name;
-                sectorSelect.appendChild(option);
-              });
-              sectorSelect.disabled = false;
-              sectorSelect.required = true;
-              console.log('GE Nodes loaded successfully:', data.sectors.length);
-            } else {
-              sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
-              sectorSelect.disabled = true;
-              sectorSelect.required = false;
-              console.log('No GE Nodes found for GE Groups ID:', actualCityId);
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching GE Nodes:', error);
-            sectorSelect.innerHTML = '<option value="">Error Loading GE Nodes</option>';
-          });
-        } else {
-          sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
+          let actualCityId = cityId;
+          
+          // If called from event listener
+          if (this instanceof Element) {
+             const selectedOption = this.options[this.selectedIndex];
+             const cityIdFromData = selectedOption ? selectedOption.getAttribute('data-id') : null;
+             actualCityId = cityIdFromData || this.value;
+          } else {
+             // If passed as ID, ensure we get the data-id if needed or just use the ID
+             // For simplicity in manual call we assume the ID passed is correct or we find the option
+             if (citySelect) {
+                 // Try to find the option with this value to see if it has a data-id
+                 // This is a bit of a hack because the original code used data-id for some reason
+                 // logic preserved from original event listener
+                 for(let i=0; i<citySelect.options.length; i++) {
+                     if(citySelect.options[i].value == cityId) {
+                         const cityIdFromData = citySelect.options[i].getAttribute('data-id');
+                         if(cityIdFromData) actualCityId = cityIdFromData;
+                         break;
+                     }
+                 }
+             }
+          }
+          
+          console.log('City selected/loaded:', actualCityId);
+          
+          // Clear and disable sector dropdown
+          sectorSelect.innerHTML = '<option value="">Loading...</option>';
           sectorSelect.disabled = true;
-          sectorSelect.required = false;
-        }
+          
+          if (actualCityId) {
+            // Fetch sectors for this city
+            const url = `{{ route('admin.employees.sectors') }}?city_id=${actualCityId}`;
+            console.log('Fetching sectors from:', url);
+            
+            fetch(url, {
+              method: 'GET',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+              }
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              sectorSelect.innerHTML = '<option value="">Select GE Nodes</option>';
+              
+              if (data.sectors && data.sectors.length > 0) {
+                data.sectors.forEach(function(sector) {
+                  const option = document.createElement('option');
+                  option.value = sector.id;
+                  option.textContent = sector.name;
+                  
+                  // Auto-select if matches target
+                  if (targetSectorId && String(sector.id) === String(targetSectorId)) {
+                      option.selected = true;
+                  }
+                  
+                  sectorSelect.appendChild(option);
+                });
+                sectorSelect.disabled = false;
+                sectorSelect.required = true;
+              } else {
+                sectorSelect.innerHTML = '<option value="">No GE Nodes Available</option>';
+                sectorSelect.disabled = true;
+                sectorSelect.required = false;
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching GE Nodes:', error);
+              sectorSelect.innerHTML = '<option value="">Error Loading GE Nodes</option>';
+            });
+          } else {
+            sectorSelect.innerHTML = '<option value="">Select GE Groups First</option>';
+            sectorSelect.disabled = true;
+            sectorSelect.required = false;
+          }
+      }
+
+      citySelect.addEventListener('change', function() {
+          loadSectors.call(this, this.value);
       });
+      
+      // Initial load if city is pre-selected (e.g. for Staff)
+      if (citySelect.value) {
+          const defaultSectorId = '{{ isset($defaultSectorId) ? $defaultSectorId : old('sector_id') }}';
+          loadSectors(citySelect.value, defaultSectorId);
+      }
     }
     
     // Form validation before submit
