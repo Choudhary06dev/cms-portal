@@ -16,9 +16,9 @@
         </a>
         <form action="{{ route('admin.sla.toggle-status', $sla) }}" method="POST" class="d-inline">
           @csrf
-          <button type="submit" class="btn btn-{{ $sla->status === 'active' ? 'outline-warning' : 'outline-success' }}">
-            <i data-feather="{{ $sla->status === 'active' ? 'pause' : 'play' }}" class="me-2"></i>
-            {{ $sla->status === 'active' ? 'Deactivate' : 'Activate' }}
+          <button type="submit" class="btn btn-{{ $sla->status === 1 ? 'outline-warning' : 'outline-success' }}">
+            <i data-feather="{{ $sla->status === 1 ? 'pause' : 'play' }}" class="me-2"></i>
+            {{ $sla->status === 1 ? 'Deactivate' : 'Activate' }}
           </button>
         </form>
       </div>
@@ -41,23 +41,11 @@
             <i data-feather="type" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
             <div class="flex-grow-1">
               <div class="text-muted small mb-1"
-                style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Complaint Type</div>
+                style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Complaint Category</div>
               <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">
                 <span class="badge bg-info" style="font-size: 0.85rem; padding: 6px 12px;">
                   {{ ucfirst($sla->complaint_type) }}
                 </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-item mb-3">
-          <div class="d-flex align-items-start">
-            <i data-feather="clock" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
-            <div class="flex-grow-1">
-              <div class="text-muted small mb-1"
-                style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Max Response Time</div>
-              <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $sla->max_response_time }} hours
               </div>
             </div>
           </div>
@@ -107,9 +95,9 @@
               <div class="text-muted small mb-1"
                 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
               <div>
-                <span class="badge bg-{{ $sla->status === 'active' ? 'success' : 'danger' }}"
+                <span class="badge bg-{{ $sla->status === 1 ? 'success' : 'danger' }}"
                   style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
-                  {{ ucfirst($sla->status) }}
+                  {{ ($sla->status ? 'Active' : 'Inactive') }}
                 </span>
               </div>
             </div>
@@ -125,19 +113,6 @@
           style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
           <i data-feather="bell" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
           <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Notification & Timeline</h5>
-        </div>
-
-        <div class="info-item mb-3">
-          <div class="d-flex align-items-start">
-            <i data-feather="user" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
-            <div class="flex-grow-1">
-              <div class="text-muted small mb-1"
-                style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Notify To</div>
-              <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">
-                {{ $sla->notifyTo->name ?? 'Not Set' }}
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="info-item mb-3">
@@ -291,7 +266,7 @@
                       <span class="text-info">{{ $complaint->ticket_number }}</span>
                     </td>
                     <td style="padding: 0.5rem; border-right: 1px solid rgba(201, 160, 160, 0.3) !important;">
-                      {{ $complaint->client->client_name ?? 'N/A' }}
+                      {{ $complaint->house->name ?? 'N/A' }}
                     </td>
                     <td style="padding: 0.5rem; border-right: 1px solid rgba(201, 160, 160, 0.3) !important;">
                       <span

@@ -123,7 +123,7 @@ class TestReportDataSeeder extends Seeder
             'Plumbing',
             'General',
             'Kitchen',
-            'Barrak Damages',
+            'Barrack Damages',
         ];
 
         $priorities = ['low', 'medium', 'high', 'urgent', 'emergency'];
@@ -260,16 +260,16 @@ class TestReportDataSeeder extends Seeder
             ];
         }
 
-        // Barrak Damages complaints
+        // Barrack Damages complaints
         for ($i = 0; $i < 8; $i++) {
             $createdAt = $startDate->copy()->addDays(rand(0, 29))->addHours(rand(0, 23));
             
             $complaints[] = [
-                'title' => 'Barrak Damages Complaint ' . ($i + 1),
+                'title' => 'Barrack Damages Complaint ' . ($i + 1),
                 'client_id' => $clients->id,
-                'category' => 'Barrak Damages',
+                'category' => 'Barrack Damages',
                 'department' => $departments[array_rand($departments)],
-                'description' => 'Barrak damages reported - requires immediate attention',
+                'description' => 'Barrack damages reported - requires immediate attention',
                 'status' => $statuses[array_rand($statuses)],
                 'assigned_employee_id' => $employees->id,
                 'priority' => 'high',
@@ -287,7 +287,7 @@ class TestReportDataSeeder extends Seeder
                 'client_id' => $client3->id,
                 'category' => $categories[array_rand($categories)],
                 'department' => $departments[array_rand($departments)],
-                'description' => 'Pertains to GE (N) Const Isld - maintenance required',
+                'description' => 'Work priced performa - maintenance required',
                 'status' => $statuses[array_rand($statuses)],
                 'assigned_employee_id' => $employees->id,
                 'priority' => $priorities[array_rand($priorities)],

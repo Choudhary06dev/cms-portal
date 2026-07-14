@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SpareController extends Controller
 {
@@ -44,13 +45,18 @@ class SpareController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('item_name', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%");
+                  ->orWhereHas('brand', function($bq) use ($search) {
+                      $bq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('category', function($cq) use ($search) {
+                      $cq->where('name', 'like', "%{$search}%");
+                  });
             });
         }
 
-        // Filter by category
+        // Filter by category (category_id)
         if ($request->has('category') && $request->category) {
-            $query->where('category', $request->category);
+            $query->where('category_id', $request->category);
         }
 
         // Filter by stock status
@@ -77,27 +83,10 @@ class SpareController extends Controller
             $query->where('unit_price', '<=', $request->price_to);
         }
 
-        $spares = $query->with(['stockLogs', 'city', 'sector'])->orderBy('id', 'asc')->paginate(15);
+        $spares = $query->with(['stockLogs', 'city', 'sector', 'category'])->orderBy('id', 'asc')->paginate(15);
         
-        // Get categories from complaint_categories table
-        $dbCategories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
-            : [];
-        
-        // Get unique categories from spares table (with location filtering)
-        $spareCategoriesQuery = Spare::whereNotNull('category')
-            ->where('category', '!=', '');
-        $this->filterSparesByLocation($spareCategoriesQuery, $user);
-        $spareCategories = $spareCategoriesQuery->distinct()
-            ->orderBy('category')
-            ->pluck('category')
-            ->toArray();
-        
-        // Merge and get unique categories
-        $allCategories = array_unique(array_merge($dbCategories, $spareCategories));
-        sort($allCategories);
-        
-        $categories = collect($allCategories);
+        // Get categories from complaint_categories table for the filter dropdown
+        $categories = ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id');
 
         return view('admin.spares.index', compact('spares', 'categories'));
     }
@@ -109,31 +98,30 @@ class SpareController extends Controller
     {
         $user = Auth::user();
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')
             : collect();
         
-        // Get cities and sectors based on user role
-        $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
-            : collect();
+        // Get cities based on user role/location
+        $citiesQuery = City::where('status', 1);
+        $userCityIds = $this->getUserCityIds($user);
+        if ($userCityIds !== null) {
+            $citiesQuery->whereIn('id', $userCityIds);
+        }
+        $cities = $citiesQuery->orderBy('id', 'asc')->get();
         
         $sectors = collect();
-        // If user has city_id, show only sectors from that city
-        if ($user && $user->city_id) {
+        // If user has city_ids, show only sectors from that city
+        if ($user && !empty($user->city_ids)) {
             $sectors = Schema::hasTable('sectors')
-                ? Sector::where('city_id', $user->city_id)
-                    ->where('status', 'active')
+                ? Sector::whereIn('city_id', $user->city_ids)
+                    ->where('status', 1)
                     ->orderBy('name')
                     ->get()
                 : collect();
         }
-        // Defaults for Department Staff: preselect their city and sector
-        $defaultCityId = null;
-        $defaultSectorId = null;
-        if ($user && $user->role && strtolower($user->role->role_name) === 'department_staff') {
-            $defaultCityId = $user->city_id;
-            $defaultSectorId = $user->sector_id;
-        }
+        // Defaults for location-restricted users: preselect their city and sector
+        $defaultCityId = !empty($user->city_ids) ? $user->city_ids[0] : null;
+        $defaultSectorId = !empty($user->sector_ids) ? $user->sector_ids[0] : null;
         
         return view('admin.spares.create', compact('categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId'));
     }
@@ -143,20 +131,11 @@ class SpareController extends Controller
      */
     public function store(Request $request)
     {
-        // Get categories from ComplaintCategory table
-        $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
-            : [];
-        $categoryKeys = implode(',', array_keys(Spare::getCategories()));
-        $dbCategories = implode(',', Spare::getCanonicalCategories());
-        $allowedCategories = implode(',', array_merge($categories, array_keys(Spare::getCategories()), Spare::getCanonicalCategories()));
-        
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
-            'brand_name' => 'nullable|string|max:100',
-            // Accept categories from ComplaintCategory table and legacy categories
-            'category' => 'required|string',
+            'brand_id' => 'nullable|exists:brands,id',
+            'category_id' => 'required|exists:complaint_categories,id',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
             'unit_price' => 'nullable|numeric|min:0',
@@ -181,16 +160,7 @@ class SpareController extends Controller
                 ->withInput();
         }
 
-        // Validate category is from allowed list
-        if (!in_array($request->category, array_merge($categories, array_keys(Spare::getCategories()), Spare::getCanonicalCategories()))) {
-            return redirect()->back()
-                ->withErrors(['category' => 'The selected category is invalid.'])
-                ->withInput();
-        }
-
-        // Use category as is (from ComplaintCategory table)
-        // Since category is now a string column, we can save any value directly
-        $normalizedCategory = $request->category;
+        $normalizedCategory = $request->category_id;
 
         // Check if same product (item_name) exists (any brand)
         // If exists, update it; if brand different, update brand and track old brand
@@ -205,48 +175,30 @@ class SpareController extends Controller
         if ($existingSpare) {
             // Same product exists, update it (even if brand is different)
             $newStockQty = (int)($request->stock_quantity ?? 0);
-            $oldBrandName = $existingSpare->brand_name;
-            $newBrandName = $request->brand_name;
-            $brandChanged = !empty($oldBrandName) && !empty($newBrandName) && $oldBrandName !== $newBrandName;
+            $oldBrandId = $existingSpare->brand_id;
+            $newBrandId = $request->brand_id;
+            $brandChanged = !empty($oldBrandId) && !empty($newBrandId) && $oldBrandId != $newBrandId;
             
-            // If brand changed, log the old brand summary before updating
+            // If brand replaced, log the replacement info
             if ($brandChanged) {
-                // Get old brand history summary
-                $oldBrandInLogs = $existingSpare->stockLogs()
-                    ->where('change_type', 'in')
-                    ->where('brand_name', $oldBrandName)
-                    ->orderBy('created_at', 'asc')
-                    ->get();
-                
-                $oldBrandTotalReceived = $oldBrandInLogs->sum('quantity');
-                $oldBrandStartDate = $oldBrandInLogs->first() ? $oldBrandInLogs->first()->created_at : $existingSpare->created_at;
-                $oldBrandEndDate = $oldBrandInLogs->last() ? $oldBrandInLogs->last()->created_at : now();
-                
-                // Calculate used quantity during old brand period
-                $oldBrandOutLogs = $existingSpare->stockLogs()
-                    ->where('change_type', 'out')
-                    ->whereBetween('created_at', [$oldBrandStartDate, $oldBrandEndDate])
-                    ->get();
-                $oldBrandUsed = $oldBrandOutLogs->sum('quantity');
-                
-                // Get supplier
-                $oldSupplier = $existingSpare->supplier ?? 'N/A';
-                
-                // Log brand change with old brand summary
+                $oldBrand = \App\Models\Brand::find($oldBrandId);
+                $newBrand = \App\Models\Brand::find($newBrandId);
+                $oldBrandName = $oldBrand->name ?? 'Unknown';
+                $newBrandName = $newBrand->name ?? 'Unknown';
+
                 SpareStockLog::create([
                     'spare_id' => $existingSpare->id,
                     'change_type' => 'in',
-                    'quantity' => 0, // No quantity change, just brand change
-                    'brand_name' => $oldBrandName,
-                    'remarks' => "Brand Changed: Old Brand '{$oldBrandName}' Summary - Total Received: {$oldBrandTotalReceived}, Used: {$oldBrandUsed}, Start: {$oldBrandStartDate->format('d M Y, h:i A')}, End: {$oldBrandEndDate->format('d M Y, h:i A')}, Supplier: {$oldSupplier}",
+                    'quantity' => 0,
+                    'brand_id' => $oldBrandId,
+                    'remarks' => "Brand Changed: Old Brand '{$oldBrandName}' switched to '{$newBrandName}'",
                 ]);
             }
             
-            // If brand changed, reset issued_quantity to 0 for new brand
             $updateData = [
                 'product_code' => $request->product_code ?? $existingSpare->product_code,
-                'brand_name' => $newBrandName ?? $existingSpare->brand_name, // Update brand if changed
-                'category' => $request->category,
+                'brand_id' => $newBrandId ?? $existingSpare->brand_id,
+                'category_id' => $request->category_id,
                 'city_id' => $request->city_id ?? $existingSpare->city_id,
                 'sector_id' => $request->sector_id ?? $existingSpare->sector_id,
                 'unit_price' => $request->unit_price ?? $existingSpare->unit_price,
@@ -258,21 +210,19 @@ class SpareController extends Controller
                 'last_stock_in_at' => now(),
             ];
             
-            // Reset issued_quantity to 0 when brand changes
             if ($brandChanged) {
                 $updateData['issued_quantity'] = 0;
             }
             
             $existingSpare->update($updateData);
 
-            // Log the stock addition with new brand
             if ($newStockQty > 0) {
                 SpareStockLog::create([
                     'spare_id' => $existingSpare->id,
                     'change_type' => 'in',
                     'quantity' => $newStockQty,
-                    'brand_name' => $newBrandName ?? $existingSpare->brand_name,
-                    'remarks' => $brandChanged ? "New brand '{$newBrandName}' stock added" : 'Stock added to existing product',
+                    'brand_id' => $newBrandId ?? $existingSpare->brand_id,
+                    'remarks' => $brandChanged ? "New brand stock added" : 'Stock added to existing product',
                 ]);
             }
 
@@ -283,8 +233,8 @@ class SpareController extends Controller
             $spare = Spare::create([
                 'item_name' => $request->item_name,
                 'product_code' => $request->product_code,
-                'brand_name' => $request->brand_name,
-                'category' => $request->category,
+                'brand_id' => $request->brand_id,
+                'category_id' => $request->category_id,
                 'city_id' => $request->city_id,
                 'sector_id' => $request->sector_id,
                 'unit_price' => $request->unit_price,
@@ -297,13 +247,13 @@ class SpareController extends Controller
                 'last_stock_in_at' => $request->last_stock_in_at,
             ]);
 
-            // Log initial stock with brand name
+            // Log initial stock with brand_id
             if ($request->stock_quantity > 0) {
                 SpareStockLog::create([
                     'spare_id' => $spare->id,
                     'change_type' => 'in',
                     'quantity' => $request->stock_quantity,
-                    'brand_name' => $request->brand_name ?? $spare->brand_name,
+                    'brand_id' => $spare->brand_id,
                     'remarks' => 'Initial stock',
                 ]);
             }
@@ -338,7 +288,8 @@ class SpareController extends Controller
             'id' => $spare->id,
             'name' => $spare->item_name,
             'product_code' => $spare->product_code,
-            'brand_name' => $spare->brand_name,
+            'brand_id' => $spare->brand_id,
+            'brand_name' => $spare->brand->name ?? 'N/A',
             'category' => $spare->category,
             'price' => $spare->unit_price,
             'total_received_quantity' => $spare->total_received_quantity,
@@ -354,7 +305,7 @@ class SpareController extends Controller
         ]);
         }
 
-        $spare->load(['complaintSpares.complaint.client', 'approvalItems.performa']);
+        $spare->load(['complaintSpares.complaint.house', 'approvalItems.performa']);
 
         return view('admin.spares.show', compact('spare'));
     }
@@ -364,7 +315,7 @@ class SpareController extends Controller
      */
     public function printSlip(Spare $spare)
     {
-        $spare->load(['stockLogs', 'complaintSpares.complaint.client', 'approvalItems.performa']);
+        $spare->load(['stockLogs', 'complaintSpares.complaint.house', 'approvalItems.performa']);
         
         return view('admin.spares.print-slip', compact('spare'));
     }
@@ -376,27 +327,32 @@ class SpareController extends Controller
     {
         $user = Auth::user();
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')
             : collect();
         
-        // Get cities and sectors based on user role
-        $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
-            : collect();
+        // Get cities based on user role/location
+        $citiesQuery = City::where('status', 1);
+        $userCityIds = $this->getUserCityIds($user);
+        if ($userCityIds !== null) {
+            $citiesQuery->whereIn('id', $userCityIds);
+        }
+        $cities = $citiesQuery->orderBy('id', 'asc')->get();
         
         $sectors = collect();
-        // If user has city_id or spare has city_id, show sectors from that city
-        $cityId = $user && $user->city_id ? $user->city_id : ($spare->city_id ?? null);
-        if ($cityId) {
+        // If user has city_ids or spare has city_id, show sectors from that city
+        $cityIds = $user && !empty($user->city_ids) ? $user->city_ids : ($spare->city_id ? [$spare->city_id] : null);
+        if ($cityIds) {
             $sectors = Schema::hasTable('sectors')
-                ? Sector::where('city_id', $cityId)
-                    ->where('status', 'active')
+                ? Sector::whereIn('city_id', $cityIds)
+                    ->where('status', 1)
                     ->orderBy('name')
                     ->get()
                 : collect();
         }
+
+        $currentBrands = \App\Models\Brand::where('category_id', $spare->category_id)->orderBy('name')->pluck('name', 'id');
         
-        return view('admin.spares.edit', compact('spare', 'categories', 'cities', 'sectors'));
+        return view('admin.spares.edit', compact('spare', 'categories', 'cities', 'sectors', 'currentBrands'));
     }
 
     /**
@@ -408,7 +364,7 @@ class SpareController extends Controller
             'id' => $spare->id,
             'name' => $spare->item_name,
             'product_code' => $spare->product_code,
-            'brand_name' => $spare->brand_name,
+            'brand_id' => $spare->brand_id,
             'category' => $spare->category,
             'city_id' => $spare->city_id,
             'sector_id' => $spare->sector_id,
@@ -420,7 +376,7 @@ class SpareController extends Controller
             'supplier' => $spare->supplier ?? '',
             'description' => $spare->description ?? '',
             'last_stock_in_at' => $spare->last_stock_in_at,
-            'status' => $spare->stock_quantity > 0 ? 'active' : 'inactive',
+            'status' => $spare->stock_quantity > 0 ? 1 : 0,
         ]);
     }
 
@@ -429,19 +385,11 @@ class SpareController extends Controller
      */
     public function update(Request $request, Spare $spare)
     {
-        // Get categories from ComplaintCategory table
-        $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
-            : [];
-        $categoryKeys = implode(',', array_keys(Spare::getCategories()));
-        $dbCategories = implode(',', Spare::getCanonicalCategories());
-        
         $validator = Validator::make($request->all(), [
             'item_name' => 'required|string|max:150',
             'product_code' => 'nullable|string|max:50',
-            'brand_name' => 'nullable|string|max:100',
-            // Accept categories from ComplaintCategory table and legacy categories
-            'category' => 'required|string',
+            'brand_id' => 'nullable|exists:brands,id',
+            'category_id' => 'required|exists:complaint_categories,id',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
             'unit_price' => 'nullable|numeric|min:0',
@@ -466,18 +414,6 @@ class SpareController extends Controller
                 ->withInput();
         }
 
-        // Validate category is from allowed list
-        $allAllowedCategories = array_merge($categories, array_keys(Spare::getCategories()), Spare::getCanonicalCategories());
-        if (!in_array($request->category, $allAllowedCategories)) {
-            return redirect()->back()
-                ->withErrors(['category' => 'The selected category is invalid.'])
-                ->withInput();
-        }
-
-        // Use category as is (from ComplaintCategory table)
-        // Since category is now a string column, we can save any value directly
-        $normalizedCategory = $request->category;
-
         // Compute safe values
         $newTotalReceived = $request->has('total_received_quantity')
             ? (int) $request->total_received_quantity
@@ -497,8 +433,8 @@ class SpareController extends Controller
         $spare->update([
             'item_name' => $request->item_name,
             'product_code' => $request->product_code,
-            'brand_name' => $request->brand_name,
-            'category' => $normalizedCategory,
+            'brand_id' => $request->brand_id,
+            'category_id' => $request->category_id,
             'city_id' => $request->city_id,
             'sector_id' => $request->sector_id,
             'unit_price' => $request->unit_price,
@@ -591,7 +527,7 @@ class SpareController extends Controller
                 'quantity_added' => $request->quantity,
                 'available_stock_after' => $spare->stock_quantity,
                 'remarks' => $request->remarks,
-                'added_by' => auth()->user() && auth()->user()->employee ? auth()->user()->employee->id : null,
+                'added_by' => \App\Models\Employee::first()?->id,
                 'reference_id' => $request->reference_id,
             ]);
         } catch (\Exception $e) {
@@ -751,7 +687,8 @@ class SpareController extends Controller
             }
 
             // Set reference_id to complaint_id (for stock logs to link to complaint)
-            $referenceId = $complaintId ?? $itemId ?? $approvalId ?? null;
+            // This is critical to avoid ID collision between approvals and complaints
+            $referenceId = $complaintId ?? ($approval ? $approval->complaint_id : null) ?? $approvalId ?? $itemId ?? null;
 
             // Issue stock (decrease inventory)
             $result = $spare->removeStock(
@@ -767,8 +704,24 @@ class SpareController extends Controller
                 ], 500);
             }
 
+            // Also update the main complaints table if it's the first spare part
+            if ($complaint && !$complaint->spare_id) {
+                $issuingEmployeeId = $complaint->assigned_employee_id ?? (\App\Models\Employee::first()?->id);
+                
+                $complaint->update([
+                    'spare_id' => $spare->id,
+                    'spare_quantity' => $quantity,
+                    'spare_used_by' => $issuingEmployeeId,
+                    'spare_used_at' => now(),
+                ]);
+            }
+
             // Reload spare to get updated stock quantity
             $spare->refresh();
+
+            // IMPORTANT: Stock has been issued successfully at this point
+            // The following operations are optional post-processing
+            // They should not cause the entire request to fail
 
             // Create stock approval data record if approval_id is provided (from approval modal)
             // Convert approval_id to integer if it's a string
@@ -813,6 +766,7 @@ class SpareController extends Controller
                         'approval_id' => $finalApprovalId,
                         'error' => $e->getMessage()
                     ]);
+                    // Don't fail the entire request - stock was already issued successfully
                 }
             }
 
@@ -830,12 +784,14 @@ class SpareController extends Controller
                         'complaint_id' => $complaint->id,
                         'error' => $e->getMessage()
                     ]);
+                    // Don't fail the entire request - stock was already issued successfully
                 }
             }
             
             // waiting_for_authority removed - stock is issued directly when authority code is added
             // No need to check or update waiting_for_authority flag
 
+            // Return success response - stock has been issued successfully
             return response()->json([
                 'success' => true,
                 'message' => 'Stock issued successfully',
@@ -1030,7 +986,7 @@ class SpareController extends Controller
 
             case 'change_category':
                 $validCategories = Schema::hasTable('complaint_categories')
-                    ? ComplaintCategory::orderBy('name')->pluck('name')->toArray()
+                    ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name')->toArray()
                     : [];
                 $validator = Validator::make($request->all(), [
                     'category' => 'required|string|max:100' . (!empty($validCategories) ? '|in:' . implode(',', $validCategories) : ''),
@@ -1040,8 +996,14 @@ class SpareController extends Controller
                     return redirect()->back()->withErrors($validator);
                 }
                 
-                Spare::whereIn('id', $spareIds)->update(['category' => $request->category]);
-                $message = 'Category changed for selected spare parts successfully.';
+                // Find category ID
+                $category = ComplaintCategory::where('name', $request->category)->first();
+                if ($category) {
+                    Spare::whereIn('id', $spareIds)->update(['category_id' => $category->id]);
+                    $message = 'Category changed for selected spare parts successfully.';
+                } else {
+                    return redirect()->back()->withErrors(['category' => 'Selected category not found in database.']);
+                }
                 break;
 
             case 'change_threshold':
@@ -1116,22 +1078,14 @@ class SpareController extends Controller
     {
         try {
             // Get categories from ComplaintCategory table
+            // Get categories from ComplaintCategory table
             $dbCategories = [];
             if (\Schema::hasTable('complaint_categories')) {
-                $dbCategories = \App\Models\ComplaintCategory::orderBy('name')->pluck('name')->toArray();
+                $dbCategories = \App\Models\ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name')->toArray();
             }
             
-            // Get unique categories from spares table
-            $spareCategories = Spare::whereNotNull('category')
-                ->where('category', '!=', '')
-                ->distinct()
-                ->orderBy('category')
-                ->pluck('category')
-                ->toArray();
-            
-            // Merge and get unique categories
-            $allCategories = array_unique(array_merge($dbCategories, $spareCategories));
-            sort($allCategories);
+            // Only use DB categories, Spares table no longer has distinct 'category' string column
+            $allCategories = $dbCategories;
             
             return response()->json([
                 'success' => true,
@@ -1155,75 +1109,105 @@ class SpareController extends Controller
     public function getProductsByCategory(Request $request)
     {
         try {
-            $category = $request->get('category');
-            $sectorName = $request->get('sector');
-            $cityName = $request->get('city');
+            $categoryName = $request->get('category');
+            $sectorInput = $request->get('sector');
+            $cityInput = $request->get('city');
             $user = Auth::user();
             
             $query = Spare::query();
             
             // First apply user-based location filtering (this is the primary filter)
+            // This ensures users only see products within their allowed scope
             $this->filterSparesByLocation($query, $user);
             
-            // Only apply additional location filtering from request if user is Director/Admin
-            // For other roles, user-based filtering is already applied and should not be overridden
+            // Apply additional location filtering from request
+            // This allows ANY user to further refine the list within their allowed scope
             if ($user && $user->role) {
-                $roleName = strtolower($user->role->role_name ?? '');
-                
-                // Only Director/Admin can override location filtering with request parameters
-                if (in_array($roleName, ['director', 'admin'])) {
-                    // Then apply additional location filtering based on request parameters (if provided)
-                    if ($sectorName) {
-                        // Find sector by name (handle both string name and object)
-                        $sectorNameStr = is_string($sectorName) ? $sectorName : (is_object($sectorName) ? ($sectorName->name ?? null) : null);
-                        
-                        if ($sectorNameStr) {
-                            $sector = \App\Models\Sector::where('name', $sectorNameStr)->first();
-                            if ($sector && $sector->id) {
-                                $query->where('sector_id', $sector->id);
-                            } else {
-                                // If sector not found, try to find by ID if it's numeric
-                                if (is_numeric($sectorName)) {
-                                    $query->where('sector_id', $sectorName);
-                                }
-                            }
+                // Apply sector filter if provided
+                if ($sectorInput) {
+                    $sectorId = null;
+                    
+                    if (is_numeric($sectorInput)) {
+                        $sectorId = $sectorInput;
+                    } elseif (is_string($sectorInput)) {
+                        // Try to find by name
+                        $sector = \App\Models\Sector::where('name', $sectorInput)->first();
+                        if ($sector) {
+                            $sectorId = $sector->id;
                         }
-                    } elseif ($cityName) {
-                        // If only city is provided, filter by city_id
-                        // Handle both string name and object
-                        $cityNameStr = is_string($cityName) ? $cityName : (is_object($cityName) ? ($cityName->name ?? null) : null);
+                    } elseif (is_object($sectorInput) || is_array($sectorInput)) {
+                        // Handle object or array (e.g., from frontend passing object)
+                        $sectorId = is_array($sectorInput) ? ($sectorInput['id'] ?? null) : ($sectorInput->id ?? null);
                         
-                        if ($cityNameStr) {
-                            $city = \App\Models\City::where('name', $cityNameStr)->first();
-                            if ($city && $city->id) {
-                                $query->where('city_id', $city->id);
-                            } else {
-                                // If city not found, try to find by ID if it's numeric
-                                if (is_numeric($cityName)) {
-                                    $query->where('city_id', $cityName);
-                                }
+                        // If no ID, try name
+                        if (!$sectorId) {
+                            $sName = is_array($sectorInput) ? ($sectorInput['name'] ?? null) : ($sectorInput->name ?? null);
+                            if ($sName) {
+                                $sector = \App\Models\Sector::where('name', $sName)->first();
+                                if ($sector) $sectorId = $sector->id;
                             }
                         }
                     }
+                    
+                    if ($sectorId) {
+                        $query->where('sector_id', $sectorId);
+                    }
+                } elseif ($cityInput) {
+                     // Only apply city filter if sector not provided (hierarchy)
+                    $cityId = null;
+                    
+                    if (is_numeric($cityInput)) {
+                        $cityId = $cityInput;
+                    } elseif (is_string($cityInput)) {
+                        $city = \App\Models\City::where('name', $cityInput)->first();
+                        if ($city) $cityId = $city->id;
+                    } elseif (is_object($cityInput) || is_array($cityInput)) {
+                        $cityId = is_array($cityInput) ? ($cityInput['id'] ?? null) : ($cityInput->id ?? null);
+                        if (!$cityId) {
+                            $cName = is_array($cityInput) ? ($cityInput['name'] ?? null) : ($cityInput->name ?? null);
+                            if ($cName) {
+                                $city = \App\Models\City::where('name', $cName)->first();
+                                if ($city) $cityId = $city->id;
+                            }
+                        }
+                    }
+                    
+                    if ($cityId) {
+                        $query->where('city_id', $cityId);
+                    }
                 }
-                // For other roles (complaint_center, department_staff, garrison_engineer), 
-                // user-based filtering is already applied and request parameters are ignored
             }
             
             // Apply category filter
-            if ($category && $category !== '') {
-                $query->where(function($q) use ($category) {
-                    $q->where('category', $category);
-                    // Also include products with null or empty category if searching for "Uncategorized"
-                    if (strtolower($category) === 'uncategorized' || $category === '') {
-                        $q->orWhereNull('category')
-                          ->orWhere('category', '');
+            if ($categoryName && $categoryName !== '') {
+                // Handle "Uncategorized" case
+                if (strtolower($categoryName) === 'uncategorized') {
+                    $query->whereNull('category_id');
+                } else {
+                    // Look up category ID by name
+                    $category = \App\Models\ComplaintCategory::where('name', $categoryName)->first();
+                    
+                    if ($category) {
+                        $query->where('category_id', $category->id);
+                    } else {
+                        // If category name provided but not found, maybe strict filtering?
+                        // Or try to match ambiguous names or just return empty for safety
+                        // For now, if exact name match fails, let's try strict match or assume invalid
+                         $query->where('category_id', -1); // Return nothing if category not found
                     }
-                });
+                }
             }
             
             $products = $query->orderBy('item_name')
-                ->get(['id', 'item_name', 'stock_quantity', 'category', 'unit_price']);
+                // Eager load category to get the name for frontend
+                ->with('category:id,name')
+                ->get(['id', 'item_name', 'stock_quantity', 'category_id', 'unit_price']);
+            
+            // Transform to include category name in response as 'category' string for frontend compatibility
+            $products->transform(function ($item) {
+                $item->category = $item->category ? $item->category->name : null;
+                return $item;
+            });
             
             return response()->json([
                 'success' => true,
@@ -1260,11 +1244,10 @@ class SpareController extends Controller
             $allHistory = [];
 
             foreach ($stockLogs as $log) {
-                // Use log's brand_name if available, otherwise use spare's current brand_name, or 'N/A'
-                $brandName = $log->brand_name;
-                if (empty($brandName)) {
-                    $brandName = $spare->brand_name ?? 'N/A';
-                }
+                // Use log's brand_id, otherwise spare's brand_id
+                $brandId = $log->brand_id ?? $spare->brand_id;
+                $brand = $brandId ? \App\Models\Brand::find($brandId) : null;
+                $brandName = $brand ? $brand->name : 'N/A';
                 $date = $log->created_at->format('Y-m-d H:i:s');
                 $quantity = $log->quantity;
                 $remarks = $log->remarks ?? '';
@@ -1280,8 +1263,9 @@ class SpareController extends Controller
                 ];
 
                 // Group by brand
-                if (!isset($historyByBrand[$brandName])) {
-                    $historyByBrand[$brandName] = [
+                if (!isset($historyByBrand[$brandId])) {
+                    $historyByBrand[$brandId] = [
+                        'brand_id' => $brandId,
                         'brand_name' => $brandName,
                         'total_quantity' => 0,
                         'entries' => [],
@@ -1290,8 +1274,8 @@ class SpareController extends Controller
                     ];
                 }
 
-                $historyByBrand[$brandName]['total_quantity'] += $quantity;
-                $historyByBrand[$brandName]['entries'][] = [
+                $historyByBrand[$brandId]['total_quantity'] += $quantity;
+                $historyByBrand[$brandId]['entries'][] = [
                     'id' => $log->id,
                     'quantity' => $quantity,
                     'date' => $date,
@@ -1300,11 +1284,11 @@ class SpareController extends Controller
                 ];
 
                 // Update dates
-                if ($date < $historyByBrand[$brandName]['first_entry_date']) {
-                    $historyByBrand[$brandName]['first_entry_date'] = $date;
+                if ($date < $historyByBrand[$brandId]['first_entry_date']) {
+                    $historyByBrand[$brandId]['first_entry_date'] = $date;
                 }
-                if ($date > $historyByBrand[$brandName]['last_entry_date']) {
-                    $historyByBrand[$brandName]['last_entry_date'] = $date;
+                if ($date > $historyByBrand[$brandId]['last_entry_date']) {
+                    $historyByBrand[$brandId]['last_entry_date'] = $date;
                 }
             }
 
@@ -1316,36 +1300,31 @@ class SpareController extends Controller
 
             // Get old brand summaries (brands that are no longer current)
             $oldBrandSummaries = [];
-            $currentBrand = $spare->brand_name ?? '';
+            $currentBrandId = $spare->brand_id;
             
-            // Get all unique brands from stock logs
-            $allBrandsInLogs = $spare->stockLogs()
+            // Get all unique brand_ids from stock logs
+            $allBrandIdsInLogs = $spare->stockLogs()
                 ->where('change_type', 'in')
-                ->whereNotNull('brand_name')
-                ->where('brand_name', '!=', '')
+                ->whereNotNull('brand_id')
                 ->distinct()
-                ->pluck('brand_name')
+                ->pluck('brand_id')
                 ->toArray();
             
-            foreach ($allBrandsInLogs as $oldBrandName) {
+            foreach ($allBrandIdsInLogs as $oldBrandId) {
                 // Skip if this is the current brand
-                if (!empty($currentBrand) && $oldBrandName === $currentBrand) {
+                if ($currentBrandId && $oldBrandId == $currentBrandId) {
                     continue;
                 }
                 
                 // Skip if already processed in historyByBrand
-                $alreadyInHistory = false;
-                foreach ($historyByBrand as $brandData) {
-                    if ($brandData['brand_name'] === $oldBrandName) {
-                        $alreadyInHistory = true;
-                        break;
-                    }
+                if (isset($historyByBrand[$oldBrandId])) {
+                    continue;
                 }
                 
                 // Get all logs for this old brand
                 $oldBrandInLogs = $spare->stockLogs()
                     ->where('change_type', 'in')
-                    ->where('brand_name', $oldBrandName)
+                    ->where('brand_id', $oldBrandId)
                     ->orderBy('created_at', 'asc')
                     ->get();
                 
@@ -1360,7 +1339,7 @@ class SpareController extends Controller
                 // Get out logs between start and end date (approximate - all out logs during this period)
                 $oldBrandOutLogs = $spare->stockLogs()
                     ->where('change_type', 'out')
-                    ->whereBetween('created_at', [$oldBrandStartDate, $oldBrandEndDate])
+                    ->where('brand_id', $oldBrandId)
                     ->get();
                 
                 $totalReceived = $oldBrandInLogs->sum('quantity');
@@ -1379,7 +1358,11 @@ class SpareController extends Controller
                     }
                 }
                 
+                $oldBrand = \App\Models\Brand::find($oldBrandId);
+                $oldBrandName = $oldBrand ? $oldBrand->name : 'Unknown';
+                
                 $oldBrandSummaries[] = [
+                    'brand_id' => $oldBrandId,
                     'brand_name' => $oldBrandName,
                     'total_quantity_received' => $totalReceived,
                     'total_quantity_used' => $totalUsed,
@@ -1404,7 +1387,8 @@ class SpareController extends Controller
                     'id' => $spare->id,
                     'item_name' => $spare->item_name,
                     'product_code' => $spare->product_code,
-                    'current_brand' => $spare->brand_name,
+                    'brand_id' => $spare->brand_id,
+                    'current_brand' => $spare->brand->name ?? 'N/A',
                     'category' => $spare->category,
                 ],
                 'history_by_brand' => $historyByBrand,
@@ -1413,7 +1397,8 @@ class SpareController extends Controller
                 'related_brands' => $relatedSpares->map(function($relatedSpare) {
                     return [
                         'id' => $relatedSpare->id,
-                        'brand_name' => $relatedSpare->brand_name,
+                        'brand_id' => $relatedSpare->brand_id,
+                        'brand_name' => $relatedSpare->brand->name ?? 'N/A',
                         'product_code' => $relatedSpare->product_code,
                         'stock_quantity' => $relatedSpare->stock_quantity,
                         'total_received_quantity' => $relatedSpare->total_received_quantity,
@@ -1455,11 +1440,15 @@ class SpareController extends Controller
             // Apply location filtering
             $this->filterSparesByLocation($query, $user);
             
-            $brands = $query->whereNotNull('brand_name')
-                ->where('brand_name', '!=', '')
+            $brands = $query->whereNotNull('brand_id')
                 ->distinct()
-                ->orderBy('brand_name')
-                ->pluck('brand_name')
+                ->get()
+                ->map(function($spare) {
+                    return $spare->brand->name ?? 'N/A';
+                })
+                ->unique()
+                ->sort()
+                ->values()
                 ->toArray();
 
             // Get all spares with same item_name but different brands
@@ -1472,7 +1461,8 @@ class SpareController extends Controller
                     return [
                         'id' => $spare->id,
                         'item_name' => $spare->item_name,
-                        'brand_name' => $spare->brand_name,
+                        'brand_id' => $spare->brand_id,
+                        'brand_name' => $spare->brand->name ?? 'N/A',
                         'product_code' => $spare->product_code,
                         'stock_quantity' => $spare->stock_quantity,
                         'total_received_quantity' => $spare->total_received_quantity,
@@ -1490,79 +1480,6 @@ class SpareController extends Controller
                 'success' => false,
                 'message' => 'Error loading product brands: ' . $e->getMessage()
             ], 500);
-        }
-    }
-
-    /**
-     * Show old brand history page
-     */
-    public function showOldBrandHistory(Request $request, $itemName, $brandName)
-    {
-        try {
-            $user = Auth::user();
-            
-            // Get all spares with same item_name
-            $query = Spare::where('item_name', $itemName);
-            $this->filterSparesByLocation($query, $user);
-            
-            $allSpares = $query->get();
-            
-            // Get the specific brand's spare
-            $spare = $allSpares->where('brand_name', $brandName)->first();
-            
-            if (!$spare) {
-                return redirect()->route('admin.spares.index')
-                    ->with('error', 'Product with this brand not found.');
-            }
-
-            // Get all related brands (same item_name, different brands)
-            $relatedSpares = $allSpares->where('brand_name', '!=', $brandName)->values();
-
-            // Get stock history for this brand
-            $stockLogs = $spare->stockLogs()
-                ->where('change_type', 'in')
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            // Group by brand
-            $historyByBrand = [];
-            foreach ($stockLogs as $log) {
-                $logBrandName = $log->brand_name ?? $spare->brand_name ?? 'N/A';
-                
-                if (!isset($historyByBrand[$logBrandName])) {
-                    $historyByBrand[$logBrandName] = [
-                        'brand_name' => $logBrandName,
-                        'total_quantity' => 0,
-                        'entries' => [],
-                    ];
-                }
-                
-                $historyByBrand[$logBrandName]['total_quantity'] += $log->quantity;
-                $historyByBrand[$logBrandName]['entries'][] = [
-                    'id' => $log->id,
-                    'quantity' => $log->quantity,
-                    'date' => $log->created_at->format('Y-m-d H:i:s'),
-                    'formatted_date' => $log->created_at->format('d M Y, h:i A'),
-                    'remarks' => $log->remarks ?? '',
-                ];
-            }
-
-            return view('admin.spares.old-brand-history', compact(
-                'spare',
-                'relatedSpares',
-                'historyByBrand',
-                'itemName',
-                'brandName'
-            ));
-        } catch (\Exception $e) {
-            \Log::error('Error showing old brand history', [
-                'item_name' => $itemName,
-                'brand_name' => $brandName,
-                'error' => $e->getMessage()
-            ]);
-
-            return redirect()->route('admin.spares.index')
-                ->with('error', 'Error loading brand history: ' . $e->getMessage());
         }
     }
 }

@@ -17,10 +17,11 @@ return new class extends Migration
             $table->string('username', 100)->unique();
             $table->string('name', 100)->nullable();
             $table->string('password', 255);
+            $table->timestamp('password_updated_at')->nullable();
             $table->rememberToken();
             $table->string('email', 150)->nullable()->unique();
             $table->string('phone', 20)->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->tinyInteger('status')->default(1);
             $table->json('cme_ids')->nullable();
             $table->json('group_ids')->nullable();
             $table->json('node_ids')->nullable();

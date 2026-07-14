@@ -13,11 +13,14 @@ return new class extends Migration
     {
         Schema::create('complaint_titles', function (Blueprint $table) {
             $table->id();
-            $table->string('category', 100)->index();
+            $table->unsignedBigInteger('category_id');
             $table->string('title', 255);
             $table->text('description')->nullable();
+            $table->text('questions')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('category_id')->references('id')->on('complaint_categories')->onDelete('cascade');
         });
     }
 

@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <title>@yield('title', 'CMS Admin')</title>
+  <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   @stack('head')
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
   <link href="{{ asset('css/sidebar.css') }}" rel="stylesheet">
   <link href="{{ asset('css/themes.css') }}" rel="stylesheet">
   <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
   
-  <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.2/dist/feather.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.2/dist/feather.min.js" integrity="sha384-qEqAs1VsN9WH2myXDbiP2wGGIttL9bMRZBKCl54ZnzpDlVqbYANP9vMaoT/wvQcf" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.41.0/dist/apexcharts.min.js" integrity="sha384-AZAR82W+ffd2z1uC1LxsIQlrDkg/m9b9EAIS8tBhEiN1GUmO+y7FerqaYyEh/ZPX" crossorigin="anonymous"></script>
   
   <!-- Error handling for missing scripts -->
   <script>
@@ -90,47 +91,90 @@
     @endphp
     
     <div class="section-title">Main Menu</div>
-    @if($user && ($user->hasPermission('dashboard') || $userRole === 'director' || $userRole === 'admin'))
+    @if($user && ($user->hasPermission('dashboard')))
     <a href="{{ route('admin.dashboard') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
       <i data-feather="home" class="me-2"></i> Dashboard
     </a>
     @endif
     
-    <div class="section-title">Management</div>
-    @if($user && ($user->hasPermission('users') || $userRole === 'director' || $userRole === 'admin'))
-    <a href="{{ route('admin.users.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-      <i data-feather="users" class="me-2"></i> Users
-    </a>
+    @if($user && ($user->hasPermission('users') || $user->hasPermission('roles')))
+    <div class="nav-item-parent mb-1">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+        @if($user && ($user->hasPermission('users')))
+        <a href="{{ route('admin.users.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
+          <i data-feather="users" class="me-2"></i> Users
+        </a>
+        @else
+        <span class="d-flex align-items-center flex-grow-1 text-white-50" style="cursor: default;">
+          <i data-feather="users" class="me-2"></i> Users
+        </span>
+        @endif
+        @if($user && ($user->hasPermission('roles')))
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#usersSubmenu" aria-expanded="{{ request()->routeIs('admin.roles.*') ? 'true' : 'false' }}" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
+          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
+        </button>
+        @endif
+      </div>
+      <div class="collapse {{ request()->routeIs('admin.roles.*') ? 'show' : '' }}" id="usersSubmenu">
+        @if($user && ($user->hasPermission('roles')))
+        <a href="{{ route('admin.roles.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="shield" class="me-2"></i> Roles
+        </a>
+        @endif
+      </div>
+    </div>
     @endif
-    @if($user && ($user->hasPermission('frontend-users') || $userRole === 'director' || $userRole === 'admin'))
+    @if($user && ($user->hasPermission('frontend-users')))
     <a href="{{ route('admin.frontend-users.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.frontend-users.*') ? 'active' : '' }}">
       <i data-feather="user-check" class="me-2"></i> Frontend Users
     </a>
     @endif
-    @if($user && ($user->hasPermission('city') || $userRole === 'director' || $userRole === 'admin'))
-    <a href="{{ route('admin.cmes.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.cmes.*') ? 'active' : '' }}">
-      <i data-feather="layers" class="me-2"></i> CMES
+    @if($user && ($user->hasPermission('cmes') || $user->hasPermission('city') || $user->hasPermission('sector')))
+    <div class="nav-item-parent mb-1">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.cmes.*') || request()->routeIs('admin.city.*') || request()->routeIs('admin.sector.*') ? 'active' : '' }}">
+        @if($user && ($user->hasPermission('cmes')))
+        <a href="{{ route('admin.cmes.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
+          <i data-feather="layers" class="me-2"></i> CMES
+        </a>
+        @else
+        <span class="d-flex align-items-center flex-grow-1 text-white-50" style="cursor: default;">
+          <i data-feather="layers" class="me-2"></i> CMES
+        </span>
+        @endif
+        @if($user && ($user->hasPermission('city') || $user->hasPermission('sector')))
+        <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#cmesSubmenu" aria-expanded="{{ request()->routeIs('admin.city.*') || request()->routeIs('admin.sector.*') ? 'true' : 'false' }}" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
+          <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
+        </button>
+        @endif
+      </div>
+      <div class="collapse {{ request()->routeIs('admin.city.*') || request()->routeIs('admin.sector.*') ? 'show' : '' }}" id="cmesSubmenu">
+        @if($user && ($user->hasPermission('city')))
+        <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="map" class="me-2"></i> GE Groups
+        </a>
+        @endif
+        @if($user && ($user->hasPermission('sector')))
+        <a href="{{ route('admin.sector.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="map-pin" class="me-2"></i> GE Nodes
+        </a>
+        @endif
+      </div>
+    </div>
+    @endif
+    @if($user && ($user->hasPermission('employees')))
+    <a href="{{ route('admin.houses.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.houses.*') ? 'active' : '' }}">
+      <i data-feather="home" class="me-2"></i> Houses
     </a>
     @endif
-    @if($user && ($user->hasPermission('city') || $userRole === 'director' || $userRole === 'admin'))
-    <a href="{{ route('admin.city.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.city.*') ? 'active' : '' }}">
-      <i data-feather="map" class="me-2"></i> GE Groups
+    @if($user && ($user->hasPermission('registered-devices')))
+    <a href="{{ route('admin.registered-devices.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.registered-devices.*') ? 'active' : '' }}">
+      <i data-feather="smartphone" class="me-2"></i> Devices
     </a>
     @endif
-    @if($user && ($user->hasPermission('sector') || $userRole === 'director' || $userRole === 'admin'))
-    <a href="{{ route('admin.sector.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.sector.*') ? 'active' : '' }}">
-      <i data-feather="map-pin" class="me-2"></i> GE Nodes
-    </a>
-    @endif
-    @if($user && ($user->hasPermission('roles') || $userRole === 'director' || $userRole === 'admin'))
-    <a href="{{ route('admin.roles.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-      <i data-feather="shield" class="me-2"></i> Roles
-    </a>
-    @endif
-    @if($user && (($user->hasPermission('employees') || $user->hasPermission('designation') || $user->hasPermission('city') || $user->hasPermission('sector')) || $userRole === 'director' || $userRole === 'admin' || $userRole === 'department_staff'))
+    @if($user && ($user->hasPermission('employees') || $user->hasPermission('designation')))
     <div class="nav-item-parent mb-1">
       <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.employees.*') || request()->routeIs('admin.designation.*') ? 'active' : '' }}">
-        @if($user && ($user->hasPermission('employees') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'department_staff'))
+        @if($user && ($user->hasPermission('employees')))
         <a href="{{ route('admin.employees.index') }}" class="text-decoration-none text-inherit d-flex align-items-center flex-grow-1">
           <i data-feather="user-check" class="me-2"></i> Employees
         </a>
@@ -139,14 +183,14 @@
           <i data-feather="user-check" class="me-2"></i> Employees
         </span>
         @endif
-        @if($user && (($user->hasPermission('designation') || $user->hasPermission('city') || $user->hasPermission('sector')) || $userRole === 'director' || $userRole === 'admin'))
+        @if($user && ($user->hasPermission('designation')))
         <button type="button" class="btn btn-link text-inherit p-0 border-0 nav-arrow-btn" data-bs-toggle="collapse" data-bs-target="#employeesSubmenu" aria-expanded="{{ request()->routeIs('admin.designation.*') ? 'true' : 'false' }}" style="background: none !important; color: inherit; cursor: pointer; border: none !important; box-shadow: none !important; outline: none !important; padding: 0 !important; margin: 0 !important;">
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
         </button>
         @endif
       </div>
       <div class="collapse {{ request()->routeIs('admin.designation.*') ? 'show' : '' }}" id="employeesSubmenu">
-        @if($user && ($user->hasPermission('designation') || $userRole === 'director' || $userRole === 'admin'))
+        @if($user && ($user->hasPermission('designation')))
         <a href="{{ route('admin.designation.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.designation.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="award" class="me-2"></i> Designations
         </a>
@@ -154,7 +198,7 @@
       </div>
     </div>
     @endif
-    @if($user && (($user->hasPermission('category') || $user->hasPermission('complaint-titles') || $user->hasPermission('complaints') || $user->hasPermission('approvals')) || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
+    @if($user && (($user->hasPermission('category') || $user->hasPermission('complaint-titles') || $user->hasPermission('complaints') || $user->hasPermission('approvals'))))
     <div class="nav-item-parent mb-1">
       <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'active' : '' }}" style="overflow: visible !important; text-overflow: clip !important; cursor: pointer;" id="complaintsManagementToggle" data-bs-toggle="collapse" data-bs-target="#complaintsManagementSubmenu" aria-expanded="{{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'true' : 'false' }}">
         <div class="d-flex align-items-center flex-grow-1">
@@ -164,22 +208,22 @@
           <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
       </div>
       <div class="collapse {{ request()->routeIs('admin.complaints.*') || request()->routeIs('admin.category.*') || request()->routeIs('admin.complaint-titles.*') || (request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*')) ? 'show' : '' }}" id="complaintsManagementSubmenu">
-        @if($user && ($user->hasPermission('category') || $userRole === 'director' || $userRole === 'admin'))
+        @if($user && ($user->hasPermission('category')))
         <a href="{{ route('admin.category.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.category.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="tag" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Cat
         </a>
         @endif
-        @if($user && ($user->hasPermission('complaint-titles') || $userRole === 'director' || $userRole === 'admin'))
+        @if($user && ($user->hasPermission('complaint-titles')))
         <a href="{{ route('admin.complaint-titles.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaint-titles.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px;"></i> Complaint Types
         </a>
         @endif
-        @if($user && ($user->hasPermission('complaints') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer' || $userRole === 'complaint_center' || $userRole === 'department_staff'))
+        @if($user && ($user->hasPermission('complaints')))
         <a href="{{ route('admin.complaints.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="list" class="me-2" style="width: 18px; height: 18px;"></i> Complaints Regn
         </a>
         @endif
-        @if($user && ($user->hasPermission('approvals') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
+        @if($user && ($user->hasPermission('approvals')))
         <a href="{{ route('admin.approvals.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.approvals.*') && !request()->routeIs('admin.stock-approval.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
           <i data-feather="eye" class="me-2" style="width: 18px; height: 18px;"></i> Total Complaints
         </a>
@@ -187,17 +231,31 @@
       </div>
     </div>
     @endif
-    @if($user && ($user->hasPermission('spares') || $userRole === 'director' || $userRole === 'admin'))
-    <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}">
-      <i data-feather="package" class="me-2"></i> Stock Products
-    </a>
+    @if($user && ($user->hasPermission('spares')))
+    <div class="nav-item-parent mb-1">
+      <div class="nav-link d-flex align-items-center justify-content-between py-2 px-3 {{ request()->routeIs('admin.spares.*') || request()->routeIs('admin.brands.*') ? 'active' : '' }}" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#stockMgmtSubmenu" aria-expanded="{{ request()->routeIs('admin.spares.*') || request()->routeIs('admin.brands.*') ? 'true' : 'false' }}">
+        <div class="d-flex align-items-center flex-grow-1">
+          <i data-feather="package" class="me-2"></i> 
+          <span>Stock Mgmt</span>
+        </div>
+        <i data-feather="chevron-down" class="nav-arrow ms-2" style="font-size: 14px; transition: transform 0.3s;"></i>
+      </div>
+      <div class="collapse {{ request()->routeIs('admin.spares.*') || request()->routeIs('admin.brands.*') ? 'show' : '' }}" id="stockMgmtSubmenu">
+        <a href="{{ route('admin.spares.index') }}" class="nav-link d-block py-2 px-3 mb-2 mt-2 {{ request()->routeIs('admin.spares.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="box" class="me-2" style="width: 18px; height: 18px;"></i> Stock Products
+        </a>
+        <a href="{{ route('admin.brands.index') }}" class="nav-link d-block py-2 px-3 mb-2 {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}" style="background: rgba(59, 130, 246, 0.08); margin-left: 20px; margin-right: 8px; border-left: 3px solid rgba(59, 130, 246, 0.4); border-radius: 6px;">
+          <i data-feather="tag" class="me-2" style="width: 18px; height: 18px;"></i> Brands
+        </a>
+      </div>
+    </div>
     @endif
-    @if($user && ($user->hasPermission('reports') || $userRole === 'director' || $userRole === 'admin' || $userRole === 'garrison_engineer'))
+    @if($user && ($user->hasPermission('reports')))
     <a href="{{ route('admin.reports.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
       <i data-feather="bar-chart-2" class="me-2"></i> Reports
     </a>
     @endif
-    @if($user && ($user->hasPermission('sla') || $userRole === 'director' || $userRole === 'admin'))
+    @if($user && ($user->hasPermission('sla')))
     <a href="{{ route('admin.sla.index') }}" class="nav-link d-block py-2 px-3 mb-1 {{ request()->routeIs('admin.sla.*') ? 'active' : '' }}">
       <i data-feather="clock" class="me-2"></i> SLA Rules
     </a>
@@ -209,11 +267,11 @@
     @yield('content')
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   <script>
     // Apply theme immediately to prevent flickering
     (function() {
-      const savedTheme = localStorage.getItem('theme') || 'dark';
+      const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.classList.add(`theme-${savedTheme}`);
     })();
     
@@ -395,9 +453,6 @@
         }
       }
 
-      // Notification functionality
-      loadNotifications();
-      
       // Settings and Help buttons now link to actual pages
 
       // Sidebar toggle for mobile
@@ -546,7 +601,7 @@
       }
 
       // Handle submenu collapse/expand with arrow rotation and icon initialization
-      const submenus = ['employeesSubmenu', 'complaintsManagementSubmenu'];
+      const submenus = ['usersSubmenu', 'cmesSubmenu', 'employeesSubmenu', 'complaintsManagementSubmenu', 'stockMgmtSubmenu'];
       
       submenus.forEach(submenuId => {
         const submenu = document.getElementById(submenuId);
@@ -612,81 +667,8 @@
         }
       });
 
-      // View all notifications
-      const viewAllNotifications = document.getElementById('viewAllNotifications');
-      if (viewAllNotifications) {
-        viewAllNotifications.addEventListener('click', function(e) {
-          e.preventDefault();
-          window.location.href = '{{ route("admin.notifications.index") }}';
-        });
-      }
+
     });
-
-    // Load notifications
-    function loadNotifications() {
-      fetch('/admin/notifications/api', { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
-        .then(res => res.json())
-        .then(data => {
-          const list = data.notifications || [];
-          const unread = typeof data.unread === 'number' ? data.unread : (list.filter(n => !n.read).length);
-          updateNotificationCount(unread);
-          updateNotificationList(list);
-        })
-        .catch(() => {
-          // On error, show no notifications to avoid mock data
-          updateNotificationCount(0);
-          updateNotificationList([]);
-        });
-    }
-
-    // Update notification count
-    function updateNotificationCount(count) {
-      const countElement = document.getElementById('notificationCount');
-      const totalElement = document.getElementById('notificationTotal');
-      
-      if (countElement) {
-        countElement.textContent = count;
-        countElement.style.display = count > 0 ? 'inline' : 'none';
-      }
-      
-      if (totalElement) {
-        totalElement.textContent = count;
-      }
-    }
-
-    // Update notification list
-    function updateNotificationList(notifications) {
-      const listElement = document.getElementById('notificationList');
-      
-      if (notifications.length === 0) {
-        listElement.innerHTML = `
-          <div class="text-center py-3 text-muted">
-            <i data-feather="bell-off" class="feather-lg mb-2"></i>
-            <div>No notifications</div>
-          </div>
-        `;
-      } else {
-        listElement.innerHTML = notifications.map(notification => `
-          <a href="${notification.url || '#'}" class="dropdown-item notification-item">
-            <div class="d-flex align-items-start">
-              <div class="notification-icon me-3">
-                <i data-feather="${notification.icon || 'bell'}" class="text-${notification.type || 'primary'}"></i>
-              </div>
-              <div class="flex-grow-1">
-                <div class="notification-title">${notification.title}</div>
-                <div class="notification-message text-muted small">${notification.message}</div>
-                <div class="notification-time text-muted small">${notification.time}</div>
-              </div>
-            </div>
-          </a>
-        `).join('');
-      }
-      
-      feather.replace();
-    }
-
-    // Auto-refresh notifications every 30 seconds
-    setInterval(loadNotifications, 30000);
 
     // Auto-hide success messages after 3 seconds
     document.addEventListener('DOMContentLoaded', function() {
@@ -2198,7 +2180,7 @@
   </script>
   
   <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
   @stack('scripts')
 </body>
 </html>

@@ -3,21 +3,22 @@
 @section('title', 'Dashboard UI')
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="preload" as="image" href="{{ asset('assests/Background.jpg') }}" fetchpriority="high">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous" fetchpriority="high" />
     <style>
         .header-bg,
         div.header-bg,
         .relative.bg-cover.bg-center.header-bg {
-            height: 40px !important;
-            min-height: 400px !important;
+            min-height: 350px !important;
+            height: auto !important;
             max-height: none !important;
         }
 
-        /* Browser compatibility for text-size-adjust */
+        /* Browser compatibility handled in app layout */
         html,
         body {
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
+            position: relative;
         }
 
         /* Matte finish for right stats boxes */
@@ -176,6 +177,186 @@
             margin-left: 5%;
             margin-right: 5%;
         }
+
+        /* Hide stock rows beyond 10 on screen, but show all in print */
+        .no-print-row {
+            display: none;
+        }
+
+        /* Responsive Dashboard Styles */
+        @media (max-width: 1280px) {
+            .dashboard-main-container {
+                flex-direction: column-reverse !important;
+            }
+            .stats-boxes-section {
+                width: 100% !important;
+            }
+            .graphs-section {
+                width: 100% !important;
+            }
+        }
+
+        /* Admin-style Modal Blur */
+        body.modal-open-blur {
+            overflow: hidden !important;
+        }
+
+        body.modal-open-blur::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1040;
+            pointer-events: none;
+        }
+
+        /* Ensure modal is above blur layer */
+        #complaintModal {
+            z-index: 1060 !important;
+        }
+
+        #complaintModal .relative {
+            z-index: 1061 !important;
+        }
+
+        @media (max-width: 1024px) {
+            .header-bg {
+                height: auto !important;
+                min-height: 400px !important;
+                padding-top: 120px !important; /* Space for navbar */
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                position: relative !important;
+                margin-top: 0 !important; /* Stick to top */
+                background-attachment: scroll !important;
+            }
+            .navbar {
+                background: transparent !important;
+                box-shadow: none !important;
+                position: absolute !important;
+                top: 0 !important;
+                width: 100% !important;
+            }
+            .filters-container {
+                position: relative !important;
+                top: 0 !important;
+                left: 0 !important;
+                margin: 20px auto !important;
+                width: 95% !important;
+                max-width: 100% !important;
+                white-space: normal !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                padding: 0.75rem !important;
+                height: auto !important;
+                gap: 0.5rem !important;
+                background: rgba(255, 255, 255, 0.15) !important;
+                backdrop-filter: blur(10px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+            }
+            .filter-item {
+                flex: 1 1 120px !important; /* Allow more aggressive shrinking */
+                min-width: 0 !important; /* Let it shrink if needed */
+            }
+            .filter-select {
+                width: 100% !important;
+                max-width: 100% !important;
+                font-size: 0.8rem !important;
+            }
+            .custom-date-container input {
+                width: 110px !important; /* Smaller inputs */
+                font-size: 0.75rem !important;
+            }
+            .filter-item label {
+                font-size: 0.85rem !important;
+            }
+            .filter-select {
+                width: 100% !important;
+                max-width: 100% !important;
+                font-size: 0.8rem !important;
+                padding: 0.4rem !important;
+            }
+            .dashboard-content-wrapper {
+                margin-top: 1rem !important;
+                width: 98%;
+                max-width: 100%;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                padding: 0.5rem !important; /* Reduced padding */
+                width: 100%;
+                gap: 0.5rem !important; /* Smaller gap */
+            }
+            .stats-boxes-section {
+                padding: 1rem !important; /* Significantly reduced from 2rem 3rem */
+            }
+            .stat-card {
+                padding: 0.75rem 0.5rem !important;
+                min-height: 90px !important;
+            }
+            .stat-card span.text-3xl {
+                font-size: 1.1rem !important;
+            }
+            .stat-card span.text-sm {
+                font-size: 0.65rem !important;
+            }
+            .graphs-grid {
+                grid-template-columns: 1fr !important;
+            }
+            /* Chart height adjustments */
+            .h-60, .h-64 { height: 140px !important; }
+            .h-96 { height: 180px !important; }
+            .h-80 { height: 160px !important; }
+            
+            .graphs-section { padding: 0.5rem !important; }
+            .graphs-section h2 { font-size: 0.9rem !important; margin-bottom: 0.25rem !important; }
+            .mt-6 { margin-top: 1rem !important; }
+            .gap-12 { gap: 1.5rem !important; }
+        }
+
+        @media (max-width: 768px) {
+            .header-bg {
+                padding-top: 150px !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+            .graphs-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .custom-date-container {
+                flex-wrap: wrap !important;
+            }
+            .dashboard-content-wrapper {
+                width: 100% !important;
+                padding: 0 10px !important;
+            }
+            .filter-item {
+                flex: 1 1 100% !important; /* Stack fully on small mobile */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .filters-container {
+                gap: 1rem !important;
+            }
+        }
+
+        @media print {
+            .no-print-row {
+                display: table-row !important;
+            }
+        }
     </style>
 @endpush
 
@@ -184,86 +365,123 @@
     <!-- Header Background -->
     <div class="relative bg-cover bg-center header-bg"
         style="background-image: url('{{ asset('assests/Background.jpg') }}');">
-
+        
         <div class="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
-        <!-- Logo -->
-        <!-- <div class="absolute top-9 left-1/2 transform -translate-x-1/2 text-white text-center">
-                        <img src="{{ asset('assests/logo.png') }}" class="h-28 mx-auto mb-2" alt="Pakistan Navy Logo" onerror="this.src='{{ asset('assests/logo.png') }}'" />
-                    </div> -->
         <!-- Filters -->
-        <div class="absolute top-44 p-2 flex items-end justify-start gap-2"
-            style="left: 5%; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); border-radius: 4px; white-space: nowrap; width: -webkit-max-content; width: -moz-max-content; width: max-content; overflow: visible;">
-            <div style="flex: 0 0 auto;">
-                <label for="filterCMES" class="block text-white mb-1"
-                    style="font-size: 1.2rem; font-weight: 700;">CMES</label>
-                <select id="filterCMES" name="cmes_id" class="p-1.5 border filter-select"
-                    style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select CMES"
-                    title="Select CMES">
-                    <option value="">Select CMES</option>
-                    @if(isset($cmesList) && $cmesList->count() > 0)
-                        @foreach($cmesList as $cme)
-                            <option value="{{ $cme->id }}" {{ (isset($cmesId) && $cmesId == $cme->id) ? 'selected' : '' }}>
-                                {{ $cme->name }}
-                            </option>
+        <div class="absolute top-40 p-2 flex flex-nowrap items-end gap-1 filters-container"
+            style="left:3%; width: auto; max-width: 95%; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(3px); border-radius: 4px; overflow: visible; z-index: 100;">
+            <div style="flex: 0 1 170px; min-width: 120px;" class="filter-item">
+                <label class="block text-white mb-1"
+                    style="font-size: 0.95rem; font-weight: 700;">CMES</label>
+                @php
+                    $darkColors = ['#60a5fa', '#4ade80', '#fb923d', '#1e3a8a', '#1b9a87ff', '#f87171', '#818cf8', '#c084fc', '#94a3b8', '#fbbf24'];
+                    $cmesColor = '';
+                    $cmeColorMap = [];
+                    if(isset($cmesList)) {
+                        foreach($cmesList as $index => $cme) {
+                            $cmeColorMap[$cme->id] = $darkColors[$index % count($darkColors)];
+                        }
+                    }
+                    $selectedCmesIds = is_array(request('cmes_id')) ? request('cmes_id') : (request('cmes_id') ? [request('cmes_id')] : (isset($cmesId) ? (is_array($cmesId) ? $cmesId : [$cmesId]) : []));
+                @endphp
+                <div class="dropdown filter-dropdown-wrapper" style="width: 100%;">
+                    <button class="btn btn-sm text-start filter-select" type="button" id="cmesDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem; height: 38px; line-height: 1.5; padding: 0.375rem 2.25rem 0.375rem 0.75rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%; border-radius: 4px; font-weight: bold; background-image: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3e%3cpath fill=%27none%27 stroke=%27%23343a40%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M2 5l6 6 6-6%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 12px;">
+                        Select CMES
+                    </button>
+                    <ul class="dropdown-menu p-2" aria-labelledby="cmesDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff; border: 1px solid #ced4da;">
+                        @if(isset($cmesList) && $cmesList->count() > 0)
+                            @foreach($cmesList as $index => $cme)
+                                @php $color = $darkColors[$index % count($darkColors)]; @endphp
+                                <li class="p-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input cmes-checkbox" type="checkbox" value="{{ $cme->id }}" id="fe_cmes_cb_{{ $cme->id }}" name="cmes_id[]" data-color="{{ $color }}" {{ in_array($cme->id, $selectedCmesIds) ? 'checked' : '' }} onchange="handleFeCmesCheckboxChange(); updateFeDropdownButtonText('cmesDropdownBtn', 'cmes_id[]', 'Select CMES');">
+                                        <label class="form-check-label w-100 cursor-pointer" for="fe_cmes_cb_{{ $cme->id }}" style="color: {{ $color }}; font-weight: 600;">{{ $cme->name }}</label>
+                                    </div>
+                                </li>
+                            @endforeach
+                        @endif
+                    </ul>
+                </div>
+            </div>
+            <div style="flex: 0 1 150px; min-width: 120px;" class="filter-item">
+                <label class="block text-white mb-1"
+                    style="font-size: 0.95rem; font-weight: 700;">GE</label>
+                @php
+                    $selectedCityIds = is_array(request('city_id')) ? request('city_id') : (request('city_id') ? [request('city_id')] : (isset($cityId) ? (is_array($cityId) ? $cityId : [$cityId]) : []));
+                @endphp
+                <div class="dropdown filter-dropdown-wrapper" style="width: 100%;">
+                    <button class="btn btn-sm text-start filter-select" type="button" id="cityDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem; height: 38px; line-height: 1.5; padding: 0.375rem 2.25rem 0.375rem 0.75rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%; border-radius: 4px; font-weight: bold; background-image: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3e%3cpath fill=%27none%27 stroke=%27%23343a40%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M2 5l6 6 6-6%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 12px;">
+                        Select GE
+                    </button>
+                    <ul class="dropdown-menu p-2" id="cityDropdownList" aria-labelledby="cityDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff; border: 1px solid #ced4da;">
+                        @foreach($geGroups as $ge)
+                            @php
+                                $cmeColor = $cmeColorMap[$ge->cme_id] ?? '#1f2937';
+                            @endphp
+                            <li class="p-1 city-item" data-cme-id="{{ $ge->cme_id }}">
+                                <div class="form-check">
+                                    <input class="form-check-input city-checkbox" type="checkbox" value="{{ $ge->id }}" id="fe_city_cb_{{ $ge->id }}" name="city_id[]" data-cme-id="{{ $ge->cme_id }}" {{ in_array($ge->id, $selectedCityIds) ? 'checked' : '' }} onchange="handleFeCityCheckboxChange(); updateFeDropdownButtonText('cityDropdownBtn', 'city_id[]', 'Select GE');">
+                                    <label class="form-check-label w-100 cursor-pointer" for="fe_city_cb_{{ $ge->id }}" style="color: {{ $cmeColor }}; font-weight: 600;">{{ $ge->name }}</label>
+                                </div>
+                            </li>
                         @endforeach
-                    @endif
-                </select>
+                    </ul>
+                </div>
             </div>
-            <div style="flex: 0 0 auto;">
-                <label for="filterCity" class="block text-white mb-1"
-                    style="font-size: 1.2rem; font-weight: 700;">GE</label>
-                <select id="filterCity" name="city_id" class="p-1.5 border filter-select"
-                    style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;" aria-label="Select GE"
-                    title="Select GE">
-                    <option value="">Select GE</option>
-                    @foreach($geGroups as $ge)
-                        <option value="{{ $ge->id }}" {{ $cityId == $ge->id ? 'selected' : '' }}>{{ $ge->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div style="flex: 0 0 auto;">
-                <label for="filterSector" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">GE
+            <div style="flex: 0 1 150px; min-width: 120px;" class="filter-item">
+                <label class="block text-white mb-1" style="font-size: 0.95rem; font-weight: 700;">GE
                     Nodes</label>
-                <select id="filterSector" name="sector_id" class="p-1.5 border filter-select"
-                    style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;"
-                    aria-label="Select GE Nodes" title="Select GE Nodes">
-                    <option value="">Select GE Nodes</option>
-                    @foreach($geNodes as $node)
-                        <option value="{{ $node->id }}" {{ $sectorId == $node->id ? 'selected' : '' }}>{{ $node->name }}</option>
-                    @endforeach
-                </select>
+                @php
+                    $selectedSectorIds = is_array(request('sector_id')) ? request('sector_id') : (request('sector_id') ? [request('sector_id')] : (isset($sectorId) ? (is_array($sectorId) ? $sectorId : [$sectorId]) : []));
+                @endphp
+                <div class="dropdown filter-dropdown-wrapper" style="width: 100%;">
+                    <button class="btn btn-sm text-start filter-select" type="button" id="sectorDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem; height: 38px; line-height: 1.5; padding: 0.375rem 2.25rem 0.375rem 0.75rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%; border-radius: 4px; font-weight: bold; background-image: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3e%3cpath fill=%27none%27 stroke=%27%23343a40%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M2 5l6 6 6-6%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 12px;">
+                        Select GE Nodes
+                    </button>
+                    <ul class="dropdown-menu p-2" id="sectorDropdownList" aria-labelledby="sectorDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff; border: 1px solid #ced4da;">
+                        @foreach($geNodes as $node)
+                            @php
+                                $cmeColor = $cmeColorMap[$node->cme_id] ?? '#1f2937';
+                            @endphp
+                            <li class="p-1 sector-item" data-city-id="{{ $node->city_id }}" data-cme-id="{{ $node->cme_id }}">
+                                <div class="form-check">
+                                    <input class="form-check-input sector-checkbox" type="checkbox" value="{{ $node->id }}" id="fe_sector_cb_{{ $node->id }}" name="sector_id[]" data-city-id="{{ $node->city_id }}" data-cme-id="{{ $node->cme_id }}" {{ in_array($node->id, $selectedSectorIds) ? 'checked' : '' }} onchange="updateFeDropdownButtonText('sectorDropdownBtn', 'sector_id[]', 'Select GE Nodes');">
+                                    <label class="form-check-label w-100 cursor-pointer" for="fe_sector_cb_{{ $node->id }}" style="color: {{ $cmeColor }}; font-weight: 600;">{{ $node->name }}</label>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
-            <div style="flex: 0 0 auto;">
-                <label for="filterCategory" class="block text-white mb-1"
-                    style="font-size: 1.2rem; font-weight: 700;">Complaints Category</label>
-                <select id="filterCategory" name="category" class="p-1.5 border filter-select"
-                    style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;"
-                    aria-label="Select Complaints Category" title="Select Complaints Category">
-                    <option value="all">Select Category</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat->name }}" {{ $category == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
-                    @endforeach
-                </select>
+            <div style="flex: 0 1 150px; min-width: 120px;" class="filter-item">
+                <label class="block text-white mb-1"
+                    style="font-size: 0.95rem; font-weight: 700;">Category</label>
+                @php
+                    $selectedCategories = is_array(request('category')) ? request('category') : (request('category') && request('category') !== 'all' ? [request('category')] : (isset($category) && $category && $category !== 'all' ? (is_array($category) ? $category : [$category]) : []));
+                @endphp
+                <div class="dropdown filter-dropdown-wrapper" style="width: 100%;">
+                    <button class="btn btn-sm text-start filter-select" type="button" id="categoryDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="font-size: 0.85rem; height: 38px; line-height: 1.5; padding: 0.375rem 2.25rem 0.375rem 0.75rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; background-color: #ffffff; border: 1px solid #ced4da; width: 100%; border-radius: 4px; font-weight: bold; background-image: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3e%3cpath fill=%27none%27 stroke=%27%23343a40%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M2 5l6 6 6-6%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 12px;">
+                        Select Category
+                    </button>
+                    <ul class="dropdown-menu p-2" aria-labelledby="categoryDropdownBtn" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; min-width: 200px; background-color: #ffffff; border: 1px solid #ced4da;">
+                        @foreach($categories as $cat)
+                            <li class="p-1">
+                                <div class="form-check">
+                                    <input class="form-check-input category-checkbox" type="checkbox" value="{{ $cat->name }}" id="fe_cat_cb_{{ Str::slug($cat->name) }}" name="category[]" {{ in_array($cat->name, $selectedCategories) ? 'checked' : '' }} onchange="updateFeDropdownButtonText('categoryDropdownBtn', 'category[]', 'Select Category');">
+                                    <label class="form-check-label w-100 cursor-pointer text-dark" for="fe_cat_cb_{{ Str::slug($cat->name) }}">{{ $cat->name }}</label>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
-            <div style="flex: 0 0 auto;">
-                <label for="filterStatus" class="block text-white mb-1"
-                    style="font-size: 1.2rem; font-weight: 700;">Complaints Status</label>
-                <select id="filterStatus" name="status" class="p-1.5 border filter-select"
-                    style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;"
-                    aria-label="Select Complaints Status" title="Select Complaints Status">
-                    <option value="all">Select Status</option>
-                    @foreach($statuses as $key => $label)
-                        <option value="{{ $key }}" {{ $status == $key ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div style="flex: 0 0 auto;">
-                <label for="filterDateRange" class="block text-white mb-1" style="font-size: 1.2rem; font-weight: 700;">Date
+            <div style="flex: 0 1 150px; min-width: 120px;" class="filter-item">
+                <label for="filterDateRange" class="block text-white mb-1" style="font-size: 0.95rem; font-weight: 700;">Date
                     Range</label>
                 <select id="filterDateRange" name="date_range" class="p-1.5 border filter-select"
-                    style="font-size: 1rem; width: 200px; border-radius: 4px; font-weight: bold;"
+                    style="font-size: 0.85rem; width: 100%; border-radius: 4px; font-weight: bold; height: 38px;"
                     aria-label="Select Date Range" title="Select Date Range">
-                    <option value="">Select Date Range</option>
+                    <option value="all_time" {{ (!$dateRange || $dateRange == 'all_time') ? 'selected' : '' }}>All Time</option>
                     <option value="yesterday" {{ $dateRange == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                     <option value="today" {{ $dateRange == 'today' ? 'selected' : '' }}>Today</option>
                     <option value="this_week" {{ $dateRange == 'this_week' ? 'selected' : '' }}>This Week</option>
@@ -271,36 +489,104 @@
                     <option value="this_month" {{ $dateRange == 'this_month' ? 'selected' : '' }}>This Month</option>
                     <option value="last_month" {{ $dateRange == 'last_month' ? 'selected' : '' }}>Last Month</option>
                     <option value="last_6_months" {{ $dateRange == 'last_6_months' ? 'selected' : '' }}>Last 6 Months</option>
+                    <option value="custom" {{ $dateRange == 'custom' ? 'selected' : '' }}>Custom Range</option>
                 </select>
             </div>
-            <div class="flex items-center" style="flex: 0 0 auto; min-width: 0;">
-                <label class="block text-xs font-bold text-gray-700 mb-1"
-                    style="opacity: 0; height: 0; margin: 0;">&nbsp;</label>
+            
+            <div style="flex: 0 1 180px; min-width: 140px;" class="filter-item">
+                <label for="trackComplaintId" class="block text-white mb-1" style="font-size: 0.95rem; font-weight: 700;">Complaint Status</label>
+                <div class="flex items-center">
+                    <input type="text" id="trackComplaintInput" 
+                        class="p-1.5 border border-r-0 rounded-l focus:outline-none" 
+                        style="font-size: 0.85rem; width: 100%; font-weight: bold; height: 38px;" 
+                        placeholder="Enter CMP No.">
+                    <button id="btnTrackComplaint" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 flex items-center justify-center border border-l-0 rounded-r" 
+                        style="height: 38px;" title="Track Complaint">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Custom Date Range Inputs (Hidden by default) -->
+            <div id="customDateRangeContainer" style="display: none;" class="flex items-end gap-1 filter-item custom-date-container">
+                <div style="flex: 0 1 150px; min-width: 120px;">
+                    <label for="startDate" class="block text-white mb-1" style="font-size: 0.95rem; font-weight: 700;">Start</label>
+                    <input type="date" id="startDate" name="start_date" class="p-1.5 border" 
+                        style="font-size: 0.85rem; width: 100%; border-radius: 4px; font-weight: bold; height: 38px;" 
+                        value="{{ request('start_date') }}">
+                </div>
+                <div style="flex: 0 1 130px; min-width: 90px;">
+                    <label for="endDate" class="block text-white mb-1" style="font-size: 0.95rem; font-weight: 700;">End</label>
+                    <input type="date" id="endDate" name="end_date" class="p-1.5 border" 
+                        style="font-size: 0.85rem; width: 100%; border-radius: 4px; font-weight: bold; height: 38px;" 
+                        value="{{ request('end_date') }}">
+                </div>
+                <div style="flex: 0 0 50px;">
+                    <label class="block text-white mb-1" style="font-size: 0.95rem; font-weight: 700; visibility: hidden;">&nbsp;</label>
+                    <button id="applyCustomDate" 
+                        class="px-2 border bg-blue-600 hover:bg-blue-700 text-white font-bold whitespace-nowrap flex items-center justify-center"
+                        style="font-size: 0.9rem; width: 100%; border-radius: 4px; height: 38px;">GO</button>
+                </div>
+            </div>
+            <div class="filter-item" style="flex: 0 0 70px; min-width: 0;">
+                <label class="block text-white mb-1"
+                    style="font-size: 0.90rem; font-weight: 700; visibility: hidden;">&nbsp;</label>
+                <button id="applyFiltersBtn" onclick="applyFilters()"
+                    class="px-2 border bg-blue-600 hover:bg-blue-700 text-white font-bold whitespace-nowrap flex items-center justify-center"
+                    style="font-size: 0.9rem; width: 100%; border-radius: 4px; height: 38px;">Apply</button>
+            </div>
+            <div class="filter-item" style="flex: 0 0 70px; min-width: 0;">
+                <label class="block text-white mb-1"
+                    style="font-size: 0.90rem; font-weight: 700; visibility: hidden;">&nbsp;</label>
                 <button id="resetFilters"
-                    class="px-3 py-1.5 text-sm border bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold whitespace-nowrap"
-                    style="font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 4px;">Reset</button>
+                    class="px-2 border bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold whitespace-nowrap flex items-center justify-center"
+                    style="font-size: 0.9rem; width: 100%; border-radius: 4px; height: 38px;">Reset</button>
             </div>
         </div>
     </div>
 
     <!-- Main Content Container -->
-    <div class="mx-auto mb-8" style="max-width:90%; margin-top: -8rem; position: relative; z-index: 10;">
-        <div class="flex gap-6">
+    <div class="mx-auto mb-8 dashboard-content-wrapper" style="max-width:95%; margin-top: -5.5rem; position: relative; z-index: 10;">
+        
+        <!-- Password Renewal Alert -->
+        @if(session('password_renewal_warning'))
+            <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded shadow-sm animate-pulse">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700 font-bold">
+                            {{ session('password_renewal_warning') }}
+                            <a href="{{ route('frontend.profile') }}" class="underline hover:text-yellow-900 ml-1">Update Now</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <div class="flex gap-6 dashboard-main-container">
             <!-- Left Graphs Section -->
-            <div class="flex-1 space-y-6" style="background: white; padding: 1rem 1.5rem; border-radius: 12px;">
+            <div id="graphsSection" class="flex-1 min-w-0 space-y-6 graphs-section"
+                style="background: white; padding: 1rem 1.5rem; border-radius: 12px;">
                 <!-- Monthly Complaints and TVRR Complaints Row -->
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 graphs-grid overflow-hidden">
                     <!-- Monthly Complaints -->
-                    <div class="bg-white rounded-xl shadow monthly-complaints-chart"
-                        style="position: relative; padding: 0.5rem;">
-                        <h2 class="text-xl font-semibold mb-2">Monthly Complaints (2025)</h2>
-                        <div class="h-60">
+                    <div class="bg-white rounded-xl shadow monthly-complaints-chart overflow-hidden"
+                        style="position: relative; padding: 0.5rem; min-width: 0;">
+                        <h2 class="text-xl font-semibold mb-2">Monthly Complaints</h2>
+                        <div class="h-60 w-full">
                             <canvas id="monthlyComplaintsChart"></canvas>
                         </div>
                     </div>
                     <!-- Complaints by Status -->
-                    <div class="bg-white rounded-xl shadow complaints-by-status-chart"
-                        style="position: relative; padding: 0.5rem;">
+                    <div class="bg-white rounded-xl shadow complaints-by-status-chart overflow-hidden"
+                        style="position: relative; padding: 0.5rem; min-width: 0;">
                         <h2 class="text-xl font-semibold mb-2">Complaints by Status</h2>
                         <div class="h-64 w-full">
                             <canvas id="complaintsByStatusChart"></canvas>
@@ -309,91 +595,148 @@
                 </div>
                 <!-- Complaint Resolution Trend -->
                 <div class="bg-white p-6 rounded-xl shadow">
-                    <h2 class="text-xl font-semibold mb-4">Complaint Resolution Trend (2025)</h2>
+                    <h2 class="text-xl font-semibold mb-2">Complaint Resolution Trend</h2>
                     <div class="h-96">
                         <canvas id="resolutionTrendChart"></canvas>
                     </div>
                 </div>
             </div>
+            <!-- Complaints Table Panel (hidden until a stat card is clicked) -->
+            <div id="complaintsTableSection"
+                class="flex-1 hidden flex-col space-y-4 bg-white rounded-xl shadow p-4"
+                style="min-height: 400px;">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h2 id="complaintsTableTitle" class="text-xl font-semibold mb-1">Complaints</h2>
+                        <p id="complaintsTableSubtitle" class="text-sm text-gray-500">Showing recent complaints</p>
+                    </div>
+                    <button id="closeComplaintsTable"
+                        class="px-3 py-1.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded hover:bg-gray-100">
+                        Close & Show Graphs
+                    </button>
+                </div>
+                <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700">CMP-ID</th>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Registration</th>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Addressed</th>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700">House</th>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Address</th>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Category</th>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700 text-center">Status</th>
+                                <th class="px-3 py-2 text-left font-semibold text-gray-700 text-center">View</th>
+                            </tr>
+                        </thead>
+                        <tbody id="complaintsTableBody" class="divide-y divide-gray-100 bg-white">
+                            <tr>
+                                <td colspan="10" class="px-3 py-6 text-center text-gray-500">Select a status card to
+                                    load complaints.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600">
+                    <div id="complaintsPaginationInfo" class="py-2">Showing 0–0 of 0</div>
+                    <div id="complaintsPagination" class="flex items-center gap-1">
+                        <button data-page="prev"
+                            class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">Prev</button>
+                        <span id="complaintsPageDots" class="px-2">1</span>
+                        <button data-page="next"
+                            class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+                    </div>
+                </div>
+            </div>
             <!-- Right Stats Boxes Section -->
-            <div class="w-96 grid grid-cols-2 gap-3"
-                style="background: white; padding: 2rem 3rem; border-radius: 12px; align-self: start;">
+            <div class="flex-none w-full lg:w-72 grid grid-cols-2 gap-3 stats-boxes-section stats-grid"
+                style="background: white; padding: 2rem 1.5rem; border-radius: 12px; align-self: start;">
                 <!-- Total Complaints (First) -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="all" data-title="Total Complaints" role="button"
                     style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-total-complaints" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['total_complaints'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Total Complaints</span>
                 </div>
                 <!-- In Progress -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="in_progress" data-title="In Progress Complaints" role="button"
                     style="background: linear-gradient(135deg, #ec5454 0%, #b13030 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-in-progress" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['in_progress'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">In Progress</span>
                 </div>
                 <!-- Addressed -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="resolved" data-title="Addressed Complaints" role="button"
                     style="background: linear-gradient(135deg, #475569 0%, #334155 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-addressed" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['addressed'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Addressed</span>
                 </div>
                 <!-- Assigned Complaints -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="assigned" data-title="Assigned Complaints" role="button"
                     style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-assigned" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['assigned'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Assigned</span>
                 </div>
                 <!-- Work Performa -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="work_performa" data-title="Work Performa" role="button"
                     style="background: linear-gradient(135deg,rgb(69, 20, 247) 0%, #7c3aed 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-work-performa" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['work_performa'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Work Performa</span>
                 </div>
                 <!-- Maintenance Performa -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="maint_performa" data-title="Maintenance Performa" role="button"
                     style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-maint-performa" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['maint_performa'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Maintenance Performa</span>
                 </div>
                 <!-- Un Authorized -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="un_authorized" data-title="Un Authorized" role="button"
                     style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-un-authorized" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['un_authorized'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Un Authorized</span>
                 </div>
                 <!-- Product N/A -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
-                    style="background: linear-gradient(135deg, #0deb7cff 0%, #22995dff 100%); min-height: 120px; padding: 1rem 0.75rem;">
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="product_na" data-title="Product N/A" role="button"
+                    style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-product" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['product'] ?? 0 }}</span>
                     <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Product N/A</span>
                 </div>
 
-                <!-- Pertains to GE/Const/Isld -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
-                    style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); min-height: 120px; padding: 1rem 0.75rem;">
-                    <span id="stat-pertains-ge" class="text-3xl mb-1 font-bold"
-                        style="line-height: 1.2; font-weight: 700;">{{ $stats['pertains_to_ge_const_isld'] ?? 0 }}</span>
-                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Pertains to
-                        GE/Const/Isld</span>
+                <!-- Work Performa Priced -->
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="work_priced_performa" data-title="Work Performa Priced" role="button"
+                    style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); min-height: 120px; padding: 1rem 0.75rem;">
+                    <span id="stat-work-priced-performa" class="text-3xl mb-1 font-bold"
+                        style="line-height: 1.2; font-weight: 700;">{{ $stats['work_priced_performa'] ?? 0 }}</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Work Performa Priced</span>
                 </div>
 
-                <!-- Barak Damages -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <!-- Barrack Damages -->
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="barrack_damages" data-title="Barrack Damages" role="button"
                     style="background: linear-gradient(135deg, #808000 0%, #808000 100%); min-height: 120px; padding: 1rem 0.75rem;">
-                    <span id="stat-barak-damages" class="text-3xl mb-1 font-bold"
-                        style="line-height: 1.2; font-weight: 700;">{{ $stats['barak_damages'] ?? 0 }}</span>
-                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Barrak Damages</span>
+                    <span id="stat-barrack-damages" class="text-3xl mb-1 font-bold"
+                        style="line-height: 1.2; font-weight: 700;">{{ $stats['barrack_damages'] ?? 0 }}</span>
+                    <span class="text-sm font-bold" style="line-height: 1.2; font-weight: 700;">Un Authorized Barrack Damages</span>
                 </div>
 
                 <!-- Overdue Complaints -->
-                <div class="text-white rounded-xl text-center font-bold flex flex-col items-center justify-start"
+                <div class="stat-card text-white rounded-xl text-center font-bold flex flex-col items-center justify-start cursor-pointer"
+                    data-status-key="overdue" data-title="Overdue Complaints" role="button"
                     style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); min-height: 120px; padding: 1rem 0.75rem;">
                     <span id="stat-overdue-complaints" class="text-3xl mb-1 font-bold"
                         style="line-height: 1.2; font-weight: 700;">{{ $stats['overdue_complaints'] ?? 0 }}</span>
@@ -413,115 +756,78 @@
 
         <!-- CME Complaints Graph Row -->
         <!-- Graphs Row -->
+        <!-- CME/GE Graph and Products Graph - Side by Side -->
         <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- CME/GE Graph -->
-            <div class="bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">
-                        @if($isCmeUser)
-                            Total Complaints by GE
-                        @elseif($isGeUser)
-                            Total Complaints by GE Node
-                        @else
-                            Total Complaints by CMES
-                        @endif
-                    </h2>
-                    <select id="cmeGraphFilter"
-                        class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select</option>
-                        <option value="this_month">This Month</option>
-                        <option value="last_6_months">Last 6 Months</option>
-                        <option value="this_year">This Year</option>
-                        <option value="last_year">Last Year</option>
-                    </select>
-                </div>
-                <div class="h-80 w-full">
-                    <canvas id="cmeComplaintsChart"></canvas>
-                </div>
-            </div>
+            <!-- CMES Graph Wrapper -->
+            <div id="cmeCardWrapper" class="transition-all duration-300">
+                <!-- CMES Graph (Left) -->
+                <div class="bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2 relative" style="z-index: 50;">
+                        <div class="flex items-center gap-4">
+                             <h2 class="text-xl font-semibold">
+                                @if($isCmeUser)
+                                    Report of GE
+                                @elseif($isGeUser)
+                                    Report of Node
+                                @elseif($isNodeUser)
+                                    Report of Node
+                                @else
+                                    Report of CMES
+                                @endif
+                            </h2>
+                            <div class="flex bg-gray-100 p-1 rounded-lg">
+                                <button onclick="toggleView('cme', 'graph')" id="cmeGraphBtn" class="px-3 py-1 text-sm font-bold rounded-md bg-white shadow text-blue-600 transition-all">Graph</button>
+                                <button onclick="toggleView('cme', 'table')" id="cmeTableBtn" class="px-3 py-1 text-sm font-bold rounded-md text-gray-500 hover:text-gray-700 transition-all">Table</button>
+                            </div>
+                        </div>
 
-            <!-- Employee Performance Graph -->
-            <div class="bg-white rounded-xl shadow" style="position: relative; padding: 1rem;">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Employee Performance</h2>
-                </div>
-                <div class="h-80 w-full">
-                    <canvas id="employeePerformanceChart"></canvas>
-                </div>
-            </div>
-        </div>
+                        <div class="flex items-center gap-2">
+                            <div id="cmeGraphFilterContainer">
+                                <select id="cmeGraphFilter"
+                                    class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="all_time" {{ $cmeDateRange === 'all_time' ? 'selected' : '' }}>All Time</option>
+                                    @foreach($years as $year)
+                                        <option value="{{ $year }}" {{ $cmeDateRange == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-
-        <!-- Top Categories by Usage Chart -->
-        <div class="mt-6 bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
-            <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Stock Consumption by Category</h2>
-                    <select id="categoryGraphFilter"
-                        class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Time</option>
-                        <option value="this_month">This Month</option>
-                        <option value="last_6_months">Last 6 Months</option>
-                        <option value="this_year">This Year</option>
-                        <option value="last_year">Last Year</option>
-                    </select>
-                </div>
-                <div class="h-80 w-full">
-                    <canvas id="categoryUsageChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Monthly Performance Table -->
-            <div id="monthlyPerformanceReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
-                <!-- Print-only heading -->
-                <div class="print-only" style="display: none;">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
-                        @if($isCmeUser)
-                            Monthly Performance Report of GE
-                        @elseif($isGeUser)
-                            Monthly Performance Report of Node
-                        @elseif($isNodeUser)
-                            Monthly Performance Report of Node
-                        @else
-                            Monthly Performance Report of CMES
-                        @endif
-                    </h2>
-                </div>
-                <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
-                    <h2 class="text-xl font-semibold text-gray-800">
-                        @if($isCmeUser)
-                            Monthly Performance Report of GE
-                        @elseif($isGeUser)
-                            Monthly Performance Report of Nodes
-                        @elseif($isNodeUser)
-                            Monthly Performance Report of Nodes
-                        @else
-                            Monthly Performance Report of CMES
-                        @endif
-                    </h2>
-                    <div class="flex space-x-2">
-                        <button onclick="printSection('monthlyPerformanceReport')"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                            <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
-                            </svg>
-                            Print PDF
-                        </button>
-                        <button onclick="exportTableToExcel('monthlyPerformanceTable', 'monthly_performance_report')"
-                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                            <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
-                            </svg>
-                            Excel
-                        </button>
+                            <!-- Download Button (Header) -->
+                            <div id="cmeDownloadContainer" class="hidden no-print relative" style="z-index: 9999;">
+                                <div class="relative inline-block text-left">
+                                    <button onclick="toggleDropdown('monthlyReportDropdown')" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded inline-flex items-center text-xs">
+                                        Download
+                                        <svg class="-mr-1 ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                     <div id="monthlyReportDropdown" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-2xl bg-gray-200 ring-1 ring-black ring-opacity-20 focus:outline-none hidden" style="z-index: 9999;">
+                                        <div class="py-1">
+                                            <button onclick="exportTableToExcel('monthlyPerformanceTable', 'monthly_performance_report'); toggleDropdown('monthlyReportDropdown')" class="text-gray-700 group flex items-center px-4 py-2 text-sm hover:bg-gray-300 w-full text-left">
+                                                <svg class="mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
+                                                </svg>
+                                                Excel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table id="monthlyPerformanceTable" class="min-w-full divide-y divide-gray-200">
+
+                    <div id="cmeGraphContainer" class="h-72 w-full transition-all">
+                        <canvas id="cmeComplaintsChart"></canvas>
+                    </div>
+                    
+                    <div id="cmeTableContainer" class="hidden transition-all overflow-x-auto min-h-80 pt-6">
+                        <table id="monthlyPerformanceTable" class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th rowspan="2"
                                     class="px-4 py-1 text-left text-xs font-extrabold text-gray-900 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">
-                                    Month</th>
+                                    @php $firstCmeKey = array_key_first($monthlyTableData ?? []); @endphp
+                                    {{ is_numeric($firstCmeKey) ? 'Year' : 'Month' }}</th>
                                 @foreach($tableEntities as $entity)
                                     <th colspan="2"
                                         class="px-2 py-1 text-center text-xs font-extrabold text-gray-900 uppercase tracking-wider border-r border-gray-200">
@@ -591,117 +897,198 @@
                             </tr>
                         </tfoot>
                     </table>
+                    </div>
                 </div>
             </div>
 
-        <!-- Stock Consumption Table -->
-                <div id="stockConsumptionReport" class="mt-8 bg-white rounded-xl shadow overflow-hidden">
-                    <!-- Print-only heading -->
-                    <div class="print-only" style="display: none;">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Stock Consumption Report</h2>
-                    </div>
-                    <div class="p-6 border-b border-gray-200 flex justify-between items-center no-print">
-                        <h2 class="text-xl font-semibold text-gray-800">Stock Consumption Report</h2>
-                        <div class="flex space-x-2">
-                            <button onclick="printSection('stockConsumptionReport')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                                <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
-                                Print PDF
-                            </button>
-                            <button onclick="exportTableToExcel('stockConsumptionTable', 'stock_consumption_report')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                                <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
-                                Excel
-                            </button>
+            <!-- Top Products Graph Wrapper -->
+            <div id="stockCardWrapper" class="transition-all duration-300">
+                <!-- Top Products Graph (Right) -->
+                <div class="bg-white rounded-xl shadow monthly-complaints-chart" style="position: relative; padding: 1rem;">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2 relative" style="z-index: 50;">
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-xl font-semibold">Top 10 Most Issued Products</h2>
+                                <a href="{{ route('frontend.stock.all') }}" id="viewAllProductsLink" class="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center gap-1">
+                                    View All <i data-feather="external-link" style="width: 14px; height: 14px;"></i>
+                                </a>
+                            </div>
+                             <div class="flex bg-gray-100 p-1 rounded-lg">
+                                <button onclick="toggleView('stock', 'graph')" id="stockGraphBtn" class="px-3 py-1 text-sm font-bold rounded-md bg-white shadow text-blue-600 transition-all">Graph</button>
+                                <button onclick="toggleView('stock', 'table')" id="stockTableBtn" class="px-3 py-1 text-sm font-bold rounded-md text-gray-500 hover:text-gray-700 transition-all">Table</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div id="stockGraphFilterContainer">
+                                <select id="categoryGraphFilter"
+                                    class="p-1.5 border rounded text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="all_time" {{ ($categoryDateRange ?? 'all_time') === 'all_time' ? 'selected' : '' }}>All Time</option>
+                                    @foreach($years as $year)
+                                        <option value="{{ $year }}" {{ ($categoryDateRange ?? '') == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Download Button (Header) -->
+                            <div id="stockDownloadContainer" class="hidden no-print relative" style="z-index: 9999;">
+                                <div class="relative inline-block text-left">
+                                    <button onclick="toggleDropdown('stockReportDropdown')" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded inline-flex items-center text-xs">
+                                        Download
+                                        <svg class="-mr-1 ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                     <div id="stockReportDropdown" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-2xl bg-gray-200 ring-1 ring-black ring-opacity-20 focus:outline-none hidden" style="z-index: 9999;">
+                                        <div class="py-1">
+                                            <button onclick="exportTableToExcel('stockConsumptionTable', 'stock_consumption_report'); toggleDropdown('stockReportDropdown')" class="text-gray-700 group flex items-center px-4 py-2 text-sm hover:bg-gray-300 w-full text-left">
+                                                <svg class="mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
+                                                </svg>
+                                                Excel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <div id="stockGraphContainer" class="h-72 w-full transition-all">
+                        <canvas id="categoryUsageChart"></canvas>
+                    </div>
 
-                    <div class="overflow-x-auto">
-                        <table id="stockConsumptionTable" class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-1 text-left text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200 sticky left-0 bg-gray-50 z-10">Item Name</th>
-                                    @foreach($monthLabels as $month)
-                                        <th class="px-4 py-1 text-center text-xs font-bold text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                                            {{ substr($month, 0, 3) }} <!-- Show Jan, Feb etc -->
-                                        </th>
-                                    @endforeach
-                                    <th class="px-4 py-1 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Total Received</th>
-                                    <th class="px-4 py-1 text-center text-xs font-bold text-red-600 uppercase tracking-wider border-r border-gray-200">Total Used</th>
-                                    <th class="px-4 py-1 text-center text-xs font-bold text-green-600 uppercase tracking-wider">Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @php
-                                    $stockMonthTotalsReceived = array_fill_keys($monthLabels, 0);
-                                    $grandTotalReceived = 0;
-                                    $grandTotalUsed = 0;
-                                    $grandBalance = 0;
-                                @endphp
-                                @foreach($stockConsumptionData as $itemName => $data)
-                                    @php
-                                        $grandTotalReceived += $data['total_received'];
-                                        $grandTotalUsed += $data['total_used'];
-                                        $grandBalance += $data['current_stock'];
-                                    @endphp
-                                    <!-- Stock Received Row -->
-                                    <tr class="hover:bg-blue-50">
-                                        <td class="px-6 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
-                                            {{ $itemName }}
-                                        </td>
-                                        @foreach($monthLabels as $month)
-                                            @php
-                                                $receivedQty = $data['monthly_received_data'][$month] ?? 0;
-                                                $stockMonthTotalsReceived[$month] += $receivedQty;
-                                            @endphp
-                                            <td class="px-4 py-1 whitespace-nowrap text-sm text-center text-blue-600 font-semibold border-r border-gray-200" style="background-color: #eff6ff;">
-                                                {{ $receivedQty > 0 ? $receivedQty : '-' }}
-                                            </td>
-                                        @endforeach
-                                        <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-gray-700 border-r border-gray-200">
-                                            {{ $data['total_received'] }}
-                                        </td>
-                                        <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-red-600 border-r border-gray-200">
-                                            {{ $data['total_used'] }}
-                                        </td>
-                                        <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-green-600">
-                                            {{ $data['current_stock'] }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot class="bg-gray-100 font-bold">
-                                <tr class="border-t-2 border-gray-400">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 sticky left-0 bg-gray-100 z-10">
-                                        Total
-                                    </td>
-                                    @foreach($monthLabels as $month)
-                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
-                                            {{ $stockMonthTotalsReceived[$month] }}
-                                        </td>
-                                    @endforeach
-                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">
-                                            {{ $grandTotalReceived }}
-                                        </td>
-                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">
-                                            {{ $grandTotalUsed }}
-                                        </td>
-                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-green-600">
-                                        {{ $grandBalance }}
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                    <div id="stockTableContainer" class="hidden transition-all overflow-x-auto min-h-80 pt-6">
+                        @include('frontend.dashboard.partials.stock_table', ['monthLabels' => $stockMonthLabels ?? $monthLabels])
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Graphs Row -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Employee Performance Graph (Top 10 Most Assigned) -->
+            <div class="bg-white rounded-xl shadow" style="position: relative; padding: 1rem;">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Employee Performance (Top 10)</h2>
+                </div>
+                <div class="h-72 w-full">
+                    <canvas id="employeePerformanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Least Assigned Employees Graph -->
+            <div class="bg-white rounded-xl shadow" style="position: relative; padding: 1rem;">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Least Assigned Employees (Bottom 10)</h2>
+                </div>
+                <div class="h-72 w-full">
+                    <canvas id="employeeLeastAssignedChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Consumption Table -->
+            </div>
+
+
+        <!-- Footer placeholder (Handled by base layout) -->
+
+            <!-- Complaint quick view modal -->
+            <div id="complaintModal"
+                class="fixed inset-0 z-[1060] hidden items-start justify-center px-4 pt-28 pb-8">
+                
+                <!-- Modal Overlay (optional if using body blur) -->
+                <!-- <div class="absolute inset-0 bg-blue-200 bg-opacity-70"></div> -->
+
+                <div class="relative w-full max-w-4xl bg-transparent shadow-none p-0" style="max-height: 80vh; overflow-y: auto;">
+                    <!-- Header removed, relying on partial's header -->
+                    <div id="modalBody" class="w-full p-0 block text-sm text-gray-700">
+                        <!-- populated by JS -->
                     </div>
                 </div>
             </div>
 
-            <!-- Footer -->
+
+            <!-- ... footer handled by layout ... -->
 
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" integrity="sha384-9MhbyIRcBVQiiC7FSd7T38oJNj2Zh+EfxS7/vjhBi4OOT78NlHSnzM31EZRWR1LZ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" integrity="sha384-y49Zu59jZHJL/PLKgZPv3k2WI9c0Yp3pWB76V8OBVCb0QBKS8l4Ff3YslzHVX76Y" crossorigin="anonymous"></script>
     <script>
+    function toggleDropdown(id) {
+        var dropdown = document.getElementById(id);
+        if (dropdown.classList.contains('hidden')) {
+            // Close all
+            document.querySelectorAll('[id$="ReportDropdown"]').forEach(function(el) {
+                el.classList.add('hidden');
+            });
+            dropdown.classList.remove('hidden');
+        } else {
+            dropdown.classList.add('hidden');
+        }
+    }
+
+    function toggleView(section, viewType) {
+        // section: 'cme' or 'stock'
+        // viewType: 'graph' or 'table'
+        
+        const graphContainer = document.getElementById(section + 'GraphContainer');
+        const tableContainer = document.getElementById(section + 'TableContainer');
+        const graphBtn = document.getElementById(section + 'GraphBtn');
+        const tableBtn = document.getElementById(section + 'TableBtn');
+        const graphFilter = document.getElementById(section + 'GraphFilterContainer');
+        const downloadContainer = document.getElementById(section + 'DownloadContainer');
+        
+        const activeWrapper = document.getElementById(section + 'CardWrapper');
+        const siblingWrapper = section === 'cme' 
+            ? document.getElementById('stockCardWrapper') 
+            : document.getElementById('cmeCardWrapper');
+        
+        if (viewType === 'graph') {
+            graphContainer.classList.remove('hidden');
+            tableContainer.classList.add('hidden');
+            if(graphFilter) graphFilter.classList.remove('hidden');
+            if(downloadContainer) downloadContainer.classList.add('hidden');
+            
+            // Restore original layout (side by side)
+            activeWrapper.classList.remove('lg:col-span-2');
+            siblingWrapper.classList.remove('hidden');
+            
+            // Update buttons
+            graphBtn.classList.remove('text-gray-500');
+            graphBtn.classList.add('bg-white', 'shadow', 'text-blue-600');
+            tableBtn.classList.remove('bg-white', 'shadow', 'text-blue-600');
+            tableBtn.classList.add('text-gray-500');
+        } else {
+            graphContainer.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+            if(graphFilter) graphFilter.classList.add('hidden');
+            if(downloadContainer) downloadContainer.classList.remove('hidden');
+            
+            // Expand to full width and hide sibling
+            activeWrapper.classList.add('lg:col-span-2');
+            siblingWrapper.classList.add('hidden');
+            
+             // Update buttons
+            tableBtn.classList.remove('text-gray-500');
+            tableBtn.classList.add('bg-white', 'shadow', 'text-blue-600');
+            graphBtn.classList.remove('bg-white', 'shadow', 'text-blue-600');
+            graphBtn.classList.add('text-gray-500');
+        }
+    }
+
+    // Close dropdowns on outside click
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('button[onclick^="toggleDropdown"]')) {
+            document.querySelectorAll('[id$="ReportDropdown"]').forEach(function(el) {
+                el.classList.add('hidden');
+            });
+        }
+    });
+
     // Register the datalabels plugin
     Chart.register(ChartDataLabels);
 
@@ -709,7 +1096,10 @@
         // Chart data from backend
         const monthlyData = @json($monthlyComplaints ?? []);
         @php
-            $defaultMonthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            $defaultMonthLabels = [];
+            for ($i = 11; $i >= 0; $i--) {
+                $defaultMonthLabels[] = now()->subMonths($i)->format('M');
+            }
             // Ensure we have 12 months of data
             $monthlyComplaintsData = $monthlyComplaints ?? [];
             $monthlyResolvedData = $resolvedVsEdData ?? [];
@@ -740,10 +1130,374 @@
         const yearTdData = @json($yearTdData ?? []);
         const unauthorizedData = @json($unauthorizedData ?? []);
         const performaData = @json($performaData ?? []);
+        let dashboardComplaints = @json($dashboardComplaints ?? []);
+        let overdueComplaintsData = @json($overdueComplaints ?? []);
+        // Server-side summary stats (used to show accurate totals even when complaints dataset is a sample)
+        let serverStats = @json($stats ?? []);
+
+        // DOM refs for interactive complaints table
+        const graphsSection = document.getElementById('graphsSection');
+        const complaintsTableSection = document.getElementById('complaintsTableSection');
+        const complaintsTableBody = document.getElementById('complaintsTableBody');
+        const complaintsTableTitle = document.getElementById('complaintsTableTitle');
+        const complaintsTableSubtitle = document.getElementById('complaintsTableSubtitle');
+        const closeComplaintsTableBtn = document.getElementById('closeComplaintsTable');
+        const complaintsPagination = document.getElementById('complaintsPagination');
+        const complaintsPaginationInfo = document.getElementById('complaintsPaginationInfo');
+        const complaintsPageDots = document.getElementById('complaintsPageDots');
+        const statCards = document.querySelectorAll('.stat-card');
+        const complaintModal = document.getElementById('complaintModal');
+        const modalBody = document.getElementById('modalBody');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalClose = document.getElementById('closeComplaintModal');
+        let activeStatusKey = null;
+        let currentPage = 1;
+        const pageSize = 15;
+
+        // Expose functions globally for inline HTML events
+        window.updateFeDropdownButtonText = updateFeDropdownButtonText;
+        window.handleFeCmesCheckboxChange = handleFeCmesCheckboxChange;
+        window.handleFeCityCheckboxChange = handleFeCityCheckboxChange;
+        window.applyFilters = applyFilters;
+
+
+        const statusBadgeColors = {
+            unassigned: '#000000',             // Black for unassigned
+            assigned: '#16a34a',
+            in_progress: '#ec5454',
+            resolved: '#64748b',
+            work_performa: '#7c3aed',          // match Work Performa card (purple)
+            maint_performa: '#eab308',         // match Maintenance Performa card (yellow)
+            work_priced_performa: '#7c3aed',   // keep with work-performa family
+            maint_priced_performa: '#ea580c',  // orange for priced maint
+            product_na: '#f97316',
+            un_authorized: '#ec4899',
+            barrack_damages: '#808000',
+        };
+
+        // Short labels to match admin badges
+        const statusLabelOverrides = {
+            unassigned: 'Unassigned',
+            work_performa: 'Work Performa',
+            maint_performa: 'Maint Performa',
+            work_priced_performa: 'Work Priced',
+            maint_priced_performa: 'Maint Priced',
+            product_na: 'Product NA',
+            in_progress: 'In Progress',
+        };
+
+        function badgeTemplate(label, color) {
+            return `<span class="inline-flex items-center justify-center text-xs font-semibold whitespace-nowrap"
+                style="color:#fff; background:${color}; width: 120px; padding: 0.35rem 0.5rem; border-radius:5px; text-align:center;">${label}</span>`;
+        }
+
+        function formatNumberK(num) {
+            if (num === undefined || num === null) return '0';
+            const n = Number(num);
+            if (n >= 1000) {
+                return (n / 1000).toFixed(1) + 'k';
+            }
+            return n.toString();
+        }
+
+        function filterComplaintsByStatus(statusKey) {
+            if (!statusKey || statusKey === 'all') {
+                return dashboardComplaints;
+            }
+            if (statusKey === 'resolved') {
+                return dashboardComplaints.filter(c => ['resolved', 'closed'].includes(c.status));
+            }
+            if (statusKey === 'overdue') {
+                return overdueComplaintsData.length > 0 ? overdueComplaintsData : dashboardComplaints.filter(c => c.overdue);
+            }
+            return dashboardComplaints.filter(c => c.status === statusKey);
+        }
+
+        let isLoadingTable = false;
+
+        function renderComplaintsTable(statusKey = 'all', titleText = 'Complaints', toggleView = true, requestedPage = 1) {
+            if (!complaintsTableSection || !complaintsTableBody || isLoadingTable) return;
+
+            activeStatusKey = statusKey || 'all';
+            complaintsTableSection.dataset.activeStatus = activeStatusKey;
+            complaintsTableSection.dataset.activeTitle = titleText;
+            currentPage = requestedPage;
+            complaintsTableTitle.textContent = titleText;
+
+            if (toggleView) {
+                complaintsTableSection.classList.remove('hidden');
+                graphsSection?.classList.add('hidden');
+                setTimeout(() => {
+                    complaintsTableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+            }
+
+            // Show loading state
+            isLoadingTable = true;
+            complaintsTableBody.innerHTML = `<tr><td colspan="10" class="px-3 py-12 text-center text-gray-500">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600 mb-2"></div>
+                <p>Loading complaints...</p>
+            </td></tr>`;
+
+            // Prepare filters for AJAX request
+            const params = new URLSearchParams(window.location.search);
+            params.set('status', activeStatusKey);
+            params.set('page', currentPage);
+            params.set('ajax_table', '1');
+
+            fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                isLoadingTable = false;
+                if (!data || !data.dashboardComplaints) {
+                    complaintsTableBody.innerHTML = `<tr><td colspan="10" class="px-3 py-6 text-center text-gray-500">No complaints found.</td></tr>`;
+                    updatePagination(0, 0, 0);
+                    return;
+                }
+
+                const records = data.dashboardComplaints;
+                const pagination = data.pagination || {};
+                
+                if (!records.length) {
+                    complaintsTableBody.innerHTML = `<tr><td colspan="10" class="px-3 py-6 text-center text-gray-500">No complaints found for this status.</td></tr>`;
+                    updatePagination(0, 0, 0);
+                    return;
+                }
+
+                complaintsTableSubtitle.textContent = `Showing ${pagination.from || 0}–${pagination.to || 0} of ${pagination.total || 0} records`;
+                
+                const viewIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+
+                complaintsTableBody.innerHTML = records.map(row => {
+                    const statusColor = statusBadgeColors[row.status] || '#4b5563';
+                    const statusLabel = statusLabelOverrides[row.status] || row.status_label || row.status;
+                    const statusBadge = badgeTemplate(statusLabel, statusColor);
+                    const cmpValue = row.cmp ?? row.id;
+
+                    const typeLabel = row.designation && row.designation !== 'N/A'
+                        ? `${row.category} · ${row.designation}`
+                        : row.category;
+
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-2 font-semibold text-gray-700">CMP-${String(cmpValue ?? '').padStart(4, '0')}</td>
+                            <td class="px-3 py-2 text-gray-700">${row.created_at ?? '-'}</td>
+                            <td class="px-3 py-2 text-gray-700">${row.closed_at ?? '-'}</td>
+                            <td class="px-3 py-2 text-gray-700">${row.house_no ?? 'N/A'}</td>
+                            <td class="px-3 py-2 text-gray-700">${row.address ?? 'N/A'}</td>
+                            <td class="px-3 py-2 text-gray-700">${typeLabel ?? 'N/A'}</td>
+                            <td class="px-3 py-2 text-center">${statusBadge}</td>
+                            <td class="px-3 py-2 text-center">
+                                <button class="view-complaint-btn inline-flex items-center justify-center px-3 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded decoration-0"
+                                    data-complaint-id="${row.id}">
+                                    ${viewIcon}
+                                    <span class="sr-only">View</span>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                updatePagination(pagination.from, pagination.to, pagination.total, pagination.last_page);
+                bindViewButtons();
+            })
+            .catch(error => {
+                isLoadingTable = false;
+                console.error('Error fetching complaints:', error);
+                complaintsTableBody.innerHTML = `<tr><td colspan="10" class="px-3 py-6 text-center text-danger font-bold">Failed to load complaints.</td></tr>`;
+            });
+        }
+
+        function updatePagination(start, end, total, totalPages = null) {
+            if (!complaintsPagination || !complaintsPaginationInfo) return;
+
+            const prevBtn = complaintsPagination.querySelector('button[data-page="prev"]');
+            const nextBtn = complaintsPagination.querySelector('button[data-page="next"]');
+
+            const safeStart = total === 0 ? 0 : start;
+            const safeEnd = total === 0 ? 0 : end;
+            complaintsPaginationInfo.textContent = `Showing ${safeStart}–${safeEnd} of ${total}`;
+
+            if (prevBtn) {
+                prevBtn.disabled = currentPage <= 1;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = totalPages ? currentPage >= totalPages : true;
+            }
+
+            if (complaintsPageDots && totalPages) {
+                complaintsPageDots.textContent = `Page ${currentPage} of ${totalPages}`;
+            }
+        }
+
+        function resetComplaintsPanel() {
+            complaintsTableSection?.classList.add('hidden');
+            graphsSection?.classList.remove('hidden');
+            activeStatusKey = null;
+        }
+
+        function bindViewButtons() {
+            const viewButtons = complaintsTableBody?.querySelectorAll('.view-complaint-btn') || [];
+            viewButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                   const id = btn.dataset.complaintId;
+                   openComplaintModal(id);
+                });
+            });
+        }
+
+        // Global close function
+        window.closeComplaintModal = function() {
+            const complaintModal = document.getElementById('complaintModal');
+            const filtersContainer = document.querySelector('.filters-container');
+            
+            if (complaintModal) {
+                complaintModal.classList.add('hidden');
+                complaintModal.classList.remove('flex');
+            }
+            
+            document.body.classList.remove('modal-open-blur');
+            
+            if (filtersContainer) {
+                filtersContainer.classList.remove('hidden');
+            }
+        };
+
+        function openComplaintModal(id) {
+            if (!complaintModal || !modalBody) return;
+
+            // 1. Show modal IMMEDIATELY with loading state
+            modalBody.innerHTML = `
+                <div class="p-12 text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+                    <p class="text-white text-lg font-medium">Loading details...</p>
+                </div>
+            `;
+            
+            document.body.classList.add('modal-open-blur');
+            const filtersContainer = document.querySelector('.filters-container');
+            if (filtersContainer) {
+                filtersContainer.classList.add('hidden');
+            }
+            const header = document.getElementById('modalTitleHeader');
+            if(header) header.style.display = 'none';
+
+            complaintModal.classList.remove('hidden');
+            complaintModal.classList.add('flex');
+            
+            // 2. Fetch content asynchronously
+            const url = "{{ route('frontend.complaint.show', ':id') }}".replace(':id', id);
+            
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        // If the response is HTML (like our custom error div), use it
+                        if (text.includes('<div')) {
+                            throw new Error(text);
+                        }
+                        throw new Error('Complaint not found or error loading details.');
+                    });
+                }
+                return response.text();
+            })
+            .then(html => {
+                modalBody.innerHTML = html;
+                if(typeof feather !== 'undefined') {
+                    feather.replace(); // Re-initialize icons
+                }
+            })
+            .catch(error => {
+                // If error message is the HTML we threw, use it directly
+                if (error.message.includes('<div')) {
+                    modalBody.innerHTML = error.message;
+                } else {
+                    modalBody.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Failed to load details. Please try again.</div>';
+                }
+                console.error('Error fetching complaint details:', error);
+            });
+        }
+
+        modalClose?.addEventListener('click', closeComplaintModal);
+
+        complaintModal?.addEventListener('click', (e) => {
+            if (e.target === complaintModal) {
+                closeComplaintModal();
+            }
+        });
+
+        closeComplaintsTableBtn?.addEventListener('click', resetComplaintsPanel);
+
+        statCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const statusKey = card.dataset.statusKey || 'all';
+                const titleText = card.dataset.title || 'Complaints';
+                renderComplaintsTable(statusKey, titleText, true, 1);
+            });
+        });
+
+        // Track Complaint Logic
+        const trackComplaintInput = document.getElementById('trackComplaintInput');
+        const btnTrackComplaint = document.getElementById('btnTrackComplaint');
+
+        function handleTrackComplaint() {
+            const rawValue = trackComplaintInput.value.trim();
+            if (!rawValue) {
+                alert('Please enter a complaint number.');
+                return;
+            }
+            const id = rawValue.replace(/\D/g, ''); 
+            
+            if (!id) {
+                alert('Invalid complaint number. Please enter a valid ID (e.g., 25 or CMP-0025).');
+                return;
+            }
+
+            openComplaintModal(id);
+        }
+
+        btnTrackComplaint.addEventListener('click', handleTrackComplaint);
+        
+        trackComplaintInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleTrackComplaint();
+            }
+        });
+
+        complaintsPagination?.addEventListener('click', (e) => {
+            const target = e.target;
+            if (!(target instanceof HTMLElement)) return;
+            const action = target.dataset.page;
+            if (!action || isLoadingTable) return;
+
+            if (action === 'prev' && currentPage > 1) {
+                renderComplaintsTable(activeStatusKey, complaintsTableSection.dataset.activeTitle, false, currentPage - 1);
+            } else if (action === 'next') {
+                renderComplaintsTable(activeStatusKey, complaintsTableSection.dataset.activeTitle, false, currentPage + 1);
+            }
+        });
+
+        // Helper to format numbers with K notation (e.g. 1.2K)
+        function formatNumberK(value) {
+            if (value >= 1000) {
+                return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+            }
+            return value;
+        }
+
 
         // Monthly Complaints Chart (Grouped Bar Chart)
         const ctx = document.getElementById('monthlyComplaintsChart').getContext('2d');
-        const monthlyComplaintsChart = new Chart(ctx, {
+        window.monthlyComplaintsChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: monthLabels,
@@ -770,9 +1524,9 @@
                         position: 'top',
                         labels: {
                             usePointStyle: true,
-                            padding: 15,
+                            padding: window.innerWidth < 1280 ? 10 : 15,
                             font: {
-                                size: 12
+                                size: window.innerWidth < 1280 ? 10 : 12
                             }
                         }
                     },
@@ -784,6 +1538,18 @@
                         },
                         bodyFont: {
                             size: 12
+                        },
+                        callbacks: {
+                             label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += formatNumberK(context.parsed.y);
+                                }
+                                return label;
+                            }
                         }
                     },
                     datalabels: {
@@ -795,7 +1561,7 @@
                         anchor: 'center',
                         align: 'center',
                         formatter: function(value) {
-                            return value;
+                            return formatNumberK(value);
                         }
                     }
                 },
@@ -808,6 +1574,9 @@
                         ticks: {
                             font: {
                                 size: 11
+                            },
+                            callback: function(value) {
+                                return formatNumberK(value);
                             }
                         }
                     },
@@ -816,8 +1585,11 @@
                             display: false
                         },
                         ticks: {
+                            autoSkip: true,
+                            maxRotation: 45,
+                            minRotation: 0,
                             font: {
-                                size: 11,
+                                size: window.innerWidth < 1280 ? 9 : 11,
                                 weight: 'bold',
                                 family: 'Arial, sans-serif'
                             },
@@ -830,7 +1602,7 @@
 
         // Complaint Resolution Trend Chart (Line Chart)
         const ctx2 = document.getElementById('resolutionTrendChart').getContext('2d');
-        const resolutionTrendChart = new Chart(ctx2, {
+        window.resolutionTrendChart = new Chart(ctx2, {
             type: 'line',
             data: {
                 labels: monthLabels,
@@ -860,7 +1632,7 @@
                         pointBorderWidth: 2,
                     },
                     {
-                        label: 'Un Authorized Barrak Damages',
+                        label: 'Un Authorized Barrack Damages',
                         data: unauthorizedData,
                         borderColor: '#808000',
                         backgroundColor: 'rgba(128, 128, 0, 0.1)',
@@ -890,7 +1662,8 @@
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        bottom: 50 // Increased padding to bottom
+                        bottom: 10,
+                        top: 10
                     }
                 },
                 plugins: {
@@ -903,7 +1676,7 @@
                                 weight: 'bold',
                                 family: 'Arial, sans-serif'
                             },
-                            padding: 8,
+                            padding: 20,
                             usePointStyle: true
                         }
                     },
@@ -962,7 +1735,7 @@
                             display: false
                         },
                         ticks: {
-                            padding: 20, // Increased padding between chart and labels
+                            padding: 20,
                             font: {
                                 size: 11,
                                 weight: 'bold',
@@ -972,6 +1745,7 @@
                         }
                     },
                     y: {
+                        grace: '10%',
                         beginAtZero: true,
                         grid: {
                             color: 'rgba(0, 0, 0, 0.05)'
@@ -991,65 +1765,50 @@
             }
         });
 
-        // CME Complaints Chart (Line Chart)
+        // CME Complaints Chart (Bar Chart)
         const cmeLabels = @json($cmeGraphLabels ?? []);
         const cmeData = @json($cmeGraphData ?? []);
         const cmeResolvedData = @json($cmeResolvedData ?? []);
 
         const ctxCme = document.getElementById('cmeComplaintsChart').getContext('2d');
         const cmeComplaintsChart = new Chart(ctxCme, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: cmeLabels,
                 datasets: [
                     {
                         label: 'Total Complaints',
                         data: cmeData,
-                        borderColor: '#8b5cf6', // Violet
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#8b5cf6',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 7
+                        backgroundColor: '#8b5cf6', // Violet
+                        borderRadius: 4,
+                        borderSkipped: false
                     },
                     {
                         label: 'Addressed Complaints',
                         data: cmeResolvedData,
-                        borderColor: '#22c55e', // Green
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#22c55e',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 7
+                        backgroundColor: '#22c55e', // Green
+                        borderRadius: 4,
+                        borderSkipped: false
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: {
-                    padding: {
-                        top: 25
-                    }
-                },
                 plugins: {
                     legend: {
                         display: true,
                         position: 'top',
+                        align: 'end',
                         labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
                             font: {
-                                size: 13,
+                                size: 11,
                                 weight: 'bold',
                                 family: 'Arial, sans-serif'
                             },
-                            padding: 20,
-                            usePointStyle: true
+                            padding: 15
                         }
                     },
                     tooltip: {
@@ -1065,24 +1824,15 @@
                         intersect: false
                     },
                     datalabels: {
-                        display: 'auto', // Automatically hide overlapping labels
-                        clamp: true, // Keep labels within chart area
-                        anchor: function(context) {
-                            // Alternate anchor based on dataset index to reduce collision
-                            return context.datasetIndex % 2 === 0 ? 'end' : 'start';
-                        },
-                        align: function(context) {
-                            // Alternate alignment based on dataset index
-                            return context.datasetIndex % 2 === 0 ? 'top' : 'bottom';
-                        },
-                        offset: 8,
-                        font: {
-                            size: 10,
-                            weight: 'bold',
-                            family: 'Arial, sans-serif'
-                        },
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 5,
                         color: function(context) {
-                            return context.dataset.borderColor;
+                            return context.dataset.backgroundColor;
+                        },
+                        font: {
+                            weight: 'bold',
+                            size: 11
                         },
                         formatter: function(value) {
                             return value > 0 ? value : '';
@@ -1096,7 +1846,7 @@
                         },
                         ticks: {
                             font: {
-                                size: 12,
+                                size: 11,
                                 weight: 'bold',
                                 family: 'Arial, sans-serif'
                             },
@@ -1105,7 +1855,6 @@
                     },
                     y: {
                         beginAtZero: true,
-                        grace: '10%', // Add 10% extra space at the top
                         grid: {
                             color: 'rgba(0, 0, 0, 0.05)'
                         },
@@ -1116,22 +1865,17 @@
                             precision: 0
                         }
                     }
-                },
-                interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
                 }
             }
         });
 
         // Employee Performance Chart (Overlaid Bar)
         const empLabels = @json($empGraphLabels ?? []);
-        const empTotalData = @json($empGraphTotal ?? []);
-        const empResolvedData = @json($empGraphResolved ?? []);
+        let empTotalData = @json($empGraphTotal ?? []);
+        let empResolvedData = @json($empGraphResolved ?? []);
 
         const ctxEmp = document.getElementById('employeePerformanceChart').getContext('2d');
-        const employeePerformanceChart = new Chart(ctxEmp, {
+        window.employeePerformanceChart = new Chart(ctxEmp, {
             type: 'bar',
             data: {
                 labels: empLabels,
@@ -1172,10 +1916,19 @@
                         }
                     },
                     datalabels: {
-                        color: '#fff',
+                        anchor: 'end',
+                        align: function(context) {
+                            return context.datasetIndex === 0 ? 'top' : 'bottom';
+                        },
+                        offset: function(context) {
+                             return context.datasetIndex === 0 ? 5 : 0;
+                        },
+                        color: function(context) {
+                            return context.datasetIndex === 0 ? context.dataset.backgroundColor : '#fff';
+                        },
                         font: {
                             weight: 'bold',
-                            size: 10
+                            size: 11
                         },
                         formatter: function(value) {
                             return value > 0 ? value : '';
@@ -1211,22 +1964,140 @@
             }
         });
 
+        // Least Assigned Employees Chart (Bottom 10)
+        const empLeastLabels = @json($empLeastGraphLabels ?? []);
+        let empLeastTotalData = @json($empLeastGraphTotal ?? []);
+        let empLeastResolvedData = @json($empLeastGraphResolved ?? []);
+
+        const ctxEmpLeast = document.getElementById('employeeLeastAssignedChart').getContext('2d');
+        window.employeeLeastAssignedChart = new Chart(ctxEmpLeast, {
+            type: 'bar',
+            data: {
+                labels: empLeastLabels,
+                datasets: [
+                    {
+                        label: 'Total Complaints',
+                        data: empLeastTotalData,
+                        backgroundColor: '#f97316', // Orange (different from main employee chart)
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8,
+                        order: 2 // Draw first (behind)
+                    },
+                    {
+                        label: 'Addressed Complaints',
+                        data: empLeastResolvedData,
+                        backgroundColor: '#8b5cf6', // Purple (different from main employee chart)
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8,
+                        order: 1 // Draw second (on top)
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: function(context) {
+                            return context.datasetIndex === 0 ? 'top' : 'bottom';
+                        },
+                        offset: function(context) {
+                             return context.datasetIndex === 0 ? 5 : 0;
+                        },
+                        color: function(context) {
+                            return context.datasetIndex === 0 ? context.dataset.backgroundColor : '#fff';
+                        },
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        formatter: function(value) {
+                            return value > 0 ? value : '';
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: false,
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            precision: 0,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'redFlagPlugin',
+                afterDatasetsDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    const xAxis = chart.scales.x;
+                    const yAxis = chart.scales.y;
+                    
+                    // Draw red flag for employees with zero assignments
+                    empLeastTotalData.forEach((value, index) => {
+                        if (value === 0) {
+                            const x = xAxis.getPixelForValue(index);
+                            const y = yAxis.getPixelForValue(0) - 40; // Position above the x-axis
+                            
+                            ctx.save();
+                            ctx.font = '30px Arial'; // Large size
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('🚩', x, y);
+                            ctx.restore();
+                        }
+                    });
+                }
+            }]
+        });
+
+
         // Complaints by Status Chart (Donut Chart) - Using same colors as admin side
         const statusMap = {
             'assigned': { label: 'Assigned', color: '#16a34a' }, // Green
             'in_progress': { label: 'In Progress', color: '#ec5454' }, // Red
             'resolved': { label: 'Addressed', color: '#64748b' }, // Grey
             'work_performa': { label: 'Work Performa', color: '#60a5fa' }, // Light Blue
-            'maint_performa': { label: 'Maint Performa', color: '#eab308' }, // Yellow
+            'maint_performa': { label: 'Maintenance Performa', color: '#eab308' }, // Yellow
             'work_priced_performa': { label: 'Work Priced', color: '#9333ea' }, // Purple
             'maint_priced_performa': { label: 'Maint Priced', color: '#ea580c' }, // Dark Orange
             'product_na': { label: 'Product N/A', color: '#0deb7c' }, // Green
             'un_authorized': { label: 'Un-Authorized', color: '#ec4899' }, // Pink
-            'pertains_to_ge': { label: 'Pertains to GE', color: '#8b5cf6' }, // Violet
-            'pertains_to_ge_const_isld': { label: 'Pertains to GE(N)', color: '#06b6d4' }, // Aqua/Cyan
-            'barak_damages': { label: 'Barak Damages', color: '#808000' }, // Olive
+            'barrack_damages': { label: 'Barrack Damages', color: '#808000' }, // Olive
             'closed': { label: 'Closed', color: '#6b7280' }, // Grey
-            'new': { label: 'New', color: '#3b82f6' } // Blue
+            'unassigned': { label: 'Unassigned', color: '#000000' }, // Black
+            'new': { label: 'Unassigned', color: '#000000' } // Black
         };
 
         const statusKeys = Object.keys(complaintsByStatus);
@@ -1249,7 +2120,7 @@
         const ctx3 = document.getElementById('complaintsByStatusChart').getContext('2d');
 
         // Calculate total from original data (including closed) for accurate total count
-        const totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => a + b, 0);
+        const totalComplaints = Object.values(complaintsByStatus).reduce((a, b) => Number(a) + Number(b), 0);
 
         // Center text plugin for Chart.js
         const centerTextPlugin = {
@@ -1263,10 +2134,10 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                // Helper function for formatting numbers (1k, 1.5k, etc.)
+                // Helper function for formatting numbers (1k, 1.55k, etc.)
                 const formatNumber = (num) => {
                     if (num >= 1000) {
-                        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+                        return (num / 1000).toFixed(2) + 'k';
                     }
                     return num;
                 };
@@ -1275,7 +2146,7 @@
                 const currentLabels = chart.data.labels || [];
                 const currentData = chart.data.datasets[0]?.data || [];
                 const currentColors = chart.data.datasets[0]?.backgroundColor || [];
-                const currentTotal = currentData.reduce((a, b) => a + b, 0);
+                const currentTotal = currentData.reduce((a, b) => Number(a) + Number(b), 0);
 
                 // Check if status filter is active
                 const statusFilter = document.getElementById('filterStatus')?.value;
@@ -1386,7 +2257,7 @@
             }
         };
 
-        const complaintsByStatusChart = new Chart(ctx3, {
+        window.complaintsByStatusChart = new Chart(ctx3, {
             type: 'doughnut',
             data: {
                 labels: statusLabels,
@@ -1416,16 +2287,17 @@
                         position: 'bottom',
                         labels: {
                             font: {
-                                size: 12,
+                                size: window.innerWidth < 1280 ? 9 : 12,
                                 weight: 'bold',
                                 family: 'Arial, sans-serif'
                             },
-                            padding: 10,
+                            padding: window.innerWidth < 1280 ? 5 : 10,
                             usePointStyle: true,
                             color: '#1f2937'
                         }
                     },
                     tooltip: {
+                        enabled: true,
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
                         padding: 10,
                         titleFont: {
@@ -1438,7 +2310,8 @@
                             label: function(context) {
                                 let label = context.label || '';
                                 const value = context.parsed;
-                                const percentage = totalComplaints > 0 ? ((value / totalComplaints) * 100).toFixed(1) : 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                                 if (label) {
                                     label += ': ';
                                 }
@@ -1457,73 +2330,137 @@
 
         // Add event listener for hover to update chart center text
         const chartCanvas = document.getElementById('complaintsByStatusChart');
-        chartCanvas.addEventListener('mousemove', function() {
-            complaintsByStatusChart.update('none');
-        });
-        chartCanvas.addEventListener('mouseleave', function() {
-            complaintsByStatusChart.update('none');
-        });
-
-        // Filter functionality
-        const filterSelects = document.querySelectorAll('.filter-select');
-        const resetBtn = document.getElementById('resetFilters');
-
-        // Handle filter changes
-        filterSelects.forEach(select => {
-            select.addEventListener('change', function() {
-                applyFilters();
+        if (chartCanvas) {
+            chartCanvas.addEventListener('mousemove', function() {
+                complaintsByStatusChart.update('none');
             });
-        });
-
-        // Handle CMES change to update GE Groups and GE Nodes
-        const filterCMES = document.getElementById('filterCMES');
-        if (filterCMES) {
-            filterCMES.addEventListener('change', function() {
-                const cmesId = this.value;
-                const category = document.getElementById('filterCategory').value;
-                const status = document.getElementById('filterStatus').value;
-                const dateRange = document.getElementById('filterDateRange').value;
-
-                // Build params for reload (clear city/sector when CMES changes)
-                const params = new URLSearchParams();
-                if (cmesId) params.append('cmes_id', cmesId);
-                if (category && category !== 'all') params.append('category', category);
-                if (status && status !== 'all') params.append('status', status);
-                if (dateRange) params.append('date_range', dateRange);
-
-                // Reload page with new CMES filter to get updated GE Groups/Nodes
-                window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+            chartCanvas.addEventListener('mouseleave', function() {
+                complaintsByStatusChart.update('none');
             });
         }
 
-        // Handle GE change to update GE Nodes
-        document.getElementById('filterCity').addEventListener('change', function() {
-            const cityId = this.value;
-            const sectorSelect = document.getElementById('filterSector');
-            const category = document.getElementById('filterCategory').value;
-            const status = document.getElementById('filterStatus').value;
-            const dateRange = document.getElementById('filterDateRange').value;
-            const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
 
-            // Clear GE Nodes selection when GE Group changes
-            if (sectorSelect) {
-                sectorSelect.value = '';
+
+        // --- Multiselect Checkbox Dropdown Helper Functions ---
+        function updateFeDropdownButtonText(buttonId, checkboxName, defaultText) {
+            const btn = document.getElementById(buttonId);
+            if (!btn) return;
+            const checked = document.querySelectorAll('input[name="' + checkboxName + '"]:checked');
+            if (checked.length === 0) {
+                btn.textContent = defaultText;
+            } else if (checked.length === 1) {
+                const label = checked[0].closest('.form-check')?.querySelector('.form-check-label');
+                btn.textContent = label ? label.textContent.trim() : '1 Selected';
+            } else {
+                btn.textContent = checked.length + ' Selected';
             }
+        }
 
-            // Build params for reload
-            const params = new URLSearchParams();
-            if (cityId) params.append('city_id', cityId);
-            // Don't include sector_id when city changes
-            if (cmesId) params.append('cmes_id', cmesId);
-            if (category && category !== 'all') params.append('category', category);
-            if (status && status !== 'all') params.append('status', status);
-            if (dateRange) params.append('date_range', dateRange);
+        function handleFeCmesCheckboxChange() {
+            const checkedCmes = Array.from(document.querySelectorAll('.cmes-checkbox:checked')).map(cb => cb.value);
+            const cityItems = document.querySelectorAll('#cityDropdownList .city-item');
+            cityItems.forEach(item => {
+                const cmeId = item.getAttribute('data-cme-id');
+                if (checkedCmes.length === 0 || checkedCmes.includes(cmeId)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                    const cb = item.querySelector('.city-checkbox');
+                    if (cb && cb.checked) {
+                        cb.checked = false;
+                        cb.dispatchEvent(new Event('change'));
+                    }
+                }
+            });
+            updateFeDropdownButtonText('cityDropdownBtn', 'city_id[]', 'Select GE');
+            handleFeCityCheckboxChange();
+        }
 
-            // Reload page with new city filter to get updated GE Nodes dropdown
-            window.location.href = '{{ route("frontend.dashboard") }}?' + params.toString();
+        function handleFeCityCheckboxChange() {
+            const checkedCities = Array.from(document.querySelectorAll('.city-checkbox:checked')).map(cb => cb.value);
+            const visibleCityIds = Array.from(document.querySelectorAll('#cityDropdownList .city-item'))
+                .filter(item => item.style.display !== 'none')
+                .map(item => item.querySelector('.city-checkbox').value);
+
+            const sectorItems = document.querySelectorAll('#sectorDropdownList .sector-item');
+            sectorItems.forEach(item => {
+                const cityId = item.getAttribute('data-city-id');
+                const isVisible = checkedCities.length > 0 
+                    ? checkedCities.includes(cityId)
+                    : visibleCityIds.includes(cityId);
+
+                if (isVisible) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                    const cb = item.querySelector('.sector-checkbox');
+                    if (cb && cb.checked) {
+                        cb.checked = false;
+                        cb.dispatchEvent(new Event('change'));
+                    }
+                }
+            });
+            updateFeDropdownButtonText('sectorDropdownBtn', 'sector_id[]', 'Select GE Nodes');
+        }
+
+        // Initialize dropdown button texts and cascading on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFeDropdownButtonText('cmesDropdownBtn', 'cmes_id[]', 'Select CMES');
+            updateFeDropdownButtonText('cityDropdownBtn', 'city_id[]', 'Select GE');
+            updateFeDropdownButtonText('sectorDropdownBtn', 'sector_id[]', 'Select GE Nodes');
+            updateFeDropdownButtonText('categoryDropdownBtn', 'category[]', 'Select Category');
+            handleFeCmesCheckboxChange();
+            handleFeCityCheckboxChange();
+
+            // Auto-apply filters when a dropdown is closed
+            document.querySelectorAll('.filter-dropdown-wrapper').forEach(dropdownEl => {
+                dropdownEl.addEventListener('hidden.bs.dropdown', function () {
+                    applyFilters();
+                });
+            });
         });
 
+        // Filter functionality
+        const resetBtn = document.getElementById('resetFilters');
 
+        // Handle Date Range changes specifically
+        const filterDateRange = document.getElementById('filterDateRange');
+        const customDateRangeContainer = document.getElementById('customDateRangeContainer');
+        const applyCustomDateBtn = document.getElementById('applyCustomDate');
+
+        if (filterDateRange) {
+            filterDateRange.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    if (customDateRangeContainer) customDateRangeContainer.style.display = 'flex';
+                } else {
+                    if (customDateRangeContainer) customDateRangeContainer.style.display = 'none';
+                    applyFilters();
+                }
+            });
+
+            // Check initial state on page load
+            if (filterDateRange.value === 'custom') {
+                if (customDateRangeContainer) customDateRangeContainer.style.display = 'flex';
+            }
+        }
+
+        // Handle Custom Date Apply
+        if (applyCustomDateBtn) {
+            applyCustomDateBtn.addEventListener('click', function() {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                if (!startDate || !endDate) {
+                    alert('Please select both Start and End dates.');
+                    return;
+                }
+                
+                applyFilters();
+            });
+        }
+
+        // Export cmeColorMap for JavaScript use
+        const cmeColorMap = @json($cmeColorMap ?? []);
 
         // Reset filters
         resetBtn.addEventListener('click', function() {
@@ -1531,20 +2468,39 @@
         });
 
         function applyFilters() {
-            const cityId = document.getElementById('filterCity') ? document.getElementById('filterCity').value : null;
-            const sectorId = document.getElementById('filterSector') ? document.getElementById('filterSector').value : null;
-            const category = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : null;
-            const status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : null;
-            const dateRange = document.getElementById('filterDateRange') ? document.getElementById('filterDateRange').value : null;
-            const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
-
             const params = new URLSearchParams();
-            if (cmesId) params.append('cmes_id', cmesId);
-            if (cityId) params.append('city_id', cityId);
-            if (sectorId) params.append('sector_id', sectorId);
-            if (category && category !== 'all') params.append('category', category);
-            if (status && status !== 'all') params.append('status', status);
-            if (dateRange) params.append('date_range', dateRange);
+
+            // Append multiple values for cmes_id
+            document.querySelectorAll('.cmes-checkbox:checked').forEach(cb => {
+                params.append('cmes_id[]', cb.value);
+            });
+
+            // Append multiple values for city_id
+            document.querySelectorAll('.city-checkbox:checked').forEach(cb => {
+                params.append('city_id[]', cb.value);
+            });
+
+            // Append multiple values for sector_id
+            document.querySelectorAll('.sector-checkbox:checked').forEach(cb => {
+                params.append('sector_id[]', cb.value);
+            });
+
+            // Append multiple values for category
+            document.querySelectorAll('.category-checkbox:checked').forEach(cb => {
+                params.append('category[]', cb.value);
+            });
+
+            const dateRange = document.getElementById('filterDateRange') ? document.getElementById('filterDateRange').value : null;
+            const startDate = document.getElementById('startDate') ? document.getElementById('startDate').value : null;
+            const endDate = document.getElementById('endDate') ? document.getElementById('endDate').value : null;
+
+            if (dateRange) {
+                params.append('date_range', dateRange);
+                if (dateRange === 'custom' && startDate && endDate) {
+                    params.append('start_date', startDate);
+                    params.append('end_date', endDate);
+                }
+            }
 
             // Show loading state
             const statBoxes = document.querySelectorAll('[id^="stat-"]');
@@ -1571,15 +2527,58 @@
                 }
             })
             .then(data => {
-                if (data && data.stats) {
-                    // Update stats boxes
-                    updateStats(data.stats);
+                    if (data && data.stats) {
+                        // Update stats boxes and local serverStats copy
+                        serverStats = data.stats;
+                        updateStats(data.stats);
 
                     // Update charts
                     updateCharts(data);
 
+                    // Update complaints dataset for table
+                    if (data.dashboardComplaints) {
+                        dashboardComplaints = data.dashboardComplaints;
+                        if (complaintsTableSection && !complaintsTableSection.classList.contains('hidden')) {
+                            renderComplaintsTable(activeStatusKey || 'all', complaintsTableSection.dataset.activeTitle || 'Complaints', false, currentPage);
+                        }
+                    }
+
                     // Update URL without reload
                     window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + params.toString());
+                    
+                    // Update View All link for products
+                    const viewAllProductsLink = document.getElementById('viewAllProductsLink');
+                    if (viewAllProductsLink) {
+                        const linkParams = new URLSearchParams();
+                        document.querySelectorAll('.cmes-checkbox:checked').forEach(cb => linkParams.append('cmes_id[]', cb.value));
+                        document.querySelectorAll('.city-checkbox:checked').forEach(cb => linkParams.append('city_id[]', cb.value));
+                        document.querySelectorAll('.sector-checkbox:checked').forEach(cb => linkParams.append('sector_id[]', cb.value));
+                        const dateRange = document.getElementById('filterDateRange') ? document.getElementById('filterDateRange').value : null;
+                        if (dateRange) linkParams.append('date_range', dateRange);
+                        if (dateRange === 'custom') {
+                            const startDate = document.getElementById('startDate') ? document.getElementById('startDate').value : null;
+                            const endDate = document.getElementById('endDate') ? document.getElementById('endDate').value : null;
+                            if (startDate && endDate) {
+                                linkParams.append('start_date', startDate);
+                                linkParams.append('end_date', endDate);
+                            }
+                        }
+                        
+                        viewAllProductsLink.href = '{{ route("frontend.stock.all") }}?' + linkParams.toString();
+                    }
+
+                    // Update Stock Consumption Table
+                    if (data.stockConsumptionData && data.monthLabels) {
+                        renderStockTable(data.stockConsumptionData, data.monthLabels);
+                    }
+
+                    // Update CME Table
+                    if (data.cmeTableHtml) {
+                        const cmeTableContainer = document.getElementById('cmeTableContainer');
+                        if (cmeTableContainer) {
+                            cmeTableContainer.innerHTML = data.cmeTableHtml;
+                        }
+                    }
                 }
             })
             .catch(error => {
@@ -1588,37 +2587,158 @@
             });
         }
 
+        function renderStockTable(stockData, monthLabels) {
+            const tableBody = document.querySelector('#stockConsumptionTable tbody');
+            const tableFoot = document.querySelector('#stockConsumptionTable tfoot');
+            if (!tableBody || !tableFoot) return;
+
+            let html = '';
+            let rowIndex = 0;
+            
+            const stockMonthTotalsReceived = {};
+            const stockMonthTotalsReceivedTop10 = {};
+            monthLabels.forEach(m => {
+                stockMonthTotalsReceived[m] = 0;
+                stockMonthTotalsReceivedTop10[m] = 0;
+            });
+
+            let grandTotalReceived = 0;
+            let top10TotalReceived = 0;
+            let grandTotalUsed = 0;
+            let top10TotalUsed = 0;
+            let grandBalance = 0;
+            let top10Balance = 0;
+
+            for (const [itemName, data] of Object.entries(stockData)) {
+                rowIndex++;
+                grandTotalReceived += Number(data.total_received || 0);
+                grandTotalUsed += Number(data.total_used || 0);
+                grandBalance += Number(data.current_stock || 0);
+
+                if (rowIndex <= 10) {
+                    top10TotalReceived += Number(data.total_received || 0);
+                    top10TotalUsed += Number(data.total_used || 0);
+                    top10Balance += Number(data.current_stock || 0);
+                }
+
+                const rowClass = rowIndex > 10 ? 'no-print-row' : '';
+                
+                html += `<tr class="hover:bg-blue-50 ${rowClass}">
+                    <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white z-10">
+                        ${itemName}
+                    </td>`;
+
+                monthLabels.forEach(month => {
+                    const receivedQty = Number(data.monthly_received_data[month] || 0);
+                    stockMonthTotalsReceived[month] += receivedQty;
+                    if (rowIndex <= 10) {
+                        stockMonthTotalsReceivedTop10[month] += receivedQty;
+                    }
+                    html += `<td class="px-4 py-1 whitespace-nowrap text-sm text-center text-blue-600 font-semibold border-r border-gray-200" style="background-color: #eff6ff;">
+                        ${receivedQty > 0 ? receivedQty : '-'}
+                    </td>`;
+                });
+
+                html += `<td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-gray-700 border-r border-gray-200">
+                        ${data.total_received}
+                    </td>
+                    <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-red-600 border-r border-gray-200">
+                        ${data.total_used}
+                    </td>
+                    <td class="px-4 py-1 whitespace-nowrap text-sm text-center font-bold text-green-600">
+                        ${data.current_stock}
+                    </td>
+                </tr>`;
+            }
+
+            tableBody.innerHTML = html;
+
+            // Update footer
+            let footHtml = `<tr class="border-t-2 border-gray-400 no-print">
+                <td class="px-2 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 sticky left-0 bg-gray-100 z-10">
+                    Total (Top 10)
+                </td>`;
+            
+            monthLabels.forEach(month => {
+                footHtml += `<td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
+                    ${stockMonthTotalsReceivedTop10[month]}
+                </td>`;
+            });
+
+            footHtml += `<td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">${top10TotalReceived}</td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">${top10TotalUsed}</td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-green-600">${top10Balance}</td>
+            </tr>
+            <tr class="border-t-2 border-gray-400 no-print-row">
+                <td class="px-2 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 sticky left-0 bg-gray-100 z-10">
+                    Grand Total
+                </td>`;
+
+            monthLabels.forEach(month => {
+                footHtml += `<td class="px-4 py-4 whitespace-nowrap text-sm text-center text-blue-600 border-r border-gray-200">
+                    ${stockMonthTotalsReceived[month]}
+                </td>`;
+            });
+
+            footHtml += `<td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-900 border-r border-gray-200">${grandTotalReceived}</td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-red-600 border-r border-gray-200">${grandTotalUsed}</td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-green-600">${grandBalance}</td>
+            </tr>`;
+
+            tableFoot.innerHTML = footHtml;
+        }
+
         function updateStats(stats) {
-            // Update all stat boxes
+            // Update all stat boxes with correct IDs from the blade template
             if (stats.total_complaints !== undefined) {
-                document.getElementById('stat-total-complaints').textContent = stats.total_complaints || 0;
+                const el = document.getElementById('stat-total-complaints');
+                if (el) el.textContent = stats.total_complaints;
             }
             if (stats.in_progress !== undefined) {
-                document.getElementById('stat-in-progress').textContent = stats.in_progress || 0;
-            }
-            if (stats.addressed !== undefined) {
-                document.getElementById('stat-addressed').textContent = stats.addressed || 0;
-            }
-            if (stats.work_performa !== undefined) {
-                document.getElementById('stat-work-performa').textContent = stats.work_performa || 0;
-            }
-            if (stats.maint_performa !== undefined) {
-                document.getElementById('stat-maint-performa').textContent = stats.maint_performa || 0;
-            }
-            if (stats.un_authorized !== undefined) {
-                document.getElementById('stat-un-authorized').textContent = stats.un_authorized || 0;
-            }
-            if (stats.product !== undefined) {
-                document.getElementById('stat-product').textContent = stats.product || 0;
-            }
-            if (stats.resolution_rate !== undefined) {
-                document.getElementById('stat-resolution-rate').textContent = (stats.resolution_rate || 0) + '%';
-            }
-            if (stats.pertains_to_ge_const_isld !== undefined) {
-                document.getElementById('stat-pertains-ge').textContent = stats.pertains_to_ge_const_isld || 0;
+                const el = document.getElementById('stat-in-progress');
+                if (el) el.textContent = stats.in_progress;
             }
             if (stats.assigned !== undefined) {
-                document.getElementById('stat-assigned').textContent = stats.assigned || 0;
+                const el = document.getElementById('stat-assigned');
+                if (el) el.textContent = stats.assigned;
+            }
+            if (stats.addressed !== undefined) {
+                const el = document.getElementById('stat-addressed');
+                if (el) el.textContent = stats.addressed;
+            }
+            if (stats.overdue_complaints !== undefined) {
+                const el = document.getElementById('stat-overdue-complaints');
+                if (el) el.textContent = stats.overdue_complaints;
+            }
+            if (stats.work_performa !== undefined) {
+                const el = document.getElementById('stat-work-performa');
+                if (el) el.textContent = stats.work_performa;
+            }
+            if (stats.maint_performa !== undefined) {
+                const el = document.getElementById('stat-maint-performa');
+                if (el) el.textContent = stats.maint_performa;
+            }
+            if (stats.un_authorized !== undefined) {
+                const el = document.getElementById('stat-un-authorized');
+                if (el) el.textContent = stats.un_authorized;
+            }
+            if (stats.product !== undefined) {
+                const el = document.getElementById('stat-product');
+                if (el) el.textContent = stats.product;
+            }
+            if (stats.work_priced_performa !== undefined) {
+                const el = document.getElementById('stat-work-priced-performa');
+                if (el) el.textContent = stats.work_priced_performa;
+            }
+            if (stats.barrack_damages !== undefined) {
+                const el = document.getElementById('stat-barrack-damages');
+                if (el) el.textContent = stats.barrack_damages;
+            }
+            
+            // Update Resolution Rate
+            if (stats.resolution_rate !== undefined) {
+                const el = document.getElementById('stat-resolution-rate');
+                if (el) el.textContent = stats.resolution_rate + '%';
             }
         }
 
@@ -1626,55 +2746,44 @@
             // Update Monthly Complaints Chart
             if (data.monthlyComplaints && monthlyComplaintsChart) {
                 monthlyComplaintsChart.data.datasets[0].data = data.monthlyComplaints;
+                if (data.resolvedVsEdData) {
+                    monthlyComplaintsChart.data.datasets[1].data = data.resolvedVsEdData;
+                }
                 monthlyComplaintsChart.data.labels = data.monthLabels;
                 monthlyComplaintsChart.update();
             }
 
             // Update Complaints by Status Chart
             if (data.complaintsByStatus && complaintsByStatusChart) {
-                // Update global complaintsByStatus with all data (including closed)
+                // Update global complaintsByStatus with all data
                 complaintsByStatus = data.complaintsByStatus;
 
                 const statusKeys = Object.keys(data.complaintsByStatus);
                 const statusLabels = statusKeys.map(key => {
-                    if (statusMap[key] && statusMap[key].label) {
-                        return statusMap[key].label;
+                    if (statusLabelOverrides[key]) {
+                        return statusLabelOverrides[key];
                     }
                     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 });
                 const statusData = Object.values(data.complaintsByStatus);
                 const statusColors = statusKeys.map(key => {
-                    if (statusMap[key] && statusMap[key].color) {
-                        return statusMap[key].color;
-                    }
-                    return '#64748b';
+                    return statusBadgeColors[key] || '#64748b';
                 });
-
+                
                 complaintsByStatusChart.data.labels = statusLabels;
                 complaintsByStatusChart.data.datasets[0].data = statusData;
                 complaintsByStatusChart.data.datasets[0].backgroundColor = statusColors;
-                complaintsByStatusChart.update('none');
+                complaintsByStatusChart.update();
             }
 
-            // Update Resolution Trend Chart
-            if (data.recentEdData && data.resolvedVsEdData && resolutionTrendChart) {
-                resolutionTrendChart.data.datasets[0].data = data.recentEdData;
-                resolutionTrendChart.data.datasets[1].data = data.resolvedVsEdData;
-                resolutionTrendChart.data.labels = data.monthLabels;
-                resolutionTrendChart.data.labels = data.monthLabels;
+            // Update Resolution Trend Chart (Line Chart)
+            if (resolutionTrendChart) {
+                if (data.monthLabels) resolutionTrendChart.data.labels = data.monthLabels;
+                if (data.monthlyComplaints) resolutionTrendChart.data.datasets[0].data = data.monthlyComplaints;
+                if (data.resolvedVsEdData) resolutionTrendChart.data.datasets[1].data = data.resolvedVsEdData;
+                if (data.unauthorizedData) resolutionTrendChart.data.datasets[2].data = data.unauthorizedData;
+                if (data.performaData) resolutionTrendChart.data.datasets[3].data = data.performaData;
                 resolutionTrendChart.update();
-            }
-
-            // Update CME Complaints Chart
-            if (data.cmeGraphData && cmeComplaintsChart) {
-                cmeComplaintsChart.data.datasets[0].data = data.cmeGraphData;
-                if (data.cmeResolvedData) {
-                    cmeComplaintsChart.data.datasets[1].data = data.cmeResolvedData;
-                }
-                if (data.cmeGraphLabels) {
-                    cmeComplaintsChart.data.labels = data.cmeGraphLabels;
-                }
-                cmeComplaintsChart.update();
             }
 
             // Update Category Usage Chart
@@ -1686,33 +2795,67 @@
                 }
                 categoryUsageChart.update();
             }
+
+            // Update Employee Performance Chart
+            if (data.empGraphTotal && employeePerformanceChart) {
+                employeePerformanceChart.data.datasets[0].data = data.empGraphTotal;
+                employeePerformanceChart.data.datasets[1].data = data.empGraphResolved;
+                if (data.empGraphLabels) {
+                    employeePerformanceChart.data.labels = data.empGraphLabels;
+                }
+                employeePerformanceChart.update();
+            }
+
+            // Update Least Assigned Employees Chart
+            if (data.empLeastGraphTotal && employeeLeastAssignedChart) {
+                // Update global reference for redFlagPlugin
+                empLeastTotalData = data.empLeastGraphTotal;
+
+                employeeLeastAssignedChart.data.datasets[0].data = data.empLeastGraphTotal;
+                employeeLeastAssignedChart.data.datasets[1].data = data.empLeastGraphResolved;
+                if (data.empLeastGraphLabels) {
+                    employeeLeastAssignedChart.data.labels = data.empLeastGraphLabels;
+                }
+                employeeLeastAssignedChart.update();
+            }
+
+            // Update CME Complaints Chart
+            if (data.cmeGraphData && typeof cmeComplaintsChart !== 'undefined' && cmeComplaintsChart) {
+                cmeComplaintsChart.data.datasets[0].data = data.cmeGraphData;
+                if (data.cmeResolvedData) {
+                    cmeComplaintsChart.data.datasets[1].data = data.cmeResolvedData;
+                }
+                if (data.cmeGraphLabels) {
+                    cmeComplaintsChart.data.labels = data.cmeGraphLabels;
+                }
+                cmeComplaintsChart.update();
+            }
         }
 
-        // Handle CME Graph Filter Change
+        // Handle CME Graph Filter Change - AJAX update (no page reload)
         const cmeGraphFilter = document.getElementById('cmeGraphFilter');
         if (cmeGraphFilter) {
             cmeGraphFilter.addEventListener('change', function() {
                 const cmeDateRange = this.value;
 
-                // Get other current filters to maintain context
-                const cityId = document.getElementById('filterCity') ? document.getElementById('filterCity').value : null;
-                const sectorId = document.getElementById('filterSector') ? document.getElementById('filterSector').value : null;
-                const category = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : null;
-                const status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : null;
-                const dateRange = document.getElementById('filterDateRange') ? document.getElementById('filterDateRange').value : null;
-                const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
+                // Collect existing URL params (keep CMES, GE, GE Node, Date Range filters)
+                const currentParams = new URLSearchParams(window.location.search);
 
-                const params = new URLSearchParams();
-                if (cmeDateRange) params.append('cme_date_range', cmeDateRange);
-                if (cmesId) params.append('cmes_id', cmesId);
-                if (cityId) params.append('city_id', cityId);
-                if (sectorId) params.append('sector_id', sectorId);
-                if (category && category !== 'all') params.append('category', category);
-                if (status && status !== 'all') params.append('status', status);
-                if (dateRange) params.append('date_range', dateRange);
+                // Update cme_date_range
+                if (cmeDateRange && cmeDateRange !== 'all_time') {
+                    currentParams.set('cme_date_range', cmeDateRange);
+                } else {
+                    currentParams.delete('cme_date_range');
+                }
 
-                // Fetch data via AJAX
-                fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
+                // Show loading indicator on table
+                const tableContainer = document.getElementById('cmeTableContainer');
+                if (tableContainer) {
+                    tableContainer.style.opacity = '0.4';
+                }
+
+                // Fetch updated data via AJAX
+                fetch('{{ route("frontend.dashboard") }}?' + currentParams.toString(), {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
@@ -1720,23 +2863,50 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data) {
-                        // Update ONLY the CME chart
-                        if (data.cmeGraphData && cmeComplaintsChart) {
-                            cmeComplaintsChart.data.datasets[0].data = data.cmeGraphData;
-                            if (data.cmeResolvedData) {
-                                cmeComplaintsChart.data.datasets[1].data = data.cmeResolvedData;
-                            }
-                            if (data.cmeGraphLabels) {
-                                cmeComplaintsChart.data.labels = data.cmeGraphLabels;
-                            }
-                            cmeComplaintsChart.update();
+                    if (!data) return;
+
+                    // Update CME chart
+                    if (data.cmeGraphData && cmeComplaintsChart) {
+                        cmeComplaintsChart.data.datasets[0].data = data.cmeGraphData;
+                        if (data.cmeResolvedData) {
+                            cmeComplaintsChart.data.datasets[1].data = data.cmeResolvedData;
                         }
+                        if (data.cmeGraphLabels) {
+                            cmeComplaintsChart.data.labels = data.cmeGraphLabels;
+                        }
+                        cmeComplaintsChart.update();
                     }
+
+                    // Update CME Table HTML
+                    if (data.cmeTableHtml && tableContainer) {
+                        tableContainer.innerHTML = data.cmeTableHtml;
+                        tableContainer.style.opacity = '1';
+                    }
+
+                    // Update URL without reload
+                    window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + currentParams.toString());
                 })
-                .catch(error => console.error('Error updating CME graph:', error));
+                .catch(error => {
+                    console.error('Error updating CME filter:', error);
+                    if (tableContainer) tableContainer.style.opacity = '1';
+                });
             });
         }
+
+        // --- Robust Resize Listener for Chart.js ---
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                const isNarrow = window.innerWidth < 1280;
+                
+                // Refresh all major charts if they exist
+                // Refresh all major charts if they exist
+                if (typeof monthlyComplaintsChart !== 'undefined' && monthlyComplaintsChart) monthlyComplaintsChart.update();
+                if (typeof resolutionTrendChart !== 'undefined' && resolutionTrendChart) resolutionTrendChart.update();
+                if (typeof complaintsByStatusChart !== 'undefined' && complaintsByStatusChart) complaintsByStatusChart.update();
+            }, 250);
+        });
     });
 
     function exportTableToExcel(tableID, filename = ''){
@@ -1782,7 +2952,7 @@
         const categoryUsageValues = @json($categoryUsageValues ?? []);
         const categoryTotalReceivedValues = @json($categoryTotalReceivedValues ?? []);
 
-        const categoryUsageChart = new Chart(categoryUsageCtx.getContext('2d'), {
+        window.categoryUsageChart = new Chart(categoryUsageCtx.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: categoryLabels,
@@ -1897,29 +3067,29 @@
             }
         });
 
-        // Handle Category Graph Filter Change (AJAX) - Scoped to this block to access categoryUsageChart
+        // Handle Category/Stock Graph Filter Change - year-based AJAX (no page reload)
         const categoryGraphFilter = document.getElementById('categoryGraphFilter');
         if (categoryGraphFilter) {
             categoryGraphFilter.addEventListener('change', function() {
-                const dateRange = this.value;
-                const cityId = document.getElementById('filterCity') ? document.getElementById('filterCity').value : null;
-                const sectorId = document.getElementById('filterSector') ? document.getElementById('filterSector').value : null;
-                const cmesId = document.getElementById('filterCMES') ? document.getElementById('filterCMES').value : null;
+                const selectedYear = this.value;
 
-                // Keep existing global filters context
-                const category = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : null;
-                const status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : null;
+                // Collect existing URL params to preserve other filters
+                const currentParams = new URLSearchParams(window.location.search);
 
-                const params = new URLSearchParams();
-                if (dateRange) params.append('category_date_range', dateRange);
-                if (cmesId) params.append('cmes_id', cmesId);
-                if (cityId) params.append('city_id', cityId);
-                if (sectorId) params.append('sector_id', sectorId);
-                if (category && category !== 'all') params.append('category', category);
-                if (status && status !== 'all') params.append('status', status);
+                if (selectedYear && selectedYear !== 'all_time') {
+                    currentParams.set('category_date_range', selectedYear);
+                } else {
+                    currentParams.delete('category_date_range');
+                }
 
-                // Fetch data via AJAX
-                fetch('{{ route("frontend.dashboard") }}?' + params.toString(), {
+                // Show loading state on stock table
+                const stockTableContainer = document.getElementById('stockTableContainer');
+                if (stockTableContainer) {
+                    stockTableContainer.style.opacity = '0.4';
+                }
+
+                // Fetch updated data via AJAX
+                fetch('{{ route("frontend.dashboard") }}?' + currentParams.toString(), {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
@@ -1927,15 +3097,29 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data && data.categoryLabels) {
-                        // Update Category Usage Chart
+                    if (!data) return;
+
+                    // Update Category Usage Chart
+                    if (data.categoryLabels && categoryUsageChart) {
                         categoryUsageChart.data.labels = data.categoryLabels;
-                        categoryUsageChart.data.datasets[0].data = data.categoryTotalReceivedValues; // Total Stock (Hidden)
-                        categoryUsageChart.data.datasets[1].data = data.categoryUsageValues; // Used Quantity
+                        categoryUsageChart.data.datasets[0].data = data.categoryTotalReceivedValues;
+                        categoryUsageChart.data.datasets[1].data = data.categoryUsageValues;
                         categoryUsageChart.update();
                     }
+
+                    // Update Stock Table HTML
+                    if (data.stockTableHtml && stockTableContainer) {
+                        stockTableContainer.innerHTML = data.stockTableHtml;
+                        stockTableContainer.style.opacity = '1';
+                    }
+
+                    // Update URL without reload
+                    window.history.pushState({}, '', '{{ route("frontend.dashboard") }}?' + currentParams.toString());
                 })
-                .catch(error => console.error('Error updating category chart:', error));
+                .catch(error => {
+                    console.error('Error updating stock filter:', error);
+                    if (stockTableContainer) stockTableContainer.style.opacity = '1';
+                });
             });
         }
     }
@@ -1945,34 +3129,74 @@
     <style>
     @media print {
         @page {
-            size: landscape;
-            margin: 5mm;
+            size: landscape; /* Hint for landscape if needed, but auto is safer */
+            margin: 10mm;
         }
+        body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            background: white !important;
+        }
+        /* Define what to hide completely to free up space */
+        .no-print, .header-bg, #graphsSection, #complaintsTableSection, .w-96, nav, footer, 
+        #resetFilters, #applyCustomDate, .filter-select, label, .stat-card {
+            display: none !important;
+        }
+
+        /* Essential reset */
         body * {
-            visibility: hidden;
+            visibility: hidden !important;
         }
+
         .printable-area, .printable-area * {
-            visibility: visible;
+            visibility: visible !important;
         }
+
+        /* Ensure parent containers don't add space or center */
+        .mx-auto, .grid, .flex, #cmeCardWrapper, #stockCardWrapper {
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: none !important;
+            width: 100% !important;
+            transform: none !important;
+            position: static !important;
+            box-shadow: none !important;
+        }
+
         .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            background: white;
+            display: block !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            z-index: 9999 !important;
         }
         /* Optimize table for print */
         table {
-            width: 100%;
-            font-size: 10px; /* Smaller font */
-            border-collapse: collapse;
+            width: 100% !important;
+            border-collapse: collapse !important;
+            page-break-inside: avoid !important;
+            margin-top: 20px;
         }
         th, td {
             padding: 4px 2px !important; /* Reduce padding */
             border: 1px solid #ddd !important; /* Ensure borders are visible */
             white-space: nowrap; /* Prevent wrapping if possible */
+        }
+        /* Prevent page breaks in table rows */
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        thead {
+            display: table-header-group;
+        }
+        tfoot {
+            display: table-footer-group;
         }
         /* Hide scrollbars */
         .overflow-x-auto {

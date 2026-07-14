@@ -46,7 +46,7 @@ class RegisteredUserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role_id' => 4, // Default to client role
-                'status' => 'active',
+                'status' => 1,
             ]);
 
             // Log the user creation for debugging
@@ -73,9 +73,9 @@ class RegisteredUserController extends Controller
                 'request_data' => $request->all()
             ]);
             
-            return redirect()->back()
+            return redirect()->route('register')
                 ->withErrors(['error' => 'Registration failed. Please try again.'])
-                ->withInput();
+                ->withInput($request->except(['password', 'password_confirmation']));
         }
     }
 }

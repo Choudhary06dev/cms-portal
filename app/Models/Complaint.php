@@ -13,17 +13,22 @@ class Complaint extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'complaint_title_id',
         'title',
-        'client_id',
+        'house_id',
         'city_id',
         'sector_id',
-        'category',
+        'category_id',
         'priority',
         'description',
         'assigned_employee_id',
         'status',
         'closed_at',
         'availability_time',
+        'spare_id',
+        'spare_quantity',
+        'spare_used_by',
+        'spare_used_at',
     ];
 
     protected $casts = [
@@ -31,11 +36,27 @@ class Complaint extends Model
     ];
 
     /**
-     * Get the client that owns the complaint.
+     * Get the complaint category.
      */
-    public function client(): BelongsTo
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Client::class, 'client_id', 'id')->withTrashed();
+        return $this->belongsTo(ComplaintCategory::class, 'category_id', 'id');
+    }
+
+    /**
+     * Get the complaint title (type).
+     */
+    public function complaintTitle(): BelongsTo
+    {
+        return $this->belongsTo(ComplaintTitle::class, 'complaint_title_id', 'id');
+    }
+
+    /**
+     * Get the house associated with the complaint.
+     */
+    public function house(): BelongsTo
+    {
+        return $this->belongsTo(House::class, 'house_id', 'id')->withTrashed();
     }
 
     /**
@@ -62,13 +83,6 @@ class Complaint extends Model
         return $this->belongsTo(Sector::class, 'sector_id', 'id');
     }
 
-    /**
-     * Get the attachments for the complaint.
-     */
-    public function attachments(): HasMany
-    {
-        return $this->hasMany(ComplaintAttachment::class, 'complaint_id', 'id');
-    }
 
     /**
      * Get the logs for the complaint.
@@ -76,6 +90,14 @@ class Complaint extends Model
     public function logs(): HasMany
     {
         return $this->hasMany(ComplaintLog::class, 'complaint_id', 'id');
+    }
+
+    /**
+     * Get the attachments for the complaint.
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ComplaintAttachment::class, 'complaint_id', 'id');
     }
 
     /**
@@ -94,9 +116,6 @@ class Complaint extends Model
         return $this->hasMany(SpareApprovalPerforma::class, 'complaint_id', 'id');
     }
 
-    /**
-     * Get the feedback for the complaint.
-     */
     public function feedback(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(ComplaintFeedback::class, 'complaint_id', 'id')->withTrashed();
@@ -146,11 +165,18 @@ class Complaint extends Model
     public static function getStatuses(): array
     {
         return [
+            'unassigned' => 'Unassigned',
             'assigned' => 'Assigned',
-            'in_progress' => 'In Process',
-            'resolved' => 'Resolved',
+            'in_progress' => 'In Progress',
+            'resolved' => 'Addressed',
             'closed' => 'Closed',
-            'barak_damages' => 'Barak Damages',
+            'work_performa' => 'Work Performa',
+            'maint_performa' => 'Maintenance Performa',
+            'work_priced_performa' => 'Work Performa Priced',
+            'maint_priced_performa' => 'Maintenance Performa Priced',
+            'product_na' => 'Product N/A',
+            'un_authorized' => 'Un-Authorized',
+            'barrack_damages' => 'Barrack Damages',
         ];
     }
 
@@ -171,7 +197,7 @@ class Complaint extends Model
      */
     public function getCategoryDisplayAttribute(): string
     {
-        return self::getCategories()[$this->category] ?? $this->category;
+        return $this->category ? $this->category->name : ($this->category_id ? 'Unknown Category' : 'Uncategorized');
     }
 
     /**
@@ -179,9 +205,35 @@ class Complaint extends Model
      */
     public function getStatusDisplayAttribute(): string
     {
-        // Map 'new' status to 'assigned' for display purposes
-        $status = $this->status === 'new' ? 'assigned' : $this->status;
-        return self::getStatuses()[$status] ?? $status;
+        // Internal status 'new' maps to 'unassigned' display label "Unassigned"
+        $status = $this->status === 'new' ? 'unassigned' : $this->status;
+
+        // Performa types and 'in_progress' should display as "In Progress"
+        if (in_array($status, ['in_progress', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
+            return 'In Progress';
+        }
+
+        // 'resolved' maps to 'Addressed'
+        if ($status === 'resolved') {
+            return 'Addressed';
+        }
+
+        return self::getStatuses()[$status] ?? ucfirst(str_replace('_', ' ', $status));
+    }
+
+    /**
+     * Get the mapped status code for mobile app compatibility
+     * Groups all performa types into 'in_progress'
+     */
+    public function getMappedStatusAttribute(): string
+    {
+        $status = $this->status === 'new' ? 'unassigned' : $this->status;
+
+        if (in_array($status, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
+            return 'in_progress';
+        }
+
+        return $status;
     }
 
     /**
@@ -253,14 +305,12 @@ class Complaint extends Model
     }
 
     /**
-     * Get 4-digit complaint ID
+     * Get complaint ID (padded to at least 4 digits)
      */
     public function getComplaintIdAttribute(): string
     {
-        // Generate 4-digit complaint ID based on complaint id
-        // Use modulo to ensure it's always 4 digits (0001-9999)
-        $complaintNumber = ($this->id % 10000);
-        return str_pad($complaintNumber, 4, '0', STR_PAD_LEFT);
+        // Return the full complaint ID, padded with zeros to at least 4 digits
+        return str_pad((string)$this->id, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -271,12 +321,19 @@ class Complaint extends Model
         return $this->created_at->diffInHours(now());
     }
 
-    /**
-     * Check if complaint is overdue
-     */
-    public function isOverdue(int $days = 7): bool
+    public function isOverdue(): bool
     {
-        return $this->created_at->addDays($days)->isPast() && !$this->isCompleted();
+        if (!in_array($this->status, ['new', 'assigned', 'in_progress'])) {
+            return false;
+        }
+
+        $slaRule = $this->slaRule;
+
+        if ($slaRule && $slaRule->status === 1) {
+            return $this->created_at->addHours($slaRule->max_resolution_time)->isPast();
+        }
+
+        return false;
     }
 
     /**
@@ -300,11 +357,9 @@ class Complaint extends Model
      */
     public function isSlaBreached(): bool
     {
-        $slaRule = SlaRule::where('complaint_type', $this->category)
-            ->where('status', 'active')
-            ->first();
+        $slaRule = $this->slaRule;
 
-        if (!$slaRule) {
+        if (!$slaRule || $slaRule->status !== 1) {
             return false;
         }
 
@@ -316,11 +371,9 @@ class Complaint extends Model
      */
     public function getHoursOverdue(): int
     {
-        $slaRule = SlaRule::where('complaint_type', $this->category)
-            ->where('status', 'active')
-            ->first();
+        $slaRule = $this->slaRule;
 
-        if (!$slaRule) {
+        if (!$slaRule || $slaRule->status !== 1) {
             return 0;
         }
 
@@ -330,10 +383,15 @@ class Complaint extends Model
 
     /**
      * Get SLA rule for this complaint
+     * @deprecated Use category->slaRule instead
+     */
+    /**
+     * Get SLA rule for this complaint via category
      */
     public function slaRule()
     {
-        return $this->belongsTo(SlaRule::class, 'category', 'complaint_type');
+        return $this->hasOne(SlaRule::class, 'category_id', 'category_id')
+                    ->whereColumn('priority', 'complaints.priority');
     }
 
     /**
@@ -446,14 +504,6 @@ class Complaint extends Model
 
 
     /**
-     * Get client name
-     */
-    public function getClientNameAttribute(): string
-    {
-        return $this->client ? $this->client->getDisplayNameAttribute() : 'Unknown Client';
-    }
-
-    /**
      * Get assigned employee name
      */
     public function getAssignedEmployeeNameAttribute(): string
@@ -466,7 +516,7 @@ class Complaint extends Model
      */
     public function scopeNew($query)
     {
-        return $query->where('status', 'new');
+        return $query->where('complaints.status', 'new');
     }
 
     /**
@@ -474,7 +524,7 @@ class Complaint extends Model
      */
     public function scopeAssigned($query)
     {
-        return $query->where('status', 'assigned');
+        return $query->where('complaints.status', 'assigned');
     }
 
     /**
@@ -482,7 +532,7 @@ class Complaint extends Model
      */
     public function scopeInProgress($query)
     {
-        return $query->where('status', 'in_progress');
+        return $query->where('complaints.status', 'in_progress');
     }
 
     /**
@@ -490,7 +540,7 @@ class Complaint extends Model
      */
     public function scopeResolved($query)
     {
-        return $query->where('status', 'resolved');
+        return $query->where('complaints.status', 'resolved');
     }
 
     /**
@@ -498,7 +548,7 @@ class Complaint extends Model
      */
     public function scopeClosed($query)
     {
-        return $query->where('status', 'closed');
+        return $query->where('complaints.status', 'closed');
     }
 
     /**
@@ -506,7 +556,7 @@ class Complaint extends Model
      */
     public function scopePending($query)
     {
-        return $query->whereIn('status', ['new', 'assigned', 'in_progress']);
+        return $query->whereIn('complaints.status', ['new', 'assigned', 'in_progress']);
     }
 
     /**
@@ -514,23 +564,28 @@ class Complaint extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->whereIn('status', ['resolved', 'closed']);
+        return $query->whereIn('complaints.status', ['resolved', 'closed']);
     }
 
     /**
      * Scope for complaints by category
      */
-    public function scopeByCategory($query, $category)
+    /**
+     * Scope for complaints by category
+     */
+    public function scopeByCategory($query, $categoryId)
     {
-        return $query->where('category', $category);
+        // If passed name, try to find ID or use join (safer to assume ID if int, if string need logic)
+        // Controller passed ID now.
+        return $query->where('complaints.category_id', $categoryId);
     }
 
     /**
      * Scope for complaints by type (legacy method)
      */
-    public function scopeByType($query, $type)
+    public function scopeByType($query, $typeId)
     {
-        return $query->where('category', $type);
+        return $query->where('complaints.complaint_title_id', $typeId);
     }
 
     /**
@@ -538,7 +593,7 @@ class Complaint extends Model
      */
     public function scopeByPriority($query, $priority)
     {
-        return $query->where('priority', $priority);
+        return $query->where('complaints.priority', $priority);
     }
 
     /**
@@ -546,40 +601,22 @@ class Complaint extends Model
      */
     public function scopeByAssignedEmployee($query, $employeeId)
     {
-        return $query->where('assigned_employee_id', $employeeId);
-    }
-
-    /**
-     * Scope for complaints by client
-     */
-    public function scopeByClient($query, $clientId)
-    {
-        return $query->where('client_id', $clientId);
+        return $query->where('complaints.assigned_employee_id', $employeeId);
     }
 
     /**
      * Scope for overdue complaints
      */
-    public function scopeOverdue($query, $days = 7)
+    public function scopeOverdue($query)
     {
         return $query->whereIn('complaints.status', ['new', 'assigned', 'in_progress'])
-            ->leftJoin('sla_rules', function ($join) {
-                $join->on('complaints.category', '=', 'sla_rules.complaint_type')
-                    ->where('sla_rules.status', '=', 'active')
+            ->join('sla_rules', function ($join) {
+                $join->on('complaints.category_id', '=', 'sla_rules.category_id')
+                     ->on('complaints.priority', '=', 'sla_rules.priority')
+                    ->where('sla_rules.status', '=', 1)
                     ->whereNull('sla_rules.deleted_at');
             })
-            ->where(function ($q) use ($days) {
-                // If SLA rule exists, check max_resolution_time (in hours)
-                $q->where(function ($subQ) {
-                    $subQ->whereNotNull('sla_rules.id')
-                        ->whereRaw('complaints.created_at < DATE_SUB(NOW(), INTERVAL sla_rules.max_resolution_time HOUR)');
-                })
-                    // If no SLA rule exists, fallback to default days
-                    ->orWhere(function ($subQ) use ($days) {
-                    $subQ->whereNull('sla_rules.id')
-                        ->where('complaints.created_at', '<', now()->subDays($days));
-                });
-            })
+            ->whereRaw('complaints.created_at < DATE_SUB(NOW(), INTERVAL sla_rules.max_resolution_time HOUR)')
             ->select('complaints.*');
     }
 }

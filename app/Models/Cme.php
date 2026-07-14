@@ -15,12 +15,24 @@ class Cme extends Model
         'status',
     ];
 
+    protected $casts = [
+        'status' => 'integer',
+    ];
+
     /**
      * Get the GE groups (cities) that belong to this CMES.
      */
     public function cities(): HasMany
     {
         return $this->hasMany(City::class);
+    }
+
+    /**
+     * Get the GE nodes (sectors) that belong to this CMES.
+     */
+    public function sectors(): HasMany
+    {
+        return $this->hasMany(Sector::class);
     }
 }
 

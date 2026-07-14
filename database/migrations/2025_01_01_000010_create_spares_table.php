@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             // Product metadata
             $table->string('product_code', 50)->nullable();
-            $table->string('brand_name', 100)->nullable();
+            $table->unsignedBigInteger('brand_id')->nullable();
             $table->string('item_name', 150);
             // Category from complaint_categories table
-            $table->string('category', 100);
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->foreign('category_id')->references('id')->on('complaint_categories')->onDelete('set null');
             // Location columns for city/sector-based filtering
             $table->unsignedBigInteger('city_id')->nullable();
             $table->unsignedBigInteger('sector_id')->nullable();
@@ -38,7 +39,7 @@ return new class extends Migration
         Schema::create('spare_stock_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('spare_id');
-            $table->string('brand_name', 100)->nullable();
+            $table->unsignedBigInteger('brand_id')->nullable();
             $table->enum('change_type', ['in', 'out']);
             $table->integer('quantity');
             $table->integer('reference_id')->nullable(); // complaint_id or purchase_id

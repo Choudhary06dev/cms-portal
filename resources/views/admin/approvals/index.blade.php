@@ -4,70 +4,71 @@
 
 @section('content')
   <!-- PAGE HEADER -->
-  <div class="mb-4">
+  <div class="mb-2">
     <div class="d-flex justify-content-between align-items-center">
       <div>
-        <h2 class="text-white mb-2">Total Complaints</h2>
-        <p class="text-light">View and manage complaint records</p>
+        <h4 class="text-white mb-1" style="font-size: 1.2rem;">Total Complaints</h4>
+        <p class="text-light small mb-0" style="font-size: 0.8rem;">View and manage complaint records</p>
       </div>
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary" onclick="refreshPage()">
-          <i data-feather="refresh-cw" class="me-2"></i>Refresh
+        <button class="btn btn-outline-secondary btn-sm" onclick="refreshPage()"
+          style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+          <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Refresh
         </button>
       </div>
     </div>
   </div>
 
   <!-- FILTERS -->
-  <div class="card-glass mb-4" style="display: inline-block; width: fit-content;">
+  <div class="card-glass mb-2" style="display: inline-block; width: fit-content; padding: 0.75rem;">
     <form id="approvalsFiltersForm" method="GET" action="{{ route('admin.approvals.index') }}"
       onsubmit="event.preventDefault(); submitApprovalsFilters(event); return false;">
       <div class="row g-2 align-items-end">
         <div class="col-auto">
           <label class="form-label small mb-1"
-            style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Search</label>
-          <input type="text" class="form-control" id="searchInput" name="search" placeholder="Complaint ID or Address..."
-            value="{{ request('search') }}" autocomplete="off" style="font-size: 0.9rem; width: 200px;">
+            style="font-size: 0.75rem; color: #000000 !important; font-weight: 500;">Search</label>
+          <input type="text" class="form-control form-control-sm" id="searchInput" name="search"
+            placeholder="Complaint ID..." value="{{ request('search') }}" autocomplete="off"
+            style="font-size: 0.8rem; width: 160px; height: 30px;">
         </div>
         <div class="col-auto">
           <label class="form-label small mb-1"
-            style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">From Date</label>
-          <input type="date" class="form-control" name="complaint_date" value="{{ request('complaint_date') }}"
-            placeholder="Select Date" autocomplete="off" style="font-size: 0.9rem; width: 150px;">
+            style="font-size: 0.75rem; color: #000000 !important; font-weight: 500;">House No.</label>
+          <input type="text" class="form-control form-control-sm" id="houseNoInput" name="house_no"
+            placeholder="House No..." value="{{ request('house_no') }}" autocomplete="off"
+            style="font-size: 0.8rem; width: 160px; height: 30px;">
         </div>
         <div class="col-auto">
-          <label class="form-label small mb-1" style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">To
+          <label class="form-label small mb-1"
+            style="font-size: 0.75rem; color: #000000 !important; font-weight: 500;">From Date</label>
+          <input type="date" class="form-control form-control-sm" name="complaint_date"
+            value="{{ request('complaint_date') }}" placeholder="Select Date" autocomplete="off"
+            style="font-size: 0.8rem; width: 130px; height: 30px;">
+        </div>
+        <div class="col-auto">
+          <label class="form-label small mb-1" style="font-size: 0.75rem; color: #000000 !important; font-weight: 500;">To
             Date</label>
-          <input type="date" class="form-control" name="date_to" value="{{ request('date_to') }}" placeholder="End Date"
-            autocomplete="off" style="font-size: 0.9rem; width: 150px;">
+          <input type="date" class="form-control form-control-sm" name="date_to" value="{{ request('date_to') }}"
+            placeholder="End Date" autocomplete="off" style="font-size: 0.8rem; width: 130px; height: 30px;">
         </div>
         <div class="col-auto">
           <label class="form-label small mb-1"
-            style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Category</label>
-          <select class="form-select" name="category" autocomplete="off" style="font-size: 0.9rem; width: 140px;">
+            style="font-size: 0.75rem; color: #000000 !important; font-weight: 500;">Category</label>
+          <select class="form-select form-select-sm" name="category" autocomplete="off"
+            style="font-size: 0.8rem; width: 120px; height: 30px;">
             <option value="" {{ request('category') ? '' : 'selected' }}>All</option>
             @if(isset($categories) && $categories->count() > 0)
               @foreach($categories as $cat)
                 <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
               @endforeach
-            @else
-              <option value="electric">Electric</option>
-              <option value="technical">Technical</option>
-              <option value="service">Service</option>
-              <option value="billing">Billing</option>
-              <option value="water">Water Supply</option>
-              <option value="sanitary">Sanitary</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="kitchen">Kitchen</option>
-              <option value="other">Other</option>
             @endif
           </select>
         </div>
         <div class="col-auto">
           <label class="form-label small mb-1"
-            style="font-size: 0.8rem; color: #000000 !important; font-weight: 500;">Status</label>
-          <select class="form-select" name="status" autocomplete="off" onchange="submitApprovalsFilters()"
-            style="font-size: 0.9rem; width: 180px;">
+            style="font-size: 0.75rem; color: #000000 !important; font-weight: 500;">Status</label>
+          <select class="form-select form-select-sm" name="status" autocomplete="off" onchange="submitApprovalsFilters()"
+            style="font-size: 0.8rem; width: 150px; height: 30px;">
             <option value="" {{ request('status') ? '' : 'selected' }}>All</option>
             @if(isset($statusesForFilter) && $statusesForFilter->count() > 0)
               @foreach($statusesForFilter as $statusValue => $statusLabel)
@@ -84,22 +85,22 @@
                 @endif
               @endforeach
             @else
+              <option value="unassigned" {{ request('status') == 'unassigned' ? 'selected' : '' }}>Unassigned</option>
               <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
               <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
               <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Addressed</option>
               <option value="work_performa" {{ request('status') == 'work_performa' ? 'selected' : '' }}>Work Performa
               </option>
-              <option value="maint_performa" {{ request('status') == 'maint_performa' ? 'selected' : '' }}>Maintenance
-                Performa</option>
+              <option value="maint_performa" {{ request('status') == 'maint_performa' ? 'selected' : '' }}>Maint Performa
+              </option>
               <option value="work_priced_performa" {{ request('status') == 'work_priced_performa' ? 'selected' : '' }}>Work
-                Performa Priced</option>
-              <option value="maint_priced_performa" {{ request('status') == 'maint_priced_performa' ? 'selected' : '' }}>
-                Maintenance Performa Priced</option>
+                Priced</option>
+              <option value="maint_priced_performa" {{ request('status') == 'maint_priced_performa' ? 'selected' : '' }}>Maint
+                Priced</option>
               <option value="product_na" {{ request('status') == 'product_na' ? 'selected' : '' }}>Product N/A</option>
               <option value="un_authorized" {{ request('status') == 'un_authorized' ? 'selected' : '' }}>Un-Authorized
               </option>
-              <option value="pertains_to_ge_const_isld" {{ request('status') == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
-              <option value="barak_damages" {{ request('status') == 'barak_damages' ? 'selected' : '' }}>Barak Damages
+              <option value="barrack_damages" {{ request('status') == 'barrack_damages' ? 'selected' : '' }}>Barrack Damages
               </option>
               <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
               <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
@@ -108,10 +109,10 @@
           </select>
         </div>
         <div class="col-auto">
-          <label class="form-label small text-muted mb-1" style="font-size: 0.8rem;">&nbsp;</label>
+          <label class="form-label small text-muted mb-1" style="font-size: 0.75rem;">&nbsp;</label>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetApprovalsFilters()"
-            style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
-            <i data-feather="refresh-cw" class="me-1" style="width: 14px; height: 14px;"></i>Reset
+            style="font-size: 0.8rem; padding: 0.2rem 0.6rem; height: 30px; display: flex; align-items: center;">
+            <i data-feather="refresh-cw" class="me-1" style="width: 12px; height: 12px;"></i>Reset
           </button>
         </div>
       </div>
@@ -120,48 +121,50 @@
 
   <!-- APPROVALS TABLE -->
 
-  <div class="card-glass">
+  <div class="card-glass p-1">
     <div class="table-responsive">
-      <table class="table table-dark table-sm">
+      <table class="table table-dark table-sm mb-0" style="font-size: 0.75rem;">
         <thead>
-          <tr>
-            <th style="text-align: left; white-space: nowrap;">CMP-ID</th>
-            <th style="white-space: nowrap;">Registration Date/Time</th>
-            <th style="text-align: left; white-space: nowrap;">Addressed Date/Time</th>
-            <th>Complainant Name</th>
-            <th>Address</th>
-            <th>Complaint Nature & Type</th>
-            <th>Phone No.</th>
-            <th style="text-align: center;">Performa Required</th>
-            <th style="text-align: center;">Status</th>
-            <th>Actions|Feedback</th>
+          <tr style="font-size: 0.7rem; text-transform: uppercase;">
+            <th style="text-align: left; white-space: nowrap; padding: 2px 4px; width: 1%;">CMP-ID</th>
+            <th style="white-space: nowrap; padding: 2px 4px; width: 1%;">House No.</th>
+            <th style="white-space: nowrap; padding: 2px 4px; width: 1%;">Reg Date</th>
+            <th style="text-align: left; white-space: nowrap; padding: 2px 4px; width: 1%;">Addressed Date</th>
+            <th style="white-space: nowrap; padding: 2px 4px; width: 1%;">Address</th>
+            <th style="padding: 2px 4px; width: auto;">Nature & Type</th>
+            <th style="white-space: nowrap; padding: 2px 4px; width: 1%;">Phone</th>
+            <th style="text-align: center; white-space: nowrap; padding: 2px 4px; width: 1%;">Performa</th>
+            <th style="text-align: center; white-space: nowrap; padding: 2px 4px; width: 1%;">Status</th>
+            <th style="padding: 2px 4px; width: 95px; white-space: nowrap; text-align: center;">Actions|Feedback</th>
           </tr>
         </thead>
         <tbody id="approvalsTableBody">
-          @forelse($approvals as $approval)
+          @forelse($approvals as $complaint)
             @php
-              $complaint = $approval->complaint ?? null;
+              $approval = $complaint->spareApprovals->first();
             @endphp
             @if($complaint)
               @php
-                $category = $complaint->category ?? 'N/A';
-                $designation = $complaint->assignedEmployee->designation ?? 'N/A';
-                // Use original complaint category as-is, don't change it
-                // Only format basic categories, keep all other categories as they are
-                $categoryDisplay = [
-                  'electric' => 'Electric',
-                  'technical' => 'Technical',
-                  'service' => 'Service',
-                  'billing' => 'Billing',
-                  'water' => 'Water Supply',
-                  'sanitary' => 'Sanitary',
-                  'plumbing' => 'Plumbing',
-                  'kitchen' => 'Kitchen',
-                  'other' => 'Other',
-                ];
-                // If category exists in mapping, use it; otherwise use original category as-is
-                $catDisplay = $categoryDisplay[strtolower($category)] ?? $category;
-                $displayText = $catDisplay . ' - ' . $designation;
+                // Fixed: Handle category relationship object
+                $categoryObj = $complaint->category;
+                $categoryName = 'N/A';
+                if ($categoryObj) {
+                  // Check if it's a string (legacy) or object (relationship)
+                  $categoryName = is_string($categoryObj) ? $categoryObj : ($categoryObj->name ?? 'N/A');
+                }
+                // Assign categoryName to category for backward compatibility
+                $category = $categoryName;
+                // Fixed: Handle designation relationship object (refactored from string)
+                $designationObj = $complaint->assignedEmployee->designation ?? null;
+                $designationName = 'N/A';
+                if ($designationObj) {
+                  $designationName = is_string($designationObj) ? $designationObj : ($designationObj->name ?? 'N/A');
+                }
+
+                $titleName = $complaint->complaintTitle->title ?? $complaint->title ?? 'N/A';
+
+                $catDisplay = ucfirst($categoryName);
+                $displayText = $catDisplay . ' - ' . $titleName;
 
                 // Logic: If performa_type is set, use it as status, otherwise use complaint status
                 $rawStatus = $complaint->status ?? 'new';
@@ -175,7 +178,7 @@
                 // Otherwise use complaint status
                 if ($rawStatus === 'resolved' || $rawStatus === 'closed') {
                   // Always preserve resolved/closed status - don't override with performa type
-                  $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
+                  $complaintStatus = ($rawStatus == 'new') ? 'unassigned' : $rawStatus;
                 } elseif ($hasPerformaType && in_array($performaTypeValue, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'])) {
                   // For all performa types, use in_progress for display (like product_na)
                   $complaintStatus = 'in_progress';
@@ -183,7 +186,7 @@
                   // If complaint status is a performa type, show "In Progress" in status column
                   $complaintStatus = 'in_progress';
                 } else {
-                  $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
+                  $complaintStatus = ($rawStatus == 'new') ? 'unassigned' : $rawStatus;
                 }
 
                 $statusDisplay = $complaintStatus == 'in_progress' ? 'In Progress' :
@@ -197,26 +200,26 @@
                   'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'], // Dark Yellow
                   'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple
                   'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange
-                  'product_na' => ['bg' => '#0deb7c', 'text' => '#ffffff', 'border' => '#06b366'], // Green (from stat card)
+                  'product_na' => ['bg' => '#f97316', 'text' => '#ffffff', 'border' => '#c2410c'], // Orange
                 ];
 
                 // Status column colors (updated to match dashboard stat cards)
                 $statusColors = [
-                  'in_progress' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (from stat card)
+                  'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'], // Red
                   'resolved' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Grey (swapped from green)
-                  'work_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
-                  'maint_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
-                  'work_priced_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
-                  'maint_priced_performa' => ['bg' => '#3c2d9c', 'text' => '#ffffff', 'border' => '#2a1f6f'], // Purple (for status column)
-                  'product_na' => ['bg' => '#0deb7c', 'text' => '#ffffff', 'border' => '#06b366'], // Green (for status column)
+                  'work_performa' => ['bg' => '#60a5fa', 'text' => '#ffffff', 'border' => '#3b82f6'], // Light Blue (matching badge)
+                  'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'], // Dark Yellow (matching badge)
+                  'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'], // Purple (matching badge)
+                  'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'], // Dark Orange (matching badge)
+                  'product_na' => ['bg' => '#f97316', 'text' => '#ffffff', 'border' => '#c2410c'], // Orange (for status column)
                   'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'], // Pink
-                  'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'], // Aqua/Cyan
-                  'barak_damages' => ['bg' => '#808000', 'text' => '#ffffff', 'border' => '#666600'], // Olive (matching Users card)
-                  'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green (swapped from grey)
+                  'barrack_damages' => ['bg' => '#808000', 'text' => '#ffffff', 'border' => '#666600'], // Olive (matching Users card)
+                  'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green
+                  'unassigned' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#333333'], // Black
                 ];
 
                 // Get current status color or default
-                $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
+                $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['unassigned'];
               @endphp
               <tr style="position: relative;">
                 {{-- waiting_for_authority removed - no blinking dot needed --}}
@@ -227,44 +230,36 @@
                     {{ (int) ($complaint->complaint_id ?? $complaint->id) }}
                   </a>
                 </td>
-                <td>
-                  {{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, Y H:i') : 'N/A' }}
+                <td class="px-1" style="font-size: 0.8rem; color: #fbbf24; font-weight: 500;">
+                  {{ $complaint->house->house_no ?? 'N/A' }}
                 </td>
-                <td style="text-align: left;">
+                <td class="px-1" style="font-size: 0.8rem;">
+                  {{ $complaint->created_at ? $complaint->created_at->timezone('Asia/Karachi')->format('M d, y H:i') : 'N/A' }}
+                </td>
+                <td class="px-1" style="text-align: left; font-size: 0.75rem;">
                   @if($complaint->closed_at)
                     @php
-                      // Get closed_at - Laravel casts it to Carbon automatically
                       $closedAt = $complaint->closed_at;
-
-                      // Ensure it's a Carbon instance
-                      if (!$closedAt instanceof \Carbon\Carbon) {
-                        if (is_string($closedAt)) {
-                          $closedAt = \Carbon\Carbon::parse($closedAt);
-                        } else {
-                          echo '<span style="display: block; text-align: center;">-</span>';
-                          $closedAt = null;
-                        }
-                      }
-
                       if ($closedAt instanceof \Carbon\Carbon) {
-                        // Laravel stores timestamps in UTC in database
-                        // Ensure we're converting from UTC to Asia/Karachi
-                        // Set timezone to UTC first if not already, then convert to Asia/Karachi
-                        $closedAtUTC = $closedAt->utc();
-                        $closedAtKarachi = $closedAtUTC->setTimezone('Asia/Karachi');
-                        echo $closedAtKarachi->format('M d, Y H:i');
+                        $closedAtKarachi = $closedAt->utc()->setTimezone('Asia/Karachi');
+                        echo $closedAtKarachi->format('M d, y H:i');
                       }
                     @endphp
                   @else
                     <span style="display: block; text-align: center;">-</span>
                   @endif
                 </td>
-                <td>{{ $complaint->client->client_name ?? 'N/A' }}</td>
-                <td>{{ $complaint->client->address ?? 'N/A' }}</td>
-                <td>
-                  <div class="text-white">{{ $displayText }}</div>
+                <td class="px-1"
+                  style="font-size: 0.73rem; white-space: nowrap; width: 1%; max-width: 150px; overflow: hidden; text-overflow: ellipsis;"
+                  title="{{ $complaint->house->address ?? 'N/A' }}">{{ $complaint->house->address ?? 'N/A' }}</td>
+                <td class="px-1" style="width: auto;">
+                  <div class="text-white"
+                    style="font-size: 0.75rem; line-height: 1.1; white-space: normal; min-width: 180px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;" title="{{ $displayText }}">{{ $displayText }}
+                  </div>
                 </td>
-                <td>{{ $complaint->client->phone ?? 'N/A' }}</td>
+                <td class="px-1" style="font-size: 0.75rem; white-space: nowrap; width: 1%;">
+                  {{ $complaint->house->phone ?? 'N/A' }}
+                </td>
                 <td style="color: white !important; position: relative; text-align: center; vertical-align: middle;">
                   @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
                     <span style="color: white !important;">-</span>
@@ -282,7 +277,11 @@
                       if ($performaTypeToShow) {
                         // Handle special cases for performa type labels
                         if ($performaTypeToShow === 'maint_performa') {
-                          $performaTypeLabel = 'Maintenance Performa';
+                          $performaTypeLabel = 'Maint Performa';
+                        } elseif ($performaTypeToShow === 'work_priced_performa') {
+                          $performaTypeLabel = 'Work Priced';
+                        } elseif ($performaTypeToShow === 'maint_priced_performa') {
+                          $performaTypeLabel = 'Maint Priced';
                         } elseif ($performaTypeToShow === 'product_na') {
                           $performaTypeLabel = 'Product N/A';
                         } else {
@@ -294,7 +293,7 @@
                     @endphp
                     @if($performaTypeToShow)
                       <span class="badge performa-badge"
-                        style="width: 140px; height: 32px; padding: 0; font-weight: 700; color: white !important; background-color: {{ $badgeColor }} !important; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">
+                        style="width: 100px; height: 24px; padding: 0; font-weight: 700; color: white !important; background-color: {{ $badgeColor }} !important; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px;">
                         {{ $performaTypeLabel }}
                       </span>
                     @else
@@ -315,8 +314,8 @@
                   @endphp
                   @if($complaintStatus == 'resolved')
                     <div class="status-chip"
-                      style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }}; width: 140px; height: 32px; justify-content: center;">
-                      <span style="font-size: 11px; font-weight: 700; color: white !important;">Addressed</span>
+                      style="background-color: {{ $statusColors['resolved']['bg'] }}; color: {{ $statusColors['resolved']['text'] }}; border-color: {{ $statusColors['resolved']['border'] }}; width: 100px; height: 24px; justify-content: center;">
+                      <span style="font-size: 9px; font-weight: 700; color: white !important;">Addressed</span>
                     </div>
                   @elseif($complaintStatus == 'in_progress' || ($hasPerformaType && in_array($performaTypeValue, ['product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa']) && $complaintStatus != 'resolved') || in_array($rawStatus, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na']))
                     @php
@@ -346,35 +345,40 @@
                       }
                     @endphp
                     <div class="status-chip"
-                      style="background-color: {{ $currentStatusColorForSelect['bg'] }}; color: {{ $currentStatusColorForSelect['text'] }}; border-color: {{ $currentStatusColorForSelect['border'] }}; position: relative; overflow: hidden;">
+                      style="background-color: {{ $currentStatusColorForSelect['bg'] }}; color: {{ $currentStatusColorForSelect['text'] }}; border-color: {{ $currentStatusColorForSelect['border'] }}; position: relative; overflow: hidden; height: 24px; width: 100px;">
                       {{-- waiting_for_authority removed - no blinking dot needed --}}
                       {{-- status-indicator removed for performa types to avoid extra red line --}}
                       <select class="form-select form-select-sm status-select" data-complaint-id="{{ $complaint->id }}"
                         data-actual-status="{{ $rawStatus }}" data-status-color="{{ $statusColorKey }}"
-                        style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center; background-color: {{ $currentStatusColorForSelect['bg'] }} !important; color: {{ $currentStatusColorForSelect['text'] }} !important; border-color: {{ $currentStatusColorForSelect['border'] }} !important;">
+                        style="width: 100px; font-size: 9px; font-weight: 700; height: 24px; text-align: center; text-align-last: center; background-color: {{ $currentStatusColorForSelect['bg'] }} !important; color: {{ $currentStatusColorForSelect['text'] }} !important; border-color: {{ $currentStatusColorForSelect['border'] }} !important; padding: 0;">
                         @if(isset($statuses) && $statuses->count() > 0)
                           @foreach($statuses as $statusValue => $statusLabel)
+                            @if($statusValue === 'unassigned' && $displayStatusForSelect !== 'unassigned')
+                              @continue
+                            @endif
                             <option value="{{ $statusValue }}" {{ $displayStatusForSelect == $statusValue ? 'selected' : '' }}>
                               {{ $statusLabel }}
                             </option>
                           @endforeach
                         @else
+                          @if($displayStatusForSelect === 'unassigned')
+                            <option value="unassigned" selected>Unassigned</option>
+                          @endif
                           <option value="assigned" {{ $displayStatusForSelect == 'assigned' ? 'selected' : '' }}>Assigned</option>
                           <option value="in_progress" {{ $displayStatusForSelect == 'in_progress' ? 'selected' : '' }}>In Progress
                           </option>
                           <option value="resolved" {{ $displayStatusForSelect == 'resolved' ? 'selected' : '' }}>Addressed</option>
                           <option value="work_performa" {{ $displayStatusForSelect == 'work_performa' ? 'selected' : '' }}>Work
                             Performa</option>
-                          <option value="maint_performa" {{ $displayStatusForSelect == 'maint_performa' ? 'selected' : '' }}>
-                            Maintenance Performa</option>
-                          <option value="work_priced_performa" {{ $displayStatusForSelect == 'work_priced_performa' ? 'selected' : '' }}>Work Performa Priced</option>
-                          <option value="maint_priced_performa" {{ $displayStatusForSelect == 'maint_priced_performa' ? 'selected' : '' }}>Maintenance Performa Priced</option>
+                          <option value="maint_performa" {{ $displayStatusForSelect == 'maint_performa' ? 'selected' : '' }}>Maint
+                            Performa</option>
+                          <option value="work_priced_performa" {{ $displayStatusForSelect == 'work_priced_performa' ? 'selected' : '' }}>Work Priced</option>
+                          <option value="maint_priced_performa" {{ $displayStatusForSelect == 'maint_priced_performa' ? 'selected' : '' }}>Maint Priced</option>
                           <option value="product_na" {{ $displayStatusForSelect == 'product_na' ? 'selected' : '' }}>Product N/A
                           </option>
                           <option value="un_authorized" {{ $displayStatusForSelect == 'un_authorized' ? 'selected' : '' }}>
                             Un-Authorized</option>
-                          <option value="pertains_to_ge_const_isld" {{ $displayStatusForSelect == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
-                          <option value="barak_damages" {{ $displayStatusForSelect == 'barak_damages' ? 'selected' : '' }}>Barak
+                          <option value="barrack_damages" {{ $displayStatusForSelect == 'barrack_damages' ? 'selected' : '' }}>Barrack
                             Damages</option>
                         @endif
                       </select>
@@ -383,31 +387,36 @@
                     </div>
                   @elseif(($complaintStatus == 'work_performa' || (isset($performaBadge) && strpos($performaBadge ?? '', 'Work') !== false)) && !$hasPerformaType)
                     <div class="status-chip"
-                      style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }}; position: relative; overflow: hidden;">
+                      style="background-color: {{ $statusColors['work_performa']['bg'] }}; color: {{ $statusColors['work_performa']['text'] }}; border-color: {{ $statusColors['work_performa']['border'] }}; position: relative; overflow: hidden; height: 24px; width: 100px;">
                       <span class="status-indicator"
                         style="background-color: {{ $statusColors['work_performa']['bg'] }}; border-color: {{ $statusColors['work_performa']['border'] }};"></span>
                       <select class="form-select form-select-sm status-select" data-complaint-id="{{ $complaint->id }}"
                         data-actual-status="{{ $rawStatus }}" data-status-color="work_performa"
-                        style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center;">
+                        style="width: 100px; font-size: 9px; font-weight: 700; height: 24px; text-align: center; text-align-last: center; padding: 0;">
                         @if(isset($statuses) && $statuses->count() > 0)
                           @foreach($statuses as $statusValue => $statusLabel)
+                            @if($statusValue === 'unassigned' && $complaintStatus !== 'unassigned')
+                              @continue
+                            @endif
                             <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>
                               {{ $statusLabel }}
                             </option>
                           @endforeach
                         @else
+                          @if($complaintStatus === 'unassigned')
+                            <option value="unassigned" selected>Unassigned</option>
+                          @endif
                           <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                           <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                           <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                           <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>
-                            Work Performa Priced</option>
+                            Work Priced</option>
                           <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>
-                            Maintenance Performa Priced</option>
+                            Maint Priced</option>
                           <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                           <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized
                           </option>
-                          <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
-                          <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages
+                          <option value="barrack_damages" {{ $complaintStatus == 'barrack_damages' ? 'selected' : '' }}>Barrack Damages
                           </option>
                         @endif
                       </select>
@@ -416,30 +425,35 @@
                     </div>
                   @elseif(($complaintStatus == 'maint_performa' || (isset($performaBadge) && (strpos($performaBadge ?? '', 'Maint') !== false || strpos($performaBadge ?? '', 'Maintenance') !== false))) && !$hasPerformaType && !in_array($performaTypeValue, ['work_priced_performa', 'maint_priced_performa']))
                     <div class="status-chip"
-                      style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }}; position: relative; overflow: hidden;">
+                      style="background-color: {{ $statusColors['maint_performa']['bg'] }}; color: {{ $statusColors['maint_performa']['text'] }}; border-color: {{ $statusColors['maint_performa']['border'] }}; position: relative; overflow: hidden; height: 24px; width: 100px;">
                       <span class="status-indicator"
                         style="background-color: {{ $statusColors['maint_performa']['bg'] }}; border-color: {{ $statusColors['maint_performa']['border'] }};"></span>
                       <select class="form-select form-select-sm status-select" data-complaint-id="{{ $complaint->id }}"
                         data-actual-status="{{ $rawStatus }}" data-status-color="maint_performa"
-                        style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center;">
+                        style="width: 100px; font-size: 9px; font-weight: 700; height: 24px; text-align: center; text-align-last: center; padding: 0;">
                         @if(isset($statuses) && $statuses->count() > 0)
                           @foreach($statuses as $statusValue => $statusLabel)
+                            @if($statusValue === 'unassigned' && $complaintStatus !== 'unassigned')
+                              @continue
+                            @endif
                             <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>
                               {{ $statusLabel }}
                             </option>
                           @endforeach
                         @else
+                          @if($complaintStatus === 'unassigned')
+                            <option value="unassigned" selected>Unassigned</option>
+                          @endif
                           <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                           <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                           <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                           <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>
-                            Work Performa Priced</option>
+                            Work Priced</option>
                           <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>
-                            Maintenance Performa Priced</option>
+                            Maint Priced</option>
                           <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                           <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized
                           </option>
-                          <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
                         @endif
                       </select>
                       <i data-feather="chevron-down"
@@ -447,97 +461,75 @@
                     </div>
                   @elseif($complaintStatus == 'un_authorized')
                     <div class="status-chip"
-                      style="background-color: {{ $statusColors['un_authorized']['bg'] }}; color: {{ $statusColors['un_authorized']['text'] }}; border-color: {{ $statusColors['un_authorized']['border'] }}; position: relative; overflow: hidden;">
+                      style="background-color: {{ $statusColors['un_authorized']['bg'] }}; color: {{ $statusColors['un_authorized']['text'] }}; border-color: {{ $statusColors['un_authorized']['border'] }}; position: relative; overflow: hidden; height: 24px; width: 100px;">
                       <span class="status-indicator"
                         style="background-color: {{ $statusColors['un_authorized']['bg'] }}; border-color: {{ $statusColors['un_authorized']['border'] }};"></span>
                       <select class="form-select form-select-sm status-select" data-complaint-id="{{ $complaint->id }}"
                         data-actual-status="{{ $rawStatus }}" data-status-color="un_authorized"
-                        style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center;">
+                        style="width: 100px; font-size: 9px; font-weight: 700; height: 24px; text-align: center; text-align-last: center; padding: 0;">
                         @if(isset($statuses) && $statuses->count() > 0)
                           @foreach($statuses as $statusValue => $statusLabel)
+                            @if($statusValue === 'unassigned' && $complaintStatus !== 'unassigned')
+                              @continue
+                            @endif
                             <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>
                               {{ $statusLabel }}
                             </option>
                           @endforeach
                         @else
+                          @if($complaintStatus === 'unassigned')
+                            <option value="unassigned" selected>Unassigned</option>
+                          @endif
                           <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                           <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                           <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                           <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>
-                            Work Performa Priced</option>
+                            Work Priced</option>
                           <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>
-                            Maintenance Performa Priced</option>
+                            Maint Priced</option>
                           <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                           <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized
                           </option>
-                          <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
-                          <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages
+                          <option value="barrack_damages" {{ $complaintStatus == 'barrack_damages' ? 'selected' : '' }}>Barrack Damages
                           </option>
                         @endif
                       </select>
                       <i data-feather="chevron-down"
                         style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
                     </div>
-                  @elseif($complaintStatus == 'pertains_to_ge_const_isld')
+
+                  @elseif($complaintStatus == 'barrack_damages')
                     <div class="status-chip"
-                      style="background-color: {{ $statusColors['pertains_to_ge_const_isld']['bg'] }}; color: {{ $statusColors['pertains_to_ge_const_isld']['text'] }}; border-color: {{ $statusColors['pertains_to_ge_const_isld']['border'] }}; position: relative; overflow: hidden;">
+                      style="background-color: {{ $statusColors['barrack_damages']['bg'] }}; color: {{ $statusColors['barrack_damages']['text'] }}; border-color: {{ $statusColors['barrack_damages']['border'] }}; position: relative; overflow: hidden; height: 24px; width: 100px;">
                       <span class="status-indicator"
-                        style="background-color: {{ $statusColors['pertains_to_ge_const_isld']['bg'] }}; border-color: {{ $statusColors['pertains_to_ge_const_isld']['border'] }};"></span>
+                        style="background-color: {{ $statusColors['barrack_damages']['bg'] }}; border-color: {{ $statusColors['barrack_damages']['border'] }};"></span>
                       <select class="form-select form-select-sm status-select" data-complaint-id="{{ $complaint->id }}"
-                        data-actual-status="{{ $rawStatus }}" data-status-color="pertains_to_ge_const_isld"
-                        style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center;">
+                        data-actual-status="{{ $rawStatus }}" data-status-color="barrack_damages"
+                        style="width: 100px; font-size: 9px; font-weight: 700; height: 24px; text-align: center; text-align-last: center; padding: 0;">
                         @if(isset($statuses) && $statuses->count() > 0)
                           @foreach($statuses as $statusValue => $statusLabel)
+                            @if($statusValue === 'unassigned' && $complaintStatus !== 'unassigned')
+                              @continue
+                            @endif
                             <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>
                               {{ $statusLabel }}
                             </option>
                           @endforeach
                         @else
+                          @if($complaintStatus === 'unassigned')
+                            <option value="unassigned" selected>Unassigned</option>
+                          @endif
                           <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                           <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                           <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                           <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>
-                            Work Performa Priced</option>
+                            Work Priced</option>
                           <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>
-                            Maintenance Performa Priced</option>
+                            Maint Priced</option>
                           <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                           <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized
                           </option>
-                          <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
-                          <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages
-                          </option>
-                        @endif
-                      </select>
-                      <i data-feather="chevron-down"
-                        style="width: 14px; height: 14px; color: #ffffff !important; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10; stroke: #ffffff;"></i>
-                    </div>
-                  @elseif($complaintStatus == 'barak_damages')
-                    <div class="status-chip"
-                      style="background-color: {{ $statusColors['barak_damages']['bg'] }}; color: {{ $statusColors['barak_damages']['text'] }}; border-color: {{ $statusColors['barak_damages']['border'] }}; position: relative; overflow: hidden;">
-                      <span class="status-indicator"
-                        style="background-color: {{ $statusColors['barak_damages']['bg'] }}; border-color: {{ $statusColors['barak_damages']['border'] }};"></span>
-                      <select class="form-select form-select-sm status-select" data-complaint-id="{{ $complaint->id }}"
-                        data-actual-status="{{ $rawStatus }}" data-status-color="barak_damages"
-                        style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center;">
-                        @if(isset($statuses) && $statuses->count() > 0)
-                          @foreach($statuses as $statusValue => $statusLabel)
-                            <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>
-                              {{ $statusLabel }}
-                            </option>
-                          @endforeach
-                        @else
-                          <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                          <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                          <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
-                          <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>
-                            Work Performa Priced</option>
-                          <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>
-                            Maintenance Performa Priced</option>
-                          <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
-                          <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized
-                          </option>
-                          <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
-                          <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages
+                          <option value="barrack_damages" {{ $complaintStatus == 'barrack_damages' ? 'selected' : '' }}>Barrack Damages
                           </option>
                         @endif
                       </select>
@@ -546,31 +538,36 @@
                     </div>
                   @else
                     <div class="status-chip"
-                      style="background-color: {{ $statusColors['assigned']['bg'] }}; color: {{ $statusColors['assigned']['text'] }}; border-color: {{ $statusColors['assigned']['border'] }}; position: relative; overflow: hidden;">
+                      style="background-color: {{ $statusColors[$complaintStatus]['bg'] ?? $statusColors['assigned']['bg'] }}; color: {{ $statusColors[$complaintStatus]['text'] ?? $statusColors['assigned']['text'] }}; border-color: {{ $statusColors[$complaintStatus]['border'] ?? $statusColors['assigned']['border'] }}; position: relative; overflow: hidden; height: 24px; width: 100px;">
                       <span class="status-indicator"
-                        style="background-color: {{ $statusColors['assigned']['bg'] }}; border-color: {{ $statusColors['assigned']['border'] }};"></span>
+                        style="background-color: {{ $statusColors[$complaintStatus]['bg'] ?? $statusColors['assigned']['bg'] }}; border-color: {{ $statusColors[$complaintStatus]['border'] ?? $statusColors['assigned']['border'] }};"></span>
                       <select class="form-select form-select-sm status-select" data-complaint-id="{{ $complaint->id }}"
-                        data-actual-status="{{ $rawStatus }}" data-status-color="assigned"
-                        style="width: 140px; font-size: 11px; font-weight: 700; height: 32px; text-align: center; text-align-last: center;">
+                        data-actual-status="{{ $rawStatus }}" data-status-color="{{ $complaintStatus }}"
+                        style="width: 100px; font-size: 9px; font-weight: 700; height: 24px; text-align: center; text-align-last: center; padding: 0;">
                         @if(isset($statuses) && $statuses->count() > 0)
                           @foreach($statuses as $statusValue => $statusLabel)
+                            @if($statusValue === 'unassigned' && $complaintStatus !== 'unassigned')
+                              @continue
+                            @endif
                             <option value="{{ $statusValue }}" {{ $complaintStatus == $statusValue ? 'selected' : '' }}>
                               {{ $statusLabel }}
                             </option>
                           @endforeach
                         @else
+                          @if($complaintStatus === 'unassigned')
+                            <option value="unassigned" selected>Unassigned</option>
+                          @endif
                           <option value="assigned" {{ $complaintStatus == 'assigned' ? 'selected' : '' }}>Assigned</option>
                           <option value="in_progress" {{ $complaintStatus == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                           <option value="resolved" {{ $complaintStatus == 'resolved' ? 'selected' : '' }}>Addressed</option>
                           <option value="work_priced_performa" {{ $complaintStatus == 'work_priced_performa' ? 'selected' : '' }}>
-                            Work Performa Priced</option>
+                            Work Priced</option>
                           <option value="maint_priced_performa" {{ $complaintStatus == 'maint_priced_performa' ? 'selected' : '' }}>
-                            Maintenance Performa Priced</option>
+                            Maint Priced</option>
                           <option value="product_na" {{ $complaintStatus == 'product_na' ? 'selected' : '' }}>Product N/A</option>
                           <option value="un_authorized" {{ $complaintStatus == 'un_authorized' ? 'selected' : '' }}>Un-Authorized
                           </option>
-                          <option value="pertains_to_ge_const_isld" {{ $complaintStatus == 'pertains_to_ge_const_isld' ? 'selected' : '' }}>Pertains to GE(N) Const Isld</option>
-                          <option value="barak_damages" {{ $complaintStatus == 'barak_damages' ? 'selected' : '' }}>Barak Damages
+                          <option value="barrack_damages" {{ $complaintStatus == 'barrack_damages' ? 'selected' : '' }}>Barrack Damages
                           </option>
                         @endif
                       </select>
@@ -579,53 +576,50 @@
                     </div>
                   @endif
                 </td>
-                <td>
-                  <div class="btn-group" role="group">
+                <td class="px-1" style="width: 1%; white-space: nowrap;">
+                  <div class="d-flex align-items-center" style="gap: 1.5px;">
                     <button type="button" class="btn btn-outline-success btn-sm" title="View Details"
-                      onclick="viewApproval({{ $approval->id }})" style="padding: 3px 8px;">
-                      <i data-feather="eye" style="width: 16px; height: 16px;"></i>
+                      onclick="{{ $approval ? "viewApproval($approval->id)" : "viewComplaintDetails($complaint->id)" }}" style="padding: 1px 3px;">
+                      <i data-feather="eye" style="width: 12px; height: 12px;"></i>
                     </button>
-                    @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
-                      <button type="button" class="btn btn-outline-secondary btn-sm add-stock-btn"
-                        title="Stock cannot be issued for addressed complaints" data-approval-id="{{ $approval->id }}"
-                        data-category="{{ $category }}" disabled style="padding: 3px 8px; cursor: not-allowed; opacity: 0.6;">
-                        <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
-                      </button>
-                    @elseif(isset($approval->has_issued_stock) && $approval->has_issued_stock)
-                      <button type="button" class="btn btn-outline-secondary btn-sm add-stock-btn" title="Stock already issued"
-                        data-approval-id="{{ $approval->id }}" data-category="{{ $category }}" disabled
-                        style="padding: 3px 8px; cursor: not-allowed; opacity: 0.6;">
-                        <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
+
+                    @if($complaintStatus === 'resolved' || $complaintStatus === 'closed')
+                      <button type="button" class="btn btn-outline-secondary btn-sm"
+                        title="Complaint is Addresssed/Closed and cannot be edited"
+                        style="padding: 1px 3px; cursor: not-allowed; opacity: 1 !important;" disabled>
+                        <i data-feather="edit" style="width: 12px; height: 12px;"></i>
                       </button>
                     @else
-                      <button type="button" class="btn btn-outline-primary btn-sm add-stock-btn" title="Submit"
-                        data-approval-id="{{ $approval->id }}" data-category="{{ $category }}"
-                        onclick="openAddStockModal({{ $approval->id }}, '{{ $category }}')"
-                        style="padding: 3px 8px; cursor: pointer;">
-                        <i data-feather="plus-circle" style="width: 16px; height: 16px;"></i>
+                      <button type="button" class="btn btn-outline-primary btn-sm" title="Edit Complaint"
+                        onclick="editComplaintModal({{ $complaint->id }})" style="padding: 1px 3px;">
+                        <i data-feather="edit" style="width: 12px; height: 12px;"></i>
+                      </button>
+                    @endif
+                    @if(empty($complaint->assigned_employee_id) || $complaintStatus == 'unassigned' || $complaintStatus == 'resolved' || $complaintStatus == 'closed')
+                      <button type="button" class="btn btn-outline-secondary btn-sm add-stock-btn"
+                        title="{{ (empty($complaint->assigned_employee_id) || $complaintStatus == 'unassigned') ? 'Assign an employee first to issue stock' : 'Stock cannot be issued' }}" data-approval-id="{{ $approval->id ?? '' }}" data-category="{{ $category }}"
+                        disabled style="padding: 1px 3px; cursor: not-allowed; opacity: 1 !important;">
+                        <i data-feather="plus-circle" style="width: 12px; height: 12px;"></i>
+                      </button>
+                    @else
+                      <button type="button" class="btn btn-outline-primary btn-sm add-stock-btn"
+                        title="{{ ($complaint->has_issued_stock) ? 'Issue More Stock' : 'Issue Stock' }}"
+                        data-approval-id="{{ $approval->id ?? '' }}" data-category="{{ $category }}"
+                        onclick="{{ $approval ? "openAddStockModal($approval->id, '$category')" : "createApprovalAndOpenStockModal($complaint->id, '$category')" }}"
+                        style="padding: 1px 3px; cursor: pointer;">
+                        <i data-feather="plus-circle" style="width: 12px; height: 12px;"></i>
                       </button>
                     @endif
                     @if($complaintStatus == 'resolved' || $complaintStatus == 'closed')
                       @php
                         $hasFeedback = false;
                         $feedbackId = null;
-                        // Safely check if feedback exists without triggering lazy loading errors
+                        // Use eager-loaded feedback relationship (no extra queries)
                         try {
-                          if ($complaint && $complaint->relationLoaded('feedback')) {
-                            $feedback = $complaint->getRelation('feedback');
-                            if ($feedback && $feedback->id) {
-                              $hasFeedback = true;
-                              $feedbackId = $feedback->id;
-                            }
-                          } else {
-                            // Use exists() method to check without loading the relationship
-                            $hasFeedback = \App\Models\ComplaintFeedback::where('complaint_id', $complaint->id)->exists();
-                            if ($hasFeedback) {
-                              $feedback = \App\Models\ComplaintFeedback::where('complaint_id', $complaint->id)->first();
-                              if ($feedback) {
-                                $feedbackId = $feedback->id;
-                              }
-                            }
+                          $feedback = $complaint->getRelation('feedback');
+                          if ($feedback && $feedback->id) {
+                            $hasFeedback = true;
+                            $feedbackId = $feedback->id;
                           }
                         } catch (\Exception $e) {
                           $hasFeedback = false;
@@ -645,20 +639,20 @@
                         @if($isGE)
                           <a href="javascript:void(0)" onclick="viewFeedbackEdit({{ $feedbackId }})" class="btn btn-success btn-sm"
                             title="Edit Feedback"
-                            style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important;">
-                            <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                            style="padding: 1px 3px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important;">
+                            <i data-feather="check-circle" style="width: 12px; height: 12px; color: #ffffff;"></i>
                           </a>
                         @else
-                          <span class="btn btn-success btn-sm" title="Feedback (View Only - Only GE can edit)"
-                            style="padding: 3px 8px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important; cursor: default; opacity: 0.7;">
-                            <i data-feather="check-circle" style="width: 16px; height: 16px; color: #ffffff;"></i>
+                          <span class="btn btn-success btn-sm" title="Feedback (View Only)"
+                            style="padding: 1px 3px; background-color: #16a34a !important; border-color: #16a34a !important; color: #ffffff !important; cursor: default; opacity: 0.7;">
+                            <i data-feather="check-circle" style="width: 12px; height: 12px; color: #ffffff;"></i>
                           </span>
                         @endif
                       @else
                         <a href="javascript:void(0)" onclick="viewFeedbackCreate({{ $complaint->id }})"
-                          class="btn btn-outline-warning btn-sm" title="Add Feedback"
-                          style="padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;">
-                          <i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>
+                          class="btn btn-warning btn-sm" title="Add Feedback"
+                          style="padding: 1px 3px; background-color: #f59e0b !important; border-color: #f59e0b !important; color: #ffffff !important;">
+                          <i data-feather="message-square" style="width: 12px; height: 12px; color: #ffffff;"></i>
                         </a>
                       @endif
                     @endif
@@ -679,15 +673,16 @@
     </div>
 
     <!-- TOTAL RECORDS -->
-    <div id="approvalsTableFooter" class="text-center py-2 mt-2"
-      style="background-color: rgba(59, 130, 246, 0.2); border-top: 2px solid #3b82f6; border-radius: 0 0 8px 8px;">
-      <strong style="color: #ffffff; font-size: 14px;">
+    <div id="approvalsTableFooter" class="text-center py-1 mt-1"
+      style="background-color: rgba(59, 130, 246, 0.2); border-top: 1px solid #3b82f6; border-radius: 0 0 8px 8px;">
+      <strong style="color: #ffffff; font-size: 12px;">
         Total Records: {{ $approvals->total() }}
       </strong>
     </div>
 
     <!-- PAGINATION -->
-    <div class="d-flex justify-content-center mt-3" id="approvalsPagination">
+    <div class="d-flex justify-content-center mt-2 small" id="approvalsPagination"
+      style="transform: scale(0.9); transform-origin: center;">
       <div>
         {{ $approvals->links() }}
       </div>
@@ -700,10 +695,10 @@
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
       <div class="modal-content card-glass"
         style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="addStockModalLabel">
-            <i data-feather="package" class="me-2" style="width: 20px; height: 20px;"></i>Authority / Stock Management
-          </h5>
+        <div class="modal-header py-2" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h6 class="modal-title text-white" id="addStockModalLabel">
+            <i data-feather="package" class="me-2" style="width: 18px; height: 18px;"></i>Authority / Stock Management
+          </h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" tabindex="0"
             style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
         </div>
@@ -732,10 +727,10 @@
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content card-glass"
         style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="complaintModalLabel">
-            <i data-feather="alert-triangle" class="me-2"></i>Complaint Details
-          </h5>
+        <div class="modal-header py-2" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h6 class="modal-title text-white" id="complaintModalLabel">
+            <i data-feather="alert-triangle" class="me-2" style="width: 18px; height: 18px;"></i>Complaint Details
+          </h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
             onclick="closeComplaintModal()"
             style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
@@ -756,10 +751,10 @@
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content card-glass"
         style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
-        <div class="modal-header" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
-          <h5 class="modal-title text-white" id="approvalModalLabel">
-            <i data-feather="file-text" class="me-2"></i>Complaint Details
-          </h5>
+        <div class="modal-header py-2" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2);">
+          <h6 class="modal-title text-white" id="approvalModalLabel">
+            <i data-feather="file-text" class="me-2" style="width: 18px; height: 18px;"></i>Complaint Details
+          </h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
             onclick="closeApprovalModal()"
             style="background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 0.5rem !important; opacity: 1 !important; filter: invert(1); background-size: 1.5em;"></button>
@@ -824,7 +819,7 @@
 
     .table.table-dark.table-sm th {
       font-size: 0.65rem !important;
-      padding: 0.4rem 0.4rem !important;
+      padding: 0.2rem 0.2rem !important;
       white-space: nowrap !important;
       line-height: 1.1 !important;
       display: table-cell !important;
@@ -837,14 +832,15 @@
 
     /* Specific header text size reduction for date columns */
     .table.table-dark.table-sm th:nth-child(2),
-    .table.table-dark.table-sm th:nth-child(3) {
-      font-size: 0.6rem !important;
-      padding: 0.35rem 0.3rem !important;
+    .table.table-dark.table-sm th:nth-child(3),
+    .table.table-dark.table-sm th:nth-child(4) {
+      font-size: 0.65rem !important;
+      padding: 0.2rem 0.2rem !important;
     }
 
     .table.table-dark.table-sm td {
       font-size: 0.7rem !important;
-      padding: 0.4rem 0.5rem !important;
+      padding: 0.2rem 0.2rem !important;
       white-space: nowrap !important;
       line-height: 1.2 !important;
     }
@@ -852,8 +848,10 @@
     /* Specific styling for date columns to ensure they fit */
     .table.table-dark.table-sm th:nth-child(2),
     .table.table-dark.table-sm th:nth-child(3),
+    .table.table-dark.table-sm th:nth-child(4),
     .table.table-dark.table-sm td:nth-child(2),
-    .table.table-dark.table-sm td:nth-child(3) {
+    .table.table-dark.table-sm td:nth-child(3),
+    .table.table-dark.table-sm td:nth-child(4) {
       font-size: 0.65rem !important;
     }
 
@@ -888,33 +886,33 @@
 
     .table.table-dark.table-sm th:nth-child(2),
     .table.table-dark.table-sm td:nth-child(2) {
-      width: 10% !important;
+      width: 7% !important;
       min-width: 100px !important;
       max-width: 130px !important;
     }
 
     .table.table-dark.table-sm th:nth-child(3),
     .table.table-dark.table-sm td:nth-child(3) {
-      width: 10% !important;
+      width: 8% !important;
       min-width: 100px !important;
       max-width: 130px !important;
     }
 
     .table.table-dark.table-sm th:nth-child(4),
     .table.table-dark.table-sm td:nth-child(4) {
-      width: 9% !important;
+      width: 8% !important;
       max-width: 110px !important;
     }
 
     .table.table-dark.table-sm th:nth-child(5),
     .table.table-dark.table-sm td:nth-child(5) {
-      width: 9% !important;
+      width: 7% !important;
       max-width: 110px !important;
     }
 
     .table.table-dark.table-sm th:nth-child(6),
     .table.table-dark.table-sm td:nth-child(6) {
-      width: 14% !important;
+      width: 16% !important;
       max-width: 170px !important;
     }
 
@@ -926,19 +924,19 @@
 
     .table.table-dark.table-sm th:nth-child(8),
     .table.table-dark.table-sm td:nth-child(8) {
-      width: 11% !important;
+      width: 8% !important;
       max-width: 130px !important;
     }
 
     .table.table-dark.table-sm th:nth-child(9),
     .table.table-dark.table-sm td:nth-child(9) {
-      width: 11% !important;
+      width: 10% !important;
       max-width: 130px !important;
     }
 
     .table.table-dark.table-sm th:nth-child(10),
     .table.table-dark.table-sm td:nth-child(10) {
-      width: 7% !important;
+      width: 9% !important;
       max-width: 90px !important;
       padding-right: 0.2rem !important;
       padding-left: 0.2rem !important;
@@ -1540,6 +1538,8 @@
 @endpush
 
 @push('scripts')
+  @include('admin.complaints.partials.form_scripts')
+
   <script>
     feather.replace();
 
@@ -1547,6 +1547,42 @@
     let currentApprovalId = null;
     let isProcessing = false;
     let currentComplaintId = null;
+
+    // Helper to view complaint details when no approval exists
+    function viewComplaintDetails(complaintId) {
+      viewComplaint(complaintId);
+    }
+
+    // Helper to create approval and open stock modal
+    function createApprovalAndOpenStockModal(complaintId, category) {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        fetch(`/admin/complaints/${complaintId}/ensure-approval`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.approval_id) {
+                openAddStockModal(data.approval_id, category);
+                // Optionally refresh the row or part of the table to show the eye icon correctly now
+            } else {
+                alert('Error creating approval record: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to ensure approval record exists.');
+        })
+        .finally(() => {
+            isProcessing = false;
+        });
+    }
 
     // Complaint Functions
     function viewComplaint(complaintId) {
@@ -1805,6 +1841,99 @@
         }
       }
       document.body.classList.remove('modal-open-blur');
+    }
+
+    // Function to open complaint edit modal
+    function editComplaintModal(complaintId) {
+      if (!complaintId) {
+        alert('Invalid complaint ID');
+        return;
+      }
+
+      currentComplaintId = complaintId;
+
+      const modalElement = document.getElementById('complaintModal');
+      const modalBody = document.getElementById('complaintModalBody');
+
+      // Show loading state
+      modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+      // Add blur effect
+      document.body.classList.add('modal-open-blur');
+
+      // Show modal WITHOUT backdrop
+      const modal = new bootstrap.Modal(modalElement, {
+        backdrop: false,
+        keyboard: true,
+        focus: true
+      });
+      modal.show();
+
+      // Ensure any backdrop is removed
+      const removeBackdrop = () => {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+      };
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+              node.remove();
+            }
+          });
+        });
+        removeBackdrop();
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+      removeBackdrop();
+
+      modalElement.addEventListener('hidden.bs.modal', function () {
+        observer.disconnect();
+        removeBackdrop();
+        document.body.classList.remove('modal-open-blur');
+      }, { once: true });
+
+      // Load complaint edit form via AJAX
+      const redirectTo = encodeURIComponent(window.location.href);
+      fetch(`/admin/complaints/${complaintId}/edit?format=html&redirect_to=${redirectTo}`, {
+        method: 'GET',
+        headers: { 'Accept': 'text/html' },
+        credentials: 'same-origin'
+      })
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          return response.text();
+        })
+        .then(html => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+
+          // Extract content section
+          let contentSection = doc.querySelector('section.content') || doc.querySelector('.content') || doc.body;
+
+          // Remove scripts we don't need in modal (since we have them globally now)
+          contentSection.querySelectorAll('script').forEach(s => s.remove());
+
+          modalBody.innerHTML = contentSection.innerHTML;
+
+          // Initialize using the shared global function
+          setTimeout(() => {
+            if (typeof window.initializeComplaintForm === 'function') {
+              console.log('Initializing complaint form in modal using shared logic');
+              window.initializeComplaintForm(modalBody);
+            } else {
+              console.error('initializeComplaintForm function not found!');
+              // Fallback: Re-init feather at least
+              feather.replace();
+            }
+          }, 150);
+        })
+        .catch(error => {
+          console.error('Error loading edit form:', error);
+          modalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading edit form: ' + error.message + '</div>';
+        });
     }
 
     // Approval Functions
@@ -2598,33 +2727,33 @@
     function renderItemRow(item) {
       const canDelete = !item.isExisting;
       return `
-              <tr data-item-id="${item.itemId}" data-spare-id="${item.spareId}" data-is-existing="${item.isExisting}">
-                <td style="vertical-align: middle; font-weight: 500; padding: 12px;">${escapeHtml(item.productName)}</td>
-                <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${escapeHtml(item.category)}</td>
-                <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${item.requestedQty}</td>
-                <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">
-                  <span class="badge ${item.availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">${item.availableStock}</span>
-                </td>
-                <td style="vertical-align: middle; text-align: center; padding: 12px;">
-                  <input type="number" 
-                         class="form-control form-control-sm issue-quantity-input" 
-                         name="items[${item.itemId}][issue_quantity]" 
-                         value="${item.issueQty}" 
-                         min="0" 
-                         max="${item.availableStock}"
-                         data-spare-id="${item.spareId}"
-                         data-item-id="${item.itemId}"
-                         data-product-name="${escapeHtml(item.productName)}"
-                         data-available-stock="${item.availableStock}"
-                         style="width: 120px; text-align: center; margin: 0 auto; display: block;">
-                </td>
-                <td style="vertical-align: middle; text-align: center; padding: 12px;">
-                  ${canDelete ? `<button type="button" class="btn btn-danger btn-sm remove-item-btn" data-item-id="${item.itemId}" style="padding: 3px 8px;" title="Remove">
-                    <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
-                  </button>` : '<span class="text-muted">-</span>'}
-                </td>
-              </tr>
-            `;
+                  <tr data-item-id="${item.itemId}" data-spare-id="${item.spareId}" data-is-existing="${item.isExisting}">
+                    <td style="vertical-align: middle; font-weight: 500; padding: 12px;">${escapeHtml(item.productName)}</td>
+                    <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${escapeHtml(item.category)}</td>
+                    <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">${item.requestedQty}</td>
+                    <td style="vertical-align: middle; text-align: center; font-weight: 500; padding: 12px;">
+                      <span class="badge ${item.availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">${item.availableStock}</span>
+                    </td>
+                    <td style="vertical-align: middle; text-align: center; padding: 12px;">
+                      <input type="number" 
+                             class="form-control form-control-sm issue-quantity-input" 
+                             name="items[${item.itemId}][issue_quantity]" 
+                             value="${item.issueQty}" 
+                             min="0" 
+                             max="${item.availableStock}"
+                             data-spare-id="${item.spareId}"
+                             data-item-id="${item.itemId}"
+                             data-product-name="${escapeHtml(item.productName)}"
+                             data-available-stock="${item.availableStock}"
+                             style="width: 120px; text-align: center; margin: 0 auto; display: block;">
+                    </td>
+                    <td style="vertical-align: middle; text-align: center; padding: 12px;">
+                      ${canDelete ? `<button type="button" class="btn btn-danger btn-sm remove-item-btn" data-item-id="${item.itemId}" style="padding: 3px 8px;" title="Remove">
+                        <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
+                      </button>` : '<span class="text-muted">-</span>'}
+                    </td>
+                  </tr>
+                `;
     }
 
     // Load categories for modal dropdown
@@ -2838,7 +2967,7 @@
 
     // Setup manual form event listeners
     function setupManualFormListeners() {
-      const categorySelect = document.getElementById('manualCategory');
+      console.log('setupManualFormListeners initializing...');
       const productSelect = document.getElementById('manualProduct');
       const availableStockInput = document.getElementById('manualAvailableStock');
       const requestQtyInput = document.getElementById('manualRequestQty');
@@ -2846,162 +2975,127 @@
       const authorityNo = document.getElementById('authorityNo');
       const authorityNoCol = document.getElementById('authorityNoCol');
       const authorityNumber = document.getElementById('authorityNumber');
-      const authoritySimple = document.getElementById('authorityNumberSimple');
+      const issueStockYes = document.getElementById('issueStockYes');
+      const issueStockNo = document.getElementById('issueStockNo');
+      const productIssueFields = document.getElementById('productIssueFields');
 
-      // Do not require categorySelect since it may be removed; only require the fields we use
-      if (!productSelect || !availableStockInput || !requestQtyInput) return;
-
-      // Category change (only if category is not disabled)
-      if (categorySelect && !categorySelect.disabled) {
-        categorySelect.addEventListener('change', function () {
-          const category = this.value;
-          loadProductsByCategory(category);
-          availableStockInput.value = '';
-          requestQtyInput.value = '';
-        });
-      }
-
-      // Product change
-      productSelect.addEventListener('change', function () {
-        const selectedOption = this.options[this.selectedIndex];
-        const stock = parseInt(selectedOption?.getAttribute('data-stock')) || 0;
-        availableStockInput.value = stock;
-
-        // Check if authority is required first
-        const isAuthorityRequired = authorityYes && authorityYes.checked;
-        const hasAuthNo = isAuthorityRequired && authorityNumber && authorityNumber.value && authorityNumber.value.trim().length > 0;
-
-        // If authority required and no authority number, lock the field
-        if (isAuthorityRequired && !hasAuthNo) {
-          requestQtyInput.disabled = true;
-          requestQtyInput.readOnly = true;
-          requestQtyInput.value = '';
-          requestQtyInput.placeholder = 'Enter Authority No.';
-          updateSubmitButtonState();
-          return; // Don't set default value or enable field
-        }
-
-        // If not locked, set default value and enable field
-        requestQtyInput.disabled = false;
-        requestQtyInput.readOnly = false;
-        requestQtyInput.placeholder = 'Enter quantity';
-
-        // Default request quantity to 1 when a product is selected and stock is available
-        if (stock > 0) {
-          if (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1) {
-            requestQtyInput.value = 1;
-          }
-          requestQtyInput.min = 1;
-          requestQtyInput.max = stock;
-        } else {
-          requestQtyInput.value = '';
-        }
-
-        updateSubmitButtonState();
-      });
-
-      // Authority number (simple) change - enable submit when provided
-      if (authoritySimple) {
-        authoritySimple.addEventListener('input', function () {
-          updateSubmitButtonState();
-        });
-      }
-      if (authorityNumber) {
-        authorityNumber.addEventListener('input', function () {
-          updateSubmitButtonState();
-        });
-      }
-
-      // Request quantity input - enable submit button when valid
-      requestQtyInput.addEventListener('input', function () {
-        updateSubmitButtonState();
-      });
-
-      requestQtyInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          if (!requestQtyInput.disabled && productSelect.value && requestQtyInput.value) {
-            const submitBtn = document.getElementById('submitAddStockBtn');
-            if (submitBtn && !submitBtn.disabled) {
-              window.submitIssueStock();
-            }
-          }
-        }
-      });
-
-      // Function to update submit button state
+      // Helper function to update submit button state
       function updateSubmitButtonState() {
         const submitBtn = document.getElementById('submitAddStockBtn');
         if (!submitBtn) return;
-
-        // Always keep submit enabled (authority-only submissions are allowed)
-        submitBtn.disabled = false;
+        submitBtn.disabled = false; // Always enabled for flexibility
       }
 
-      // Authority No. Required toggle handlers - Authority No. is optional
+      // 1. Authority No. Required toggle handlers - Independent of other fields
       if (authorityYes && authorityNo && authorityNoCol) {
+        console.log('Attaching authority toggle listeners');
         const updateAuthorityVisibility = () => {
           const required = authorityYes.checked;
-          authorityNoCol.classList.toggle('d-none', !required);
+          console.log('Authority visibility update - required:', required);
 
-          if (authorityNumber) authorityNumber.required = false;
-
-          if (requestQtyInput) {
-            requestQtyInput.disabled = false;
-            requestQtyInput.readOnly = false;
-            requestQtyInput.placeholder = 'Enter quantity';
-
-            const stock = parseInt(availableStockInput.value) || 0;
-            if (stock > 0 && (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1)) {
-              requestQtyInput.value = 1;
-              requestQtyInput.min = 1;
-              requestQtyInput.max = stock;
-            }
+          // Use explicit classList methods for better compatibility and clarity
+          if (required) {
+            authorityNoCol.classList.remove('d-none');
+          } else {
+            authorityNoCol.classList.add('d-none');
           }
 
-          // If "Yes" selected but no authority entered yet, keep fields visible and let user type
-          // If "No" selected, clear both authority fields and hide legacy input
-          if (!required) {
-            if (authorityNumber) authorityNumber.value = '';
-            if (authoritySimple) authoritySimple.value = '';
-            window.currentAuthorityNumber = '';
+          if (authorityNumber) {
+            authorityNumber.required = false;
+            if (!required) authorityNumber.value = '';
           }
 
           updateSubmitButtonState();
         };
         authorityYes.addEventListener('change', updateAuthorityVisibility);
         authorityNo.addEventListener('change', updateAuthorityVisibility);
-        updateAuthorityVisibility();
+        updateAuthorityVisibility(); // Initial state
       }
 
-      // Issue Stock toggle handlers - Show/hide product fields
-      const issueStockYes = document.getElementById('issueStockYes');
-      const issueStockNo = document.getElementById('issueStockNo');
-      const productIssueFields = document.getElementById('productIssueFields');
-
+      // 2. Issue Stock toggle handlers - Independent of other fields
       if (issueStockYes && issueStockNo && productIssueFields) {
+        console.log('Attaching stock visibility listeners');
         const updateIssueStockVisibility = () => {
-          const showFields = issueStockYes.checked;
-          productIssueFields.classList.toggle('d-none', !showFields);
+          const issuing = issueStockYes.checked;
+          console.log('Stock visibility update - issuing:', issuing);
 
-          // Clear fields when hiding
-          if (!showFields) {
-            if (productSelect) productSelect.value = '';
+          if (issuing) {
+            productIssueFields.classList.remove('d-none');
+            if (productSelect) productSelect.disabled = false;
+            if (requestQtyInput) requestQtyInput.disabled = false;
+          } else {
+            productIssueFields.classList.add('d-none');
+            // If not issuing stock, clear product fields
+            if (productSelect) {
+              productSelect.value = '';
+              productSelect.disabled = true;
+            }
             if (availableStockInput) availableStockInput.value = '';
-            if (requestQtyInput) requestQtyInput.value = '';
+            if (requestQtyInput) {
+              requestQtyInput.value = '';
+              requestQtyInput.disabled = true;
+            }
           }
-
           updateSubmitButtonState();
         };
         issueStockYes.addEventListener('change', updateIssueStockVisibility);
         issueStockNo.addEventListener('change', updateIssueStockVisibility);
-        updateIssueStockVisibility();
+        updateIssueStockVisibility(); // Initial state
       }
 
+      // 3. Product Fields listeners - Only if elements exist
+      if (productSelect && availableStockInput && requestQtyInput) {
+        console.log('Attaching product field listeners');
+
+        // Product change
+        productSelect.addEventListener('change', function () {
+          const selectedOption = this.options[this.selectedIndex];
+          if (!selectedOption) return;
+
+          const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+          availableStockInput.value = stock;
+
+          requestQtyInput.disabled = false;
+          requestQtyInput.readOnly = false;
+          requestQtyInput.placeholder = 'Enter quantity';
+
+          if (stock > 0) {
+            if (!requestQtyInput.value || parseInt(requestQtyInput.value) < 1) {
+              requestQtyInput.value = 1;
+            }
+            requestQtyInput.min = 1;
+            requestQtyInput.max = stock;
+          } else {
+            requestQtyInput.value = '';
+          }
+
+          updateSubmitButtonState();
+        });
+
+        // Request quantity input
+        requestQtyInput.addEventListener('input', updateSubmitButtonState);
+
+        requestQtyInput.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!requestQtyInput.disabled && productSelect.value && requestQtyInput.value) {
+              const submitBtn = document.getElementById('submitAddStockBtn');
+              if (submitBtn && !submitBtn.disabled) {
+                window.submitIssueStock();
+              }
+            }
+          }
+        });
+      }
+
+      // 4. Authority Input listeners
+      if (authorityNumber) {
+        authorityNumber.addEventListener('input', updateSubmitButtonState);
+      }
     }
 
     // Forward declaration for Add Stock Modal function (defined later)
-    window.openAddStockModal = function (approvalId, category = null) {
+    function openAddStockModal(approvalId, category = null) {
       console.log('openAddStockModal called with ID:', approvalId, 'Category:', category);
 
       // Store approvalId globally for submitIssueStock
@@ -3172,127 +3266,189 @@
           if (data.success && data.approval && data.approval.items) {
             const items = data.approval.items || [];
             const issuedStock = data.approval.issued_stock || [];
-
-            console.log('✅ Creating table with 5 columns:');
-            console.log('   1. Product Name (25% width)');
-            console.log('   2. Category (20% width)');
-            console.log('   3. Request Quantity (15% width)');
-            console.log('   4. Available Stock (15% width)');
-            console.log('   5. Issue Quantity (25% width)');
-            console.log('Items to display:', items.length);
-            console.log('Items data:', items);
-            console.log('Issued stock:', issuedStock);
-
-            if (items.length === 0) {
-              console.info('ℹ️ No items found in approval ID:', approvalId, '- This approval may not have any items yet or items may have been removed.');
-              console.info('ℹ️ You can manually add items using the form below.');
-            } else {
-              console.log('✅ Items found:', items.length);
-              console.log('✅ Displaying items in table with 5 columns');
-            }
-
-            // Initialize manual items array
-            if (!window.manualItems) {
-              window.manualItems = [];
-            }
-
-            // Store items globally for submission (existing + manual)
-            window.currentApprovalItems = items;
-            window.lastIssuedStock = issuedStock.length > 0 ? issuedStock[0] : null; // Store last issued stock
-            console.log('Approval items loaded:', items.length, 'items');
-            console.log('Current approval_id:', window.currentApprovalId);
-            console.log('Last issued stock:', window.lastIssuedStock);
-
-            // Build form with manual add section
-            let itemsHtml = '<form id="addStockForm">';
-
-            // Check if stock has already been issued - if yes, disable the form
             const hasIssuedStock = issuedStock.length > 0;
 
-            // Manual Add Form Section
-            itemsHtml += `
-                  <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 8px;">
-                    <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
+            let itemsHtml = '<form id="addStockForm">';
+
+            if (items.length > 0) {
+              itemsHtml += `
+                    <div class="table-responsive mb-3">
+                      <table class="table table-sm table-bordered" style="font-size: 0.85rem;">
+                        <thead class="table-light">
+                          <tr>
+                            <th style="width: 25%;">Product Name</th>
+                            <th style="width: 20%;">Category</th>
+                            <th style="width: 15%; text-align: center;">Req Qty</th>
+                            <th style="width: 15%; text-align: center;">Avail Stock</th>
+                            <th style="width: 25%; text-align: center;">Issue Qty</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                  `;
+
+              items.forEach((item, index) => {
+                const availStock = item.product?.stock ?? 0;
+                itemsHtml += `
+                      <tr>
+                        <td>${item.product_name}</td>
+                        <td>${item.category || 'N/A'}</td>
+                        <td class="text-center">${item.quantity}</td>
+                        <td class="text-center">${availStock}</td>
+                        <td>
+                          <input type="number" class="form-control form-control-sm issue-qty-input" 
+                            data-item-id="${item.id}" data-spare-id="${item.spare_id}"
+                            max="${availStock}" min="0" value="0" style="text-align: center;">
+                        </td>
+                      </tr>
+                    `;
+              });
+
+              itemsHtml += `
+                        </tbody>
+                      </table>
                     </div>
-                    <div class="card-body" style="padding: 16px;">
-                      <!-- Authority No. Req and Issue Stock Row - Combined -->
-                      <div class="row g-3 mb-3 align-items-end" id="authorityRow">
-                        <div class="col-md-3">
-                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No. Req</label>
-                          <div class="d-flex align-items-center" style="gap: 10px;">
-                            <div class="form-check form-check-inline" style="margin: 0;">
-                              <input class="form-check-input" type="radio" name="authorityRequired" id="authorityNo" value="no" checked>
-                              <label class="form-check-label" for="authorityNo" style="font-size: 0.85rem;">No</label>
+                  `;
+            }
+
+            // Add "Previously Issued Items" section if stock has been issued
+            if (issuedStock.length > 0) {
+              itemsHtml += `
+                    <div class="mb-3">
+                      <h6 class="text-primary fw-bold" style="font-size: 0.9rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px;">
+                        <i data-feather="check-square" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+                        Previously Issued Items
+                      </h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-bordered" style="font-size: 0.8rem; background-color: #f8fafc;">
+                          <thead style="background-color: #f1f5f9;">
+                            <tr>
+                              <th>Item Name</th>
+                              <th class="text-center">Qty</th>
+                              <th>Issued At</th>
+                              <th>Remarks</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                  `;
+
+              issuedStock.forEach(log => {
+                itemsHtml += `
+                      <tr>
+                        <td>${log.spare_name}</td>
+                        <td class="text-center fw-bold text-success">${log.quantity_issued}</td>
+                        <td class="text-muted">${log.issued_at}</td>
+                        <td class="small">${log.remarks || '-'}</td>
+                      </tr>
+                    `;
+              });
+
+              itemsHtml += `
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  `;
+            }
+
+            // Build full form with existing items table and manual add section
+            let manualFormHtml = `
+                      <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 8px;">
+                        <div class="card-header bg-primary text-white" style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
+                          Authority / Stock Management
+                        </div>
+                        <div class="card-body" style="padding: 16px;">
+                          <!-- Authority No. Req and Issue Stock Row - Combined -->
+                          <div class="row g-3 mb-3 align-items-end" id="authorityRow">
+                            <div class="col-md-3">
+                              <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No. Req</label>
+                              <div class="d-flex align-items-center" style="gap: 10px;">
+                                <div class="form-check form-check-inline" style="margin: 0;">
+                                  <input class="form-check-input" type="radio" name="authorityRequired" id="authorityNo" value="no" checked>
+                                  <label class="form-check-label" for="authorityNo" style="font-size: 0.85rem;">No</label>
+                                </div>
+                                <div class="form-check form-check-inline" style="margin: 0;">
+                                  <input class="form-check-input" type="radio" name="authorityRequired" id="authorityYes" value="yes">
+                                  <label class="form-check-label" for="authorityYes" style="font-size: 0.85rem;">Yes</label>
+                                </div>
+                              </div>
                             </div>
-                            <div class="form-check form-check-inline" style="margin: 0;">
-                              <input class="form-check-input" type="radio" name="authorityRequired" id="authorityYes" value="yes">
-                              <label class="form-check-label" for="authorityYes" style="font-size: 0.85rem;">Yes</label>
+                            <div class="col-md-3 d-none" id="authorityNoCol">
+                              <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
+                              <input type="text" class="form-control form-control-sm" id="authorityNumber" placeholder="Enter Authority No." style="font-size: 0.9rem;">
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Issue Stock</label>
+                              <div class="d-flex align-items-center" style="gap: 10px;">
+                                <div class="form-check form-check-inline" style="margin: 0;">
+                                  <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockNo" value="no" checked>
+                                  <label class="form-check-label" for="issueStockNo" style="font-size: 0.85rem;">No</label>
+                                </div>
+                                <div class="form-check form-check-inline" style="margin: 0;">
+                                  <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockYes" value="yes">
+                                  <label class="form-check-label" for="issueStockYes" style="font-size: 0.85rem;">Yes</label>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div class="col-md-3 d-none" id="authorityNoCol">
-                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
-                          <input type="text" class="form-control form-control-sm" id="authorityNumber" placeholder="Enter Authority No." style="font-size: 0.9rem;">
-                        </div>
-                        <div class="col-md-3">
-                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Issue Stock</label>
-                          <div class="d-flex align-items-center" style="gap: 10px;">
-                            <div class="form-check form-check-inline" style="margin: 0;">
-                              <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockNo" value="no" checked>
-                              <label class="form-check-label" for="issueStockNo" style="font-size: 0.85rem;">No</label>
+
+                          <!-- Product Issue Fields - Hidden by default -->
+                          <div class="row g-3 d-none" id="productIssueFields">
+                            <div class="col-md-4">
+                              <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
+                              <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
+                                <option value="">Loading Products...</option>
+                              </select>
                             </div>
-                            <div class="form-check form-check-inline" style="margin: 0;">
-                              <input class="form-check-input" type="radio" name="issueStockRequired" id="issueStockYes" value="yes">
-                              <label class="form-check-label" for="issueStockYes" style="font-size: 0.85rem;">Yes</label>
+                            <div class="col-md-2">
+                              <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
+                              <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
+                              <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
                             </div>
                           </div>
                         </div>
                       </div>
+                    `;
 
-                      <!-- Product Issue Fields - Hidden by default -->
-                      <div class="row g-3 d-none" id="productIssueFields">
-                        <div class="col-md-4">
-                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Product</label>
-                          <select class="form-select form-select-sm" id="manualProduct" style="font-size: 0.9rem;" disabled>
-                            <option value="">Loading Products...</option>
-                          </select>
-                        </div>
-                        <div class="col-md-2">
-                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Available Stock</label>
-                          <input type="text" class="form-control form-control-sm" id="manualAvailableStock" readonly style="font-size: 0.9rem; background-color: #f8f9fa; font-weight: 600; text-align: center;">
-                        </div>
-                        <div class="col-md-3">
-                          <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Request Quantity</label>
-                          <input type="number" class="form-control form-control-sm" id="manualRequestQty" min="1" style="font-size: 0.9rem; text-align: center;" placeholder="Enter quantity">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                `;
-
+            itemsHtml += manualFormHtml;
             itemsHtml += '</form>';
             modalBody.innerHTML = itemsHtml;
 
             // Get complaint category and location from stored global variable or approval response
-            const complaintCategory = window.currentComplaintCategory || data.approval?.complaint?.category || null;
-            const complaintSector = data.approval?.complaint?.sector || null;
-            const complaintCity = data.approval?.complaint?.city || null;
-            console.log('Complaint category:', complaintCategory, 'From stored:', window.currentComplaintCategory, 'From response:', data.approval?.complaint?.category);
-            console.log('Complaint sector:', complaintSector, 'Complaint city:', complaintCity);
+            let complaintCategory = window.currentComplaintCategory || data.approval?.complaint?.category || null;
+            let complaintSector = data.approval?.complaint?.sector || null;
+            let complaintCity = data.approval?.complaint?.city || null;
+
+            // Helper to safe extract name or value from object/string
+            const extractSafeValue = (val) => {
+              if (!val) return null;
+              if (typeof val === 'object') {
+                return val.name || val.id || null;
+              }
+              return val;
+            };
+
+            complaintCategory = extractSafeValue(complaintCategory);
+            complaintSector = extractSafeValue(complaintSector);
+            complaintCity = extractSafeValue(complaintCity);
+
+            console.log('Processed Complaint info:', { category: complaintCategory, sector: complaintSector, city: complaintCity });
 
             // Wait for DOM to be ready before initializing
             setTimeout(() => {
-              // Load products for complaint category and sector only (no category dropdown needed)
-              if (complaintCategory && complaintCategory.trim() !== '' && complaintCategory !== 'N/A') {
-                console.log('Loading products for category:', complaintCategory, 'sector:', complaintSector);
-                // Ensure category is passed correctly, along with sector for location filtering
-                loadProductsByCategory(complaintCategory.trim(), complaintSector, complaintCity);
+              // Safe category string check
+              const catStr = String(complaintCategory || '').trim();
+
+              if (catStr && catStr !== '' && catStr !== 'N/A' && catStr !== 'null') {
+                console.log('Loading products for safe category:', catStr);
+                loadProductsByCategory(catStr, complaintSector, complaintCity);
               } else {
-                console.warn('No complaint category found');
-                // Don't load all products if category is missing - show empty
+                console.warn('No valid complaint category found for product filtering');
                 const productSelect = document.getElementById('manualProduct');
                 if (productSelect) {
-                  productSelect.innerHTML = '<option value="">No category found - Please select a product manually</option>';
+                  productSelect.innerHTML = '<option value="">Category missing - Select manually</option>';
                   productSelect.disabled = false;
                 }
               }
@@ -3315,7 +3471,7 @@
               }
 
               // If authority number exists, populate the form
-              if (existingAuthority && !hasIssuedStock) {
+              if (existingAuthority) {
                 console.log('Found existing authority number:', existingAuthority);
 
                 // Set "Authority No. Req" to "Yes"
@@ -3336,12 +3492,6 @@
                   }
                 }, 50);
               }
-
-              // Don't populate form if stock has already been issued
-              if (hasIssuedStock) {
-                // Form is already disabled above, no need to populate
-                return;
-              }
             }, 100);
 
             // Show Submit button always (will be enabled when product and quantity are selected)
@@ -3350,9 +3500,13 @@
               // Keep submit enabled in all cases
               submitBtn.disabled = false;
               if (hasIssuedStock) {
-                submitBtn.innerHTML = 'Stock Already Issued';
-                submitBtn.classList.add('btn-secondary');
-                submitBtn.classList.remove('btn-success');
+                submitBtn.innerHTML = 'Issue More Stock';
+                submitBtn.classList.add('btn-success');
+                submitBtn.classList.remove('btn-secondary');
+              } else {
+                submitBtn.innerHTML = 'Issue Stock';
+                submitBtn.classList.add('btn-success');
+                submitBtn.classList.remove('btn-secondary');
               }
             }
 
@@ -3378,7 +3532,7 @@
 
     // Forward declaration for Submit Add Stock function (defined later)
     // Issue Stock Function (early definition)
-    window.submitIssueStock = function () {
+    function submitIssueStock() {
       console.log('submitIssueStock called');
 
       // Get form values directly
@@ -3424,113 +3578,125 @@
         }
       }
 
-      // If only authority number provided (no product), save authority and exit
-      if (!productId && authNo && isAuthorityRequired) {
-        // Get CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      // 1. Collect data from both manual form and table
+      const stockData = [];
 
-        // Disable submit button while saving
-        const submitBtn = document.getElementById('submitAddStockBtn');
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving Authority...';
+      // Manual form entry
+      if (productId && issueQty > 0) {
+        if (issueQty > availableStock) {
+          alert(`Manual entry: Request quantity (${issueQty}) cannot exceed available stock (${availableStock})`);
+          requestQtyInput.focus();
+          return;
         }
+        stockData.push({
+          spare_id: parseInt(productId),
+          item_id: null,
+          issue_quantity: issueQty,
+          product_name: productName,
+          available_stock: availableStock
+        });
+      }
 
-        // Build authority info string
-        const typeLabel = perfVal === 'work_performa' ? 'Work Performa' : (perfVal === 'maint_performa' ? 'Maintenance Performa' : 'General');
-        const authorityInfo = `Authority No. Req: ${typeLabel}, Authority No: ${authNo}`;
+      // Items table entries
+      const tableInputs = document.querySelectorAll('.issue-qty-input');
+      let tableValidationError = false;
+      tableInputs.forEach(input => {
+        const qty = parseInt(input.value) || 0;
+        if (qty > 0) {
+          const sparId = input.getAttribute('data-spare-id');
+          const itId = input.getAttribute('data-item-id');
+          const row = input.closest('tr');
+          const prodName = row ? row.cells[0].textContent.trim() : 'Unknown Product';
+          const availStock = parseInt(input.getAttribute('max')) || 0;
 
-        // Save authority number only (no stock)
-        fetch(`/admin/approvals/${window.currentApprovalId}/save-performa`, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-          },
-          body: JSON.stringify({
-            performa_type: perfVal || null,
-            remarks: authorityInfo
-          }),
-          credentials: 'same-origin'
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = '<i data-feather="check-circle"></i> Submit';
-            }
+          if (qty > availStock) {
+            alert(`Table item "${prodName}": Quantity (${qty}) cannot exceed available stock (${availStock})`);
+            input.focus();
+            tableValidationError = true;
+            return;
+          }
 
-            if (data.success) {
-              alert('Authority number saved successfully!');
-              // Close modal and reload page
-              const modalInstance = bootstrap.Modal.getInstance(document.getElementById('addStockModal'));
-              if (modalInstance) modalInstance.hide();
-              window.location.reload();
-            } else {
-              alert('Error saving authority number: ' + (data.message || 'Unknown error'));
-            }
-          })
-          .catch(error => {
-            console.error('Error saving authority:', error);
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = '<i data-feather="check-circle"></i> Submit';
-            }
-            alert('Error saving authority number: ' + error.message);
+          stockData.push({
+            spare_id: parseInt(sparId),
+            item_id: itId ? parseInt(itId) : null,
+            issue_quantity: qty,
+            product_name: prodName,
+            available_stock: availStock
           });
+        }
+      });
 
-        return;
+      if (tableValidationError) return;
+
+      // Get CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      const submitBtn = document.getElementById('submitAddStockBtn');
+
+      // If no stock is being issued, check if it's an authority-only update
+      if (stockData.length === 0) {
+        if (authNo && isAuthorityRequired) {
+          console.log('Authority-only update triggered');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving Authority...';
+          }
+
+          const typeLabel = perfVal === 'work_performa' ? 'Work Performa' : (perfVal === 'maint_performa' ? 'Maintenance Performa' : 'General');
+          const authorityInfo = `Authority No. Req: ${typeLabel}, Authority No: ${authNo}`;
+
+          fetch(`/admin/approvals/${window.currentApprovalId}/save-performa`, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+              performa_type: perfVal || null,
+              remarks: authorityInfo
+            }),
+            credentials: 'same-origin'
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Authority number saved successfully!');
+                window.location.reload();
+              } else {
+                alert('Error saving authority: ' + (data.message || 'Unknown error'));
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = '<i data-feather="check-circle"></i> Submit';
+                }
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Error saving authority: ' + error.message);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-feather="check-circle"></i> Submit';
+              }
+            });
+          return;
+        } else {
+          alert('Please select a product and enter quantity or provide an authority number.');
+          return;
+        }
       }
 
-      // Validate form when product is required
-      if (!productId) {
-        alert('Please select a product');
-        productSelect.focus();
-        return;
-      }
-
-      if (issueQty <= 0) {
-        alert('Please enter a valid request quantity');
-        requestQtyInput.focus();
-        return;
-      }
-
-      if (issueQty > availableStock) {
-        alert(`Request quantity (${issueQty}) cannot exceed available stock (${availableStock})`);
-        requestQtyInput.focus();
-        return;
-      }
-
-      // If "No" is selected, don't save any authority info - just proceed with stock issue
-      // If "Yes" is selected, authority number is optional - proceed with or without it
-      // Authority number is always optional, so proceed with stock issue regardless
-
-      // Prepare stock data
-      const stockData = [{
-        spare_id: parseInt(productId),
-        item_id: null,
-        issue_quantity: issueQty,
-        product_name: productName,
-        available_stock: availableStock
-      }];
-
-      // Confirm before submitting
-      const confirmMessage = `Are you sure you want to ISSUE stock for the following items?\n\n` +
-        stockData.map(item => `${item.product_name}: ${item.issue_quantity} units (Available: ${item.available_stock})`).join('\n');
+      // Proceed with confirmation and stock issue
+      const confirmMessage = `Are you sure you want to ISSUE stock for ${stockData.length} item(s)?\n\n` +
+        stockData.map(item => `- ${item.product_name}: ${item.issue_quantity} units`).join('\n') +
+        (authNo ? `\n\nAuthority No: ${authNo}` : '');
 
       if (!confirm(confirmMessage)) {
         return;
       }
 
-      // Get CSRF token
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-      // Keep submit button enabled
-      const submitBtn = document.getElementById('submitAddStockBtn');
       if (submitBtn) {
-        submitBtn.disabled = false;
+        submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Issuing Stock...';
       }
 
@@ -3564,10 +3730,30 @@
 
       // Process all requests
       Promise.all(promises)
-        .then(responses => Promise.all(responses.map(r => r.json())))
+        .then(responses => {
+          // Parse all responses, handling both success and error cases
+          return Promise.all(responses.map(async (response) => {
+            try {
+              const data = await response.json();
+              console.log('Stock issue response:', { status: response.status, ok: response.ok, data });
+              // Check both HTTP status and JSON success field
+              if (response.ok && data.success) {
+                return { success: true, data };
+              } else {
+                console.error('Stock issue failed:', { status: response.status, data });
+                return { success: false, data };
+              }
+            } catch (error) {
+              console.error('Error parsing response:', error);
+              return { success: false, error: error.message };
+            }
+          }));
+        })
         .then(results => {
+          console.log('All results:', results);
           const successCount = results.filter(r => r.success).length;
           const failedCount = results.length - successCount;
+          console.log(`Success: ${successCount}, Failed: ${failedCount}`);
 
           if (failedCount === 0) {
             // If authority is required (Yes selected) and authority number is provided, save it
@@ -3702,6 +3888,23 @@
         });
       } else {
         console.error('Search input NOT found!');
+      }
+
+      // Attach event listener to house number input (instant response)
+      const houseNoInput = document.getElementById('houseNoInput');
+      if (houseNoInput) {
+        console.log('House No. input found, attaching event listener');
+        houseNoInput.addEventListener('input', handleApprovalsSearchInput);
+        houseNoInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (approvalsSearchTimeout) {
+              clearTimeout(approvalsSearchTimeout);
+            }
+            loadApprovals();
+          }
+        });
       }
 
       // Attach event listener to date input
@@ -3975,56 +4178,56 @@
       const alertDiv = document.createElement('div');
       alertDiv.className = 'custom-alert-toast alert-success-toast';
       alertDiv.style.cssText = `
-              position: fixed;
-              top: 20px;
-              right: 20px;
-              z-index: 10000;
-              min-width: 320px;
-              max-width: 450px;
-              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-              color: white;
-              padding: 16px 20px;
-              border-radius: 12px;
-              box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              animation: slideInRight 0.3s ease-out;
-              font-size: 14px;
-              font-weight: 500;
-            `;
+                  position: fixed;
+                  top: 20px;
+                  right: 20px;
+                  z-index: 10000;
+                  min-width: 320px;
+                  max-width: 450px;
+                  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                  color: white;
+                  padding: 16px 20px;
+                  border-radius: 12px;
+                  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  animation: slideInRight 0.3s ease-out;
+                  font-size: 14px;
+                  font-weight: 500;
+                `;
       alertDiv.innerHTML = `
-              <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-              </div>
-              <div style="flex: 1; line-height: 1.5;">
-                <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Success!</strong>
-                <span style="opacity: 0.95;">${message}</span>
-              </div>
-              <button type="button" onclick="this.parentElement.remove()" style="
-                background: rgba(255, 255, 255, 0.2);
-                border: none;
-                color: white;
-                width: 24px;
-                height: 24px;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0;
-                flex-shrink: 0;
-                transition: background 0.2s;
-              " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            `;
+                  <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </div>
+                  <div style="flex: 1; line-height: 1.5;">
+                    <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Success!</strong>
+                    <span style="opacity: 0.95;">${message}</span>
+                  </div>
+                  <button type="button" onclick="this.parentElement.remove()" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    color: white;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0;
+                    flex-shrink: 0;
+                    transition: background 0.2s;
+                  " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                `;
       document.body.appendChild(alertDiv);
 
       // Auto remove after 3 seconds
@@ -4049,57 +4252,57 @@
       const alertDiv = document.createElement('div');
       alertDiv.className = 'custom-alert-toast alert-error-toast';
       alertDiv.style.cssText = `
-              position: fixed;
-              top: 20px;
-              right: 20px;
-              z-index: 10000;
-              min-width: 320px;
-              max-width: 450px;
-              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-              color: white;
-              padding: 16px 20px;
-              border-radius: 12px;
-              box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              animation: slideInRight 0.3s ease-out, shake 0.5s ease-in-out 0.3s;
-              font-size: 14px;
-              font-weight: 500;
-            `;
+                  position: fixed;
+                  top: 20px;
+                  right: 20px;
+                  z-index: 10000;
+                  min-width: 320px;
+                  max-width: 450px;
+                  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                  color: white;
+                  padding: 16px 20px;
+                  border-radius: 12px;
+                  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  animation: slideInRight 0.3s ease-out, shake 0.5s ease-in-out 0.3s;
+                  font-size: 14px;
+                  font-weight: 500;
+                `;
       alertDiv.innerHTML = `
-              <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-              </div>
-              <div style="flex: 1; line-height: 1.5;">
-                <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Error!</strong>
-                <span style="opacity: 0.95;">${message}</span>
-              </div>
-              <button type="button" onclick="this.parentElement.remove()" style="
-                background: rgba(255, 255, 255, 0.2);
-                border: none;
-                color: white;
-                width: 24px;
-                height: 24px;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0;
-                flex-shrink: 0;
-                transition: background 0.2s;
-              " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            `;
+                  <div style="flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                  </div>
+                  <div style="flex: 1; line-height: 1.5;">
+                    <strong style="display: block; margin-bottom: 2px; font-size: 15px;">Error!</strong>
+                    <span style="opacity: 0.95;">${message}</span>
+                  </div>
+                  <button type="button" onclick="this.parentElement.remove()" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    color: white;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0;
+                    flex-shrink: 0;
+                    transition: background 0.2s;
+                  " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                `;
       document.body.appendChild(alertDiv);
 
       // Auto remove after 6 seconds (slightly longer for errors)
@@ -4128,9 +4331,9 @@
       'maint_priced_performa': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red (like product_na)
       'product_na': { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // Red
       'un_authorized': { bg: '#ec4899', text: '#ffffff', border: '#db2777' }, // Pink
-      'pertains_to_ge_const_isld': { bg: '#06b6d4', text: '#ffffff', border: '#0891b2' }, // Aqua/Cyan
       'assigned': { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // Green (swapped from grey)
-      'barak_damages': { bg: '#808000', text: '#ffffff', border: '#666600' }, // Olive
+      'unassigned': { bg: '#000000', text: '#ffffff', border: '#333333' }, // Black
+      'barrack_damages': { bg: '#808000', text: '#ffffff', border: '#666600' }, // Olive
     };
 
     // Function to update status select box colors
@@ -4139,7 +4342,7 @@
       // If status is in_progress or any performa type, always use red color
       const performaTypes = ['in_progress', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'];
       // If status is a performa type, use red color; otherwise use the status color or default to assigned
-      const color = performaTypes.includes(normalizedStatus) ? statusColors['in_progress'] : (statusColors[normalizedStatus] || statusColors['assigned']);
+      const color = performaTypes.includes(normalizedStatus) ? statusColors['in_progress'] : (statusColors[normalizedStatus] || statusColors['unassigned'] || statusColors['assigned']);
       select.style.backgroundColor = color.bg;
       select.style.color = '#ffffff';
       select.style.setProperty('color', '#ffffff', 'important');
@@ -4183,6 +4386,16 @@
         };
         newStatus = normalize(newStatus);
 
+        // Prevent status change if unassigned (unless selecting assigned or the 3 special statuses)
+        const currentActualStatus = select.getAttribute('data-actual-status');
+        const statusesAllowedWithoutAssignment = ['assigned', 'un_authorized', 'barrack_damages'];
+        if (currentActualStatus === 'new' && !statusesAllowedWithoutAssignment.includes(newStatus)) {
+          alert('First assigned the complaint');
+          select.value = 'unassigned';
+          updateStatusSelectColor(select, 'unassigned');
+          return;
+        }
+
         // Store original status before any modifications for special options
         let originalStatusForSpecialOption = null;
 
@@ -4201,13 +4414,13 @@
             if (newStatus === 'work_performa') {
               performaBadge.textContent = 'Work Performa';
               performaBadge.style.backgroundColor = performaColors['work_performa'];
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
@@ -4216,13 +4429,13 @@
             } else if (newStatus === 'maint_performa') {
               performaBadge.textContent = 'Maintenance Performa';
               performaBadge.style.backgroundColor = performaColors['maint_performa'];
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
@@ -4230,13 +4443,13 @@
               updateStatusSelectColor(select, 'maint_performa');
             }
             if (performaBadge) {
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
             }
           }
 
@@ -4307,13 +4520,13 @@
             if (newStatus === 'work_priced_performa') {
               performaBadge.textContent = 'Work Performa Priced';
               performaBadge.style.backgroundColor = '#9333ea';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
@@ -4325,13 +4538,13 @@
             } else if (newStatus === 'maint_priced_performa') {
               performaBadge.textContent = 'Maintenance Performa Priced';
               performaBadge.style.backgroundColor = '#ea580c';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
@@ -4343,13 +4556,13 @@
             } else if (newStatus === 'product_na') {
               performaBadge.textContent = 'Product N/A';
               performaBadge.style.backgroundColor = '#000000';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
@@ -4418,7 +4631,7 @@
         }
 
         // Real statuses only - include all possible statuses
-        const allowed = ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'un_authorized', 'pertains_to_ge_const_isld', 'barak_damages', 'product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'];
+        const allowed = ['new', 'assigned', 'in_progress', 'resolved', 'closed', 'un_authorized', 'barrack_damages', 'product_na', 'work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa'];
         if (!allowed.includes(newStatus)) {
           console.warn('Blocked unsupported status:', newStatus);
           // Revert to old on invalid
@@ -4438,8 +4651,8 @@
           newStatus === 'work_performa' || newStatus === 'maint_performa' || newStatus === 'work_priced_performa' || newStatus === 'maint_priced_performa' || newStatus === 'product_na' ||
           originalStatusForSpecialOption === 'product_na';
 
-        // Clear Performa Required badge if switching to un_authorized or pertains_to_ge_const_isld
-        if (performaBadge && (newStatus === 'un_authorized' || newStatus === 'pertains_to_ge_const_isld')) {
+        // Clear Performa Required badge if switching to un_authorized
+        if (performaBadge && (newStatus === 'un_authorized')) {
           performaBadge.style.display = 'none';
           performaBadge.textContent = '';
           // Clear localStorage for these statuses
@@ -4457,82 +4670,82 @@
             if (savedFlag === 'work') {
               performaBadge.textContent = 'Work Performa Required';
               performaBadge.style.backgroundColor = '#60a5fa';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
             } else if (savedFlag === 'maint') {
               performaBadge.textContent = 'Maintenance Performa Required';
               performaBadge.style.backgroundColor = '#eab308';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
             } else if (savedFlag === 'work_priced') {
               performaBadge.textContent = 'Work Performa Priced';
               performaBadge.style.backgroundColor = '#9333ea';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
             } else if (savedFlag === 'maint_priced') {
               performaBadge.textContent = 'Maintenance Performa Priced';
               performaBadge.style.backgroundColor = '#ea580c';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
             } else if (savedFlag === 'product_na') {
               performaBadge.textContent = 'Product N/A';
               performaBadge.style.backgroundColor = '#000000';
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
               performaBadge.style.fontWeight = '700';
               performaBadge.style.color = '#ffffff';
               performaBadge.style.setProperty('color', '#ffffff', 'important');
             }
             if (performaBadge) {
-              performaBadge.style.width = '140px';
-              performaBadge.style.height = '32px';
+              performaBadge.style.width = '100px';
+              performaBadge.style.height = '24px';
               performaBadge.style.padding = '0';
               performaBadge.style.display = 'inline-flex';
               performaBadge.style.alignItems = 'center';
               performaBadge.style.justifyContent = 'center';
-              performaBadge.style.fontSize = '11px';
+              performaBadge.style.fontSize = '9px';
             }
           }
         }
 
-        if (complaintId && !isSpecialOption && newStatus !== 'un_authorized' && newStatus !== 'pertains_to_ge_const_isld') {
+        if (complaintId && !isSpecialOption && newStatus !== 'un_authorized') {
           try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) { }
         }
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -4543,6 +4756,22 @@
 
         const oldStatus = select.dataset.oldStatus || select.value;
         const labelMap = { in_progress: 'In Progress', resolved: 'Addressed', assigned: 'Assigned', new: 'New', closed: 'Closed' };
+
+        // INTERCEPT ASSIGNED STATUS
+        if (newStatus === 'assigned') {
+          // Revert selection immediately
+          select.value = select.dataset.oldStatus || '';
+          updateStatusSelectColor(select, select.value);
+
+          // Trigger edit modal instead
+          if (typeof editComplaintModal === 'function') {
+            editComplaintModal(complaintId);
+          } else {
+            window.location.href = `/admin/complaints/${complaintId}/edit`;
+          }
+          return;
+        }
+
         const confirmMsg = `Are you sure you want to change status to "${labelMap[newStatus] || newStatus}"?`;
         if (!skipConfirm) {
           if (!confirm(confirmMsg)) {
@@ -4686,7 +4915,7 @@
             // Handle resolved status - hide performa badge and update UI
             if (newStatus === 'resolved') {
               // Update addressed date cell
-              const addressedDateCell = row?.querySelector('td:nth-child(3)');
+              const addressedDateCell = row?.querySelector('td:nth-child(4)');
               if (addressedDateCell) {
                 if (updated && updated.closed_at) {
                   addressedDateCell.textContent = updated.closed_at;
@@ -4751,7 +4980,7 @@
               const badge = document.createElement('span');
               badge.className = 'badge';
               const resolvedColor = statusColors['resolved'];
-              badge.style.cssText = `background-color: ${resolvedColor.bg}; color: #ffffff !important; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; border: 1px solid ${resolvedColor.border}; width: 140px; height: 32px; display: inline-flex; align-items: center; justify-content: center;`;
+              badge.style.cssText = `background-color: ${resolvedColor.bg}; color: #ffffff !important; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; border: 1px solid ${resolvedColor.border}; width: 100px; height: 24px; display: inline-flex; align-items: center; justify-content: center;`;
               badge.style.setProperty('color', '#ffffff', 'important');
               badge.textContent = 'Addressed';
               // Replace select with badge
@@ -4759,7 +4988,7 @@
               if (statusChip) {
                 statusChip.innerHTML = '';
                 statusChip.appendChild(badge);
-                statusChip.style.cssText = `background-color: ${resolvedColor.bg}; color: ${resolvedColor.text}; border-color: ${resolvedColor.border}; width: 140px; height: 32px; justify-content: center;`;
+                statusChip.style.cssText = `background-color: ${resolvedColor.bg}; color: ${resolvedColor.text}; border-color: ${resolvedColor.border}; width: 100px; height: 24px; justify-content: center;`;
               } else {
                 select.replaceWith(badge);
               }
@@ -4767,20 +4996,24 @@
               // Show feedback button automatically when status becomes resolved
               const actionsCell = row?.querySelector('td:last-child');
               if (actionsCell) {
-                const btnGroup = actionsCell.querySelector('.btn-group');
-                if (btnGroup) {
+                // Determine container - could be just the td, or a d-flex container inside
+                const btnContainer = actionsCell.querySelector('.d-flex') || actionsCell;
+
+                if (btnContainer) {
                   // Check if feedback button already exists (check for onclick with viewFeedbackCreate or viewFeedbackEdit)
-                  const existingFeedbackBtn = btnGroup.querySelector('a[onclick*="viewFeedback"]');
+                  const existingFeedbackBtn = btnContainer.querySelector('a[onclick*="viewFeedback"]');
                   if (!existingFeedbackBtn && complaintId) {
                     // Create "Add Feedback" button with same structure as existing buttons
                     const feedbackBtn = document.createElement('a');
                     feedbackBtn.href = 'javascript:void(0)';
                     feedbackBtn.setAttribute('onclick', `viewFeedbackCreate(${complaintId})`);
-                    feedbackBtn.className = 'btn btn-outline-warning btn-sm';
+                    feedbackBtn.className = 'btn btn-warning btn-sm';
                     feedbackBtn.title = 'Add Feedback';
-                    feedbackBtn.style.cssText = 'padding: 3px 8px; border-color: #f59e0b !important; color: #f59e0b !important;';
-                    feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 16px; height: 16px; color: #f59e0b;"></i>';
-                    btnGroup.appendChild(feedbackBtn);
+                    // Use exact styling from other feedback buttons (warning color: #f59e0b)
+                    feedbackBtn.style.cssText = 'padding: 1px 3px; background-color: #f59e0b !important; border-color: #f59e0b !important; color: #ffffff !important;';
+                    feedbackBtn.innerHTML = '<i data-feather="message-square" style="width: 12px; height: 12px; color: #ffffff;"></i>';
+
+                    btnContainer.appendChild(feedbackBtn);
                     // Reinitialize feather icons
                     if (typeof feather !== 'undefined') {
                       feather.replace();
@@ -4800,7 +5033,7 @@
                   updateStatusSelectColor(select, 'in_progress');
                 }
               } else {
-                // Check if newStatus is un_authorized or pertains_to_ge_const_isld first - these should always be set
+                // Check if newStatus is un_authorized first - these should always be set
                 if (newStatus === 'un_authorized') {
                   // Set un_authorized value and color
                   select.value = 'un_authorized';
@@ -4847,11 +5080,11 @@
                         });
                     }
                   }
-                } else if (newStatus === 'pertains_to_ge_const_isld') {
-                  // Set pertains_to_ge_const_isld value and color
-                  select.value = 'pertains_to_ge_const_isld';
-                  updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
-                  // Clear performa badge for pertains_to_ge_const_isld status
+                } else if (newStatus === 'barrack_damages') {
+                  // Set barrack_damages value and color
+                  select.value = 'barrack_damages';
+                  updateStatusSelectColor(select, 'barrack_damages');
+                  // Clear performa badge for barrack_damages status
                   const performaBadgeInRow = row?.querySelector('.performa-badge');
                   if (performaBadgeInRow) {
                     performaBadgeInRow.style.display = 'none';
@@ -4885,53 +5118,7 @@
                         .then(response => response.json())
                         .then(data => {
                           if (data.success) {
-                            console.log('Performa type cleared from approval for pertains_to_ge_const_isld');
-                          }
-                        })
-                        .catch(error => {
-                          console.error('Error clearing performa type:', error);
-                        });
-                    }
-                  }
-                } else if (newStatus === 'barak_damages') {
-                  // Set barak_damages value and color
-                  select.value = 'barak_damages';
-                  updateStatusSelectColor(select, 'barak_damages');
-                  // Clear performa badge for barak_damages status
-                  const performaBadgeInRow = row?.querySelector('.performa-badge');
-                  if (performaBadgeInRow) {
-                    performaBadgeInRow.style.display = 'none';
-                    performaBadgeInRow.textContent = '';
-                  }
-                  // Clear localStorage
-                  if (complaintId) {
-                    try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) { }
-                  }
-
-                  // Clear performa_type from approval record
-                  const addStockBtn = row?.querySelector('button[data-approval-id]');
-                  const approvalId = addStockBtn ? addStockBtn.getAttribute('data-approval-id') : null;
-                  if (approvalId) {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                    if (csrfToken) {
-                      fetch(`/admin/approvals/${approvalId}/save-performa`, {
-                        method: 'POST',
-                        headers: {
-                          'X-Requested-With': 'XMLHttpRequest',
-                          'Accept': 'application/json',
-                          'Content-Type': 'application/json',
-                          'X-CSRF-TOKEN': csrfToken
-                        },
-                        body: JSON.stringify({
-                          performa_type: null,
-                          remarks: `Performa type cleared - status changed to ${newStatus}`
-                        }),
-                        credentials: 'same-origin'
-                      })
-                        .then(response => response.json())
-                        .then(data => {
-                          if (data.success) {
-                            console.log('Performa type cleared from approval for barak_damages');
+                            console.log('Performa type cleared from approval for barrack_damages');
                           }
                         })
                         .catch(error => {
@@ -5020,15 +5207,11 @@
             if (select.isConnected && select.value !== 'resolved') {
               select.style.opacity = '1';
               select.disabled = false;
-              // Check if newStatus is un_authorized or pertains_to_ge_const_isld first - these should always be set
+              // Check if newStatus is un_authorized first - these should always be set
               if (newStatus === 'un_authorized') {
                 // Keep un_authorized value and color
                 select.value = 'un_authorized';
                 updateStatusSelectColor(select, 'un_authorized');
-              } else if (newStatus === 'pertains_to_ge_const_isld') {
-                // Keep pertains_to_ge_const_isld value and color
-                select.value = 'pertains_to_ge_const_isld';
-                updateStatusSelectColor(select, 'pertains_to_ge_const_isld');
               } else if (specialOptionType) {
                 // Restore dropdown value - show "In Progress" for all performa types (including priced ones)
                 // Actual value is preserved in data-actual-status and will be used on next reload
@@ -5090,9 +5273,9 @@
           return; // Server-rendered badge, keep it as is
         }
 
-        // Don't restore from localStorage if current status is un_authorized or pertains_to_ge_const_isld
+        // Don't restore from localStorage if current status is un_authorized
         const currentStatus = sel.value || sel.getAttribute('data-actual-status');
-        if (currentStatus === 'un_authorized' || currentStatus === 'pertains_to_ge_const_isld') {
+        if (currentStatus === 'un_authorized') {
           // Clear localStorage for these statuses
           try { localStorage.removeItem(`performaRequired:${complaintId}`); } catch (err) { }
           // Hide badge for these statuses
@@ -5269,351 +5452,7 @@
       });
     }
 
-    // Open Add Stock Modal
-    function openAddStockModal(approvalId, category = null) {
-      const modalBody = document.getElementById('addStockModalBody');
-      if (!modalBody) {
-        alert('Modal not found');
-        return;
-      }
-
-      // Show loading
-      modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-
-      // Get CSRF token
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-      // Store category globally for use in fetch response
-      window.currentComplaintCategory = category;
-
-      // Fetch approval details
-      fetch(`/admin/approvals/${approvalId}`, {
-        method: 'GET',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': csrfToken
-        },
-        credentials: 'same-origin'
-      })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success && data.approval && data.approval.items !== undefined) {
-            const items = data.approval.items || [];
-
-            let itemsHtml = '<form id="addStockForm">';
-            itemsHtml += `
-                  <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                      <label class="form-label small mb-1" style="font-size: 0.85rem; font-weight: 600; color: #000000 !important;">Authority No.</label>
-                      <input type="text" class="form-control form-control-sm" id="authorityNumberSimple" placeholder="Enter Authority No. (optional)" style="font-size: 0.9rem;">
-                    </div>
-                  </div>
-                  <div class="table-responsive">
-                    <table class="table table-striped">
-                      <thead><tr><th>Category</th><th>Product</th><th>Total Stock</th><th>Request Stock</th></tr></thead>
-                      <tbody>
-                `;
-
-            // Store items globally for submission
-            window.currentApprovalItems = items;
-            // Only keep actual performa_type (allowed values) – do not fall back to status to avoid validation errors
-            window.currentPerformaType = data.approval?.performa_type || null;
-            window.currentPerformaType = data.approval?.performa_type || '';
-
-            if (items.length === 0) {
-              itemsHtml += `
-                    <tr>
-                      <td colspan="4" class="text-center">No products found</td>
-                    </tr>
-                  `;
-            } else {
-              items.forEach((item, index) => {
-                const productName = item.spare_name || 'N/A';
-                const category = item.category || 'N/A';
-                const availableStock = item.available_stock || 0;
-                const requestedQty = item.quantity_requested || 0;
-                const spareId = item.spare_id || 0;
-
-                // Format category display
-                const categoryDisplay = {
-                  'electric': 'Electric',
-                  'technical': 'Technical',
-                  'service': 'Service',
-                  'billing': 'Billing',
-                  'water': 'Water Supply',
-                  'sanitary': 'Sanitary',
-                  'plumbing': 'Plumbing',
-                  'kitchen': 'Kitchen',
-                  'other': 'Other',
-                };
-                const catDisplay = categoryDisplay[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1);
-
-                itemsHtml += `
-                      <tr>
-                        <td>${catDisplay}</td>
-                        <td>${productName}</td>
-                        <td>
-                          <span class="badge ${availableStock > 0 ? 'bg-success' : 'bg-danger'}" style="font-size: 12px;">
-                            ${availableStock}
-                          </span>
-                        </td>
-                        <td>
-                          <span class="badge bg-info" style="font-size: 12px;">
-                            ${requestedQty}
-                          </span>
-                        </td>
-                      </tr>
-                    `;
-              });
-            }
-
-            itemsHtml += '</tbody></table></div></form>';
-            modalBody.innerHTML = itemsHtml;
-
-            // Show Submit button
-            const submitBtn = document.getElementById('submitAddStockBtn');
-            if (submitBtn) {
-              submitBtn.style.display = 'inline-block';
-              submitBtn.disabled = false; // Keep submit enabled
-            }
-
-            // Pre-fill authority number if present in approval remarks or local storage
-            const authorityInput = document.getElementById('authorityNumberSimple');
-            const authorityLegacy = document.getElementById('authorityNumber');
-            const authorityYes = document.getElementById('authorityYes');
-            const authorityNo = document.getElementById('authorityNo');
-            const authorityNoCol = document.getElementById('authorityNoCol');
-            if (authorityInput) {
-              let existingAuthority = '';
-              const remarks = data.approval?.remarks || '';
-              const match = remarks.match(/Authority\s*No[:\s]+([A-Za-z0-9\-]+)/i);
-              if (match && match[1]) {
-                existingAuthority = match[1];
-              } else if (data.approval?.authority_number) {
-                existingAuthority = data.approval.authority_number;
-              } else if (window.currentApprovalId) {
-                existingAuthority = localStorage.getItem(`authority_no_${window.currentApprovalId}`) || '';
-              }
-              if (existingAuthority) {
-                authorityInput.value = existingAuthority;
-                if (authorityLegacy) authorityLegacy.value = existingAuthority;
-                window.currentAuthorityNumber = existingAuthority;
-                if (authorityYes && authorityNo) {
-                  authorityYes.checked = true;
-                  authorityNo.checked = false;
-                  if (authorityNoCol) {
-                    authorityNoCol.classList.remove('d-none');
-                  }
-                }
-              } else if (authorityYes && authorityNo) {
-                authorityYes.checked = false;
-                authorityNo.checked = true;
-                if (authorityNoCol) authorityNoCol.classList.add('d-none');
-              }
-            }
-
-            // Replace feather icons
-            feather.replace();
-
-            // Show modal
-            new bootstrap.Modal(document.getElementById('addStockModal')).show();
-          } else {
-            modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval items.</div>';
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          modalBody.innerHTML = '<div class="alert alert-danger">Error loading approval details: ' + error.message + '</div>';
-        });
-    }
-
-    // Submit Issue Stock Form
-    function submitIssueStock() {
-      // Use approval items from window.currentApprovalItems (loaded in modal)
-      // Allow authority-only submissions even when there are no items
-      const hasItems = !!(window.currentApprovalItems && window.currentApprovalItems.length > 0);
-
-      console.log('submitIssueStock - currentApprovalId:', window.currentApprovalId);
-      console.log('submitIssueStock - currentApprovalItems:', window.currentApprovalItems);
-
-      const authorityInput = document.getElementById('authorityNumberSimple') || document.getElementById('authorityNumber');
-      const authorityNumber = authorityInput ? authorityInput.value.trim() : '';
-      const authorityInfo = authorityNumber ? ` | Authority No: ${authorityNumber}` : '';
-
-      // Validate and collect data from approval items
-      const stockData = [];
-      let hasError = false;
-      let errorMessage = '';
-
-      if (hasItems) {
-        window.currentApprovalItems.forEach(item => {
-          const spareId = item.spare_id || 0;
-          const productName = item.spare_name || 'N/A';
-          const availableStock = item.available_stock || 0;
-          const requestedQty = item.quantity_requested || 0;
-          const itemId = item.id || null;
-
-          if (spareId === 0) {
-            hasError = true;
-            errorMessage = `Invalid product: ${productName}`;
-            return;
-          }
-
-          if (requestedQty <= 0) {
-            // Skip items with 0 or negative quantity
-            return;
-          }
-
-          if (requestedQty > availableStock) {
-            hasError = true;
-            errorMessage = `Requested quantity (${requestedQty}) cannot exceed available stock (${availableStock}) for ${productName}`;
-            return;
-          }
-
-          stockData.push({
-            spare_id: spareId,
-            item_id: itemId,
-            approval_id: window.currentApprovalId || null,
-            issue_quantity: requestedQty,
-            product_name: productName,
-            available_stock: availableStock
-          });
-        });
-      }
-
-      if (hasError) {
-        alert(errorMessage);
-        return;
-      }
-
-      if (stockData.length === 0) {
-        if (authorityNumber) {
-          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-          const approvalId = window.currentApprovalId || null;
-          const performaType = window.currentPerformaType || null;
-          if (approvalId) {
-            fetch(`/admin/approvals/${approvalId}/save-performa`, {
-              method: 'POST',
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-              },
-              body: JSON.stringify({
-                performa_type: performaType,
-                remarks: `Authority No: ${authorityNumber}`
-              }),
-              credentials: 'same-origin'
-            })
-              .then(r => r.json())
-              .then(resp => {
-                if (resp.success) {
-                  // Cache locally for instant prefill on reopen
-                  localStorage.setItem(`authority_no_${approvalId}`, authorityNumber);
-                  window.currentAuthorityNumber = authorityNumber;
-                  alert('Authority saved.');
-                  const modalInstance = bootstrap.Modal.getInstance(document.getElementById('addStockModal'));
-                  if (modalInstance) modalInstance.hide();
-                  window.location.reload();
-                } else {
-                  console.error('save-performa failed', resp);
-                  alert(resp.message || 'Failed to save authority number.');
-                }
-              })
-              .catch(err => {
-                console.error('Error saving authority:', err);
-                alert('Error saving authority number. Please try again.');
-              });
-          } else {
-            alert('Authority recorded. No stock items selected.');
-            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('addStockModal'));
-            if (modalInstance) modalInstance.hide();
-          }
-          return;
-        }
-        alert('Please add items with valid quantity or enter Authority No.');
-        return;
-      }
-
-      // Confirm before submitting
-      const confirmMessage = `Are you sure you want to ISSUE stock for the following items?\n\n` +
-        stockData.map(item => `${item.product_name}: ${item.issue_quantity} units (Available: ${item.available_stock})`).join('\n');
-
-      if (!confirm(confirmMessage)) {
-        return;
-      }
-
-      // Get CSRF token
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-      // Keep submit button enabled
-      const submitBtn = document.getElementById('submitAddStockBtn');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Issuing Stock...';
-      }
-
-      // Log approval_id before sending
-      console.log('Issuing stock with approval_id:', window.currentApprovalId);
-      console.log('Stock data to send:', stockData);
-
-      // Send requests for each item to ISSUE stock (decrease inventory)
-      const promises = stockData.map(item => {
-        const requestBody = {
-          quantity: item.issue_quantity,
-          item_id: item.item_id,
-          approval_id: window.currentApprovalId || null,
-          reason: `Stock issued from approval - Product: ${item.product_name}${authorityInfo}`
-        };
-
-        console.log('Sending request for item:', item.product_name, 'with approval_id:', requestBody.approval_id);
-
-        return fetch(`/admin/spares/${item.spare_id}/issue-stock`, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-          },
-          body: JSON.stringify(requestBody),
-          credentials: 'same-origin'
-        });
-      });
-
-      // Process all requests
-      Promise.all(promises)
-        .then(responses => Promise.all(responses.map(r => r.json())))
-        .then(results => {
-          const successCount = results.filter(r => r.success).length;
-          const failedCount = results.length - successCount;
-
-          if (failedCount === 0) {
-            alert(`Successfully issued stock for all ${successCount} item(s)!`);
-            bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
-            // Optionally reload the page to refresh stock quantities
-            // window.location.reload();
-          } else {
-            alert(`Issued stock for ${successCount} item(s), but ${failedCount} item(s) failed.`);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('Error issuing stock: ' + error.message);
-        })
-        .finally(() => {
-          // Re-enable submit button
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i data-feather="check-circle"></i> Submit';
-            feather.replace();
-          }
-        });
-    }
-
-    // Make functions globally accessible
+    // Make functions globally accessible - using the more comprehensive versions defined above
     window.openAddStockModal = openAddStockModal;
     window.submitIssueStock = submitIssueStock;
     window.submitAddStock = submitIssueStock; // alias for legacy handlers
@@ -5634,6 +5473,7 @@
             hasFunction: !!window.openAddStockModal
           });
         }
+        return;
       }
 
       // Event delegation for Submit button in Add Stock Modal
@@ -5651,55 +5491,47 @@
       }
     });
 
-    // Initialize rows on page load
+    // Initialize logic on page load
     document.addEventListener('DOMContentLoaded', function () {
-      initPerformaBadges();
+      // 1. Initialize performa badges and status selects
+      if (typeof initPerformaBadges === 'function') {
+        initPerformaBadges();
+      }
+
       // Run initStatusSelects after initPerformaBadges to ensure colors are set correctly
       setTimeout(function () {
-        initStatusSelects();
+        if (typeof initStatusSelects === 'function') {
+          initStatusSelects();
+        }
 
         // Additional safety check: Force red color for all in_progress status selects
         document.querySelectorAll('.status-select[data-status-color="in_progress"]').forEach(function (sel) {
           const redColor = statusColors['in_progress'];
-          sel.style.setProperty('background-color', redColor.bg, 'important');
-          sel.style.setProperty('color', redColor.text, 'important');
-          sel.style.setProperty('border-color', redColor.border, 'important');
+          if (redColor) {
+            sel.style.setProperty('background-color', redColor.bg, 'important');
+            sel.style.setProperty('color', redColor.text, 'important');
+            sel.style.setProperty('border-color', redColor.border, 'important');
+          }
         });
       }, 100);
 
-      // Run again after a longer delay to catch any late-loading elements
-      setTimeout(function () {
-        initStatusSelects();
-
-        // Force red color one more time
-        document.querySelectorAll('.status-select[data-status-color="in_progress"]').forEach(function (sel) {
-          const redColor = statusColors['in_progress'];
-          sel.style.setProperty('background-color', redColor.bg, 'important');
-          sel.style.setProperty('color', redColor.text, 'important');
-          sel.style.setProperty('border-color', redColor.border, 'important');
-        });
-      }, 500);
-    });
-
-    // Store initial status on page load
-    document.addEventListener('DOMContentLoaded', function () {
+      // 2. Store initial status and replace icons
       document.querySelectorAll('.status-select').forEach(select => {
         select.dataset.oldStatus = select.value;
       });
 
-      // Replace feather icons
-      feather.replace();
+      if (typeof feather !== 'undefined') {
+        feather.replace();
+      }
 
-      // Check for view_complaint query parameter and open complaint modal automatically
+      // 3. Handle view_complaint query parameter
       const urlParams = new URLSearchParams(window.location.search);
       const viewComplaintId = urlParams.get('view_complaint');
       if (viewComplaintId) {
-        // Remove the parameter from URL to clean it up
         urlParams.delete('view_complaint');
         const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
         window.history.replaceState({}, '', newUrl);
 
-        // Open complaint modal after a short delay to ensure page is fully loaded
         setTimeout(() => {
           if (typeof viewComplaint === 'function') {
             viewComplaint(viewComplaintId);

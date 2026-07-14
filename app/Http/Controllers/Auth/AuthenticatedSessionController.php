@@ -33,6 +33,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Log the login
+        \App\Models\LoginHistory::create([
+            'user_id' => Auth::id(),
+            'user_type' => get_class(Auth::user()),
+            'username' => Auth::user()->username ?? Auth::user()->email,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'source' => 'admin',
+        ]);
+
         // Always direct backend (web guard) logins to the admin dashboard
         return redirect()->route('admin.dashboard');
     }
@@ -44,9 +54,11 @@ class AuthenticatedSessionController extends Controller
     {
         Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
+        // Only invalidate session if no other guard is logged in
+        if (!Auth::guard('frontend')->check()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         // Redirect to admin login page instead of frontend
         return redirect()->route('login');

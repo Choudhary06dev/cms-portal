@@ -46,6 +46,19 @@
         <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Category name" required>
         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>
+      <div style="min-width: 220px; flex: 0 0 260px;">
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">App Name</label>
+        <input type="text" name="app_name" value="{{ old('app_name') }}" class="form-control @error('app_name') is-invalid @enderror" placeholder="Name for mobile app (optional)">
+        @error('app_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+      </div>
+      <div style="min-width: 140px; flex: 0 0 160px;">
+        <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Status</label>
+        <select name="status" class="form-select @error('status') is-invalid @enderror" required>
+          <option value="1" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
+          <option value="0" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+        </select>
+        @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+      </div>
       <div style="min-width: 260px; flex: 1 1 380px;">
         <label class="form-label small mb-1" style="color: #000000 !important; font-weight: 500;">Description</label>
         <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Short description (optional)">
@@ -72,6 +85,8 @@
           <tr>
             <th style="width:70px">#</th>
             <th>Name</th>
+            <th>App Name</th>
+            <th>Status</th>
             <th>Description</th>
             <th style="width:180px">Actions</th>
           </tr>
@@ -81,11 +96,19 @@
           <tr>
             <td>{{ $cat->id }}</td>
             <td>{{ $cat->name }}</td>
+            <td>{{ $cat->app_name ?? '-' }}</td>
+            <td>
+              @if($cat->status === 1)
+                <span class="badge bg-success" style="color: #ffffff !important;">Active</span>
+              @else
+                <span class="badge bg-danger" style="color: #ffffff !important;">Inactive</span>
+              @endif
+            </td>
             <td>{{ $cat->description ? Str::limit($cat->description, 80) : '-' }}</td>
             <td>
               <div class="btn-group" role="group">
                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editCategoryModal" 
-                        data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" data-description="{{ $cat->description }}" title="Edit" style="padding: 3px 8px;">
+                        data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" data-app-name="{{ $cat->app_name }}" data-status="{{ $cat->status }}" data-description="{{ $cat->description }}" title="Edit" style="padding: 3px 8px;">
                   <i data-feather="edit" style="width: 16px; height: 16px;"></i>
                 </button>
                 <form action="{{ route('admin.category.destroy', $cat) }}" method="POST" class="category-delete-form" onsubmit="return confirm('Delete this category?')" style="display: inline;">
@@ -100,7 +123,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="4" class="text-center text-muted">No categories yet.</td>
+            <td colspan="5" class="text-center text-muted">No categories yet.</td>
           </tr>
         @endforelse
         </tbody>
@@ -135,6 +158,17 @@
           <div class="mb-3">
             <label class="form-label">Name</label>
             <input type="text" name="name" id="editCategoryName" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">App Name</label>
+            <input type="text" name="app_name" id="editCategoryAppName" class="form-control" placeholder="Name for mobile app (optional)">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" id="editCategoryStatus" class="form-select" required>
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Description</label>
@@ -196,15 +230,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const button = event.relatedTarget;
     const id = button.getAttribute('data-id');
     const name = button.getAttribute('data-name');
+    const appName = button.getAttribute('data-app-name') || '';
+    const status = button.getAttribute('data-status') || 'active';
     const description = button.getAttribute('data-description') || '';
 
     const form = document.getElementById('editCategoryForm');
     const nameInput = document.getElementById('editCategoryName');
+    const appNameInput = document.getElementById('editCategoryAppName');
 
     if (form && id) {
       form.action = `${window.location.origin}/admin/category/${id}`;
     }
     if (nameInput) nameInput.value = name || '';
+    if (appNameInput) appNameInput.value = appName;
+    const statusInput = document.getElementById('editCategoryStatus');
+    if (statusInput) statusInput.value = status;
     const descInput = document.getElementById('editCategoryDescription');
     if (descInput) descInput.value = description;
   });

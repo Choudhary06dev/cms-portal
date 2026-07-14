@@ -34,11 +34,11 @@
               </tr>
               <tr>
                 <td class="text-white"><strong>Complainant:</strong></td>
-                <td class="text-white">{{ $feedback->complaint->client->client_name ?? 'N/A' }}</td>
+                <td class="text-white">{{ $feedback->complaint->house->name ?? 'N/A' }}</td>
               </tr>
               <tr>
                 <td class="text-white"><strong>Phone:</strong></td>
-                <td class="text-white">{{ $feedback->complaint->client->phone ?? 'N/A' }}</td>
+                <td class="text-white">{{ $feedback->complaint->house->phone ?? 'N/A' }}</td>
               </tr>
             </table>
           </div>
@@ -103,28 +103,18 @@
               </label>
               <select class="form-select @error('overall_rating') is-invalid @enderror" name="overall_rating" required>
                 <option value="">Select Rating</option>
-                <option value="excellent" {{ old('overall_rating', $feedback->overall_rating) == 'excellent' ? 'selected' : '' }}>Excellent ⭐⭐⭐⭐⭐</option>
-                <option value="good" {{ old('overall_rating', $feedback->overall_rating) == 'good' ? 'selected' : '' }}>Good ⭐⭐⭐⭐</option>
-                <option value="average" {{ old('overall_rating', $feedback->overall_rating) == 'average' ? 'selected' : '' }}>Average ⭐⭐⭐</option>
-                <option value="poor" {{ old('overall_rating', $feedback->overall_rating) == 'poor' ? 'selected' : '' }}>Poor ⭐⭐</option>
+                <option value="excellent" {{ old('overall_rating', $feedback->overall_rating) == 'excellent' ? 'selected' : '' }}>⭐⭐⭐⭐⭐</option>
+                <option value="good" {{ old('overall_rating', $feedback->overall_rating) == 'good' ? 'selected' : '' }}>⭐⭐⭐⭐</option>
+                <option value="satisfied" {{ old('overall_rating', $feedback->overall_rating) == 'satisfied' ? 'selected' : '' }}>⭐⭐⭐</option>
+                <option value="fair" {{ old('overall_rating', $feedback->overall_rating) == 'fair' ? 'selected' : '' }}>⭐⭐</option>
+                <option value="poor" {{ old('overall_rating', $feedback->overall_rating) == 'poor' ? 'selected' : '' }}>⭐</option>
               </select>
               @error('overall_rating')
                 <div class="invalid-feedback">{{ $message }}</div>
               @enderror
             </div>
 
-            <!-- Rating Score -->
-            <div class="col-md-6 mb-3">
-              <label class="form-label text-white fw-bold mb-1" style="font-size: 0.9rem;">
-                Rating Score (1-5)
-              </label>
-              <input type="number" class="form-control @error('rating_score') is-invalid @enderror" 
-                     name="rating_score" min="1" max="5" value="{{ old('rating_score', $feedback->rating_score) }}" 
-                     placeholder="Enter score (1-5)">
-              @error('rating_score')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
+
           </div>
 
           <!-- Comments -->

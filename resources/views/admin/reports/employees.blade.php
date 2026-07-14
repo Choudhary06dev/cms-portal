@@ -14,6 +14,9 @@
       <button class="btn btn-primary" onclick="window.print()">
         <i data-feather="printer" class="me-2"></i>Print
       </button>
+      <a href="{{ route('admin.reports.download', ['type' => 'employees', 'format' => 'excel'] + request()->query()) }}" class="btn btn-success">
+        <i data-feather="download" class="me-2"></i>Excel
+      </a>
       <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
         <i data-feather="arrow-left" class="me-2"></i>Back to Reports
       </a>
@@ -37,7 +40,7 @@
         <label for="category" class="form-label text-white">Category</label>
         <select class="form-select" id="category" name="category" onchange="submitEmployeesReportFilters()">
           <option value="">All Categories</option>
-          @foreach(\App\Models\Employee::distinct()->whereNotNull('category')->pluck('category') as $cat)
+          @foreach(\App\Models\ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name') as $cat)
             <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
           @endforeach
         </select>
@@ -68,7 +71,7 @@
   <div class="col-md-4">
     <div class="card-glass text-center">
       <div class="card-body">
-        <h4 class="text-info mb-1">{{ $summary['top_performer']['employee']->name ?? 'N/A' }}</h4>
+        <h4 class="text-info mb-1">{{ optional($summary['top_performer']['employee'] ?? null)->name ?? 'N/A' }}</h4>
         <p class="text-muted mb-0">Top Performer</p>
       </div>
     </div>
@@ -102,8 +105,8 @@
           <tr>
             <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $loop->iteration }}</td>
             <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->name ?? 'N/A' }}</td>
-            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->category ?? 'N/A' }}</td>
-            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->designation ?? '' }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->category->name ?? $emp['employee']->category ?? 'N/A' }}</td>
+            <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ $emp['employee']->designation->name ?? $emp['employee']->designation ?? '' }}</td>
             <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($emp['total_complaints']) }}</td>
             <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($emp['resolved_complaints']) }}</td>
             <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">{{ number_format($emp['resolution_rate'], 1) }}%</td>

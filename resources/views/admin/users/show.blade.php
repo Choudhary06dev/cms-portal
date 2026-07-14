@@ -55,25 +55,29 @@
       </div>
       @endif
       
-      @if($user->city)
+      @if(!empty($user->city_ids))
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
-          <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <i data-feather="map-pin" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Groups</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->city->name ?? 'N/A' }}</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Group</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">
+              {{ $user->cities->pluck('name')->join(', ') ?: 'N/A' }}
+            </div>
           </div>
         </div>
       </div>
       @endif
       
-      @if($user->sector)
+      @if(!empty($user->sector_ids))
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
-          <i data-feather="layers" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <i data-feather="map" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Nodes</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $user->sector->name ?? 'N/A' }}</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">GE Node</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">
+              {{ $user->sectors->pluck('name')->join(', ') ?: 'N/A' }}
+            </div>
           </div>
         </div>
       </div>
@@ -121,10 +125,10 @@
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
             <div>
-              <span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
-                {{ ucfirst($user->status ?? 'inactive') }}
+              <span class="badge {{ $user->status === 1 ? 'bg-success' : 'bg-danger' }}" style="font-size: 0.85rem; padding: 6px 12px; color: #ffffff !important;">
+                {{ ($user->status ? 'Active' : 'Inactive') }}
               </span>
-              @if($user->status === 'inactive' && $user->updated_at)
+              @if($user->status === 0 && $user->updated_at)
                 <span class="text-muted ms-2 small" style="font-size: 0.8rem;">
                   (Since: {{ $user->updated_at->setTimezone('Asia/Karachi')->format('M d, Y H:i:s') }})
                 </span>

@@ -14,6 +14,9 @@
         <button class="btn btn-primary" onclick="window.print()">
           <i data-feather="printer" class="me-2"></i>Print
         </button>
+        <a href="{{ route('admin.reports.download', ['type' => 'spares', 'format' => 'excel'] + request()->query()) }}" class="btn btn-success">
+          <i data-feather="download" class="me-2"></i>Excel
+        </a>
         <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
           <i data-feather="arrow-left" class="me-2"></i>Back to Reports
         </a>
@@ -39,7 +42,7 @@
           <label for="category" class="form-label text-white">Category</label>
           <select class="form-select" id="category" name="category" onchange="submitSparesReportFilters()">
             <option value="">All Categories</option>
-            @foreach(\App\Models\Spare::distinct()->whereNotNull('category')->pluck('category') as $cat)
+            @foreach(\App\Models\ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name') as $cat)
               <option value="{{ $cat }}" {{ $category == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
             @endforeach
           </select>
@@ -126,7 +129,7 @@
                 <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;">
                   {{ $spare['spare']->item_name ?? 'N/A' }}</td>
                 <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;"><span
-                    class="badge bg-info">{{ ucfirst($spare['spare']->category ?? 'N/A') }}</span></td>
+                    class="badge bg-info">{{ ucfirst($spare['spare']->category->name ?? $spare['spare']->category ?? 'N/A') }}</span></td>
                 <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;"><span
                     class="text-success">{{ number_format($spare['spare']->total_received_quantity ?? 0, 0) }}</span></td>
                 <td style="text-align: left; padding: 0.4rem 0.3rem; border: 1px solid #dee2e6 !important;"><span

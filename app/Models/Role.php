@@ -30,14 +30,18 @@ class Role extends Model
                     'dashboard',
                     'users',
                     'frontend-users',
+                    'cmes',
+                    'city',
+                    'sector',
                     'roles',
                     'employees',
-                    'clients',
+                    'houses',
                     'complaints',
                     'spares',
                     'approvals',
                     'reports',
                     'sla',
+                    'registered-devices',
                 ];
 
                 // Get existing permissions
@@ -101,8 +105,6 @@ class Role extends Model
             'complaints' => 'complaints',
             'approvals' => 'complaints',
             'designation' => 'employees',
-            'city' => 'employees',
-            'sector' => 'employees',
         ];
 
         // Check if exact module exists in permissions (exact match - highest priority)

@@ -17,6 +17,7 @@
   $rawStatus = $complaint->status ?? 'new';
   $complaintStatus = ($rawStatus == 'new') ? 'assigned' : $rawStatus;
   $statusLabels = [
+    'unassigned' => 'Unassigned',
     'assigned' => 'Assigned',
     'in_progress' => 'In Progress',
     'resolved' => 'Addressed',
@@ -27,40 +28,55 @@
     'maint_priced_performa' => 'Maintenance Priced',
     'product_na' => 'Product N/A',
     'un_authorized' => 'Un-Authorized',
-    'pertains_to_ge_const_isld' => 'GE Const Isld',
-    'barak_damages' => 'Barak Damages',
+    'barrack_damages' => 'Barrack Damages',
   ];
-  $statusDisplay = $statusLabels[$complaintStatus] ?? ucfirst(str_replace('_', ' ', $complaintStatus));
+  
+  // Real mapping: 'new' is 'unassigned'
+  $displayStatus = ($rawStatus == 'new') ? 'unassigned' : $rawStatus;
+  $statusDisplay = $statusLabels[$displayStatus] ?? ucfirst(str_replace('_', ' ', $displayStatus));
+  
   $statusColors = [
+    'unassigned' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#000000'],
     'in_progress' => ['bg' => '#dc2626', 'text' => '#ffffff', 'border' => '#b91c1c'],
-    'resolved' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Grey (swapped from green)
+    'resolved' => ['bg' => '#64748b', 'text' => '#ffffff', 'border' => '#475569'], // Grey
     'work_performa' => ['bg' => '#60a5fa', 'text' => '#ffffff', 'border' => '#3b82f6'],
     'maint_performa' => ['bg' => '#eab308', 'text' => '#ffffff', 'border' => '#ca8a04'],
     'work_priced_performa' => ['bg' => '#9333ea', 'text' => '#ffffff', 'border' => '#7e22ce'],
     'maint_priced_performa' => ['bg' => '#ea580c', 'text' => '#ffffff', 'border' => '#c2410c'],
-    'product_na' => ['bg' => '#000000', 'text' => '#ffffff', 'border' => '#1a1a1a'],
+    'product_na' => ['bg' => '#f97316', 'text' => '#ffffff', 'border' => '#c2410c'],
     'un_authorized' => ['bg' => '#ec4899', 'text' => '#ffffff', 'border' => '#db2777'],
-    'pertains_to_ge_const_isld' => ['bg' => '#06b6d4', 'text' => '#ffffff', 'border' => '#0891b2'],
-    'barak_damages' => ['bg' => '#808000', 'text' => '#ffffff', 'border' => '#666600'],
-    'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green (swapped from grey)
+    'barrack_damages' => ['bg' => '#808000', 'text' => '#ffffff', 'border' => '#666600'],
+    'assigned' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'], // Green
   ];
-  $currentStatusColor = $statusColors[$complaintStatus] ?? $statusColors['assigned'];
+  $currentStatusColor = $statusColors[$displayStatus] ?? $statusColors['assigned'];
   
-  $category = $complaint->category ?? 'N/A';
-  $designation = $complaint->assignedEmployee->designation ?? 'N/A';
-  $categoryDisplay = [
-    'electric' => 'Electric',
-    'technical' => 'Technical',
-    'service' => 'Service',
-    'billing' => 'Billing',
-    'water' => 'Water Supply',
-    'sanitary' => 'Sanitary',
-    'plumbing' => 'Plumbing',
-    'kitchen' => 'Kitchen',
-    'other' => 'Other',
-  ];
-  $catDisplay = $categoryDisplay[strtolower($category)] ?? ucfirst($category);
-  $displayText = $catDisplay . ' - ' . $designation;
+  $category = $complaint->category_id ?? 'N/A';
+  $designation = $complaint->assignedEmployee->designation->name ?? $complaint->assignedEmployee->designation ?? 'N/A';
+  $titleName = $complaint->complaintTitle->title ?? $complaint->title ?? 'N/A';
+  $catDisplay = $complaint->getCategoryDisplayAttribute();
+  $displayText = $catDisplay . ' - ' . $titleName;
+  
+  // Extract performa type
+  $approval = $complaint->spareApprovals->first();
+  $performaType = $approval?->performa_type ?? null;
+  // If no performa type on approval, check if complaint status indicates one
+  if (!$performaType && $complaint) {
+      if (in_array($complaint->status, ['work_performa', 'maint_performa', 'work_priced_performa', 'maint_priced_performa', 'product_na'])) {
+          $performaType = $complaint->status;
+      }
+  }
+  
+  if ($performaType === 'maint_performa') {
+    $performaTypeLabel = 'Maintenance Performa';
+  } elseif ($performaType === 'work_priced_performa') {
+    $performaTypeLabel = 'Work Priced';
+  } elseif ($performaType === 'maint_priced_performa') {
+    $performaTypeLabel = 'Maintenance Priced';
+  } elseif ($performaType === 'product_na') {
+    $performaTypeLabel = 'Product N/A';
+  } else {
+    $performaTypeLabel = $performaType ? ucwords(str_replace('_', ' ', $performaType)) : null;
+  }
 @endphp
 
 <!-- COMPLAINT DETAILS -->
@@ -78,30 +94,41 @@
           <i data-feather="user" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Name</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->client->client_name ?? 'N/A' }}</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->house->name ?? 'N/A' }}</div>
           </div>
         </div>
       </div>
-      
-      @if($complaint->client->phone)
+        @if($complaint->house_id && $complaint->house)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
-          <i data-feather="phone" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <i data-feather="home" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
-            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Phone</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->client->phone }}</div>
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">House NO.</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->house->house_no ?? 'N/A' }}</div>
           </div>
         </div>
       </div>
       @endif
       
-      @if($complaint->client->address)
+      @if($complaint->house->phone)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="phone" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Phone</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->house->phone }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
+      @if($complaint->house->address)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
           <i data-feather="map-pin" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Address</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->client->address }}</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->house->address }}</div>
           </div>
         </div>
       </div>
@@ -118,6 +145,8 @@
         </div>
       </div>
       @endif
+      
+    
       
       @if($complaint->sector_id && $complaint->sector)
       <div class="info-item mb-3">
@@ -199,6 +228,18 @@
         </div>
       </div>
       
+      @if($performaTypeLabel)
+      <div class="info-item mb-3">
+        <div class="d-flex align-items-start">
+          <i data-feather="file" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
+          <div class="flex-grow-1">
+            <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Performa Type</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $performaTypeLabel }}</div>
+          </div>
+        </div>
+      </div>
+      @endif
+      
       @if($complaint->priority)
       <div class="info-item mb-3">
         <div class="d-flex align-items-start">
@@ -220,7 +261,7 @@
           <i data-feather="clock" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Availability Time</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->availability_time ?? 'N/A' }}</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ str_replace('T', ' ', $complaint->availability_time ?? 'N/A') }}</div>
           </div>
         </div>
       </div>
@@ -231,7 +272,7 @@
           <i data-feather="user-check" class="me-3 text-muted" style="width: 18px; height: 18px; margin-top: 4px;"></i>
           <div class="flex-grow-1">
             <div class="text-muted small mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Assigned Employee</div>
-            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}@if($complaint->assignedEmployee && $complaint->assignedEmployee->designation) ({{ $complaint->assignedEmployee->designation }})@endif</div>
+            <div class="text-white" style="font-size: 0.95rem; font-weight: 500;">{{ $complaint->assignedEmployee->name ?? 'N/A' }}@if($complaint->assignedEmployee && $complaint->assignedEmployee->designation) ({{ $complaint->assignedEmployee->designation->name ?? $complaint->assignedEmployee->designation }})@endif</div>
           </div>
         </div>
       </div>
@@ -339,31 +380,6 @@
 </div>
 @endif
 
-@if($complaint->attachments->count() > 0)
-<div class="row mb-4">
-  <div class="col-12">
-    <div class="card-glass">
-      <div class="d-flex align-items-center mb-4" style="border-bottom: 2px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
-        <i data-feather="paperclip" class="me-2 text-primary" style="width: 20px; height: 20px;"></i>
-        <h5 class="text-white mb-0" style="font-size: 1.1rem; font-weight: 600;">Attachments</h5>
-      </div>
-      <div class="row">
-        @foreach($complaint->attachments as $attachment)
-        <div class="col-md-3 mb-3">
-          <div class="card-glass text-center" style="padding: 1rem;">
-            <i data-feather="file" class="mb-2 text-primary" style="width: 24px; height: 24px;"></i>
-            <p class="text-white small mb-2">{{ $attachment->original_name }}</p>
-            <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-              View
-            </a>
-          </div>
-        </div>
-        @endforeach
-      </div>
-    </div>
-  </div>
-</div>
-@endif
 
 <!-- FEEDBACK SECTION -->
 @if($complaint->status == 'resolved' || $complaint->status == 'closed' || $complaint->feedback)
@@ -405,11 +421,11 @@
                 <tr>
                   <td class="text-white"><strong>Overall Rating:</strong></td>
                   <td>
-                    <span class="badge bg-{{ $complaint->feedback->rating_badge_color }}" style="color: #ffffff !important;">
+                    <span class="badge" style="background-color: {{ $complaint->feedback->rating_color }}; color: #ffffff !important;">
                       {{ $complaint->feedback->overall_rating_display }}
                     </span>
                     @if($complaint->feedback->rating_score)
-                      <span class="text-white ms-2">({{ $complaint->feedback->rating_score }}/5)</span>
+                      <span class="text-white ms-2">{{ $complaint->feedback->rating_score }} / 5 Stars</span>
                     @endif
                   </td>
                 </tr>
@@ -464,7 +480,7 @@
                 @php
                   $geUser = null;
                   if ($complaint->city_id && $complaint->city) {
-                    $geUser = \App\Models\User::where('city_id', $complaint->city_id)
+                    $geUser = \App\Models\User::whereJsonContains('city_ids', (int)$complaint->city_id)
                       ->whereHas('role', function($q) {
                         $q->where('role_name', 'garrison_engineer');
                       })
@@ -481,16 +497,23 @@
             </div>
           </div>
           @if($complaint->feedback->comments)
-          <div class="row mt-3">
-            <div class="col-12">
-              <h6 class="text-white fw-bold mb-2" style="font-size: 0.9rem;">Complainant Comments:</h6>
-              <div class="card-glass" style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
-                <div class="card-body">
-                  <p class="text-white mb-0" style="color: #dbeafe; line-height: 1.6;">
-                    {{ $complaint->feedback->comments }}
-                  </p>
-                </div>
-              </div>
+          <div class="mt-3">
+            <h6 class="text-white fw-bold mb-2" style="font-size: 0.9rem;">Complainant Comments:</h6>
+            <div class="p-3 rounded" style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+              <p class="text-white mb-0" style="color: #dbeafe; line-height: 1.6;">
+                {{ $complaint->feedback->comments }}
+              </p>
+            </div>
+          </div>
+          @endif
+          
+          @if($complaint->feedback->remarks)
+          <div class="mt-3">
+            <h6 class="text-white fw-bold mb-2" style="font-size: 0.9rem;">Technician Remarks:</h6>
+            <div class="p-3 rounded" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);">
+              <p class="text-white mb-0" style="color: #ecfdf5; line-height: 1.6;">
+                {{ $complaint->feedback->remarks }}
+              </p>
             </div>
           </div>
           @endif

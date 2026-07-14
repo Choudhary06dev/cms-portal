@@ -36,8 +36,8 @@
     <div class="col-6 col-md-3">
       <select class="form-select" name="status" onchange="submitSlaFilters()">
             <option value="" {{ request('status') ? '' : 'selected' }}>All Status</option>
-            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+            <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
+            <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
           </select>
     </div>
   </div>
@@ -53,9 +53,7 @@
           <th >ID</th>
           <th >Rule Name</th>
           <th >Priority</th>
-          <th >Response Time</th>
           <th >Resolution Time</th>
-          <th >Notify To</th>
           <th >Status</th>
           <th >Created</th>
           <th >Actions</th>
@@ -66,8 +64,8 @@
             <tr>
           <td >{{ $rule->id }}</td>
           <td>
-            <div class="fw-bold">{{ ucfirst($rule->complaint_type) }} Rule</div>
-            <div class="text-muted small">{{ $rule->complaint_type_display ?? ucfirst($rule->complaint_type) }}</div>
+            <div class="fw-bold">{{ ucfirst($rule->category->name ?? 'Unknown') }} Rule</div>
+            <div class="text-muted small">{{ $rule->complaint_type_display }}</div>
               </td>
               <td>
             @if(($rule->priority ?? 'medium') === 'urgent')
@@ -80,12 +78,10 @@
               </span>
             @endif
               </td>
-          <td >{{ $rule->max_response_time }} hours</td>
           <td >{{ $rule->max_resolution_time ?? 'N/A' }} hours</td>
-          <td >{{ $rule->notifyTo->name ?? 'N/A' }}</td>
           <td>
-            <span class="status-badge status-{{ $rule->status ?? 'active' }}" style="color: #ffffff !important;">
-              {{ ucfirst($rule->status ?? 'active') }}
+            <span class="status-badge status-{{ $rule->status ?? 1 }}" style="color: #ffffff !important;">
+              {{ ($rule->status ? 'Active' : 'Inactive') }}
                 </span>
               </td>
           <td >{{ $rule->created_at->format('M d, Y') }}</td>

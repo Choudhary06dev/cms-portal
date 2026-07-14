@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Complaint;
 use App\Models\ComplaintFeedback;
-use App\Models\Client;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +18,7 @@ class FeedbackController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ComplaintFeedback::with(['complaint', 'client', 'enteredBy']);
+        $query = ComplaintFeedback::with(['complaint', 'enteredBy']);
 
         // Filter by rating
         if ($request->has('rating') && $request->rating) {
@@ -34,14 +34,14 @@ class FeedbackController extends Controller
             $query->whereDate('feedback_date', '<=', $request->date_to);
         }
 
-        // Search by complaint ID or client name
+        // Search by complaint ID or house number
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->whereHas('complaint', function($complaintQuery) use ($search) {
                     $complaintQuery->where('title', 'like', "%{$search}%");
-                })->orWhereHas('client', function($clientQuery) use ($search) {
-                    $clientQuery->where('client_name', 'like', "%{$search}%");
+                })->orWhereHas('complaint.house', function($houseQuery) use ($search) {
+                    $houseQuery->where('house_no', 'like', "%{$search}%");
                 });
             });
         }
@@ -69,7 +69,7 @@ class FeedbackController extends Controller
         // Check if complaint is resolved
         if (!in_array($complaint->status, ['resolved', 'closed'])) {
             if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
-                return response()->json(['error' => 'Feedback can only be added for resolved complaints.'], 400);
+                return response()->json(['error' => 'Feedback can only be added for resolved complaints.'], 400)->header('Vary', 'X-Requested-With');
             }
             return redirect()->back()
                 ->with('error', 'Feedback can only be added for resolved complaints.');
@@ -77,7 +77,9 @@ class FeedbackController extends Controller
 
         // Return full view content for modal (JS extracts content)
         if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
-            return view('admin.feedbacks.create', compact('complaint'))->render();
+            return response(view('admin.feedbacks.create', compact('complaint'))->render())
+                ->header('Content-Type', 'text/html')
+                ->header('Vary', 'X-Requested-With');
         }
 
         return view('admin.feedbacks.create', compact('complaint'));
@@ -101,12 +103,12 @@ class FeedbackController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'overall_rating' => 'required|in:excellent,good,average,poor',
+            'overall_rating' => 'required|in:excellent,good,satisfied,fair,poor',
             'rating_score' => 'nullable|integer|min:1|max:5',
-            'service_quality' => 'nullable|in:excellent,good,average,poor',
-            'response_time' => 'nullable|in:excellent,good,average,poor',
-            'resolution_quality' => 'nullable|in:excellent,good,average,poor',
-            'staff_behavior' => 'nullable|in:excellent,good,average,poor',
+            'service_quality' => 'nullable|in:excellent,good,satisfied,fair,poor',
+            'response_time' => 'nullable|in:excellent,good,satisfied,fair,poor',
+            'resolution_quality' => 'nullable|in:excellent,good,satisfied,fair,poor',
+            'staff_behavior' => 'nullable|in:excellent,good,satisfied,fair,poor',
             'comments' => 'nullable|string|max:1000',
             'remarks' => 'nullable|string|max:1000',
             'feedback_date' => 'nullable|date',
@@ -128,8 +130,8 @@ class FeedbackController extends Controller
         try {
             $feedback = ComplaintFeedback::create([
                 'complaint_id' => $complaint->id,
-                'client_id' => $complaint->client_id,
                 'entered_by' => Auth::id(),
+                'house_id' => $complaint->house_id, // Ensure house_id is saved
                 'overall_rating' => $request->overall_rating,
                 'rating_score' => $request->rating_score ?? $this->getRatingScore($request->overall_rating),
                 'service_quality' => $request->service_quality,
@@ -153,7 +155,7 @@ class FeedbackController extends Controller
                     'success' => true,
                     'message' => 'Feedback added successfully.',
                     'complaint_id' => $complaint->id
-                ]);
+                ])->header('Vary', 'X-Requested-With');
             }
             
             // Redirect back to approvals page (Complaints Regn) with complaint ID to open in modal
@@ -165,7 +167,7 @@ class FeedbackController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to add feedback: ' . $e->getMessage()
-                ], 500);
+                ], 500)->header('Vary', 'X-Requested-With');
             }
             return redirect()->back()
                 ->with('error', 'Failed to add feedback: ' . $e->getMessage())
@@ -194,17 +196,19 @@ class FeedbackController extends Controller
             if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
                 return response()->json([
                     'error' => 'Only Garrison Engineer (GE) can edit feedback.'
-                ], 403);
+                ], 403)->header('Vary', 'X-Requested-With');
             }
             return redirect()->back()
                 ->with('error', 'Only Garrison Engineer (GE) can edit feedback.');
         }
         
-        $feedback->load(['complaint', 'client']);
+        $feedback->load(['complaint']);
         
         // Return full view content for modal (JS extracts content)
         if (request()->ajax() || request()->wantsJson() || request()->has('modal')) {
-            return view('admin.feedbacks.edit', compact('feedback'))->render();
+            return response(view('admin.feedbacks.edit', compact('feedback'))->render())
+                ->header('Content-Type', 'text/html')
+                ->header('Vary', 'X-Requested-With');
         }
         
         return view('admin.feedbacks.edit', compact('feedback'));
@@ -232,19 +236,19 @@ class FeedbackController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Only Garrison Engineer (GE) can update feedback.'
-                ], 403);
+                ], 403)->header('Vary', 'X-Requested-With');
             }
             return redirect()->back()
                 ->with('error', 'Only Garrison Engineer (GE) can update feedback.');
         }
         
         $validator = Validator::make($request->all(), [
-            'overall_rating' => 'required|in:excellent,good,average,poor',
+            'overall_rating' => 'required|in:excellent,good,satisfied,fair,poor',
             'rating_score' => 'nullable|integer|min:1|max:5',
-            'service_quality' => 'nullable|in:excellent,good,average,poor',
-            'response_time' => 'nullable|in:excellent,good,average,poor',
-            'resolution_quality' => 'nullable|in:excellent,good,average,poor',
-            'staff_behavior' => 'nullable|in:excellent,good,average,poor',
+            'service_quality' => 'nullable|in:excellent,good,satisfied,fair,poor',
+            'response_time' => 'nullable|in:excellent,good,satisfied,fair,poor',
+            'resolution_quality' => 'nullable|in:excellent,good,satisfied,fair,poor',
+            'staff_behavior' => 'nullable|in:excellent,good,satisfied,fair,poor',
             'comments' => 'nullable|string|max:1000',
             'remarks' => 'nullable|string|max:1000',
             'feedback_date' => 'nullable|date',
@@ -255,7 +259,7 @@ class FeedbackController extends Controller
                 return response()->json([
                     'success' => false,
                     'errors' => $validator->errors()
-                ], 422);
+                ], 422)->header('Vary', 'X-Requested-With');
             }
             return redirect()->back()
                 ->withErrors($validator)
@@ -288,7 +292,7 @@ class FeedbackController extends Controller
                     'success' => true,
                     'message' => 'Feedback updated successfully.',
                     'complaint_id' => $feedback->complaint_id
-                ]);
+                ])->header('Vary', 'X-Requested-With');
             }
             
             // Redirect back to approvals page (Complaints Regn) with complaint ID to open in modal
@@ -300,7 +304,7 @@ class FeedbackController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to update feedback: ' . $e->getMessage()
-                ], 500);
+                ], 500)->header('Vary', 'X-Requested-With');
             }
             return redirect()->back()
                 ->with('error', 'Failed to update feedback: ' . $e->getMessage())
@@ -331,11 +335,12 @@ class FeedbackController extends Controller
      */
     private function getRatingScore($rating): int
     {
-        return match($rating) {
+        return match(strtolower($rating)) {
             'excellent' => 5,
             'good' => 4,
-            'average' => 3,
-            'poor' => 2,
+            'satisfied' => 3,
+            'fair' => 2,
+            'poor' => 1,
             default => 3
         };
     }

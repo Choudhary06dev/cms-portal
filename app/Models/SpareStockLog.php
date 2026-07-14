@@ -13,7 +13,7 @@ class SpareStockLog extends Model
 
     protected $fillable = [
         'spare_id',
-        'brand_name',
+        'brand_id',
         'change_type',
         'quantity',
         'reference_id',
@@ -21,11 +21,27 @@ class SpareStockLog extends Model
     ];
 
     /**
+     * Get the brand associated with the stock log.
+     */
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
+    /**
      * Get the spare that owns the stock log.
      */
     public function spare(): BelongsTo
     {
         return $this->belongsTo(Spare::class, 'spare_id', 'id');
+    }
+
+    /**
+     * Get the complaint associated with the stock log.
+     */
+    public function complaint(): BelongsTo
+    {
+        return $this->belongsTo(Complaint::class, 'reference_id', 'id');
     }
 
     /**

@@ -12,10 +12,10 @@ class Spare extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'product_code',
-        'brand_name',
         'item_name',
-        'category',
+        'category_id',
+        'brand_id',
+        'product_code',
         'city_id',
         'sector_id',
         'unit_price',
@@ -60,6 +60,22 @@ class Spare extends Model
     public function approvalItems(): HasMany
     {
         return $this->hasMany(SpareApprovalItem::class, 'spare_id', 'id');
+    }
+
+    /**
+     * Get the category for the spare.
+     */
+    public function category()
+    {
+        return $this->belongsTo(ComplaintCategory::class, 'category_id', 'id');
+    }
+
+    /**
+     * Get the brand for the spare.
+     */
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id', 'id');
     }
 
     /**
@@ -131,7 +147,7 @@ class Spare extends Model
      */
     public function getCategoryDisplayAttribute(): string
     {
-        return self::getCategories()[$this->category] ?? $this->category;
+        return $this->category ? $this->category->name : 'N/A';
     }
 
     /**
@@ -281,11 +297,11 @@ class Spare extends Model
         $this->last_updated = now();
         $this->save();
 
-        // Log the stock change with brand name
+        // Log the stock change with brand_id
         $this->stockLogs()->create([
             'change_type' => 'in',
             'quantity' => $quantity,
-            'brand_name' => $this->brand_name,
+            'brand_id' => $this->brand_id,
             'reference_id' => $referenceId,
             'remarks' => $remarks,
         ]);
@@ -305,11 +321,11 @@ class Spare extends Model
         $this->last_updated = now();
         $this->save();
 
-        // Log the stock change with brand name
+        // Log the stock change with brand_id
         $this->stockLogs()->create([
             'change_type' => 'in',
             'quantity' => $quantity,
-            'brand_name' => $this->brand_name,
+            'brand_id' => $this->brand_id,
             'reference_id' => $referenceId,
             'remarks' => $remarks ?? 'Returned to stock',
         ]);
@@ -336,15 +352,18 @@ class Spare extends Model
         
         // First, process all 'in' logs to build available stock
         foreach ($inLogs as $inLog) {
-            $brandName = $inLog->brand_name ?? $this->brand_name ?? 'N/A';
-            if (!isset($stockByBrand[$brandName])) {
-                $stockByBrand[$brandName] = [
-                    'brand_name' => $brandName,
+            $brandId = $inLog->brand_id ?? $this->brand_id;
+            if (!$brandId) continue;
+            
+            if (!isset($stockByBrand[$brandId])) {
+                $stockByBrand[$brandId] = [
+                    'brand_id' => $brandId,
+                    'brand_name' => Brand::find($brandId)->name ?? 'Unknown',
                     'available' => 0,
                     'first_in_date' => $inLog->created_at,
                 ];
             }
-            $stockByBrand[$brandName]['available'] += $inLog->quantity;
+            $stockByBrand[$brandId]['available'] += $inLog->quantity;
         }
         
         // Then, process all 'out' logs to deduct stock (FIFO - oldest first)
@@ -352,7 +371,7 @@ class Spare extends Model
             $remainingToDeduct = $outLog->quantity;
             
             // Deduct from oldest brand first
-            foreach ($stockByBrand as $brandName => &$brandData) {
+            foreach ($stockByBrand as $brandId => &$brandData) {
                 if ($remainingToDeduct <= 0) break;
                 
                 if ($brandData['available'] > 0) {
@@ -389,7 +408,7 @@ class Spare extends Model
         $availableStockByBrand = $this->getAvailableStockByBrand();
         
         // If no brand-specific stock available, use current brand
-        $brandToIssue = $this->brand_name ?? 'N/A';
+        $brandIdToIssue = $this->brand_id;
         
         // Determine which brand(s) to issue from (FIFO)
         $remainingToIssue = $quantity;
@@ -402,22 +421,23 @@ class Spare extends Model
             if ($availableFromBrand > 0) {
                 $toIssueFromBrand = min($availableFromBrand, $remainingToIssue);
                 $brandsToLog[] = [
-                    'brand_name' => $brandData['brand_name'],
+                    'brand_id' => $brandData['brand_id'],
                     'quantity' => $toIssueFromBrand,
                 ];
                 $remainingToIssue -= $toIssueFromBrand;
                 
                 // Use the first brand for primary tracking
-                if ($brandToIssue === ($this->brand_name ?? 'N/A')) {
-                    $brandToIssue = $brandData['brand_name'];
+                if ($brandIdToIssue === $this->brand_id) {
+                    $brandIdToIssue = $brandData['brand_id'];
                 }
             }
         }
         
-        // If no brand-specific stock found, use current brand
+        // If no brand-specific stock found, always create a log entry
+        // Even if brand_id is null, we must still log the stock movement
         if (empty($brandsToLog)) {
             $brandsToLog[] = [
-                'brand_name' => $brandToIssue,
+                'brand_id' => $this->brand_id, // may be null, that's OK
                 'quantity' => $quantity,
             ];
         }
@@ -437,7 +457,7 @@ class Spare extends Model
             return false;
         }
 
-        // Log the stock change(s) with brand name(s)
+        // Log the stock change(s) with brand_id(s)
         try {
             // If issuing from multiple brands, create separate logs
             if (count($brandsToLog) > 1) {
@@ -445,17 +465,17 @@ class Spare extends Model
                     $this->stockLogs()->create([
                         'change_type' => 'out',
                         'quantity' => $brandLog['quantity'],
-                        'brand_name' => $brandLog['brand_name'],
+                        'brand_id' => $brandLog['brand_id'],
                         'reference_id' => $referenceId,
-                        'remarks' => $remarks . (count($brandsToLog) > 1 ? ' (FIFO: ' . $brandLog['brand_name'] . ')' : ''),
+                        'remarks' => $remarks . (count($brandsToLog) > 1 ? ' (FIFO: ' . (Brand::find($brandLog['brand_id'])->name ?? 'Unknown') . ')' : ''),
                     ]);
                 }
-            } else {
+            } else if (!empty($brandsToLog)) {
                 // Single brand issue
                 $this->stockLogs()->create([
                     'change_type' => 'out',
                     'quantity' => $quantity,
-                    'brand_name' => $brandsToLog[0]['brand_name'],
+                    'brand_id' => $brandsToLog[0]['brand_id'],
                     'reference_id' => $referenceId,
                     'remarks' => $remarks,
                 ]);

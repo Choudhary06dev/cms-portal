@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Complaint;
-use App\Models\Client;
 use App\Models\Employee;
 use App\Models\ComplaintSpare;
 use App\Models\Spare;
@@ -12,9 +11,9 @@ use App\Models\ComplaintCategory;
 use App\Models\City;
 use App\Models\Sector;
 use Illuminate\Support\Facades\Schema;
+use App\Models\House;
 use App\Models\SpareApprovalPerforma;
 use App\Models\SpareApprovalItem;
-use App\Models\ComplaintAttachment;
 use App\Models\ComplaintLog;
 use App\Traits\LocationFilterTrait;
 use Illuminate\Support\Facades\DB;
@@ -39,18 +38,26 @@ class ComplaintController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Complaint::with(['client', 'assignedEmployee', 'city', 'sector', 'attachments', 'spareParts.spare', 'spareApprovals']);
+        $query = Complaint::with(['assignedEmployee', 'city', 'sector', 'spareParts.spare', 'spareApprovals']);
 
         // Apply location-based filtering
         $this->filterComplaintsByLocation($query, $user);
+
+        // Filter by House No.
+        if ($request->has('house_no') && $request->house_no) {
+            $houseNo = trim($request->house_no);
+            $query->whereHas('house', function ($q) use ($houseNo) {
+                $q->where('house_no', 'like', "%{$houseNo}%");
+            });
+        }
 
         // Search functionality - by Name and ID
         if ($request->has('search') && $request->search) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
-                // Search by client name
-                $q->whereHas('client', function ($clientQuery) use ($search) {
-                    $clientQuery->where('client_name', 'like', "%{$search}%");
+                // Search by house number
+                $q->whereHas('house', function ($houseQuery) use ($search) {
+                    $houseQuery->where('house_no', 'like', "%{$search}%");
                 })
                     // Search by title
                     ->orWhere('title', 'like', "%{$search}%")
@@ -61,70 +68,317 @@ class ComplaintController extends Controller
                 if (is_numeric($search)) {
                     $numericSearch = (int) $search;
                     // Search by actual ID
-                    $q->orWhere('id', $numericSearch);
+                    $q->orWhere('complaints.id', $numericSearch);
                     // Search by ID modulo 10000 (for formatted complaint_id like 0123)
-                    $q->orWhereRaw('(id % 10000) = ?', [$numericSearch]);
+                    $q->orWhereRaw('(complaints.id % 10000) = ?', [$numericSearch]);
                 }
             });
         }
 
-        // Filter by status
+        // Filter by overdue status
+        if ($request->has('filter') && $request->filter === 'overdue') {
+            $query->overdue();
+        }
+
+        // Filter by status (single value) or complaint_status (array from dashboard)
         if ($request->has('status') && $request->status) {
             $statusValue = $request->status;
 
-            // Handle work_priced_performa and maint_priced_performa filters
-            // waiting_for_authority removed - only check direct status match
             if ($statusValue === 'work_priced_performa') {
-                $query->where('status', 'work_priced_performa');
+                $query->where('complaints.status', 'work_priced_performa');
             } elseif ($statusValue === 'maint_priced_performa') {
-                $query->where('status', 'maint_priced_performa');
+                $query->where('complaints.status', 'maint_priced_performa');
+            } elseif ($statusValue === 'work_performa') {
+                $query->where(function ($q) {
+                    $q->where('complaints.status', 'work_performa')
+                        ->orWhere(function ($subQ) {
+                            $subQ->where('complaints.status', 'in_progress')
+                                ->whereHas('spareApprovals', function ($approvalQ) {
+                                    $approvalQ->where('performa_type', 'work_performa');
+                                });
+                        });
+                });
+            } elseif ($statusValue === 'maint_performa') {
+                $query->where(function ($q) {
+                    $q->where('complaints.status', 'maint_performa')
+                        ->orWhere(function ($subQ) {
+                            $subQ->where('complaints.status', 'in_progress')
+                                ->whereHas('spareApprovals', function ($approvalQ) {
+                                    $approvalQ->where('performa_type', 'maint_performa');
+                                });
+                        });
+                });
+            } elseif ($statusValue === 'product_na') {
+                $query->where(function ($q) {
+                    $q->where('complaints.status', 'product_na')
+                        ->orWhere(function ($subQ) {
+                            $subQ->where('complaints.status', 'in_progress')
+                                ->whereHas('spareApprovals', function ($approvalQ) {
+                                    $approvalQ->where('performa_type', 'product_na');
+                                });
+                        });
+                });
             } else {
-                // For other statuses, use direct filter
-                $query->where('status', $statusValue);
+                $query->where('complaints.status', $statusValue);
             }
+        } elseif ($request->has('complaint_status') && $request->complaint_status) {
+            $statusList = is_array($request->complaint_status) ? $request->complaint_status : [$request->complaint_status];
+            
+            $query->where(function ($q) use ($statusList) {
+                $first = true;
+                foreach ($statusList as $status) {
+                    $clause = $first ? 'where' : 'orWhere';
+                    $first = false;
+                    
+                    if ($status === 'work_priced_performa') {
+                        $q->{$clause}('complaints.status', 'work_priced_performa');
+                    } elseif ($status === 'maint_priced_performa') {
+                        $q->{$clause}('complaints.status', 'maint_priced_performa');
+                    } elseif ($status === 'work_performa') {
+                        $q->{$clause}(function ($subQ) {
+                            $subQ->where('complaints.status', 'work_performa')
+                                ->orWhere(function ($subQ2) {
+                                    $subQ2->where('complaints.status', 'in_progress')
+                                        ->whereHas('spareApprovals', function ($approvalQ) {
+                                            $approvalQ->where('performa_type', 'work_performa');
+                                        });
+                                });
+                        });
+                    } elseif ($status === 'maint_performa') {
+                        $q->{$clause}(function ($subQ) {
+                            $subQ->where('complaints.status', 'maint_performa')
+                                ->orWhere(function ($subQ2) {
+                                    $subQ2->where('complaints.status', 'in_progress')
+                                        ->whereHas('spareApprovals', function ($approvalQ) {
+                                            $approvalQ->where('performa_type', 'maint_performa');
+                                        });
+                                });
+                        });
+                    } elseif ($status === 'product_na') {
+                        $q->{$clause}(function ($subQ) {
+                            $subQ->where('complaints.status', 'product_na')
+                                ->orWhere(function ($subQ2) {
+                                    $subQ2->where('complaints.status', 'in_progress')
+                                        ->whereHas('spareApprovals', function ($approvalQ) {
+                                            $approvalQ->where('performa_type', 'product_na');
+                                        });
+                                });
+                        });
+                    } else {
+                        $q->{$clause}('complaints.status', $status);
+                    }
+                }
+            });
         }
 
-        // Filter by category
+        // Filter by approval status (through spareApprovals relationship)
+        if ($request->has('approval_status') && $request->approval_status) {
+            $approvalStatus = $request->approval_status;
+            $query->whereHas('spareApprovals', function ($q) use ($approvalStatus) {
+                $q->where('status', $approvalStatus);
+            });
+        }
+
+        // Filter by category (handles both numeric ID and string name, supports array)
         if ($request->has('category') && $request->category) {
-            $query->where('category', $request->category);
+            $category = $request->category;
+            $categoriesArray = is_array($category) ? $category : [$category];
+            $numericCategoryIds = array_filter($categoriesArray, 'is_numeric');
+            $stringCategoryNames = array_filter($categoriesArray, function($val) {
+                return !is_numeric($val);
+            });
+            
+            $query->where(function($q) use ($numericCategoryIds, $stringCategoryNames) {
+                if (!empty($numericCategoryIds)) {
+                    $q->whereIn('complaints.category_id', $numericCategoryIds);
+                }
+                if (!empty($stringCategoryNames)) {
+                    $q->orWhereHas('category', function($subQ) use ($stringCategoryNames) {
+                        $subQ->whereIn('name', $stringCategoryNames);
+                    });
+                }
+            });
         }
 
         // Filter by priority
         if ($request->has('priority') && $request->priority) {
-            $query->where('priority', $request->priority);
+            $query->where('complaints.priority', $request->priority);
         }
 
         // Filter by assigned employee
         if ($request->has('assigned_employee_id') && $request->assigned_employee_id) {
-            $query->where('assigned_employee_id', $request->assigned_employee_id);
+            $query->where('complaints.assigned_employee_id', $request->assigned_employee_id);
         }
 
-        // Filter by client (apply location filter)
-        if ($request->has('client_id') && $request->client_id) {
-            $query->where('client_id', $request->client_id);
+        // Filter by city_id (GE)
+        if ($request->has('city_id') && $request->city_id) {
+            $cityId = $request->city_id;
+            $cityIds = is_array($cityId) ? $cityId : [$cityId];
+            $sectorIdsForCity = Sector::whereIn('city_id', $cityIds)->pluck('id')->toArray();
+            $query->where(function ($q) use ($cityIds, $sectorIdsForCity) {
+                $q->whereHas('house', function ($hq) use ($cityIds, $sectorIdsForCity) {
+                    $hq->where(function ($sub) use ($cityIds, $sectorIdsForCity) {
+                        $sub->whereIn('city_id', $cityIds);
+                        if (!empty($sectorIdsForCity)) {
+                            $sub->orWhereIn('sector_id', $sectorIdsForCity);
+                        }
+                    });
+                })
+                ->orWhere(function ($cq) use ($cityIds, $sectorIdsForCity) {
+                    $cq->whereNull('complaints.house_id')
+                        ->where(function ($sub) use ($cityIds, $sectorIdsForCity) {
+                            $sub->whereIn('complaints.city_id', $cityIds);
+                            if (!empty($sectorIdsForCity)) {
+                                $sub->orWhereIn('complaints.sector_id', $sectorIdsForCity);
+                            }
+                        });
+                });
+            });
         }
 
-        // Filter by date range
+        // Filter by sector_id (GE Nodes)
+        if ($request->has('sector_id') && $request->sector_id) {
+            $sectorId = $request->sector_id;
+            $sectorIds = is_array($sectorId) ? $sectorId : [$sectorId];
+            $query->where(function ($q) use ($sectorIds) {
+                $q->whereHas('house', function ($hq) use ($sectorIds) {
+                    $hq->whereIn('sector_id', $sectorIds);
+                })->orWhere(function ($cq) use ($sectorIds) {
+                    $cq->whereNull('complaints.house_id')->whereIn('complaints.sector_id', $sectorIds);
+                });
+            });
+        }
+
+        // Filter by CMES (cmes_id)
+        if ($request->has('cmes_id') && $request->cmes_id) {
+            $cmesId = $request->cmes_id;
+            $cmesIds = is_array($cmesId) ? $cmesId : [$cmesId];
+            try {
+                $cmeCityIds = City::whereIn('cme_id', $cmesIds)->pluck('id')->toArray();
+                $cmeSectorIds = Sector::where(function ($q) use ($cmesIds, $cmeCityIds) {
+                    $q->whereIn('cme_id', $cmesIds);
+                    if (!empty($cmeCityIds)) {
+                        $q->orWhereIn('city_id', $cmeCityIds);
+                    }
+                })->pluck('id')->toArray();
+
+                if (empty($cmeCityIds) && empty($cmeSectorIds)) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->where(function ($q) use ($cmeCityIds, $cmeSectorIds) {
+                        $q->whereHas('house', function ($hq) use ($cmeCityIds, $cmeSectorIds) {
+                            $hq->where(function ($sub) use ($cmeCityIds, $cmeSectorIds) {
+                                if (!empty($cmeCityIds)) {
+                                    $sub->whereIn('city_id', $cmeCityIds);
+                                }
+                                if (!empty($cmeSectorIds)) {
+                                    $method = !empty($cmeCityIds) ? 'orWhereIn' : 'whereIn';
+                                    $sub->{$method}('sector_id', $cmeSectorIds);
+                                }
+                            });
+                        })
+                        ->orWhere(function ($cq) use ($cmeCityIds, $cmeSectorIds) {
+                            $cq->whereNull('complaints.house_id')
+                                ->where(function ($sub) use ($cmeCityIds, $cmeSectorIds) {
+                                    if (!empty($cmeCityIds)) {
+                                        $sub->whereIn('complaints.city_id', $cmeCityIds);
+                                    }
+                                    if (!empty($cmeSectorIds)) {
+                                        $method = !empty($cmeCityIds) ? 'orWhereIn' : 'whereIn';
+                                        $sub->{$method}('complaints.sector_id', $cmeSectorIds);
+                                    }
+                                });
+                        });
+                    });
+                }
+            } catch (\Exception $e) {
+                // Ignore CMES scoping if fails
+            }
+        }
+
+        // Filter by date range (from dashboard)
+        if ($request->has('date_range') && $request->date_range) {
+            $dateRange = $request->date_range;
+            $now = now();
+            switch ($dateRange) {
+                case 'yesterday':
+                    $query->whereDate('complaints.created_at', $now->copy()->subDay()->toDateString());
+                    break;
+                case 'today':
+                    $query->whereDate('complaints.created_at', $now->toDateString());
+                    break;
+                case 'this_week':
+                    $query->whereBetween('complaints.created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                    break;
+                case 'last_week':
+                    $query->whereBetween('complaints.created_at', [$now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek()]);
+                    break;
+                case 'this_month':
+                    $query->whereMonth('complaints.created_at', $now->month)
+                        ->whereYear('complaints.created_at', $now->year);
+                    break;
+                case 'last_month':
+                    $query->whereMonth('complaints.created_at', $now->copy()->subMonth()->month)
+                        ->whereYear('complaints.created_at', $now->copy()->subMonth()->year);
+                    break;
+                case 'last_6_months':
+                    $query->where('complaints.created_at', '>=', $now->copy()->subMonths(6)->startOfDay());
+                    break;
+                case 'custom':
+                    $startDate = $request->input('start_date');
+                    $endDate = $request->input('end_date');
+                    if ($startDate && $endDate) {
+                        $query->whereBetween('complaints.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                    }
+                    break;
+            }
+        }
+
+        // Filter by date range (direct date_from/date_to from index view)
         if ($request->has('date_from') && $request->date_from) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+            $query->whereDate('complaints.created_at', '>=', $request->date_from);
         }
 
         if ($request->has('date_to') && $request->date_to) {
-            $query->whereDate('created_at', '<=', $request->date_to);
+            $query->whereDate('complaints.created_at', '<=', $request->date_to);
         }
 
         // Order by ID descending (3, 2, 1...) - newest/highest ID first
         // Clear any existing orders and set explicit descending order
-        $query->reorder()->orderBy('id', 'desc');
-        $complaints = $query->paginate(15);
+        $query->with(['assignedEmployee', 'house', 'category', 'complaintTitle']) // Added relations
+            ->reorder()
+            ->orderBy('complaints.id', 'desc');
+        if ($request->has('export_all')) {
+            $exportComplaints = $query->get()->map(function($complaint) {
+                $displayStatus = ($complaint->status === 'new') ? 'assigned' : $complaint->status;
+                $statusText = $displayStatus === 'resolved' ? 'Addressed' : $complaint->getStatusDisplayAttribute();
+
+                return [
+                    'id' => (int)$complaint->id,
+                    'created_at' => $complaint->created_at ? $complaint->created_at->format('M d, Y H:i') : '-',
+                    'closed_at' => $complaint->closed_at ? $complaint->closed_at->format('M d, Y H:i') : ($complaint->resolved_at ? $complaint->resolved_at->format('M d, Y H:i') : '-'),
+                    'house_no' => $complaint->house->house_no ?? 'N/A',
+                    'status' => $statusText,
+                    'category' => $complaint->getCategoryDisplayAttribute(),
+                    'type' => $complaint->complaintTitle->name ?? ($complaint->category->name ?? 'N/A'),
+                    'priority' => $complaint->getPriorityDisplayAttribute() ?? 'N/A',
+                ];
+            });
+
+            return response()->json([
+                'complaints' => $exportComplaints
+            ]);
+        }
+
+        $complaints = $query->paginate(20)->withQueryString();
 
         // Filter employees by location
-        $employeesQuery = Employee::where('status', 'active');
+        $employeesQuery = Employee::where('status', 1);
         $this->filterEmployeesByLocation($employeesQuery, $user);
         $employees = $employeesQuery->get();
 
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')
             : collect();
 
         return view('admin.complaints.index', compact('complaints', 'employees', 'categories'));
@@ -135,18 +389,21 @@ class ComplaintController extends Controller
      */
     public function create()
     {
-        // Clear any old input data to ensure clean form
-        request()->session()->forget('_old_input');
 
-        $employees = Employee::where('status', 'active')->orderBy('name')->get();
+        $employeesQuery = Employee::where('status', 1)->orderBy('name');
+        $this->filterEmployeesByLocation($employeesQuery, Auth::user());
+        $employees = $employeesQuery->get();
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')
             : collect();
 
         // Get cities and sectors for dropdowns
-        $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
-            : collect();
+        $citiesQuery = City::where('status', 1)->orderBy('id', 'asc');
+        $userCityIds = $this->getUserCityIds(Auth::user());
+        if ($userCityIds !== null) {
+            $citiesQuery->whereIn('id', $userCityIds);
+        }
+        $cities = Schema::hasTable('cities') ? $citiesQuery->get() : collect();
 
         $sectors = collect(); // Will be loaded dynamically based on city selection
 
@@ -155,13 +412,21 @@ class ComplaintController extends Controller
         $defaultSectorId = null;
         $authUser = Auth::user();
         if ($authUser) {
-            $defaultCityId = $authUser->city_id;
-            $defaultSectorId = $authUser->sector_id;
+            $defaultCityId = !empty($authUser->city_ids) ? $authUser->city_ids[0] : null;
+            $defaultSectorId = !empty($authUser->sector_ids) ? $authUser->sector_ids[0] : null;
         }
 
-        return view('admin.complaints.create', compact('employees', 'categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId'));
+        // Get houses filtered by location
+        $housesQuery = House::where('status', 1)->orderBy('house_no');
+        $this->filterHousesByLocation($housesQuery, $authUser);
+        $houses = $housesQuery->get();
+
+        return view('admin.complaints.create', compact('employees', 'categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId', 'houses'));
     }
 
+    /**
+     * Store a newly created complaint
+     */
     /**
      * Store a newly created complaint
      */
@@ -170,155 +435,78 @@ class ComplaintController extends Controller
         // Debug: Log the request data
         Log::info('Complaint creation request', [
             'all_data' => $request->all(),
-            'title' => $request->title,
-            'title_other' => $request->title_other,
             'method' => $request->method(),
-            'content_type' => $request->header('Content-Type')
         ]);
 
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
+        $data = $request->all();
+        if (isset($data['complaint_title_id']) && $data['complaint_title_id'] === 'other') {
+            $data['complaint_title_id'] = null;
+        }
+
+        $validator = Validator::make($data, [
+            'title' => 'nullable|string|max:255', // Now holds custom title or "Other"
+            'complaint_title_id' => 'nullable|exists:complaint_titles,id', // Holds selected title ID
             'title_other' => 'nullable|string|max:255',
-            'client_name' => 'required|string|max:255',
-            // Allow any category string (column changed to VARCHAR)
-            'category' => 'required|string|max:100',
+            'category' => 'required|exists:complaint_categories,id', // Expecting ID now
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'availability_time' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'assigned_employee_id' => 'nullable|exists:employees,id',
-            // Status removed from form - will be managed in approvals view, default to 'new'
-            'attachments' => 'nullable|array|max:5',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
+            'assigned_employee_id' => 'required|exists:employees,id',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
-            'address' => 'nullable|string|max:500',
-            'email' => 'nullable|string|max:150',
-            'phone' => 'nullable|string|min:11|max:50',
+            'house_id' => 'required|exists:houses,id',
         ]);
 
         if ($validator->fails()) {
-            Log::error('Validation failed', [
-                'errors' => $validator->errors()->toArray()
-            ]);
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
-        // Start database transaction
         DB::beginTransaction();
 
         try {
-            // Get city and sector names from IDs if provided (for client table)
-            $cityName = null;
-            $sectorName = null;
+            $complaintTitleId = $request->complaint_title_id;
+            $customTitle = null;
 
-            if ($request->city_id) {
-                $city = City::find($request->city_id);
-                $cityName = $city ? $city->name : null;
+            if (!$complaintTitleId) {
+                $customTitle = $request->title_other ?? $request->title;
+                if (strtolower($customTitle) === 'other')
+                    $customTitle = null;
             }
-
-            if ($request->sector_id) {
-                $sector = Sector::find($request->sector_id);
-                $sectorName = $sector ? $sector->name : null;
-            }
-
-            // Find or create client by name
-            $client = Client::firstOrCreate(
-                ['client_name' => trim($request->client_name)],
-                [
-                    'contact_person' => $request->input('contact_person') ?: trim($request->client_name),
-                    'email' => $request->input('email', ''),
-                    'phone' => $request->input('phone', ''),
-                    'city' => $cityName ?? '',
-                    'sector' => $sectorName ?? '',
-                    'address' => $request->input('address'),
-                    'status' => 'active',
-                ]
-            );
-
-            // Handle custom title from "Other" option
-            // JavaScript sets title_other value in hidden input with name="title"
-            // But if title is still "other", use title_other field
-            $finalTitle = $request->title;
-
-            // If title is "other", check for title_other field
-            if ($finalTitle === 'other' || strtolower($finalTitle) === 'other') {
-                if ($request->has('title_other') && !empty(trim($request->title_other))) {
-                    $finalTitle = trim($request->title_other);
-                } elseif ($request->has('title') && $request->title !== 'other') {
-                    // JavaScript might have already set custom title in title field
-                    $finalTitle = trim($request->title);
-                }
-            }
-
-            // Final fallback - if still "other", try to get from title_other
-            if (empty($finalTitle) || strtolower($finalTitle) === 'other') {
-                $finalTitle = $request->input('title_other') ? trim($request->input('title_other')) : 'other';
-            }
-
-            Log::info('Final title being saved', [
-                'final_title' => $finalTitle,
-                'original_title' => $request->title,
-                'title_other' => $request->title_other
-            ]);
 
             $complaint = Complaint::create([
-                'title' => $finalTitle,
-                'client_id' => $client->id,
+                'complaint_title_id' => $complaintTitleId,
+                'title' => $customTitle,
+                'house_id' => $request->house_id ?: null,
                 'city_id' => $request->city_id ?: null,
                 'sector_id' => $request->sector_id ?: null,
-                'category' => $request->category,
+                'category_id' => $request->category,
                 'priority' => $request->priority,
                 'availability_time' => $request->availability_time,
                 'description' => $request->description,
                 'assigned_employee_id' => $request->assigned_employee_id ?: null,
-                'status' => 'assigned', // Default to 'assigned' - no performa type selected initially
+                'status' => 'assigned',
             ]);
 
-            // Handle file attachments
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('complaint-attachments', $filename, 'public');
-
-                    ComplaintAttachment::create([
-                        'complaint_id' => $complaint->id,
-                        'filename' => $filename,
-                        'original_name' => $file->getClientOriginalName(),
-                        'file_path' => $path,
-                        'file_size' => $file->getSize(),
-                        'mime_type' => $file->getMimeType(),
-                    ]);
-                }
-            }
-
-            // Log the complaint creation
-            // Find the employee associated with the current user
             $currentEmployee = Employee::first();
-
             if ($currentEmployee) {
+                $creatorName = auth()->user()->name ?? auth()->user()->username ?? 'Staff';
                 ComplaintLog::create([
                     'complaint_id' => $complaint->id,
                     'action_by' => $currentEmployee->id,
                     'action' => 'created',
-                    'remarks' => 'Complaint created',
+                    'remarks' => 'Complaint created by ' . $creatorName,
                 ]);
             }
 
-            // Note: Approval performa is automatically created by Complaint model's boot() method
-            // No need to create it here to avoid duplicates
-
-            // Commit the transaction
             DB::commit();
 
             return redirect()->route('admin.complaints.index')
                 ->with('success', 'Complaint created successfully.');
 
         } catch (\Exception $e) {
-            // Rollback the transaction on any error
             DB::rollBack();
-
             return redirect()->back()
                 ->with('error', 'Failed to create complaint: ' . $e->getMessage())
                 ->withInput();
@@ -330,104 +518,57 @@ class ComplaintController extends Controller
      */
     public function show(Complaint $complaint)
     {
-        try {
-            $complaint->load([
-                'client',
-                'assignedEmployee',
-                'city',
-                'sector',
-                'attachments',
-                'logs.actionBy',
-                'spareParts.spare',
-                'spareParts.usedBy',
-                'spareApprovals.items.spare',
-                'stockLogs.spare',
-                'feedback.enteredBy'
-            ]);
-
-            // Check if format=html is requested, return HTML even for AJAX
-            if (request()->get('format') === 'html') {
-                return view('admin.complaints.show', compact('complaint'));
-            }
-
-            if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
-                // Exclude state from client data in JSON response for modal
-                $complaintData = $complaint->toArray();
-                if (isset($complaintData['client']) && is_array($complaintData['client']) && isset($complaintData['client']['state'])) {
-                    unset($complaintData['client']['state']);
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'complaint' => $complaintData
-                ]);
-            }
-
-            return view('admin.complaints.show', compact('complaint'));
-        } catch (\Exception $e) {
-            // Log the error for debugging
-            Log::error('Error in ComplaintController@show: ' . $e->getMessage(), [
-                'complaint_id' => $complaint->id ?? null,
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            // Check if format=html is requested, return HTML error
-            if (request()->get('format') === 'html') {
-                return response('<div class="text-center py-5 text-danger">Error loading complaint details: ' . htmlspecialchars($e->getMessage()) . '. Please try again.</div>', 500);
-            }
-
-            // Return JSON error for AJAX requests
-            if (request()->ajax() || request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error loading complaint details: ' . $e->getMessage()
-                ], 500);
-            }
-
-            // For regular requests, redirect back with error
-            return redirect()->back()->with('error', 'Error loading complaint details: ' . $e->getMessage());
-        }
+        $complaint->load(['assignedEmployee', 'city', 'sector', 'spareParts.spare', 'spareApprovals', 'logs.actionBy', 'category', 'complaintTitle']);
+        return view('admin.complaints.show', compact('complaint'));
     }
 
     /**
-     * Show the form for editing the complaint
+     * Show the form for editing the specified complaint
      */
     public function edit(Complaint $complaint)
     {
-        $complaint->load(['spareParts.spare']);
+        if (in_array($complaint->status, ['resolved', 'closed'])) {
+            return redirect()->route('admin.complaints.index')
+                ->with('error', 'Resolved or Closed complaints cannot be edited.');
+        }
+        $complaint->load(['assignedEmployee', 'city', 'sector']);
 
-        $employees = Employee::where('status', 'active')->orderBy('name')->get();
+        $employeesQuery = Employee::where('status', 1)->orderBy('name');
+
+        $this->filterEmployeesByLocation($employeesQuery, Auth::user());
+        $employees = $employeesQuery->get();
+
         $categories = Schema::hasTable('complaint_categories')
-            ? ComplaintCategory::orderBy('name')->pluck('name')
+            ? ComplaintCategory::where('status', 1)->orderBy('name')->pluck('name', 'id')
             : collect();
 
-        // Provide cities/sectors for dropdowns (match create() UX)
-        $cities = Schema::hasTable('cities')
-            ? City::where('status', 'active')->orderBy('id', 'asc')->get()
-            : collect();
+        // Get cities and sectors for dropdowns
+        $citiesQuery = City::where('status', 1)->orderBy('id', 'asc');
+        $userCityIds = $this->getUserCityIds(Auth::user());
+        if ($userCityIds !== null) {
+            $citiesQuery->whereIn('id', $userCityIds);
+        }
+        $cities = Schema::hasTable('cities') ? $citiesQuery->get() : collect();
 
-        // Get default city_id and sector_id from complaint
-        $defaultCityId = $complaint->city_id;
-        $defaultSectorId = $complaint->sector_id;
+        // Load sectors for the complaint's city (via house if needed)
         $sectors = collect();
-
-        // Load sectors for the selected city
-        if ($defaultCityId && Schema::hasTable('sectors')) {
-            $sectors = Sector::where('city_id', $defaultCityId)
-                ->where('status', 'active')
+        $complaintCityId = $complaint->city_id ?? $complaint->house?->city_id;
+        if ($complaintCityId) {
+            $sectors = Sector::where('city_id', $complaintCityId)
+                ->where('status', 1)
                 ->orderBy('name')
                 ->get();
         }
 
-        return view('admin.complaints.edit', compact(
-            'complaint',
-            'employees',
-            'categories',
-            'cities',
-            'sectors',
-            'defaultCityId',
-            'defaultSectorId'
-        ));
+        $defaultCityId = $complaint->city_id ?? $complaint->house?->city_id ?? (!empty(Auth::user()->city_ids) ? Auth::user()->city_ids[0] : null);
+        $defaultSectorId = $complaint->sector_id ?? $complaint->house?->sector_id ?? (!empty(Auth::user()->sector_ids) ? Auth::user()->sector_ids[0] : null);
+
+        // Get houses filtered by location
+        $housesQuery = House::where('status', 1)->orderBy('house_no');
+        $this->filterHousesByLocation($housesQuery, Auth::user());
+        $houses = $housesQuery->get();
+
+        return view('admin.complaints.edit', compact('complaint', 'employees', 'categories', 'cities', 'sectors', 'defaultCityId', 'defaultSectorId', 'houses'));
     }
 
     /**
@@ -435,28 +576,30 @@ class ComplaintController extends Controller
      */
     public function update(Request $request, Complaint $complaint)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
+        if (in_array($complaint->status, ['resolved', 'closed'])) {
+            return redirect()->route('admin.complaints.index')
+                ->with('error', 'Resolved or Closed complaints cannot be updated.');
+        }
+        $data = $request->all();
+        if (isset($data['complaint_title_id']) && $data['complaint_title_id'] === 'other') {
+            $data['complaint_title_id'] = null;
+        }
+
+        $validator = Validator::make($data, [
+            'title' => 'nullable|string|max:255',
+            'complaint_title_id' => 'nullable|exists:complaint_titles,id',
             'title_other' => 'nullable|string|max:255',
-            'client_name' => 'required|string|max:255',
-            // Allow any category string (column changed to VARCHAR)
-            'category' => 'required|string|max:100',
+            'category' => 'required|exists:complaint_categories,id', // Expect ID
             'priority' => 'required|in:low,medium,high,urgent,emergency',
             'availability_time' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'assigned_employee_id' => 'nullable|exists:employees,id',
-            // Status removed from form - will be managed in approvals view, keep existing status
-            'attachments' => 'nullable|array|max:5',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
-            // Product (spare) optional now
+            'assigned_employee_id' => 'required|exists:employees,id',
             'spare_parts' => 'nullable|array',
             'spare_parts.0.spare_id' => 'nullable|exists:spares,id',
             'spare_parts.0.quantity' => 'nullable|integer|min:1',
             'city_id' => 'nullable|exists:cities,id',
             'sector_id' => 'nullable|exists:sectors,id',
-            'address' => 'nullable|string|max:500',
-            'email' => 'nullable|string|max:150',
-            'phone' => 'nullable|string|min:11|max:50',
+            'house_id' => 'required|exists:houses,id',
         ]);
 
         if ($validator->fails()) {
@@ -465,74 +608,38 @@ class ComplaintController extends Controller
                 ->withInput();
         }
 
-        // Resolve city/sector names from IDs if provided (dropdowns)
-        $cityName = null;
-        $sectorName = null;
-        if ($request->city_id) {
-            $city = City::find($request->city_id);
-            $cityName = $city?->name;
-        }
-        if ($request->sector_id) {
-            $sector = Sector::find($request->sector_id);
-            $sectorName = $sector?->name;
-        }
-
-        // Fallback to text inputs if present
-        $cityName = $cityName ?? ($request->city ?: null);
-        $sectorName = $sectorName ?? ($request->sector ?: null);
-
-        // Find or create client by name and update details
-        $client = Client::firstOrCreate(
-            ['client_name' => trim($request->client_name)],
-            [
-                'contact_person' => $request->input('contact_person') ?: trim($request->client_name),
-                'email' => $request->input('email', ''),
-                'phone' => $request->input('phone', ''),
-                'address' => $request->input('address'),
-                'city' => $cityName,
-                'sector' => $sectorName,
-                'status' => 'active',
-            ]
-        );
-        // Update existing client with provided fields
-        $client->fill([
-            'contact_person' => $request->input('contact_person') ?: trim($request->client_name),
-            'email' => $request->input('email', $client->email),
-            'phone' => $request->input('phone', $client->phone),
-            'address' => $request->input('address', $client->address),
-            'city' => $cityName ?? $client->city,
-            'sector' => $sectorName ?? $client->sector,
-        ])->save();
-
         $oldStatus = $complaint->status;
         $oldAssignedTo = $complaint->assigned_employee_id;
 
-        // Use title_other if title is "other", otherwise use title
-        // Check both title_other field and if title itself is "other"
-        if ($request->title === 'other') {
-            $finalTitle = $request->title_other ? trim($request->title_other) : 'other';
-        } else {
-            $finalTitle = $request->title;
+        // Title Updating Logic
+        $complaintTitleId = $request->complaint_title_id;
+        $customTitle = null;
+
+        if (!$complaintTitleId) {
+            $customTitle = $request->title_other ?? $request->title;
+            if (strtolower($customTitle) === 'other')
+                $customTitle = null;
         }
 
-        // If finalTitle is still "other" or empty, use title_other if available
-        if (empty($finalTitle) || $finalTitle === 'other') {
-            $finalTitle = $request->title_other ? trim($request->title_other) : 'other';
+        $newStatus = $complaint->status;
+        if ($newStatus === 'new' && $request->assigned_employee_id) {
+            $newStatus = 'assigned';
         }
 
         $complaint->update([
-            'title' => $finalTitle,
-            'client_id' => $client->id,
+            'complaint_title_id' => $complaintTitleId,
+            'title' => $customTitle,
+            'house_id' => $request->house_id ?: null,
             'city_id' => $request->city_id ?: null,
             'sector_id' => $request->sector_id ?: null,
-            'category' => $request->category,
+            'category_id' => $request->category,
             'priority' => $request->priority,
             'availability_time' => $request->availability_time,
             'description' => $request->description,
             'assigned_employee_id' => $request->assigned_employee_id ?: null,
-            // Status not updated here - will be managed in approvals view
-            // Keep existing status and closed_at
+            'status' => $newStatus,
         ]);
+
 
         // Update product (spare) selection only if provided
         if ($request->filled('spare_parts') && isset($request->spare_parts[0]['spare_id']) && $request->spare_parts[0]['spare_id']) {
@@ -559,6 +666,14 @@ class ComplaintController extends Controller
                     'used_at' => now(),
                 ]);
 
+                // Also update the main complaints table for compatibility
+                $complaint->update([
+                    'spare_id' => $spare->id,
+                    'spare_quantity' => (int) ($part['quantity'] ?? 1),
+                    'spare_used_by' => $currentEmployee?->id ?? Employee::first()->id,
+                    'spare_used_at' => now(),
+                ]);
+
                 if ($currentEmployee) {
                     ComplaintLog::create([
                         'complaint_id' => $complaint->id,
@@ -575,23 +690,6 @@ class ComplaintController extends Controller
             }
         }
 
-        // Handle new file attachments
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('complaint-attachments', $filename, 'public');
-
-                ComplaintAttachment::create([
-                    'complaint_id' => $complaint->id,
-                    'filename' => $filename,
-                    'original_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                ]);
-            }
-        }
-
         // Log status changes
         if ($oldStatus !== $request->status) {
             $currentEmployee = Employee::first();
@@ -602,6 +700,15 @@ class ComplaintController extends Controller
                     'action' => 'status_changed',
                     'remarks' => "Status changed from {$oldStatus} to {$request->status}",
                 ]);
+            }
+
+            // Send Notification to the House (User) for status change
+            if ($complaint->house) {
+                try {
+                    $complaint->house->notify(new \App\Notifications\ComplaintStatusUpdated($complaint, $request->status));
+                } catch (\Exception $e) {
+                    Log::error('Notification Failed in update(): ' . $e->getMessage());
+                }
             }
         }
 
@@ -621,6 +728,29 @@ class ComplaintController extends Controller
                     'remarks' => $assignmentNote,
                 ]);
             }
+
+            // Send Notification to the House (User) for assignment
+            if ($complaint->house) {
+                try {
+                    $status = $request->assigned_employee_id ? 'assigned' : 'unassigned';
+                    $complaint->house->notify(new \App\Notifications\ComplaintStatusUpdated($complaint, $status));
+                } catch (\Exception $e) {
+                    Log::error('Notification Failed in update() assignment: ' . $e->getMessage());
+                }
+            }
+        }
+
+        if ($request->filled('redirect_to')) {
+            $redirectTo = $request->redirect_to;
+            
+            // Security: Only allow internal redirects to prevent Open Redirect attacks
+            // Must be a relative path starting with '/' and not containing backslashes (which browsers can convert to slashes)
+            if (is_string($redirectTo) && str_starts_with($redirectTo, '/') && !str_starts_with($redirectTo, '//') && !str_contains($redirectTo, '\\')) {
+                return redirect($redirectTo)
+                    ->with('success', 'Complaint updated successfully.');
+            }
+            
+            // If redirect_to is not a safe internal path, fall through to default redirect
         }
 
         return redirect()->route('admin.complaints.index')
@@ -678,6 +808,15 @@ class ComplaintController extends Controller
             ]);
         }
 
+        // Send Notification to the House (User)
+        if ($complaint->house) {
+            try {
+                $complaint->house->notify(new \App\Notifications\ComplaintStatusUpdated($complaint, 'assigned'));
+            } catch (\Exception $e) {
+                Log::error('Notification Failed in assign(): ' . $e->getMessage());
+            }
+        }
+
         return redirect()->back()
             ->with('success', 'Complaint assigned successfully.');
     }
@@ -688,7 +827,7 @@ class ComplaintController extends Controller
     public function updateStatus(Request $request, Complaint $complaint)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:new,assigned,in_progress,resolved,work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld,barak_damages',
+            'status' => 'required|in:new,assigned,in_progress,resolved,work_performa,maint_performa,work_priced_performa,maint_priced_performa,product_na,un_authorized,barrack_damages',
             'notes' => 'nullable|string',
             'remarks' => 'nullable|string',
         ]);
@@ -752,6 +891,18 @@ class ComplaintController extends Controller
                 'action' => 'status_changed',
                 'remarks' => $logRemarks,
             ]);
+        }
+
+        // Send Notification to the House (User)
+        // Ensure we load the house relationship
+        $house = $complaint->house;
+        if ($house) {
+            try {
+                $house->notify(new \App\Notifications\ComplaintStatusUpdated($complaint, $request->status));
+            } catch (\Exception $e) {
+                // Log error but don't fail the written request
+                \Illuminate\Support\Facades\Log::error('Notification Failed: ' . $e->getMessage());
+            }
         }
 
         // Return JSON for AJAX requests
@@ -823,7 +974,6 @@ class ComplaintController extends Controller
             'maint_priced_performa' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'maint_priced_performa')->count(),
             'product_na' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'product_na')->count(),
             'un_authorized' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'un_authorized')->count(),
-            'pertains_to_ge_const_isld' => Complaint::where('created_at', '>=', now()->subDays($period))->where('status', 'pertains_to_ge_const_isld')->count(),
             'overdue' => Complaint::overdue()->count(),
         ];
 
@@ -868,7 +1018,7 @@ class ComplaintController extends Controller
         $days = $request->get('days', 7);
 
         $overdue = Complaint::overdue($days)
-            ->with(['client', 'assignedEmployee'])
+            ->with(['house', 'assignedEmployee'])
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -892,8 +1042,7 @@ class ComplaintController extends Controller
                 SUM(CASE WHEN status = "maint_priced_performa" THEN 1 ELSE 0 END) as maint_priced_performa_count,
                 SUM(CASE WHEN status = "product_na" THEN 1 ELSE 0 END) as product_na_count,
                 SUM(CASE WHEN status = "un_authorized" THEN 1 ELSE 0 END) as un_authorized_count,
-                SUM(CASE WHEN status = "pertains_to_ge_const_isld" THEN 1 ELSE 0 END) as pertains_to_ge_const_isld_count,
-                AVG(CASE WHEN status = "resolved" THEN TIMESTAMPDIFF(HOUR, created_at, updated_at) ELSE NULL END) as avg_resolution_time')
+                AVG(CASE WHEN status = "resolved" THEN TIMESTAMPDIFF(HOUR, complaints.created_at, complaints.updated_at) ELSE NULL END) as avg_resolution_time')
             ->groupBy('assigned_employee_id')
             ->with('assignedEmployee')
             ->get();
@@ -906,7 +1055,7 @@ class ComplaintController extends Controller
      */
     public function printSlip(Complaint $complaint)
     {
-        $complaint->load(['client', 'assignedEmployee', 'attachments']);
+        $complaint->load(['assignedEmployee.designation', 'attachments', 'house', 'category', 'city', 'sector', 'logs.actionBy']);
 
         return view('admin.complaints.print-slip', compact('complaint'));
     }
@@ -949,7 +1098,7 @@ class ComplaintController extends Controller
 
             case 'change_status':
                 $validator = Validator::make($request->all(), [
-                    'status' => 'required|in:new,assigned,in_progress,resolved,work_priced_performa,maint_priced_performa,product_na,un_authorized,pertains_to_ge_const_isld',
+                    'status' => 'required|in:new,assigned,in_progress,resolved,work_priced_performa,maint_priced_performa,product_na,un_authorized',
                 ]);
 
                 if ($validator->fails()) {
@@ -1062,6 +1211,16 @@ class ComplaintController extends Controller
                     'used_at' => now(),
                 ]);
 
+                // Also update the main complaints table if it's the first spare part
+                if (!$complaint->spare_id) {
+                    $complaint->update([
+                        'spare_id' => $spare->id,
+                        'spare_quantity' => $part['quantity'],
+                        'spare_used_by' => $currentEmployee->id,
+                        'spare_used_at' => now(),
+                    ]);
+                }
+
                 // No stock deduction here; happens on approval
 
                 $totalCost += $spare->unit_price * $part['quantity'];
@@ -1094,7 +1253,7 @@ class ComplaintController extends Controller
      */
     public function export(Request $request)
     {
-        $query = Complaint::with(['client', 'assignedEmployee']);
+        $query = Complaint::with(['house', 'assignedEmployee']);
 
         // Apply same filters as index
         if ($request->has('search') && $request->search) {
@@ -1110,7 +1269,14 @@ class ComplaintController extends Controller
         }
 
         if ($request->has('complaint_type') && $request->complaint_type) {
-            $query->where('category', $request->complaint_type);
+            $category = $request->complaint_type;
+            if (is_numeric($category)) {
+                $query->where('category_id', $category);
+            } else {
+                $query->whereHas('category', function ($q) use ($category) {
+                    $q->where('name', $category);
+                });
+            }
         }
 
         $complaints = $query->get();
